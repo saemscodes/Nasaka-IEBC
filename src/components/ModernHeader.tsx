@@ -1,57 +1,65 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Menu, X, FileText, Users, Scale, MapPin, Search } from 'lucide-react';
+import { Shield, Menu, X, FileText, Users, Scale, MapPin, Search, Sun, Moon } from 'lucide-react';
 
 interface ModernHeaderProps {
   darkMode?: boolean;
+  toggleDarkMode?: () => void;
+  onNavigate?: (sectionId: string) => void;
 }
 
-const ModernHeader: React.FC<ModernHeaderProps> = ({ darkMode = false }) => {
+const ModernHeader: React.FC<ModernHeaderProps> = ({ 
+  darkMode = false, 
+  toggleDarkMode,
+  onNavigate
+}) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const goToHomepage = () => {
-    window.location.href = "/";
+  const navigationItems = [
+    { 
+      id: 'dashboard', 
+      label: 'Petitions', 
+      icon: FileText,
+      sectionId: 'dashboard-section'
+    },
+    { 
+      id: 'sign', 
+      label: 'Sign', 
+      icon: Users,
+      sectionId: 'sign-section'
+    },
+    { 
+      id: 'legal', 
+      label: 'Legal', 
+      icon: Scale,
+      sectionId: 'legal-section'
+    },
+    { 
+      id: 'map', 
+      label: 'Map', 
+      icon: MapPin,
+      sectionId: 'map-section'
+    },
+    { 
+      id: 'search', 
+      label: 'Search', 
+      icon: Search,
+      sectionId: 'search-section'
+    }
+  ];
+  
+  const handleNavigation = (sectionId: string) => {
+    if (onNavigate) {
+      onNavigate(sectionId);
+    }
+    setIsMobileMenuOpen(false);
   };
 
-  // In ModernHeader.tsx
-const navigationItems = [
-  { 
-    id: 'dashboard', 
-    label: 'Petitions', 
-    icon: FileText
-  },
-  { 
-    id: 'sign', 
-    label: 'Sign', 
-    icon: Users
-  },
-  { 
-    id: 'legal', 
-    label: 'Legal', 
-    icon: Scale
-  },
-  { 
-    id: 'map', 
-    label: 'Map', 
-    icon: MapPin
-  },
-  { 
-    id: 'search', 
-    label: 'Search', 
-    icon: Search
-  }
-];
-  
-  const handleNavigation = (item: typeof navigationItems[0]) => {
-  // Dispatch a custom event that the main page can listen for
-  const event = new CustomEvent('tab-navigation', { 
-    detail: { tabId: item.id } 
-  });
-  window.dispatchEvent(event);
-  setIsMobileMenuOpen(false);
-};
+  const goToHomepage = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setIsMobileMenuOpen(false);
+  };
 
   return (
     <header className={`sticky top-0 z-50 transition-all duration-300 ${
@@ -71,10 +79,14 @@ const navigationItems = [
               <Shield className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className={`...`}>
+              <h1 className={`text-lg font-bold transition-colors duration-300 ${
+                darkMode ? 'text-white' : 'text-green-900'
+              }`}>
                 Recall254
               </h1>
-              <p className={`...`}>
+              <p className={`text-xs transition-colors duration-300 ${
+                darkMode ? 'text-gray-400' : 'text-green-700'
+              }`}>
                 Democratic Accountability
               </p>
             </div>
@@ -87,7 +99,7 @@ const navigationItems = [
                 key={item.id}
                 variant="ghost"
                 size="sm"
-                onClick={() => handleNavigation(item)}
+                onClick={() => handleNavigation(item.sectionId)}
                 className={`flex items-center space-x-2 transition-colors duration-300 ${
                   darkMode 
                     ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
@@ -100,11 +112,26 @@ const navigationItems = [
             ))}
           </nav>
 
-          {/* Status Badge */}
-          <div className="hidden sm:flex items-center space-x-3">
+          {/* Right-side Elements */}
+          <div className="flex items-center space-x-3">
+            {/* Dark Mode Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleDarkMode}
+              className={`hidden md:flex transition-colors duration-300 ${
+                darkMode 
+                  ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
+                  : 'text-green-700 hover:text-green-900 hover:bg-green-50'
+              }`}
+            >
+              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </Button>
+            
+            {/* Status Badge */}
             <Badge 
               variant="outline" 
-              className={`transition-colors duration-300 ${
+              className={`hidden sm:flex transition-colors duration-300 ${
                 darkMode 
                   ? 'border-green-600 text-green-400 bg-green-900/20' 
                   : 'border-green-600 text-green-700 bg-green-50'
@@ -112,21 +139,21 @@ const navigationItems = [
             >
               Beta
             </Badge>
-          </div>
 
-          {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`md:hidden transition-colors duration-300 ${
-              darkMode 
-                ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
-                : 'text-green-700 hover:text-green-900 hover:bg-green-50'
-            }`}
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </Button>
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`md:hidden transition-colors duration-300 ${
+                darkMode 
+                  ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
+                  : 'text-green-700 hover:text-green-900 hover:bg-green-50'
+              }`}
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
+          </div>
         </div>
 
         {/* Mobile Navigation */}
@@ -140,7 +167,7 @@ const navigationItems = [
                   key={item.id}
                   variant="ghost"
                   size="sm"
-                  onClick={() => handleNavigation(item)}
+                  onClick={() => handleNavigation(item.sectionId)}
                   className={`flex items-center space-x-3 justify-start transition-colors duration-300 ${
                     darkMode 
                       ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
@@ -151,6 +178,22 @@ const navigationItems = [
                   <span>{item.label}</span>
                 </Button>
               ))}
+              
+              {/* Dark Mode Toggle for Mobile */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleDarkMode}
+                className={`flex items-center space-x-3 justify-start transition-colors duration-300 ${
+                  darkMode 
+                    ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
+                    : 'text-green-700 hover:text-green-900 hover:bg-green-50'
+                }`}
+              >
+                {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+              </Button>
+              
               <div className="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700">
                 <Badge 
                   variant="outline" 
