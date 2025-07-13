@@ -75,7 +75,7 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({
            placeholder={placeholder}
            onSearch={fetchConstituencies}
            onSelect={handleSelect}
-           getDisplayText={(c: Constituency) => `${c.name}, ${c.county_id}`} // Updated to county_id
+           getDisplayText={(c) => `${c.name}, ${c.county_id}`} // Remove explicit type
            className="pl-10 h-12 text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:border-green-500 dark:focus:border-green-400"
            />
         </div>
