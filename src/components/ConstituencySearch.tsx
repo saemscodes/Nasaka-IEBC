@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, MapPin, Users } from 'lucide-react';
@@ -9,7 +10,6 @@ interface Constituency {
   id: string;
   name: string;
   county_id: string;
-  county_name: string;
   total_voters?: number;
   lat?: number;
   lng?: number;
@@ -32,34 +32,27 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({
   const [selectedConstituency, setSelectedConstituency] = useState<Constituency | null>(null);
 
   const fetchConstituencies = async (query: string): Promise<Constituency[]> => {
-    // Properly format query for Supabase
-    const formattedQuery = `%${query}%`;
+    console.log('Searching for:', query);
     
     const { data, error } = await supabase
       .from('constituencies')
-      .select(`
-        id,
-        name,
-        county_id,
-        registration_target,
-        county:county_id (name)
-      `)
-      // Correct query syntax with proper column references
-      .or(`name.ilike.${formattedQuery},county:name.ilike.${formattedQuery}`)
+      .select('*')
+      .or(`name.ilike.%${query}%,county.ilike.%${query}%`)
       .limit(10);
 
     if (error) {
       console.error('Search error:', error);
-      return [];
+      throw error;
     }
     
+    console.log('Search results:', data);
+    // Update fetchConstituencies return mapping
     return (data || []).map(item => ({
       id: item.id,
       name: item.name,
       county_id: item.county_id,
-      county_name: item.county?.name || 'Unknown County',
-      total_voters: item.registration_target
-    }));
+      total_voters: item.registration_target // Map registration_target to total_voters
+      }));
   };
 
   const handleSearch = () => {
@@ -82,7 +75,7 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({
            placeholder={placeholder}
            onSearch={fetchConstituencies}
            onSelect={handleSelect}
-           getDisplayText={(c) => `${c.name}, ${c.county_name}`}
+           getDisplayText={(c) => `${c.name}, ${c.county_id}`} // Remove explicit type
            className="pl-10 h-12 text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:border-green-500 dark:focus:border-green-400"
            />
         </div>
@@ -106,9 +99,7 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({
                   <MapPin className="w-4 h-4 text-green-600 dark:text-green-400 mr-2" />
                   <span className="font-medium text-gray-900 dark:text-white">{selectedConstituency.name}</span>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 ml-6">
-                  {selectedConstituency.county_name} County
-                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 ml-6">{selectedConstituency.county_id} County</p>
                 {selectedConstituency.wards && selectedConstituency.wards.length > 0 && (
                   <p className="text-xs text-gray-500 dark:text-gray-500 ml-6 mt-1">
                     Wards: {selectedConstituency.wards.join(', ')}
@@ -118,7 +109,7 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({
               <div className="flex items-center text-green-600 dark:text-green-400">
                 <Users className="w-4 h-4 mr-1" />
                 <span className="text-sm font-medium">
-                  {selectedConstituency.total_voters?.toLocaleString() || 'N/A'}
+                  {selectedConstituency.registration_target?.toLocaleString() || 'N/A'}
                 </span>
               </div>
             </div>
