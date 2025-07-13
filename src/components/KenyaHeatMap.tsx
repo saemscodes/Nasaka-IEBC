@@ -31,7 +31,8 @@ const KenyaHeatMap = () => {
 
       if (constituenciesError) throw constituenciesError;
 
-      const totalVoters = counties?.reduce((sum, county) => sum + (county.total_voters || 0), 0) || 0;
+      const totalVoters = counties?.reduce((sum, county) => 
+        sum + (county.registration_target || 0), 0) || 0; // Use registration_target
 
       setMapStats({
         totalCounties: counties?.length || 0,
