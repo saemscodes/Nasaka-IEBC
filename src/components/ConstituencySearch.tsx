@@ -71,13 +71,13 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({
       <div className="flex gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400 dark:text-gray-500" />
-          <SearchBox<Constituency>
-            placeholder={placeholder}
-            onSearch={fetchConstituencies}
-            onSelect={handleSelect}
-            getDisplayText={(c: Constituency) => `${c.name}, ${c.county}`}
-            className="pl-10 h-12 text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:border-green-500 dark:focus:border-green-400"
-          />
+         <SearchBox
+           placeholder={placeholder}
+           onSearch={fetchConstituencies}
+           onSelect={handleSelect}
+           getDisplayText={(c: Constituency) => `${c.name}, ${c.county_id}`} // Updated to county_id
+           className="pl-10 h-12 text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:border-green-500 dark:focus:border-green-400"
+           />
         </div>
         {showButton && (
           <Button 
@@ -99,7 +99,7 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({
                   <MapPin className="w-4 h-4 text-green-600 dark:text-green-400 mr-2" />
                   <span className="font-medium text-gray-900 dark:text-white">{selectedConstituency.name}</span>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 ml-6">{selectedConstituency.county} County</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 ml-6">{selectedConstituency.county_id} County</p>
                 {selectedConstituency.wards && selectedConstituency.wards.length > 0 && (
                   <p className="text-xs text-gray-500 dark:text-gray-500 ml-6 mt-1">
                     Wards: {selectedConstituency.wards.join(', ')}
