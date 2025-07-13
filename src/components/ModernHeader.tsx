@@ -1,168 +1,139 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Shield, Menu, X, FileText, Users, Scale, MapPin, Search } from 'lucide-react';
+import { Shield, Menu, X, Users, Search, FileText, MapPin, Scale } from 'lucide-react';
 
 interface ModernHeaderProps {
   darkMode?: boolean;
 }
 
-const ModernHeader: React.FC<ModernHeaderProps> = ({ darkMode = false }) => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+const ModernHeader = ({ darkMode = false }: ModernHeaderProps) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const navigationItems = [
-    { 
-      id: 'petitions', 
-      label: 'Petitions', 
-      icon: FileText,
-      onClick: () => document.getElementById('dashboard-tab')?.click()
-    },
-    { 
-      id: 'signatures', 
-      label: 'Signatures', 
-      icon: Users,
-      onClick: () => document.getElementById('sign-tab')?.click()
-    },
-    { 
-      id: 'legal', 
-      label: 'Legal', 
-      icon: Scale,
-      onClick: () => document.getElementById('legal-tab')?.click()
-    },
-    { 
-      id: 'map', 
-      label: 'Map', 
-      icon: MapPin,
-      onClick: () => document.getElementById('map-tab')?.click()
-    },
-    { 
-      id: 'search', 
-      label: 'Search', 
-      icon: Search,
-      onClick: () => document.getElementById('search-tab')?.click()
-    }
-  ];
-
-  const handleNavigation = (item: typeof navigationItems[0]) => {
-    // Scroll to section or trigger tab change
-    const event = new CustomEvent('navigate', { detail: { section: item.id } });
-    window.dispatchEvent(event);
-    setIsMobileMenuOpen(false);
+  const handleNavClick = (tabId: string) => {
+    // Dispatch custom event to change active tab
+    window.dispatchEvent(new CustomEvent('changeTab', { detail: tabId }));
+    setIsMenuOpen(false);
   };
 
   return (
-    <header className={`sticky top-0 z-50 transition-all duration-300 ${
-      darkMode 
-        ? 'bg-gray-900/95 backdrop-blur-sm border-gray-700' 
-        : 'bg-white/95 backdrop-blur-sm border-green-100'
-    } border-b`}>
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+    <header className={`${darkMode ? 'bg-gray-800/90' : 'bg-white/90'} backdrop-blur-md border-b ${darkMode ? 'border-gray-700' : 'border-green-100'} sticky top-0 z-50`}>
+      {/* Constitutional Banner */}
+      <div className="bg-gradient-to-r from-green-600 to-green-700 text-white text-xs py-1">
+        <div className="container mx-auto px-4 flex justify-center items-center space-x-6">
+          <span>Art. 104: Constitutional Right to Recall</span>
+          <span>•</span>
+          <span>KICA §83C Compliant</span>
+          <span>•</span>
+          <span>End-to-End Encrypted</span>
+        </div>
+      </div>
+
+      {/* Main Header */}
+      <div className="container mx-auto px-4 py-3">
+        <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
-              <Shield className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
+              <Shield className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className={`text-xl font-bold transition-colors duration-300 ${
-                darkMode ? 'text-white' : 'text-green-900'
-              }`}>
-                Recall254
-              </h1>
-              <p className={`text-xs transition-colors duration-300 ${
-                darkMode ? 'text-gray-400' : 'text-green-600'
-              }`}>
-                Democratic Accountability
-              </p>
+              <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-green-900'}`}>Recall254</h1>
+              <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-green-600'}`}>Not For GenZ, For Kenya</p>
             </div>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1">
-            {navigationItems.map((item) => (
-              <Button
-                key={item.id}
-                variant="ghost"
-                size="sm"
-                onClick={() => handleNavigation(item)}
-                className={`flex items-center space-x-2 transition-colors duration-300 ${
-                  darkMode 
-                    ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
-                    : 'text-green-700 hover:text-green-900 hover:bg-green-50'
-                }`}
-              >
-                <item.icon className="w-4 h-4" />
-                <span className="text-sm">{item.label}</span>
-              </Button>
-            ))}
-          </nav>
-
-          {/* Status Badge */}
-          <div className="hidden sm:flex items-center space-x-3">
-            <Badge 
-              variant="outline" 
-              className={`transition-colors duration-300 ${
-                darkMode 
-                  ? 'border-green-600 text-green-400 bg-green-900/20' 
-                  : 'border-green-600 text-green-700 bg-green-50'
-              }`}
+          <nav className="hidden md:flex items-center space-x-6">
+            <button 
+              onClick={() => handleNavClick('dashboard')}
+              className={`${darkMode ? 'text-gray-300 hover:text-white' : 'text-green-800 hover:text-green-600'} transition-colors flex items-center space-x-1`}
             >
-              Beta
-            </Badge>
-          </div>
+              <Users className="w-4 h-4" />
+              <span>Active Petitions</span>
+            </button>
+            <button 
+              onClick={() => handleNavClick('search')}
+              className={`${darkMode ? 'text-gray-300 hover:text-white' : 'text-green-800 hover:text-green-600'} transition-colors flex items-center space-x-1`}
+            >
+              <Search className="w-4 h-4" />
+              <span>Search Wards</span>
+            </button>
+            <button 
+              onClick={() => handleNavClick('sign')}
+              className={`${darkMode ? 'text-gray-300 hover:text-white' : 'text-green-800 hover:text-green-600'} transition-colors flex items-center space-x-1`}
+            >
+              <FileText className="w-4 h-4" />
+              <span>Sign Petition</span>
+            </button>
+            <button 
+              onClick={() => handleNavClick('legal')}
+              className={`${darkMode ? 'text-gray-300 hover:text-white' : 'text-green-800 hover:text-green-600'} transition-colors flex items-center space-x-1`}
+            >
+              <Scale className="w-4 h-4" />
+              <span>Legal Framework</span>
+            </button>
+            <button 
+              onClick={() => handleNavClick('map')}
+              className={`${darkMode ? 'text-gray-300 hover:text-white' : 'text-green-800 hover:text-green-600'} transition-colors flex items-center space-x-1`}
+            >
+              <MapPin className="w-4 h-4" />
+              <span>Electoral Map</span>
+            </button>
+          </nav>
 
           {/* Mobile Menu Button */}
           <Button
             variant="ghost"
             size="sm"
-            className={`md:hidden transition-colors duration-300 ${
-              darkMode 
-                ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
-                : 'text-green-700 hover:text-green-900 hover:bg-green-50'
-            }`}
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </Button>
         </div>
 
         {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
-          <div className={`md:hidden py-4 border-t transition-colors duration-300 ${
-            darkMode ? 'border-gray-700' : 'border-green-100'
-          }`}>
-            <nav className="flex flex-col space-y-2">
-              {navigationItems.map((item) => (
-                <Button
-                  key={item.id}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleNavigation(item)}
-                  className={`flex items-center space-x-3 justify-start transition-colors duration-300 ${
-                    darkMode 
-                      ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
-                      : 'text-green-700 hover:text-green-900 hover:bg-green-50'
-                  }`}
-                >
-                  <item.icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </Button>
-              ))}
-              <div className="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700">
-                <Badge 
-                  variant="outline" 
-                  className={`transition-colors duration-300 ${
-                    darkMode 
-                      ? 'border-green-600 text-green-400 bg-green-900/20' 
-                      : 'border-green-600 text-green-700 bg-green-50'
-                  }`}
-                >
-                  Beta Version
-                </Badge>
-              </div>
-            </nav>
-          </div>
+        {isMenuOpen && (
+          <nav className={`md:hidden mt-4 pt-4 border-t ${darkMode ? 'border-gray-700' : 'border-green-100'}`}>
+            <div className="flex flex-col space-y-3">
+              <button 
+                onClick={() => handleNavClick('dashboard')}
+                className={`${darkMode ? 'text-gray-300 hover:text-white' : 'text-green-800 hover:text-green-600'} transition-colors flex items-center space-x-2 text-left`}
+              >
+                <Users className="w-4 h-4" />
+                <span>Active Petitions</span>
+              </button>
+              <button 
+                onClick={() => handleNavClick('search')}
+                className={`${darkMode ? 'text-gray-300 hover:text-white' : 'text-green-800 hover:text-green-600'} transition-colors flex items-center space-x-2 text-left`}
+              >
+                <Search className="w-4 h-4" />
+                <span>Search Wards</span>
+              </button>
+              <button 
+                onClick={() => handleNavClick('sign')}
+                className={`${darkMode ? 'text-gray-300 hover:text-white' : 'text-green-800 hover:text-green-600'} transition-colors flex items-center space-x-2 text-left`}
+              >
+                <FileText className="w-4 h-4" />
+                <span>Sign Petition</span>
+              </button>
+              <button 
+                onClick={() => handleNavClick('legal')}
+                className={`${darkMode ? 'text-gray-300 hover:text-white' : 'text-green-800 hover:text-green-600'} transition-colors flex items-center space-x-2 text-left`}
+              >
+                <Scale className="w-4 h-4" />
+                <span>Legal Framework</span>
+              </button>
+              <button 
+                onClick={() => handleNavClick('map')}
+                className={`${darkMode ? 'text-gray-300 hover:text-white' : 'text-green-800 hover:text-green-600'} transition-colors flex items-center space-x-2 text-left`}
+              >
+                <MapPin className="w-4 h-4" />
+                <span>Electoral Map</span>
+              </button>
+            </div>
+          </nav>
         )}
       </div>
     </header>

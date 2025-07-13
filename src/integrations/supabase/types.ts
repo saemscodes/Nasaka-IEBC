@@ -65,62 +65,6 @@ export type Database = {
           },
         ]
       }
-      constituencies: {
-        Row: {
-          county_id: number
-          id: number
-          member_of_parliament: string | null
-          name: string
-          registration_target: number
-        }
-        Insert: {
-          county_id: number
-          id?: number
-          member_of_parliament?: string | null
-          name: string
-          registration_target: number
-        }
-        Update: {
-          county_id?: number
-          id?: number
-          member_of_parliament?: string | null
-          name?: string
-          registration_target?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "constituencies_county_id_fkey"
-            columns: ["county_id"]
-            isOneToOne: false
-            referencedRelation: "counties"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      counties: {
-        Row: {
-          governor: string | null
-          id: number
-          name: string
-          registration_target: number
-          senator: string | null
-        }
-        Insert: {
-          governor?: string | null
-          id?: number
-          name: string
-          registration_target: number
-          senator?: string | null
-        }
-        Update: {
-          governor?: string | null
-          id?: number
-          name?: string
-          registration_target?: number
-          senator?: string | null
-        }
-        Relationships: []
-      }
       evidence_documents: {
         Row: {
           created_at: string
@@ -323,7 +267,6 @@ export type Database = {
           county: string
           created_at: string
           id: string
-          member_of_parliament: string | null
           registration_target: number | null
           ward_name: string
         }
@@ -332,7 +275,6 @@ export type Database = {
           county: string
           created_at?: string
           id?: string
-          member_of_parliament?: string | null
           registration_target?: number | null
           ward_name: string
         }
@@ -341,7 +283,6 @@ export type Database = {
           county?: string
           created_at?: string
           id?: string
-          member_of_parliament?: string | null
           registration_target?: number | null
           ward_name?: string
         }

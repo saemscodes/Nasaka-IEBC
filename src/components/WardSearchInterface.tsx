@@ -1,11 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, MapPin, Users, Calculator, TrendingUp } from "lucide-react";
+import { Search, MapPin, Users, Calculator, TrendingUp } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
-import SearchBox from "@/components/SearchBox";
 
 interface Ward {
   id: string;
@@ -31,16 +32,9 @@ const WardSearchInterface = () => {
   const [selectedConstituency, setSelectedConstituency] = useState('');
   const [signatureResult, setSignatureResult] = useState<SignatureRequirement | null>(null);
   const [loading, setLoading] = useState(false);
-  
-  const [calcCounty, setCalcCounty] = useState("");
-  const [calcConstituency, setCalcConstituency] = useState("");
-  const [calcWard, setCalcWard] = useState("");
-  const [countyOptions, setCountyOptions] = useState<string[]>([]);
-  const [constituencyOptions, setConstituencyOptions] = useState<string[]>([]);
 
   useEffect(() => {
     fetchWards();
-    fetchOptions();
   }, []);
 
   useEffect(() => {
@@ -65,21 +59,6 @@ const WardSearchInterface = () => {
     }
   };
 
-  const fetchOptions = async () => {
-    const { data: counties } = await supabase
-      .from('wards')
-      .select('county')
-      .order('county', { ascending: true });
-      
-    const { data: constituencies } = await supabase
-      .from('wards')
-      .select('constituency')
-      .order('constituency', { ascending: true });
-
-    setCountyOptions([...new Set(counties?.map(c => c.county) || [])]);
-    setConstituencyOptions([...new Set(constituencies?.map(c => c.constituency) || [])]);
-  };
-
   const filterWards = () => {
     let filtered = wards;
 
@@ -102,46 +81,24 @@ const WardSearchInterface = () => {
     setFilteredWards(filtered);
   };
 
-  const searchWards = async (query: string) => {
-    const { data, error } = await supabase
-      .from('wards')
-      .select('*')
-      .or(`ward_name.ilike.%${query}%,constituency.ilike.%${query}%,county.ilike.%${query}%`)
-      .limit(5);
-
-    if (error) throw error;
-    return data || [];
-  };
-
-  const searchCounties = async (query: string) => {
-    return countyOptions
-      .filter(c => c.toLowerCase().includes(query.toLowerCase()))
-      .map(c => ({ name: c }));
-  };
-
-  const searchConstituencies = async (query: string) => {
-    return constituencyOptions
-      .filter(c => c.toLowerCase().includes(query.toLowerCase()))
-      .map(c => ({ name: c }));
-  };
-
-  const calculateSignatureRequirement = () => {
-    if (!calcCounty || !calcConstituency || !calcWard) return;
-    
+  const calculateSignatureRequirement = (county: string, constituency: string, ward: string) => {
     const selectedWard = wards.find(w => 
-      w.county === calcCounty && 
-      w.constituency === calcConstituency && 
-      w.ward_name.toLowerCase() === calcWard.toLowerCase()
+      w.county === county && 
+      w.constituency === constituency && 
+      w.ward_name.toLowerCase() === ward.toLowerCase()
     );
 
     if (selectedWard) {
+      // Calculate 30% of registered voters (standard recall requirement)
       const requiredSignatures = Math.ceil(selectedWard.registration_target * 0.3);
+      const percentage = 30;
+
       setSignatureResult({
-        county: calcCounty,
-        constituency: calcConstituency,
+        county,
+        constituency,
         ward: selectedWard.ward_name,
         requiredSignatures,
-        percentage: 30
+        percentage
       });
     }
   };
@@ -152,6 +109,20 @@ const WardSearchInterface = () => {
 
   const getConstituenciesByCounty = (county: string) => {
     return [...new Set(wards.filter(ward => ward.county === county).map(ward => ward.constituency))].sort();
+  };
+
+  const getWardsByConstituency = (constituency: string) => {
+    return wards.filter(ward => ward.constituency === constituency).sort((a, b) => a.ward_name.localeCompare(b.ward_name));
+  };
+
+  const handleCalculateSignatures = () => {
+    const countyInput = document.querySelector('input[placeholder="County name"]') as HTMLInputElement;
+    const constituencyInput = document.querySelector('input[placeholder="Constituency name"]') as HTMLInputElement;
+    const wardInput = document.querySelector('input[placeholder="Ward name"]') as HTMLInputElement;
+
+    if (countyInput?.value && constituencyInput?.value && wardInput?.value) {
+      calculateSignatureRequirement(countyInput.value, constituencyInput.value, wardInput.value);
+    }
   };
 
   return (
@@ -171,16 +142,11 @@ const WardSearchInterface = () => {
           {/* Search Bar */}
           <div className="relative">
             <Search className="absolute left-3 top-3 w-4 h-4 text-green-500" />
-            <SearchBox
+            <Input
               placeholder="Search by ward, constituency, or county..."
-              onSearch={searchWards}
-              onSelect={(ward) => {
-                setSearchTerm(ward.ward_name);
-                setSelectedCounty(ward.county);
-                setSelectedConstituency(ward.constituency);
-              }}
-              getDisplayText={(ward: Ward) => `${ward.ward_name}, ${ward.constituency}, ${ward.county}`}
-              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 border-green-200 focus:border-green-400"
             />
           </div>
 
@@ -208,13 +174,9 @@ const WardSearchInterface = () => {
               </SelectTrigger>
               <SelectContent className="bg-white border-green-200">
                 <SelectItem value="all">All Constituencies</SelectItem>
-                {selectedCounty && selectedCounty !== 'all' && 
-                  getConstituenciesByCounty(selectedCounty).map(constituency => (
-                    <SelectItem key={constituency} value={constituency}>
-                      {constituency}
-                    </SelectItem>
-                  ))
-                }
+                {selectedCounty && selectedCounty !== 'all' && getConstituenciesByCounty(selectedCounty).map(constituency => (
+                  <SelectItem key={constituency} value={constituency}>{constituency}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -234,38 +196,22 @@ const WardSearchInterface = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <SearchBox
+            <Input
               placeholder="County name"
-              onSearch={searchCounties}
-              onSelect={(county) => {
-                setCalcCounty(county.name);
-                setCalcConstituency("");
-                setCalcWard("");
-              }}
-              getDisplayText={(county) => county.name}
+              className="border-green-200 focus:border-green-400"
             />
-            <SearchBox
+            <Input
               placeholder="Constituency name"
-              onSearch={searchConstituencies}
-              onSelect={(constituency) => {
-                setCalcConstituency(constituency.name);
-                setCalcWard("");
-              }}
-              getDisplayText={(constituency) => constituency.name}
-              disabled={!calcCounty}
+              className="border-green-200 focus:border-green-400"
             />
-            <SearchBox
+            <Input
               placeholder="Ward name"
-              onSearch={searchWards}
-              onSelect={(ward: Ward) => setCalcWard(ward.ward_name)}
-              getDisplayText={(ward: Ward) => ward.ward_name}
-              disabled={!calcConstituency}
+              className="border-green-200 focus:border-green-400"
             />
           </div>
 
           <Button 
-            onClick={calculateSignatureRequirement}
-            disabled={!calcCounty || !calcConstituency || !calcWard}
+            onClick={handleCalculateSignatures}
             className="bg-green-600 hover:bg-green-700 text-white mb-4"
           >
             Calculate Required Signatures
@@ -320,12 +266,7 @@ const WardSearchInterface = () => {
                 <div
                   key={ward.id}
                   className="border border-green-100 rounded-lg p-4 hover:bg-green-50/50 transition-colors cursor-pointer"
-                  onClick={() => {
-                    setCalcCounty(ward.county);
-                    setCalcConstituency(ward.constituency);
-                    setCalcWard(ward.ward_name);
-                    calculateSignatureRequirement();
-                  }}
+                  onClick={() => calculateSignatureRequirement(ward.county, ward.constituency, ward.ward_name)}
                 >
                   <div className="flex justify-between items-start">
                     <div>
