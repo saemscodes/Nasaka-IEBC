@@ -16,31 +16,31 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({ darkMode = false }) => {
       id: 'petitions', 
       label: 'Petitions', 
       icon: FileText,
-      onClick: () => document.getElementById('dashboard-tab')?.click()
+      onClick: () => document.getElementById('dashboard')?.click()
     },
     { 
       id: 'signatures', 
       label: 'Signatures', 
       icon: Users,
-      onClick: () => document.getElementById('sign-tab')?.click()
+      onClick: () => document.getElementById('sign')?.click()
     },
     { 
       id: 'legal', 
       label: 'Legal', 
       icon: Scale,
-      onClick: () => document.getElementById('legal-tab')?.click()
+      onClick: () => document.getElementById('legal')?.click()
     },
     { 
       id: 'map', 
       label: 'Map', 
       icon: MapPin,
-      onClick: () => document.getElementById('map-tab')?.click()
+      onClick: () => document.getElementById('map')?.click()
     },
     { 
       id: 'search', 
       label: 'Search', 
       icon: Search,
-      onClick: () => document.getElementById('search-tab')?.click()
+      onClick: () => document.getElementById('search')?.click()
     }
   ];
 
