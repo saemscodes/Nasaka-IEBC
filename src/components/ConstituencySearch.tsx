@@ -9,8 +9,8 @@ import SearchBox from "@/components/SearchBox";
 interface Constituency {
   id: string;
   name: string;
-  county: string;
-  total_voters: number;
+  county_id: string;
+  total_voters?: number;
   lat?: number;
   lng?: number;
   wards?: string[];
@@ -46,7 +46,13 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({
     }
     
     console.log('Search results:', data);
-    return data || [];
+    // Update fetchConstituencies return mapping
+    return (data || []).map(item => ({
+      id: item.id,
+      name: item.name,
+      county_id: item.county_id,
+      total_voters: item.registration_target // Map registration_target to total_voters
+      }));
   };
 
   const handleSearch = () => {
