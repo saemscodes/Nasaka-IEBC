@@ -1,64 +1,36 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Menu, X, FileText, Users, Scale, MapPin, Search, Sun, Moon } from 'lucide-react';
+import { Shield, Menu, X, FileText, Users, Scale, MapPin, Search, Moon, Sun } from 'lucide-react';
 
 interface ModernHeaderProps {
   darkMode?: boolean;
-  toggleDarkMode?: () => void;
-  onNavigate?: (sectionId: string) => void;
+  toggleDarkMode: () => void;
+  scrollToTab: (tabId: string) => void;
 }
 
 const ModernHeader: React.FC<ModernHeaderProps> = ({ 
   darkMode = false, 
   toggleDarkMode,
-  onNavigate
+  scrollToTab
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navigationItems = [
-    { 
-      id: 'dashboard', 
-      label: 'Petitions', 
-      icon: FileText,
-      sectionId: 'dashboard-section'
-    },
-    { 
-      id: 'sign', 
-      label: 'Sign', 
-      icon: Users,
-      sectionId: 'sign-section'
-    },
-    { 
-      id: 'legal', 
-      label: 'Legal', 
-      icon: Scale,
-      sectionId: 'legal-section'
-    },
-    { 
-      id: 'map', 
-      label: 'Map', 
-      icon: MapPin,
-      sectionId: 'map-section'
-    },
-    { 
-      id: 'search', 
-      label: 'Search', 
-      icon: Search,
-      sectionId: 'search-section'
-    }
+    { id: 'dashboard', label: 'Petitions', icon: FileText },
+    { id: 'sign', label: 'Sign', icon: Users },
+    { id: 'legal', label: 'Legal', icon: Scale },
+    { id: 'map', label: 'Map', icon: MapPin },
+    { id: 'search', label: 'Search', icon: Search }
   ];
   
-  const handleNavigation = (sectionId: string) => {
-    if (onNavigate) {
-      onNavigate(sectionId);
-    }
+  const handleNavigation = (item: typeof navigationItems[0]) => {
+    scrollToTab(item.id);
     setIsMobileMenuOpen(false);
   };
 
   const goToHomepage = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    setIsMobileMenuOpen(false);
+    window.location.href = "/";
   };
 
   return (
@@ -99,7 +71,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
                 key={item.id}
                 variant="ghost"
                 size="sm"
-                onClick={() => handleNavigation(item.sectionId)}
+                onClick={() => handleNavigation(item)}
                 className={`flex items-center space-x-2 transition-colors duration-300 ${
                   darkMode 
                     ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
@@ -110,16 +82,13 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
                 <span className="text-sm">{item.label}</span>
               </Button>
             ))}
-          </nav>
-
-          {/* Right-side Elements */}
-          <div className="flex items-center space-x-3">
+            
             {/* Dark Mode Toggle */}
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleDarkMode}
-              className={`hidden md:flex transition-colors duration-300 ${
+              className={`transition-colors duration-300 ${
                 darkMode 
                   ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
                   : 'text-green-700 hover:text-green-900 hover:bg-green-50'
@@ -127,8 +96,10 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
             >
               {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
-            
-            {/* Status Badge */}
+          </nav>
+
+          {/* Status Badge + Mobile Menu */}
+          <div className="flex items-center space-x-3">
             <Badge 
               variant="outline" 
               className={`hidden sm:flex transition-colors duration-300 ${
@@ -140,11 +111,25 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
               Beta
             </Badge>
 
+            {/* Mobile Dark Mode Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleDarkMode}
+              className={`md:hidden transition-colors duration-300 ${
+                darkMode 
+                  ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
+                  : 'text-green-700 hover:text-green-900 hover:bg-green-50'
+              }`}
+            >
+              {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </Button>
+
             {/* Mobile Menu Button */}
             <Button
               variant="ghost"
               size="sm"
-              className={`md:hidden transition-colors duration-300 ${
+              className={`transition-colors duration-300 ${
                 darkMode 
                   ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
                   : 'text-green-700 hover:text-green-900 hover:bg-green-50'
@@ -167,7 +152,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
                   key={item.id}
                   variant="ghost"
                   size="sm"
-                  onClick={() => handleNavigation(item.sectionId)}
+                  onClick={() => handleNavigation(item)}
                   className={`flex items-center space-x-3 justify-start transition-colors duration-300 ${
                     darkMode 
                       ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
@@ -178,22 +163,6 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
                   <span>{item.label}</span>
                 </Button>
               ))}
-              
-              {/* Dark Mode Toggle for Mobile */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleDarkMode}
-                className={`flex items-center space-x-3 justify-start transition-colors duration-300 ${
-                  darkMode 
-                    ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
-                    : 'text-green-700 hover:text-green-900 hover:bg-green-50'
-                }`}
-              >
-                {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
-              </Button>
-              
               <div className="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700">
                 <Badge 
                   variant="outline" 
