@@ -109,7 +109,7 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({
               <div className="flex items-center text-green-600 dark:text-green-400">
                 <Users className="w-4 h-4 mr-1" />
                 <span className="text-sm font-medium">
-                  {selectedConstituency.total_voters?.toLocaleString() || 'N/A'}
+                  {selectedConstituency.registration_target?.toLocaleString() || 'N/A'}
                 </span>
               </div>
             </div>
