@@ -13,6 +13,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({ darkMode = false }) => {
 
   const goToHomepage = () => {
     window.location.href = "/";
+  };
 
   // In ModernHeader.tsx
 const navigationItems = [
