@@ -11,6 +11,9 @@ interface ModernHeaderProps {
 const ModernHeader: React.FC<ModernHeaderProps> = ({ darkMode = false }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const goToHomepage = () => {
+    window.location.href = "/";
+
   // In ModernHeader.tsx
 const navigationItems = [
   { 
@@ -58,24 +61,24 @@ const navigationItems = [
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-3">
+          <div 
+            className="flex items-center space-x-3 cursor-pointer"
+            onClick={goToHomepage}
+            aria-label="Go to homepage"
+          >
             <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
               <Shield className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className={`text-xl font-bold transition-colors duration-300 ${
-                darkMode ? 'text-white' : 'text-green-900'
-              }`}>
+              <h1 className={`...`}>
                 Recall254
               </h1>
-              <p className={`text-xs transition-colors duration-300 ${
-                darkMode ? 'text-gray-400' : 'text-green-600'
-              }`}>
+              <p className={`...`}>
                 Democratic Accountability
               </p>
             </div>
           </div>
-
+          
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
             {navigationItems.map((item) => (
