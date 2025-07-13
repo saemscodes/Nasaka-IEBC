@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase'; // Make sure this path is correct
 
 interface SearchBoxProps<T> {
   placeholder: string;
@@ -122,7 +123,6 @@ function SearchBox<T>({
   };
 
   const handleBlur = (e: React.FocusEvent) => {
-    // Delay closing to allow for clicks on results
     setTimeout(() => {
       if (!e.relatedTarget || !resultsRef.current?.contains(e.relatedTarget as Node)) {
         setIsOpen(false);
