@@ -44,6 +44,21 @@ const Index = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Inside your Index component
+useEffect(() => {
+  const handleTabNavigation = (event: CustomEvent) => {
+    setActiveTab(event.detail.tabId);
+  };
+
+  // Add event listener
+  window.addEventListener('tab-navigation', handleTabNavigation as EventListener);
+
+  // Clean up
+  return () => {
+    window.removeEventListener('tab-navigation', handleTabNavigation as EventListener);
+  };
+}, []);
+
   const fetchRealPetitionStats = async () => {
     try {
       const { data: petitions, error: petitionsError } = await supabase
