@@ -22,12 +22,35 @@ const CountyStatistics = () => {
 
   const fetchCountyStatistics = async () => {
     try {
-      const { data: verifiedSignatures, error: verifiedError } = await supabase
-        .from('signatures')
-        .select('*')
-        .filter('verification_status->>verified', 'eq', 'true'); // Correct JSON access
-      if (error) throw error;
-      setCountyStats(data || []);
+      // Fetch counties
+      const { data: counties, error: countiesError } = await supabase
+        .from('counties')
+        .select('*');
+      
+      if (countiesError) throw countiesError;
+
+      // Fetch constituencies
+      const { data: constituencies, error: constError } = await supabase
+        .from('constituencies')
+        .select('county_id');
+      
+      if (constError) throw constError;
+
+      // Count constituencies per county
+      const constituencyCounts = constituencies.reduce((acc, curr) => {
+        acc[curr.county_id] = (acc[curr.county_id] || 0) + 1;
+        return acc;
+      }, {});
+
+      // Map data with constituency counts
+      const mappedData = counties.map(county => ({
+        county_name: county.name,
+        total_voters: county.registration_target || 0,
+        constituencies_count: constituencyCounts[county.id] || 0,
+        wards_count: 0 // Add similar logic for wards if available
+      }));
+
+      setCountyStats(mappedData);
     } catch (error) {
       console.error('Error fetching county statistics:', error);
     } finally {
