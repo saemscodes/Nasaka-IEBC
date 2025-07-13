@@ -12,6 +12,7 @@ interface SearchBoxProps<T> {
   className?: string;
   value?: string;
   onChange?: (value: string) => void;
+  disabled?: boolean;
 }
 
 function SearchBox<T>({ 
@@ -21,7 +22,8 @@ function SearchBox<T>({
   getDisplayText, 
   className = "",
   value,
-  onChange 
+  onChange,
+  disabled = false
 }: SearchBoxProps<T>) {
   const [query, setQuery] = useState(value || '');
   const [results, setResults] = useState<T[]>([]);
@@ -32,14 +34,14 @@ function SearchBox<T>({
   const resultsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (value !== undefined) {
+    if (value !== undefined && value !== query) {
       setQuery(value);
     }
   }, [value]);
 
   useEffect(() => {
     const performSearch = async () => {
-      if (query.length < 2) {
+      if (query.length < 2 || disabled) {
         setResults([]);
         setIsOpen(false);
         return;
@@ -49,11 +51,12 @@ function SearchBox<T>({
       try {
         const searchResults = await onSearch(query);
         setResults(searchResults);
-        setIsOpen(true);
+        setIsOpen(searchResults.length > 0);
         setSelectedIndex(-1);
       } catch (error) {
         console.error('Search error:', error);
         setResults([]);
+        setIsOpen(false);
       } finally {
         setIsLoading(false);
       }
@@ -61,24 +64,29 @@ function SearchBox<T>({
 
     const debounceTimer = setTimeout(performSearch, 300);
     return () => clearTimeout(debounceTimer);
-  }, [query, onSearch]);
+  }, [query, onSearch, disabled]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (disabled) return;
+    
     const newValue = e.target.value;
     setQuery(newValue);
     onChange?.(newValue);
   };
 
   const handleSelect = (item: T) => {
+    if (disabled) return;
+    
     onSelect(item);
-    setQuery(getDisplayText(item));
-    onChange?.(getDisplayText(item));
+    const displayText = getDisplayText(item);
+    setQuery(displayText);
+    onChange?.(displayText);
     setIsOpen(false);
     setSelectedIndex(-1);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!isOpen || results.length === 0) return;
+    if (!isOpen || results.length === 0 || disabled) return;
 
     switch (e.key) {
       case 'ArrowDown':
@@ -107,6 +115,22 @@ function SearchBox<T>({
     }
   };
 
+  const handleFocus = () => {
+    if (!disabled && query.length >= 2 && results.length > 0) {
+      setIsOpen(true);
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent) => {
+    // Delay closing to allow for clicks on results
+    setTimeout(() => {
+      if (!e.relatedTarget || !resultsRef.current?.contains(e.relatedTarget as Node)) {
+        setIsOpen(false);
+        setSelectedIndex(-1);
+      }
+    }, 150);
+  };
+
   return (
     <div className="relative w-full">
       <div className="relative">
@@ -117,19 +141,21 @@ function SearchBox<T>({
           value={query}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          onFocus={() => query.length >= 2 && setIsOpen(true)}
-          className={`w-full ${className}`}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          disabled={disabled}
+          className={`w-full ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
         />
         {isLoading && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+            <Loader2 className="w-4 h-4 animate-spin text-gray-400 dark:text-gray-600" />
           </div>
         )}
       </div>
 
-      {isOpen && results.length > 0 && (
+      {isOpen && results.length > 0 && !disabled && (
         <Card className="absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-          <CardContent className="p-0">
+          <CardContent className="p-0" ref={resultsRef}>
             {results.map((item, index) => (
               <div
                 key={index}
@@ -139,7 +165,7 @@ function SearchBox<T>({
                     : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100'
                 }`}
                 onClick={() => handleSelect(item)}
-                ref={index === selectedIndex ? resultsRef : undefined}
+                onMouseEnter={() => setSelectedIndex(index)}
               >
                 {getDisplayText(item)}
               </div>
