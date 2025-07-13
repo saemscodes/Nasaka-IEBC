@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -61,32 +60,49 @@ useEffect(() => {
 
   const fetchRealPetitionStats = async () => {
     try {
+      // Fetch active petitions
       const { data: petitions, error: petitionsError } = await supabase
         .from('petitions')
         .select('*')
         .eq('status', 'active');
 
-      if (petitionsError) throw petitionsError;
+      if (petitionsError) {
+        console.error('Petitions error:', petitionsError);
+        throw petitionsError;
+      }
 
+      // Fetch all signatures
       const { data: signatures, error: signaturesError } = await supabase
         .from('signatures')
         .select('*');
 
-      if (signaturesError) throw signaturesError;
+      if (signaturesError) {
+        console.error('Signatures error:', signaturesError);
+        throw signaturesError;
+      }
 
+      // Fetch verified signatures
       const { data: verifiedSignatures, error: verifiedError } = await supabase
         .from('signatures')
         .select('*')
-        .eq('verification_status->verified', true);
+        .eq('verification_status->>verified', 'true'); // Fixed: use string 'true'
 
-      if (verifiedError) throw verifiedError;
+      if (verifiedError) {
+        console.error('Verified signatures error:', verifiedError);
+        throw verifiedError;
+      }
 
+      // Fetch all wards
       const { data: wards, error: wardsError } = await supabase
         .from('wards')
         .select('*');
 
-      if (wardsError) throw wardsError;
+      if (wardsError) {
+        console.error('Wards error:', wardsError);
+        throw wardsError;
+      }
 
+      // Calculate statistics
       const uniqueWardsCovered = new Set(signatures?.map(s => s.ward)).size;
       const totalWards = wards?.length || 0;
       const complianceScore = totalWards > 0 ? Math.round((uniqueWardsCovered / totalWards) * 100) : 0;
