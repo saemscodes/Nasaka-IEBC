@@ -9,11 +9,11 @@ interface Constituency {
   id: string;
   name: string;
   county_id: string;
-  county_name: string;
   total_voters?: number;
   lat?: number;
   lng?: number;
   wards?: string[];
+  county_name?: string; // Added county name
 }
 
 interface ConstituencySearchProps {
@@ -32,7 +32,8 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({
   const [selectedConstituency, setSelectedConstituency] = useState<Constituency | null>(null);
 
   const fetchConstituencies = async (query: string): Promise<Constituency[]> => {
-    // Properly format query for Supabase
+    console.log('Searching for:', query);
+    
     const formattedQuery = `%${query}%`;
     
     const { data, error } = await supabase
@@ -42,10 +43,9 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({
         name,
         county_id,
         registration_target,
-        county:county_id (name)
+        counties!inner(name)
       `)
-      // Correct query syntax with proper column references
-      .or(`name.ilike.${formattedQuery},county:name.ilike.${formattedQuery}`)
+      .or(`name.ilike.${formattedQuery},counties.name.ilike.${formattedQuery}`)
       .limit(10);
 
     if (error) {
@@ -53,11 +53,13 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({
       return [];
     }
     
+    console.log('Search results:', data);
+    
     return (data || []).map(item => ({
       id: item.id,
       name: item.name,
       county_id: item.county_id,
-      county_name: item.county?.name || 'Unknown County',
+      county_name: item.counties?.name || 'Unknown County', // Add county name
       total_voters: item.registration_target
     }));
   };
@@ -82,7 +84,7 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({
            placeholder={placeholder}
            onSearch={fetchConstituencies}
            onSelect={handleSelect}
-           getDisplayText={(c) => `${c.name}, ${c.county_name}`}
+           getDisplayText={(c) => `${c.name}, ${c.county_name || c.county_id}`}
            className="pl-10 h-12 text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:border-green-500 dark:focus:border-green-400"
            />
         </div>
@@ -107,7 +109,7 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({
                   <span className="font-medium text-gray-900 dark:text-white">{selectedConstituency.name}</span>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 ml-6">
-                  {selectedConstituency.county_name} County
+                  {selectedConstituency.county_name || selectedConstituency.county_id} County
                 </p>
                 {selectedConstituency.wards && selectedConstituency.wards.length > 0 && (
                   <p className="text-xs text-gray-500 dark:text-gray-500 ml-6 mt-1">
