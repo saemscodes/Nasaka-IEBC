@@ -22,7 +22,10 @@ const CountyStatistics = () => {
 
   const fetchCountyStatistics = async () => {
     try {
-      const { data, error } = await supabase.rpc('get_county_statistics');
+      const { data: verifiedSignatures, error: verifiedError } = await supabase
+        .from('signatures')
+        .select('*')
+        .filter('verification_status->>verified', 'eq', 'true'); // Correct JSON access
       if (error) throw error;
       setCountyStats(data || []);
     } catch (error) {
