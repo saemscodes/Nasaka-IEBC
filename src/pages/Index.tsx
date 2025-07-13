@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Users, FileText, Shield, MapPin, TrendingUp } from 'lucide-react';
@@ -26,17 +26,11 @@ const Index = () => {
     complianceScore: 0,
     activePetitions: 0
   });
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Refs for scrolling to sections
-  const dashboardRef = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<HTMLDivElement>(null);
-  const signRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<HTMLDivElement>(null);
-  const legalRef = useRef<HTMLDivElement>(null);
-  const wizardRef = useRef<HTMLDivElement>(null);
 
-  // Initialize dark mode
+  // Refs for section scrolling
+  const mainContentRef = useRef<HTMLDivElement>(null);
+  const sectionsRef = useRef<{[key: string]: HTMLDivElement | null}>({});
+
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('darkMode');
     const systemDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -52,39 +46,44 @@ const Index = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Toggle dark mode
-  const toggleDarkMode = useCallback(() => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    localStorage.setItem('darkMode', JSON.stringify(newDarkMode));
-    
-    if (newDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
+  useEffect(() => {
+    const handleTabNavigation = (event: CustomEvent) => {
+      scrollToTab(event.detail.tabId);
+    };
 
-  // Fetch petition stats
+    window.addEventListener('tab-navigation', handleTabNavigation as EventListener);
+    return () => {
+      window.removeEventListener('tab-navigation', handleTabNavigation as EventListener);
+    };
+  }, []);
+
   const fetchRealPetitionStats = async () => {
     try {
-      setIsLoading(true);
-      
-      const [
-        { data: petitions, error: petitionsError },
-        { data: signatures, error: signaturesError },
-        { data: verifiedSignatures, error: verifiedError },
-        { data: wards, error: wardsError }
-      ] = await Promise.all([
-        supabase.from('petitions').select('*').eq('status', 'active'),
-        supabase.from('signatures').select('*'),
-        supabase.from('signatures').select('*').eq('verification_status->>verified', 'true'),
-        supabase.from('wards').select('*')
-      ]);
+      const { data: petitions, error: petitionsError } = await supabase
+        .from('petitions')
+        .select('*')
+        .eq('status', 'active');
 
-      if (petitionsError || signaturesError || verifiedError || wardsError) {
-        throw new Error('Failed to fetch data');
-      }
+      if (petitionsError) throw petitionsError;
+
+      const { data: signatures, error: signaturesError } = await supabase
+        .from('signatures')
+        .select('*');
+
+      if (signaturesError) throw signaturesError;
+
+      const { data: verifiedSignatures, error: verifiedError } = await supabase
+        .from('signatures')
+        .select('*')
+        .eq('verification_status->>verified', 'true');
+
+      if (verifiedError) throw verifiedError;
+
+      const { data: wards, error: wardsError } = await supabase
+        .from('wards')
+        .select('*');
+
+      if (wardsError) throw wardsError;
 
       const uniqueWardsCovered = new Set(signatures?.map(s => s.ward)).size;
       const totalWards = wards?.length || 0;
@@ -100,55 +99,34 @@ const Index = () => {
       });
     } catch (error) {
       console.error('Failed to fetch petition stats:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  // Scroll to section
-  const scrollToSection = (sectionRef: React.RefObject<HTMLDivElement>) => {
-    if (sectionRef.current) {
-      const headerOffset = 100;
-      const elementPosition = sectionRef.current.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-      
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    }
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', JSON.stringify(newDarkMode));
+    document.documentElement.classList.toggle('dark', newDarkMode);
   };
 
-  // Handle navigation to specific tab
-  const navigateToTab = (tabId: string) => {
+  const scrollToTab = (tabId: string) => {
     setActiveTab(tabId);
-    
-    // Use timeout to ensure tab content is rendered before scrolling
     setTimeout(() => {
-      switch (tabId) {
-        case 'dashboard':
-          scrollToSection(dashboardRef);
-          break;
-        case 'search':
-          scrollToSection(searchRef);
-          break;
-        case 'sign':
-          scrollToSection(signRef);
-          break;
-        case 'map':
-          scrollToSection(mapRef);
-          break;
-        case 'legal':
-          scrollToSection(legalRef);
-          break;
-        case 'wizard':
-          scrollToSection(wizardRef);
-          break;
-        default:
-          scrollToSection(dashboardRef);
+      const section = sectionsRef.current[tabId];
+      if (section && mainContentRef.current) {
+        const top = section.offsetTop - mainContentRef.current.offsetTop - 20;
+        window.scrollTo({ top, behavior: 'smooth' });
       }
-    }, 50);
+    }, 100);
   };
+
+  const navigationItems = [
+    { id: 'dashboard', label: 'Active Petitions', icon: Users },
+    { id: 'search', label: 'Search Wards', icon: MapPin },
+    { id: 'sign', label: 'Sign Petition', icon: FileText },
+    { id: 'map', label: 'Electoral Map', icon: MapPin },
+    { id: 'legal', label: 'Legal Framework', icon: Shield }
+  ];
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${
@@ -159,81 +137,72 @@ const Index = () => {
       <ModernHeader 
         darkMode={darkMode} 
         toggleDarkMode={toggleDarkMode} 
-        onNavigate={navigateToTab}
+        scrollToTab={scrollToTab} 
       />
 
-      {/* Hero Section */}
+      {/* Hero Section - Minimalistic Centered */}
       <section className={`py-16 transition-colors duration-300 ${
         darkMode 
           ? 'bg-gray-800' 
           : 'bg-gradient-to-br from-green-50/40 via-white to-green-50/20'
       }`}>
-        <div className="container mx-auto px-4 text-center max-w-4xl">
+        <div className="container mx-auto px-4 text-center max-w-3xl">
           {/* Container 1: Search + Buttons */}
           <div className="mb-12">
-            <h1 className={`text-4xl font-bold mb-2 transition-colors duration-300 ${
-              darkMode ? 'text-white' : 'text-green-900'
-            }`}>
-              Recall254
-            </h1>
-            <p className={`text-lg mb-8 transition-colors duration-300 ${
-              darkMode ? 'text-gray-300' : 'text-green-700'
-            }`}>
-              Citizen-powered democratic accountability
-            </p>
-            
             <div className="max-w-2xl mx-auto mb-6">
               <ConstituencySearch />
             </div>
             
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button 
-                onClick={() => navigateToTab('wizard')}
+                onClick={() => scrollToTab('wizard')}
                 className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white px-6 py-3"
               >
                 Start Petition
               </Button>
               <Button 
-                onClick={() => navigateToTab('map')}
+                onClick={() => scrollToTab('map')}
                 variant="outline" 
                 className="border-green-600 dark:border-green-500 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 px-6 py-3"
               >
-                View Electoral Map
+                IEBC Map
               </Button>
             </div>
           </div>
-
-          {/* Container 2: Voter Verification */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-            <div className={`p-4 ${darkMode ? 'bg-gray-700' : 'bg-green-50'}`}>
-              <h3 className={`font-bold flex items-center justify-center gap-2 ${darkMode ? 'text-white' : 'text-green-800'}`}>
-                <Shield className="w-5 h-5" />
-                Verify Voter Registration Status
-              </h3>
-            </div>
+          
+          {/* Container 2: Voter Registration */}
+          <div className={`p-6 rounded-xl shadow-lg transition-colors duration-300 ${
+            darkMode 
+              ? 'bg-gray-700' 
+              : 'bg-white'
+          }`}>
+            <h3 className={`text-xl font-bold mb-4 transition-colors duration-300 ${
+              darkMode ? 'text-white' : 'text-green-900'
+            }`}>
+              Verify Voter Registration Status
+            </h3>
             
-            <div className="relative h-96 w-full">
-              {isLoading ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-800">
-                  <div className="animate-pulse flex flex-col items-center">
-                    <div className="w-16 h-16 bg-gray-200 dark:bg-gray-600 rounded-full mb-4"></div>
-                    <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-32 mb-2"></div>
-                    <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-48"></div>
-                  </div>
+            <div className="aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden relative">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center p-4">
+                  <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 mx-auto mb-4" />
+                  <p className={`mb-4 transition-colors duration-300 ${
+                    darkMode ? 'text-gray-300' : 'text-gray-600'
+                  }`}>
+                    Visit IEBC portal to verify your voter status
+                  </p>
+                  <Button asChild>
+                    <a 
+                      href="https://verify.iebc.or.ke/" 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white"
+                    >
+                      Verify Now
+                    </a>
+                  </Button>
                 </div>
-              ) : (
-                <iframe 
-                  src="https://verify.iebc.or.ke/" 
-                  title="IEBC Voter Verification"
-                  className="absolute top-0 left-0 w-full h-full border-0"
-                  sandbox="allow-same-origin allow-scripts allow-forms"
-                  onLoad={() => setIsLoading(false)}
-                />
-              )}
-            </div>
-            
-            <div className="p-3 text-xs text-gray-500 dark:text-gray-400">
-              Official IEBC voter verification portal
+              </div>
             </div>
           </div>
         </div>
@@ -282,7 +251,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Constitutional Framework */}
+      {/* Constitutional Framework Section */}
       <section className={`py-12 transition-colors duration-300 ${
         darkMode ? 'bg-gray-800/50' : 'bg-gradient-to-br from-green-50/20 to-white'
       }`}>
@@ -303,7 +272,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* County Statistics */}
+      {/* County Statistics Section */}
       <section className={`py-8 transition-colors duration-300 ${
         darkMode ? 'bg-gray-900/50' : 'bg-white/50'
       }`}>
@@ -312,22 +281,19 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+      {/* Main Application Content */}
+      <div 
+        ref={mainContentRef}
+        className="container mx-auto px-4 py-8"
+      >
         {/* Navigation Tabs */}
         <div className="mb-8">
           <div className="flex flex-wrap gap-2 justify-center">
-            {[
-              { id: 'dashboard', label: 'Active Petitions', icon: Users },
-              { id: 'search', label: 'Search Wards', icon: MapPin },
-              { id: 'sign', label: 'Sign Petition', icon: FileText },
-              { id: 'map', label: 'Electoral Map', icon: MapPin },
-              { id: 'legal', label: 'Legal Framework', icon: Shield }
-            ].map((item) => (
+            {navigationItems.map((item) => (
               <Button
                 key={item.id}
                 variant={activeTab === item.id ? "default" : "ghost"}
-                onClick={() => navigateToTab(item.id)}
+                onClick={() => scrollToTab(item.id)}
                 className={`flex items-center space-x-2 transition-all duration-300 ${
                   activeTab === item.id 
                     ? 'bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white shadow-md' 
@@ -347,35 +313,36 @@ const Index = () => {
 
         {/* Tab Content */}
         <div className="space-y-8">
-          {/* Dashboard Tab */}
-          <div ref={dashboardRef}>
-            {activeTab === 'dashboard' && <EnhancedPetitionDashboard />}
-          </div>
-          
-          {/* Search Tab */}
-          <div ref={searchRef}>
-            {activeTab === 'search' && <WardSearchInterface />}
-          </div>
-          
-          {/* Sign Tab */}
-          <div ref={signRef}>
-            {activeTab === 'sign' && <EnhancedSignatureFlow />}
-          </div>
-          
-          {/* Map Tab */}
-          <div ref={mapRef}>
-            {activeTab === 'map' && <KenyaHeatMap />}
-          </div>
-          
-          {/* Legal Tab */}
-          <div ref={legalRef}>
-            {activeTab === 'legal' && <LegalRepository />}
-          </div>
-          
-          {/* Wizard Tab */}
-          <div ref={wizardRef}>
-            {activeTab === 'wizard' && <PetitionWizard />}
-          </div>
+          {activeTab === 'dashboard' && (
+            <div ref={el => sectionsRef.current.dashboard = el}>
+              <EnhancedPetitionDashboard />
+            </div>
+          )}
+          {activeTab === 'search' && (
+            <div ref={el => sectionsRef.current.search = el}>
+              <WardSearchInterface />
+            </div>
+          )}
+          {activeTab === 'sign' && (
+            <div ref={el => sectionsRef.current.sign = el}>
+              <EnhancedSignatureFlow />
+            </div>
+          )}
+          {activeTab === 'map' && (
+            <div ref={el => sectionsRef.current.map = el}>
+              <KenyaHeatMap />
+            </div>
+          )}
+          {activeTab === 'legal' && (
+            <div ref={el => sectionsRef.current.legal = el}>
+              <LegalRepository />
+            </div>
+          )}
+          {activeTab === 'wizard' && (
+            <div ref={el => sectionsRef.current.wizard = el}>
+              <PetitionWizard />
+            </div>
+          )}
         </div>
       </div>
 
