@@ -20,14 +20,14 @@ interface Ward {
 interface Constituency {
   id: number;
   name: string;
-  county: string;
-  total_voters: number;
+  county_id: number; // Not county: string
+  registration_target: number; // Not total_voters
 }
 
 interface County {
   id: number;
   name: string;
-  total_voters: number;
+  registration_target: number; // Not total_voters
 }
 
 interface SignatureRequirement {
@@ -82,8 +82,14 @@ const WardSearchInterface = () => {
         .order('county', { ascending: true });
 
       if (constituenciesError) throw constituenciesError;
-      setConstituencies(constituenciesData || []);
-
+      // Update setConstituencies mapping:
+      setConstituencies((constituenciesData || []).map(c => ({
+        id: c.id,
+        name: c.name,
+        county_id: c.county_id,
+        registration_target: c.registration_target
+      })));
+      
       // Fetch counties
       const { data: countiesData, error: countiesError } = await supabase
         .from('counties')
@@ -144,7 +150,10 @@ const WardSearchInterface = () => {
     return counties
       .filter(c => c.name.toLowerCase().includes(query.toLowerCase()))
       .slice(0, 10)
-      .map(c => ({ name: c.name, total_voters: c.total_voters }));
+      .map(c => ({ 
+        name: c.name, 
+        total_voters: c.registration_target // Map to correct field
+        }));
   };
 
   const searchConstituencies = async (query: string) => {
