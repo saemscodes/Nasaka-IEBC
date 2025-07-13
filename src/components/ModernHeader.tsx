@@ -11,45 +11,43 @@ interface ModernHeaderProps {
 const ModernHeader: React.FC<ModernHeaderProps> = ({ darkMode = false }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const navigationItems = [
-    { 
-      id: 'petitions', 
-      label: 'Petitions', 
-      icon: FileText,
-      onClick: () => document.getElementById('dashboard')?.click()
-    },
-    { 
-      id: 'signatures', 
-      label: 'Signatures', 
-      icon: Users,
-      onClick: () => document.getElementById('sign')?.click()
-    },
-    { 
-      id: 'legal', 
-      label: 'Legal', 
-      icon: Scale,
-      onClick: () => document.getElementById('legal')?.click()
-    },
-    { 
-      id: 'map', 
-      label: 'Map', 
-      icon: MapPin,
-      onClick: () => document.getElementById('map')?.click()
-    },
-    { 
-      id: 'search', 
-      label: 'Search', 
-      icon: Search,
-      onClick: () => document.getElementById('search')?.click()
-    }
-  ];
-
+  // In ModernHeader.tsx
+const navigationItems = [
+  { 
+    id: 'dashboard', 
+    label: 'Petitions', 
+    icon: FileText
+  },
+  { 
+    id: 'sign', 
+    label: 'Sign', 
+    icon: Users
+  },
+  { 
+    id: 'legal', 
+    label: 'Legal', 
+    icon: Scale
+  },
+  { 
+    id: 'map', 
+    label: 'Map', 
+    icon: MapPin
+  },
+  { 
+    id: 'search', 
+    label: 'Search', 
+    icon: Search
+  }
+];
+  
   const handleNavigation = (item: typeof navigationItems[0]) => {
-    // Scroll to section or trigger tab change
-    const event = new CustomEvent('navigate', { detail: { section: item.id } });
-    window.dispatchEvent(event);
-    setIsMobileMenuOpen(false);
-  };
+  // Dispatch a custom event that the main page can listen for
+  const event = new CustomEvent('tab-navigation', { 
+    detail: { tabId: item.id } 
+  });
+  window.dispatchEvent(event);
+  setIsMobileMenuOpen(false);
+};
 
   return (
     <header className={`sticky top-0 z-50 transition-all duration-300 ${
