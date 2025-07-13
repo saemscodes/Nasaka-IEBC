@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Users, FileText, Shield, MapPin, TrendingUp } from 'lucide-react';
@@ -27,6 +27,14 @@ const Index = () => {
     activePetitions: 0
   });
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Refs for scrolling to sections
+  const dashboardRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const signRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<HTMLDivElement>(null);
+  const legalRef = useRef<HTMLDivElement>(null);
+  const wizardRef = useRef<HTMLDivElement>(null);
 
   // Initialize dark mode
   useEffect(() => {
@@ -98,24 +106,48 @@ const Index = () => {
   };
 
   // Scroll to section
-  const scrollToSection = (sectionId: string) => {
-    const section = document.getElementById(sectionId);
-    if (section) {
+  const scrollToSection = (sectionRef: React.RefObject<HTMLDivElement>) => {
+    if (sectionRef.current) {
       const headerOffset = 100;
-      const elementPosition = section.getBoundingClientRect().top;
+      const elementPosition = sectionRef.current.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
       
       window.scrollTo({
         top: offsetPosition,
         behavior: 'smooth'
       });
-      
-      // Update active tab if needed
-      const tabId = sectionId.replace('-section', '');
-      if (tabId !== activeTab) {
-        setActiveTab(tabId);
-      }
     }
+  };
+
+  // Handle navigation to specific tab
+  const navigateToTab = (tabId: string) => {
+    setActiveTab(tabId);
+    
+    // Use timeout to ensure tab content is rendered before scrolling
+    setTimeout(() => {
+      switch (tabId) {
+        case 'dashboard':
+          scrollToSection(dashboardRef);
+          break;
+        case 'search':
+          scrollToSection(searchRef);
+          break;
+        case 'sign':
+          scrollToSection(signRef);
+          break;
+        case 'map':
+          scrollToSection(mapRef);
+          break;
+        case 'legal':
+          scrollToSection(legalRef);
+          break;
+        case 'wizard':
+          scrollToSection(wizardRef);
+          break;
+        default:
+          scrollToSection(dashboardRef);
+      }
+    }, 50);
   };
 
   return (
@@ -127,7 +159,7 @@ const Index = () => {
       <ModernHeader 
         darkMode={darkMode} 
         toggleDarkMode={toggleDarkMode} 
-        onNavigate={scrollToSection}
+        onNavigate={navigateToTab}
       />
 
       {/* Hero Section */}
@@ -156,13 +188,13 @@ const Index = () => {
             
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button 
-                onClick={() => scrollToSection('wizard-section')}
+                onClick={() => navigateToTab('wizard')}
                 className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white px-6 py-3"
               >
                 Start Petition
               </Button>
               <Button 
-                onClick={() => scrollToSection('map-section')}
+                onClick={() => navigateToTab('map')}
                 variant="outline" 
                 className="border-green-600 dark:border-green-500 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 px-6 py-3"
               >
@@ -251,7 +283,7 @@ const Index = () => {
       </section>
 
       {/* Constitutional Framework */}
-      <section id="legal-section" className={`py-12 transition-colors duration-300 ${
+      <section className={`py-12 transition-colors duration-300 ${
         darkMode ? 'bg-gray-800/50' : 'bg-gradient-to-br from-green-50/20 to-white'
       }`}>
         <div className="container mx-auto px-4">
@@ -272,7 +304,7 @@ const Index = () => {
       </section>
 
       {/* County Statistics */}
-      <section id="map-section" className={`py-8 transition-colors duration-300 ${
+      <section className={`py-8 transition-colors duration-300 ${
         darkMode ? 'bg-gray-900/50' : 'bg-white/50'
       }`}>
         <div className="container mx-auto px-4">
@@ -295,7 +327,7 @@ const Index = () => {
               <Button
                 key={item.id}
                 variant={activeTab === item.id ? "default" : "ghost"}
-                onClick={() => scrollToSection(`${item.id}-section`)}
+                onClick={() => navigateToTab(item.id)}
                 className={`flex items-center space-x-2 transition-all duration-300 ${
                   activeTab === item.id 
                     ? 'bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white shadow-md' 
@@ -315,23 +347,34 @@ const Index = () => {
 
         {/* Tab Content */}
         <div className="space-y-8">
-          <div id="dashboard-section">
-            <EnhancedPetitionDashboard />
+          {/* Dashboard Tab */}
+          <div ref={dashboardRef}>
+            {activeTab === 'dashboard' && <EnhancedPetitionDashboard />}
           </div>
-          <div id="search-section">
-            <WardSearchInterface />
+          
+          {/* Search Tab */}
+          <div ref={searchRef}>
+            {activeTab === 'search' && <WardSearchInterface />}
           </div>
-          <div id="sign-section">
-            <EnhancedSignatureFlow />
+          
+          {/* Sign Tab */}
+          <div ref={signRef}>
+            {activeTab === 'sign' && <EnhancedSignatureFlow />}
           </div>
-          <div id="map-section">
-            <KenyaHeatMap />
+          
+          {/* Map Tab */}
+          <div ref={mapRef}>
+            {activeTab === 'map' && <KenyaHeatMap />}
           </div>
-          <div id="legal-section">
-            <LegalRepository />
+          
+          {/* Legal Tab */}
+          <div ref={legalRef}>
+            {activeTab === 'legal' && <LegalRepository />}
           </div>
-          <div id="wizard-section">
-            <PetitionWizard />
+          
+          {/* Wizard Tab */}
+          <div ref={wizardRef}>
+            {activeTab === 'wizard' && <PetitionWizard />}
           </div>
         </div>
       </div>
