@@ -1,120 +1,154 @@
-// components/SearchBox.tsx
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Loader2 } from 'lucide-react';
 
-interface SearchBoxProps {
+interface SearchBoxProps<T> {
   placeholder: string;
-  onSearch: (query: string) => Promise<any[]>;
-  onSelect: (item: any) => void;
-  getDisplayText: (item: any) => string;
+  onSearch: (query: string) => Promise<T[]>;
+  onSelect: (item: T) => void;
+  getDisplayText: (item: T) => string;
   className?: string;
-  disabled?: boolean;
+  value?: string;
+  onChange?: (value: string) => void;
 }
 
-const SearchBox = ({
-  placeholder,
-  onSearch,
-  onSelect,
-  getDisplayText,
+function SearchBox<T>({ 
+  placeholder, 
+  onSearch, 
+  onSelect, 
+  getDisplayText, 
   className = "",
-  disabled = false
-}: SearchBoxProps) => {
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<any[]>([]);
+  value,
+  onChange 
+}: SearchBoxProps<T>) {
+  const [query, setQuery] = useState(value || '');
+  const [results, setResults] = useState<T[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
-  // Highlight matching text
-  const highlightMatch = (text: string, query: string) => {
-    if (!query) return text;
-    
-    const index = text.toLowerCase().indexOf(query.toLowerCase());
-    if (index === -1) return text;
-    
-    return (
-      <>
-        {text.substring(0, index)}
-        <b>{text.substring(index, index + query.length)}</b>
-        {text.substring(index + query.length)}
-      </>
-    );
-  };
-
-  // Debounced search
   useEffect(() => {
-    if (query.length < 2) {
-      setResults([]);
-      return;
+    if (value !== undefined) {
+      setQuery(value);
     }
+  }, [value]);
 
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+  useEffect(() => {
+    const performSearch = async () => {
+      if (query.length < 2) {
+        setResults([]);
+        setIsOpen(false);
+        return;
+      }
 
-    setIsLoading(true);
-    timeoutRef.current = setTimeout(async () => {
+      setIsLoading(true);
       try {
-        const data = await onSearch(query);
-        setResults(data);
-        setShowResults(true);
+        const searchResults = await onSearch(query);
+        setResults(searchResults);
+        setIsOpen(true);
+        setSelectedIndex(-1);
       } catch (error) {
-        console.error("Search error:", error);
+        console.error('Search error:', error);
         setResults([]);
       } finally {
         setIsLoading(false);
       }
-    }, 300);
-
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
     };
+
+    const debounceTimer = setTimeout(performSearch, 300);
+    return () => clearTimeout(debounceTimer);
   }, [query, onSearch]);
 
-  const handleSelect = (item: any) => {
-    setQuery(getDisplayText(item));
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setQuery(newValue);
+    onChange?.(newValue);
+  };
+
+  const handleSelect = (item: T) => {
     onSelect(item);
-    setShowResults(false);
+    setQuery(getDisplayText(item));
+    onChange?.(getDisplayText(item));
+    setIsOpen(false);
+    setSelectedIndex(-1);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isOpen || results.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex(prev => 
+          prev < results.length - 1 ? prev + 1 : 0
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex(prev => 
+          prev > 0 ? prev - 1 : results.length - 1
+        );
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0) {
+          handleSelect(results[selectedIndex]);
+        }
+        break;
+      case 'Escape':
+        setIsOpen(false);
+        setSelectedIndex(-1);
+        inputRef.current?.blur();
+        break;
+    }
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <div className="relative w-full">
       <div className="relative">
         <Input
+          ref={inputRef}
           type="text"
           placeholder={placeholder}
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => query.length >= 2 && setShowResults(true)}
-          className="pr-10"
-          disabled={disabled}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          onFocus={() => query.length >= 2 && setIsOpen(true)}
+          className={`w-full ${className}`}
         />
         {isLoading && (
-          <div className="absolute right-3 top-3">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
           </div>
         )}
       </div>
 
-      {showResults && results.length > 0 && (
-        <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg">
-          <div className="py-1 max-h-60 overflow-auto">
+      {isOpen && results.length > 0 && (
+        <Card className="absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+          <CardContent className="p-0">
             {results.map((item, index) => (
               <div
                 key={index}
-                className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                className={`px-4 py-3 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors ${
+                  index === selectedIndex 
+                    ? 'bg-green-50 dark:bg-green-900/20 text-green-900 dark:text-green-100' 
+                    : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100'
+                }`}
                 onClick={() => handleSelect(item)}
+                ref={index === selectedIndex ? resultsRef : undefined}
               >
-                {highlightMatch(getDisplayText(item), query)}
+                {getDisplayText(item)}
               </div>
             ))}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
-};
+}
 
 export default SearchBox;
