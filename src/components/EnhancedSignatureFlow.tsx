@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle, Shield, User, Phone, Mail, CreditCard, FileText, Copy, Passport } from 'lucide-react';
+import { CheckCircle, Shield, User, Phone, Mail, CreditCard, FileText, Copy, BookOpen } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -47,7 +47,7 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
   const identifierTypes = [
     { value: 'national_id', label: 'National ID', icon: CreditCard, placeholder: 'Enter your National ID number' },
     { value: 'phone', label: 'Phone Number', icon: Phone, placeholder: 'Enter your phone number' },
-    { value: 'passport', label: 'Passport', icon: Passport, placeholder: 'Enter your passport number' },
+    { value: 'passport', label: 'Passport', icon: BookOpen, placeholder: 'Enter your passport number' },
     { value: 'email', label: 'Email Address', icon: Mail, placeholder: 'Enter your email address' },
     { value: 'other', label: 'Other ID', icon: User, placeholder: 'Enter your identification' }
   ];
