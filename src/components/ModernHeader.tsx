@@ -18,7 +18,6 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
 
   const navigationItems = [
     { id: 'dashboard', label: 'Petitions', icon: FileText },
-    { id: 'sign', label: 'Sign', icon: Users },
     { id: 'legal', label: 'Legal', icon: Scale },
     { id: 'map', label: 'Map', icon: MapPin },
     { id: 'search', label: 'Search', icon: Search }
