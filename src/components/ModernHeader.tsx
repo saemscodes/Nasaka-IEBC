@@ -59,7 +59,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
               <p className={`text-xs transition-colors duration-300 ${
                 darkMode ? 'text-gray-400' : 'text-green-700'
               }`}>
-                Democratic Accountability
+                by CEKA
               </p>
             </div>
           </div>
