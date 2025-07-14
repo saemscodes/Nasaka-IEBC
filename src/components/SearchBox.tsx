@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Search } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 
 interface SearchBoxProps<T> {
   placeholder: string;
@@ -30,28 +29,32 @@ function SearchBox<T>({
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [hasUserSelected, setHasUserSelected] = useState(false); // NEW: Track if user has selected an item
-  const [lastSearchQuery, setLastSearchQuery] = useState(''); // NEW: Track last search to prevent duplicates
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+  
+  // HYBRID: Use refs for performance (no re-renders) + better state tracking
+  const lastSearchRef = useRef<string | null>(null);
+  const isUserSelectionRef = useRef<boolean>(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (value !== undefined && value !== query) {
       setQuery(value);
-      setHasUserSelected(false); // Reset selection state when value changes externally
+      // Reset selection flag when external value changes
+      isUserSelectionRef.current = false;
     }
   }, [value]);
 
   useEffect(() => {
     const performSearch = async () => {
-      // FIXED: Don't search if user has just selected an item
-      if (hasUserSelected) {
-        setHasUserSelected(false);
+      // HYBRID: Don't search if user just selected an item
+      if (isUserSelectionRef.current) {
+        isUserSelectionRef.current = false;
         return;
       }
 
-      // FIXED: Don't search if query is too short, disabled, or same as last search
-      if (query.length < 2 || disabled || query === lastSearchQuery) {
+      // HYBRID: Don't search if query too short, disabled, or same as last search
+      if (query.length < 2 || disabled || query === lastSearchRef.current) {
         if (query.length < 2) {
           setResults([]);
           setIsOpen(false);
@@ -59,26 +62,47 @@ function SearchBox<T>({
         return;
       }
 
+      const currentQuery = query; // Capture current query for race condition check
+      lastSearchRef.current = query;
       setIsLoading(true);
+      
       try {
-        console.log('Searching for:', query);
         const searchResults = await onSearch(query);
-        setResults(searchResults);
-        setIsOpen(searchResults.length > 0);
-        setSelectedIndex(-1);
-        setLastSearchQuery(query); // NEW: Update last search query
+        
+        // HYBRID: Race condition protection - only update if query hasn't changed
+        if (currentQuery === query && currentQuery === lastSearchRef.current) {
+          setResults(searchResults);
+          setIsOpen(searchResults.length > 0);
+          setSelectedIndex(-1);
+        }
       } catch (error) {
         console.error('Search error:', error);
-        setResults([]);
-        setIsOpen(false);
+        // Only clear results if this was the current query
+        if (currentQuery === query) {
+          setResults([]);
+          setIsOpen(false);
+        }
       } finally {
-        setIsLoading(false);
+        // Only set loading false if this was the current query
+        if (currentQuery === query) {
+          setIsLoading(false);
+        }
       }
     };
 
-    const debounceTimer = setTimeout(performSearch, 300);
-    return () => clearTimeout(debounceTimer);
-  }, [query, onSearch, disabled, hasUserSelected, lastSearchQuery]);
+    // Clear any existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(performSearch, 300);
+    
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [query, onSearch, disabled]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (disabled) return;
@@ -86,7 +110,13 @@ function SearchBox<T>({
     const newValue = e.target.value;
     setQuery(newValue);
     onChange?.(newValue);
-    setHasUserSelected(false); // NEW: Reset selection state when user types
+    
+    // HYBRID: Reset flags when user types (smart cache management)
+    isUserSelectionRef.current = false;
+    // Only reset search cache if user is actually typing (not just selecting)
+    if (newValue !== lastSearchRef.current) {
+      lastSearchRef.current = null;
+    }
   };
 
   const handleSelect = (item: T) => {
@@ -98,8 +128,10 @@ function SearchBox<T>({
     onChange?.(displayText);
     setIsOpen(false);
     setSelectedIndex(-1);
-    setHasUserSelected(true); // NEW: Mark that user has selected an item
-    setLastSearchQuery(displayText); // NEW: Update last search to prevent re-searching
+    
+    // HYBRID: Mark user selection and update cache
+    isUserSelectionRef.current = true;
+    lastSearchRef.current = displayText;
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -160,67 +192,57 @@ function SearchBox<T>({
           onFocus={handleFocus}
           onBlur={handleBlur}
           disabled={disabled}
-          className={`w-full ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+          className={`w-full pr-16 ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
         />
-        {/* ENHANCED: Better loading visual with icon and positioning */}
+        
+        {/* HYBRID: Enhanced loading visual in input field */}
         {isLoading && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+          <div className="absolute inset-y-0 right-3 flex items-center">
             <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
-            <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+            <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
               Searching...
             </span>
           </div>
         )}
-        {/* ENHANCED: Search icon when not loading */}
+        
+        {/* HYBRID: Search icon when not loading */}
         {!isLoading && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+          <div className="absolute inset-y-0 right-3 flex items-center">
             <Search className="w-4 h-4 text-gray-400 dark:text-gray-600" />
           </div>
         )}
       </div>
 
-      {/* ENHANCED: Better loading state in dropdown */}
-      {isOpen && isLoading && (
-        <Card className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-center space-x-2 text-gray-500 dark:text-gray-400">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="text-sm">Searching for results...</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* ENHANCED: Show results only when not loading */}
-      {isOpen && results.length > 0 && !disabled && !isLoading && (
+      {/* HYBRID: Smart dropdown with better state management */}
+      {isOpen && !disabled && (
         <Card className="absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
           <CardContent className="p-0" ref={resultsRef}>
-            {results.map((item, index) => (
-              <div
-                key={index}
-                className={`px-4 py-3 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors ${
-                  index === selectedIndex 
-                    ? 'bg-green-50 dark:bg-green-900/20 text-green-900 dark:text-green-100' 
-                    : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100'
-                }`}
-                onClick={() => handleSelect(item)}
-                onMouseEnter={() => setSelectedIndex(index)}
-              >
-                {getDisplayText(item)}
+            {isLoading ? (
+              <div className="px-4 py-3 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                <span>Searching for results...</span>
               </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* ENHANCED: Show "No results" message when search is complete but no results */}
-      {isOpen && results.length === 0 && !isLoading && query.length >= 2 && (
-        <Card className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-          <CardContent className="p-4">
-            <div className="text-center text-gray-500 dark:text-gray-400">
-              <Search className="w-6 h-6 mx-auto mb-2 opacity-50" />
-              <span className="text-sm">No results found for "{query}"</span>
-            </div>
+            ) : results.length > 0 ? (
+              results.map((item, index) => (
+                <div
+                  key={index}
+                  className={`px-4 py-3 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors ${
+                    index === selectedIndex 
+                      ? 'bg-green-50 dark:bg-green-900/20 text-green-900 dark:text-green-100' 
+                      : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100'
+                  }`}
+                  onClick={() => handleSelect(item)}
+                  onMouseEnter={() => setSelectedIndex(index)}
+                >
+                  {getDisplayText(item)}
+                </div>
+              ))
+            ) : query.length >= 2 ? (
+              <div className="px-4 py-3 text-center text-sm text-gray-500 dark:text-gray-400">
+                <Search className="w-5 h-5 mx-auto mb-2 opacity-50" />
+                <div>No results found for "{query}"</div>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       )}
