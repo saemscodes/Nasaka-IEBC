@@ -92,6 +92,12 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
       return;
     }
 
+    // Check if petition ID is provided and not empty
+    if (!signatureData.petition_id || signatureData.petition_id.trim() === '') {
+      toast.error('Invalid petition ID. Please select a valid petition.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const code = generateSignatureCode();
@@ -102,7 +108,7 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
         .select('id')
         .eq('petition_id', signatureData.petition_id)
         .eq('voter_id', signatureData.identifier_value)
-        .single();
+        .maybeSingle();
 
       if (existingSignature) {
         toast.error('You have already signed this petition');
@@ -110,7 +116,7 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
         return;
       }
 
-      // Insert signature
+      // Insert signature with proper UUID handling
       const { error } = await supabase
         .from('signatures')
         .insert({
@@ -198,6 +204,27 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
             <strong>Privacy Notice:</strong> Your personal information is encrypted and stored securely. 
             Only you can access your signature data using the code above. We comply with all data protection regulations.
           </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // If no petition ID is provided, show selection message
+  if (!petitionId || petitionId.trim() === '') {
+    return (
+      <Card className="max-w-md mx-auto bg-white dark:bg-gray-800 border-yellow-200 dark:border-yellow-700">
+        <CardHeader className="text-center">
+          <CardTitle className="text-yellow-900 dark:text-yellow-100">
+            Select a Petition to Sign
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-center">
+          <Alert className="border-yellow-200 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20">
+            <FileText className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+            <AlertDescription className="text-yellow-800 dark:text-yellow-200">
+              Please select an active petition from the dashboard to begin the signing process.
+            </AlertDescription>
+          </Alert>
         </CardContent>
       </Card>
     );

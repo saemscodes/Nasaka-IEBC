@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,26 +7,62 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
-import { FileText, Users, Scale, CheckCircle, Calendar, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { FileText, Users, Scale, CheckCircle, Calendar, AlertTriangle, Shield } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const PetitionWizard = () => {
+interface Constituency {
+  name: string;
+  county: string;
+  total_voters?: number;
+}
+
+interface PetitionWizardProps {
+  prefilledData?: Constituency;
+}
+
+const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     mpName: '',
-    constituency: '',
-    county: '',
+    constituency: prefilledData?.name || '',
+    county: prefilledData?.county || '',
     description: '',
     grounds: [] as string[],
-    signatureTarget: 0,
-    wardTarget: 0,
+    signatureTarget: prefilledData?.total_voters ? Math.ceil(prefilledData.total_voters * 0.3) : 0,
+    wardTarget: 3, // Default minimum
     deadline: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   const totalSteps = 4;
   const progress = (currentStep / totalSteps) * 100;
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    if (prefilledData) {
+      setFormData(prev => ({
+        ...prev,
+        constituency: prefilledData.name,
+        county: prefilledData.county,
+        signatureTarget: prefilledData.total_voters ? Math.ceil(prefilledData.total_voters * 0.3) : 0
+      }));
+    }
+  }, [prefilledData]);
+
+  const checkAuth = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setUser(user);
+    
+    if (!user) {
+      toast.error('You must be logged in to create a petition');
+    }
+  };
 
   const availableGrounds = [
     { id: 'chapter_6', label: 'Chapter 6 Violation', description: 'Violation of leadership and integrity provisions' },
@@ -75,19 +111,12 @@ const PetitionWizard = () => {
     }
   };
 
-  const calculateDefaultTargets = () => {
-    // This would typically fetch from database based on constituency
-    // For now, using placeholder values
-    const estimatedVoters = 100000; // This should come from database
-    const estimatedWards = 6; // This should come from database
-    
-    return {
-      signatureTarget: Math.ceil(estimatedVoters * 0.3), // 30% of registered voters
-      wardTarget: Math.ceil(estimatedWards * 0.5) // 50% of wards
-    };
-  };
-
   const handleSubmit = async () => {
+    if (!user) {
+      toast.error('You must be logged in to create a petition');
+      return;
+    }
+
     if (!validateStep()) {
       toast.error('Please complete all required fields');
       return;
@@ -106,7 +135,8 @@ const PetitionWizard = () => {
           signature_target: formData.signatureTarget,
           ward_target: formData.wardTarget,
           deadline: formData.deadline,
-          status: 'active'
+          status: 'active',
+          created_by: user.id
         }])
         .select();
 
@@ -134,6 +164,27 @@ const PetitionWizard = () => {
       setIsSubmitting(false);
     }
   };
+
+  if (!user) {
+    return (
+      <Card className="border-red-200 dark:border-red-800 bg-white dark:bg-gray-900 max-w-2xl mx-auto">
+        <CardHeader className="text-center">
+          <CardTitle className="text-red-900 dark:text-red-100 flex items-center justify-center">
+            <Shield className="w-6 h-6 mr-2" />
+            Authentication Required
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-center">
+          <Alert className="border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/20">
+            <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+            <AlertDescription className="text-red-800 dark:text-red-200">
+              You must be logged in to create a petition. Please sign in to continue.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">

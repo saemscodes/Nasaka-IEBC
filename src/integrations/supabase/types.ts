@@ -104,6 +104,7 @@ export type Database = {
           name: string
           registration_target: number
           senator: string | null
+          total_count: number | null
         }
         Insert: {
           governor?: string | null
@@ -111,12 +112,38 @@ export type Database = {
           name: string
           registration_target: number
           senator?: string | null
+          total_count?: number | null
         }
         Update: {
           governor?: string | null
           id?: number
           name?: string
           registration_target?: number
+          senator?: string | null
+          total_count?: number | null
+        }
+        Relationships: []
+      }
+      counties_backup: {
+        Row: {
+          governor: string | null
+          id: number | null
+          name: string | null
+          registration_target: number | null
+          senator: string | null
+        }
+        Insert: {
+          governor?: string | null
+          id?: number | null
+          name?: string | null
+          registration_target?: number | null
+          senator?: string | null
+        }
+        Update: {
+          governor?: string | null
+          id?: number | null
+          name?: string | null
+          registration_target?: number | null
           senator?: string | null
         }
         Relationships: []
@@ -177,7 +204,7 @@ export type Database = {
           grounds: string[]
           id: string
           mp_name: string
-          signature_target: number
+          signature_target: number | null
           status: string
           updated_at: string
           ward_target: number
@@ -193,7 +220,7 @@ export type Database = {
           grounds: string[]
           id?: string
           mp_name: string
-          signature_target: number
+          signature_target?: number | null
           status?: string
           updated_at?: string
           ward_target: number
@@ -209,7 +236,7 @@ export type Database = {
           grounds?: string[]
           id?: string
           mp_name?: string
-          signature_target?: number
+          signature_target?: number | null
           status?: string
           updated_at?: string
           ward_target?: number
@@ -325,6 +352,7 @@ export type Database = {
           id: string
           member_of_parliament: string | null
           registration_target: number | null
+          total_count: number | null
           ward_name: string
         }
         Insert: {
@@ -334,6 +362,7 @@ export type Database = {
           id?: string
           member_of_parliament?: string | null
           registration_target?: number | null
+          total_count?: number | null
           ward_name: string
         }
         Update: {
@@ -343,6 +372,7 @@ export type Database = {
           id?: string
           member_of_parliament?: string | null
           registration_target?: number | null
+          total_count?: number | null
           ward_name?: string
         }
         Relationships: []

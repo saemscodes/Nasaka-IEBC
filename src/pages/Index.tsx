@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,9 +16,16 @@ import CountyStatistics from '@/components/CountyStatistics';
 import ConstitutionalFlowchart from '@/components/ConstitutionalFlowchart';
 import { supabase } from "@/integrations/supabase/client";
 
+interface Constituency {
+  name: string;
+  county: string;
+  total_voters?: number;
+}
+
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [darkMode, setDarkMode] = useState(false);
+  const [selectedConstituency, setSelectedConstituency] = useState<Constituency | null>(null);
   const [petitionStats, setPetitionStats] = useState({
     totalSignatures: 0,
     validSignatures: 0,
@@ -48,7 +56,11 @@ const Index = () => {
 
   useEffect(() => {
     const handleTabNavigation = (event: CustomEvent) => {
-      scrollToTab(event.detail.tabId);
+      const { tabId, constituency } = event.detail;
+      if (constituency) {
+        setSelectedConstituency(constituency);
+      }
+      scrollToTab(tabId);
     };
 
     window.addEventListener('tab-navigation', handleTabNavigation as EventListener);
@@ -152,7 +164,7 @@ const Index = () => {
           {/* Container 1: Search + Buttons */}
           <div className="mb-12">
             <div className="max-w-2xl mx-auto mb-6">
-              <ConstituencySearch />
+              <ConstituencySearch onSelect={setSelectedConstituency} />
             </div>
             
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -173,140 +185,139 @@ const Index = () => {
           </div>
           
           {/* Container 2: Voter Registration - Split Layout */}
-          {/* Container 2: Voter Registration - Split Layout */}
-<div className="text-left mb-6">
-  <h3 className={`text-xl font-bold mb-4 transition-colors duration-300 ${
-    darkMode ? 'text-white' : 'text-green-900'
-  }`}>
-    Voter Registration Services
-  </h3>
-</div>
+          <div className="text-left mb-6">
+            <h3 className={`text-xl font-bold mb-4 transition-colors duration-300 ${
+              darkMode ? 'text-white' : 'text-green-900'
+            }`}>
+              Voter Registration Services
+            </h3>
+          </div>
 
-<div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-  {/* Left Card - Registered Voters */}
-  <Card className={`relative overflow-hidden transition-colors duration-300 h-full ${
-    darkMode 
-      ? 'border-gray-700' 
-      : 'border-green-200/50'
-  }`}>
-    {/* Background Image */}
-    <div className={`absolute inset-0 bg-cover bg-center z-0 ${
-      darkMode 
-        ? 'bg-gradient-to-br from-green-900/70 to-gray-800/70' 
-        : 'bg-gradient-to-br from-green-50/70 to-green-100/70'
-    }`} style={{ 
-      backgroundImage: darkMode 
-        ? "linear-gradient(rgba(3, 46, 21, 0.7), url('https://images.unsplash.com/photo-1546521343-4eb2c01aa44b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80')"
-        : "linear-gradient(rgba(236, 253, 245, 0.7), url('https://images.unsplash.com/photo-1546521343-4eb2c01aa44b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80')"
-    }}>
-    </div>
-    
-    <CardContent className="p-6 flex flex-col h-full relative z-10">
-      <div className="flex items-center mb-4">
-        <div className={`p-2 rounded-full mr-3 ${
-          darkMode 
-            ? 'bg-green-800/50 text-green-300' 
-            : 'bg-green-100 text-green-700'
-        }`}>
-          <UserCheck className="w-6 h-6" />
-        </div>
-        <h4 className={`text-lg font-bold ${
-          darkMode ? 'text-white' : 'text-green-900'
-        }`}>
-          Already Registered?
-        </h4>
-      </div>
-      
-      <div className="flex-grow flex flex-col justify-center mb-6">
-        <p className={`mb-4 transition-colors duration-300 text-center ${
-          darkMode ? 'text-gray-200' : 'text-green-800'
-        }`}>
-          Verify your voter registration status with IEBC
-        </p>
-      </div>
-      
-      <Button 
-        asChild
-        className={`mt-auto ${
-          darkMode 
-            ? 'bg-green-700 hover:bg-green-600' 
-            : 'bg-green-600 hover:bg-green-700'
-        }`}
-      >
-        <a 
-          href="https://verify.iebc.or.ke/" 
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-white"
-        >
-          Verify Registration Status
-        </a>
-      </Button>
-    </CardContent>
-  </Card>
-  
-  {/* Right Card - New Voters */}
-  <Card className={`relative overflow-hidden transition-colors duration-300 h-full ${
-    darkMode 
-      ? 'border-gray-700' 
-      : 'border-emerald-200/50'
-  }`}>
-    {/* Background Image */}
-    <div className={`absolute inset-0 bg-cover bg-center z-0 ${
-      darkMode 
-        ? 'bg-gradient-to-br from-emerald-900/70 to-gray-800/70' 
-        : 'bg-gradient-to-br from-emerald-50/70 to-emerald-100/70'
-    }`} style={{ 
-      backgroundImage: darkMode 
-        ? "linear-gradient(rgba(2, 44, 34, 0.7), url('https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80')"
-        : "linear-gradient(rgba(236, 253, 245, 0.7), url('https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80')"
-    }}>
-    </div>
-    
-    <CardContent className="p-6 flex flex-col h-full relative z-10">
-      <div className="flex items-center mb-4">
-        <div className={`p-2 rounded-full mr-3 ${
-          darkMode 
-            ? 'bg-emerald-800/50 text-emerald-300' 
-            : 'bg-emerald-100 text-emerald-700'
-        }`}>
-          <UserPlus className="w-6 h-6" />
-        </div>
-        <h4 className={`text-lg font-bold ${
-          darkMode ? 'text-white' : 'text-emerald-900'
-        }`}>
-          Become a Voter
-        </h4>
-      </div>
-      
-      <div className="flex-grow flex flex-col justify-center mb-6">
-        <p className={`mb-4 transition-colors duration-300 text-center ${
-          darkMode ? 'text-gray-200' : 'text-emerald-800'
-        }`}>
-          Learn how to register as a voter in Kenya
-        </p>
-      </div>
-      
-      <Button 
-        asChild
-        className={`mt-auto ${
-          darkMode 
-            ? 'bg-emerald-700 hover:bg-emerald-600' 
-            : 'bg-emerald-600 hover:bg-emerald-700'
-        }`}
-      >
-        <a 
-          href="https://www.iebc.or.ke/registration/?how" 
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-white"
-        >
-          How To Register
-        </a>
-      </Button>
-    </CardContent>
-  </Card>
-</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {/* Left Card - Registered Voters */}
+            <Card className={`relative overflow-hidden transition-colors duration-300 h-full ${
+              darkMode 
+                ? 'border-gray-700' 
+                : 'border-green-200/50'
+            }`}>
+              {/* Background Image */}
+              <div className={`absolute inset-0 bg-cover bg-center z-0 ${
+                darkMode 
+                  ? 'bg-gradient-to-br from-green-900/70 to-gray-800/70' 
+                  : 'bg-gradient-to-br from-green-50/70 to-green-100/70'
+              }`} style={{ 
+                backgroundImage: darkMode 
+                  ? "linear-gradient(rgba(3, 46, 21, 0.7), url('https://images.unsplash.com/photo-1546521343-4eb2c01aa44b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80')"
+                  : "linear-gradient(rgba(236, 253, 245, 0.7), url('https://images.unsplash.com/photo-1546521343-4eb2c01aa44b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80')"
+              }}>
+              </div>
+              
+              <CardContent className="p-6 flex flex-col h-full relative z-10">
+                <div className="flex items-center mb-4">
+                  <div className={`p-2 rounded-full mr-3 ${
+                    darkMode 
+                      ? 'bg-green-800/50 text-green-300' 
+                      : 'bg-green-100 text-green-700'
+                  }`}>
+                    <UserCheck className="w-6 h-6" />
+                  </div>
+                  <h4 className={`text-lg font-bold ${
+                    darkMode ? 'text-white' : 'text-green-900'
+                  }`}>
+                    Already Registered?
+                  </h4>
+                </div>
+                
+                <div className="flex-grow flex flex-col justify-center mb-6">
+                  <p className={`mb-4 transition-colors duration-300 text-center ${
+                    darkMode ? 'text-gray-200' : 'text-green-800'
+                  }`}>
+                    Verify your voter registration status with IEBC
+                  </p>
+                </div>
+                
+                <Button 
+                  asChild
+                  className={`mt-auto ${
+                    darkMode 
+                      ? 'bg-green-700 hover:bg-green-600' 
+                      : 'bg-green-600 hover:bg-green-700'
+                  }`}
+                >
+                  <a 
+                    href="https://verify.iebc.or.ke/" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white"
+                  >
+                    Verify Registration Status
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+            
+            {/* Right Card - New Voters */}
+            <Card className={`relative overflow-hidden transition-colors duration-300 h-full ${
+              darkMode 
+                ? 'border-gray-700' 
+                : 'border-emerald-200/50'
+            }`}>
+              {/* Background Image */}
+              <div className={`absolute inset-0 bg-cover bg-center z-0 ${
+                darkMode 
+                  ? 'bg-gradient-to-br from-emerald-900/70 to-gray-800/70' 
+                  : 'bg-gradient-to-br from-emerald-50/70 to-emerald-100/70'
+              }`} style={{ 
+                backgroundImage: darkMode 
+                  ? "linear-gradient(rgba(2, 44, 34, 0.7), url('https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80')"
+                  : "linear-gradient(rgba(236, 253, 245, 0.7), url('https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80')"
+              }}>
+              </div>
+              
+              <CardContent className="p-6 flex flex-col h-full relative z-10">
+                <div className="flex items-center mb-4">
+                  <div className={`p-2 rounded-full mr-3 ${
+                    darkMode 
+                      ? 'bg-emerald-800/50 text-emerald-300' 
+                      : 'bg-emerald-100 text-emerald-700'
+                  }`}>
+                    <UserPlus className="w-6 h-6" />
+                  </div>
+                  <h4 className={`text-lg font-bold ${
+                    darkMode ? 'text-white' : 'text-emerald-900'
+                  }`}>
+                    Become a Voter
+                  </h4>
+                </div>
+                
+                <div className="flex-grow flex flex-col justify-center mb-6">
+                  <p className={`mb-4 transition-colors duration-300 text-center ${
+                    darkMode ? 'text-gray-200' : 'text-emerald-800'
+                  }`}>
+                    Learn how to register as a voter in Kenya
+                  </p>
+                </div>
+                
+                <Button 
+                  asChild
+                  className={`mt-auto ${
+                    darkMode 
+                      ? 'bg-emerald-700 hover:bg-emerald-600' 
+                      : 'bg-emerald-600 hover:bg-emerald-700'
+                  }`}
+                >
+                  <a 
+                    href="https://www.iebc.or.ke/registration/?how" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white"
+                  >
+                    How To Register
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </section>
 
@@ -442,7 +453,7 @@ const Index = () => {
           )}
           {activeTab === 'wizard' && (
             <div ref={el => sectionsRef.current.wizard = el}>
-              <PetitionWizard />
+              <PetitionWizard prefilledData={selectedConstituency} />
             </div>
           )}
         </div>

@@ -20,14 +20,14 @@ interface Ward {
 interface Constituency {
   id: number;
   name: string;
-  county_id: number; // Not county: string
-  registration_target: number; // Not total_voters
+  county: string;
+  total_voters: number;
 }
 
 interface County {
   id: number;
   name: string;
-  registration_target: number; // Not total_voters
+  total_voters: number;
 }
 
 interface SignatureRequirement {
@@ -82,12 +82,11 @@ const WardSearchInterface = () => {
         .order('county', { ascending: true });
 
       if (constituenciesError) throw constituenciesError;
-      // Update setConstituencies mapping:
       setConstituencies((constituenciesData || []).map(c => ({
         id: c.id,
         name: c.name,
-        county_id: c.county_id,
-        registration_target: c.registration_target
+        county: c.county,
+        total_voters: c.total_voters || 0
       })));
       
       // Fetch counties
@@ -97,7 +96,11 @@ const WardSearchInterface = () => {
         .order('name', { ascending: true });
 
       if (countiesError) throw countiesError;
-      setCounties(countiesData || []);
+      setCounties((countiesData || []).map(c => ({
+        id: c.id,
+        name: c.name,
+        total_voters: c.total_voters || 0
+      })));
 
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -149,11 +152,7 @@ const WardSearchInterface = () => {
     if (!query || query.length < 2) return [];
     return counties
       .filter(c => c.name.toLowerCase().includes(query.toLowerCase()))
-      .slice(0, 10)
-      .map(c => ({ 
-        name: c.name, 
-        total_voters: c.registration_target // Map to correct field
-        }));
+      .slice(0, 10);
   };
 
   const searchConstituencies = async (query: string) => {
@@ -166,8 +165,7 @@ const WardSearchInterface = () => {
     
     return filtered
       .filter(c => c.name.toLowerCase().includes(query.toLowerCase()))
-      .slice(0, 10)
-      .map(c => ({ name: c.name, county: c.county, total_voters: c.total_voters }));
+      .slice(0, 10);
   };
 
   const calculateSignatureRequirement = async () => {
@@ -292,22 +290,22 @@ const WardSearchInterface = () => {
             <SearchBox
               placeholder="County name"
               onSearch={searchCounties}
-              onSelect={(county: any) => {
+              onSelect={(county: County) => {
                 setCalcCounty(county.name);
                 setCalcConstituency("");
                 setCalcWard("");
               }}
-              getDisplayText={(county: any) => county.name}
+              getDisplayText={(county: County) => county.name}
               className="bg-white dark:bg-gray-800 border-green-200 dark:border-green-700"
             />
             <SearchBox
               placeholder="Constituency name"
               onSearch={searchConstituencies}
-              onSelect={(constituency: any) => {
+              onSelect={(constituency: Constituency) => {
                 setCalcConstituency(constituency.name);
                 setCalcWard("");
               }}
-              getDisplayText={(constituency: any) => constituency.name}
+              getDisplayText={(constituency: Constituency) => constituency.name}
               disabled={!calcCounty}
               className="bg-white dark:bg-gray-800 border-green-200 dark:border-green-700"
             />
