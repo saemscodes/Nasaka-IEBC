@@ -105,6 +105,17 @@ const EnhancedPetitionDashboard = () => {
     }
   };
 
+  // Inside EnhancedPetitionDashboard component
+const handleCreatePetition = () => {
+  // Dispatch custom event to navigate to wizard tab
+  const event = new CustomEvent('tab-navigation', { 
+    detail: { 
+      tabId: 'wizard'
+    } 
+  });
+  window.dispatchEvent(event);
+};
+
   const handleJoinPetition = (petitionId: string) => {
     // Navigate to signature collection
     window.location.href = `/sign/${petitionId}`;
@@ -393,7 +404,9 @@ const EnhancedPetitionDashboard = () => {
                   </div>
                 </div>
 
-                <Button className="w-full bg-kenya-green hover:bg-kenya-green/90 text-white py-3">
+                <Button className="w-full bg-kenya-green hover:bg-kenya-green/90 text-white py-3"
+                  onClick={handleCreatePetition} // Add this handler
+                >
                   <FileText className="w-5 h-5 mr-2" />
                   Begin Petition Creation Wizard
                 </Button>
