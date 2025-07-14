@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from 'lucide-react';
-import { supabase } from '@/lib/supabase'; // Make sure this path is correct
+import { supabase } from '@/integrations/supabase/client';
 
 interface SearchBoxProps<T> {
   placeholder: string;

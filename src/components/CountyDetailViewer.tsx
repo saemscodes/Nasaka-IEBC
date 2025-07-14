@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface County {
   id: number;
-  name: string;
+  county_name: string;
   total_voters: number;
   constituencies_count: number;
   wards_count: number;
@@ -18,9 +18,9 @@ interface County {
 interface Constituency {
   id: number;
   name: string;
-  county: string;
-  total_voters: number;
-  wards: string[];
+  county_id: number;
+  registration_target: number;
+  member_of_parliament: string | null;
 }
 
 interface Ward {
@@ -64,7 +64,7 @@ const CountyDetailViewer: React.FC<CountyDetailViewerProps> = ({
       const { data, error } = await supabase
         .from('constituencies')
         .select('*')
-        .eq('county', county.name)
+        .eq('county_id', county.id)
         .order('name');
 
       if (error) throw error;
@@ -83,7 +83,6 @@ const CountyDetailViewer: React.FC<CountyDetailViewerProps> = ({
         .from('wards')
         .select('*')
         .eq('constituency', constituency.name)
-        .eq('county', constituency.county)
         .order('ward_name');
 
       if (error) throw error;
@@ -101,7 +100,7 @@ const CountyDetailViewer: React.FC<CountyDetailViewerProps> = ({
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-green-900 dark:text-green-100 mb-2">
-          {county?.name} County
+          {county?.county_name} County
         </h2>
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="text-center">
@@ -149,15 +148,15 @@ const CountyDetailViewer: React.FC<CountyDetailViewerProps> = ({
                         {constituency.name}
                       </h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {constituency.wards?.length || 0} wards
+                        MP: {constituency.member_of_parliament || 'N/A'}
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="text-right">
                         <div className="font-medium text-gray-900 dark:text-white">
-                          {constituency.total_voters?.toLocaleString() || 'N/A'}
+                          {constituency.registration_target?.toLocaleString() || 'N/A'}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">voters</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">target</div>
                       </div>
                       <ChevronRight className="w-4 h-4 text-gray-400" />
                     </div>
@@ -181,7 +180,7 @@ const CountyDetailViewer: React.FC<CountyDetailViewerProps> = ({
           className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300"
         >
           <ArrowLeft className="w-4 h-4 mr-1" />
-          Back to {county?.name}
+          Back to {county?.county_name}
         </Button>
       </div>
 
@@ -190,14 +189,14 @@ const CountyDetailViewer: React.FC<CountyDetailViewerProps> = ({
           {selectedConstituency?.name} Constituency
         </h2>
         <p className="text-green-700 dark:text-green-300 mb-4">
-          {county?.name} County
+          {county?.county_name} County
         </p>
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="text-center">
             <div className="text-2xl font-bold text-green-800 dark:text-green-200">
-              {selectedConstituency?.total_voters?.toLocaleString() || 'N/A'}
+              {selectedConstituency?.registration_target?.toLocaleString() || 'N/A'}
             </div>
-            <div className="text-sm text-green-600 dark:text-green-400">Registered Voters</div>
+            <div className="text-sm text-green-600 dark:text-green-400">Registration Target</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-800 dark:text-blue-200">
@@ -238,7 +237,7 @@ const CountyDetailViewer: React.FC<CountyDetailViewerProps> = ({
                       <div className="font-medium text-gray-900 dark:text-white">
                         {ward.registration_target?.toLocaleString() || 'N/A'}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">voters</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">target</div>
                     </div>
                   </div>
                 </CardContent>

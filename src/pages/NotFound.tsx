@@ -44,7 +44,11 @@ const NotFound = () => {
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
       darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-green-50/30 to-white'
     }`}>
-      <ModernHeader darkMode={darkMode} />
+      <ModernHeader 
+        darkMode={darkMode} 
+        toggleDarkMode={toggleDarkMode}
+        scrollToTab={() => {}}
+      />
       
       <main className="flex-grow flex items-center justify-center p-4">
         <div className={`max-w-md w-full p-8 rounded-2xl shadow-xl transition-all duration-300 ${

@@ -9,11 +9,9 @@ import SearchBox from "@/components/SearchBox";
 interface Constituency {
   id: string;
   name: string;
-  county: string;
-  total_voters?: number;
-  lat?: number;
-  lng?: number;
-  wards?: string[];
+  county_name: string;
+  registration_target?: number;
+  member_of_parliament?: string;
 }
 
 interface ConstituencySearchProps {
@@ -37,11 +35,16 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({
     if (!query || query.length < 2) return [];
     
     try {
-      // Fix the query structure - use proper Supabase syntax
       const { data, error } = await supabase
         .from('constituencies')
-        .select('id, name, county, total_voters, lat, lng, wards')
-        .or(`name.ilike.%${query}%,county.ilike.%${query}%`)
+        .select(`
+          id, 
+          name, 
+          member_of_parliament, 
+          registration_target,
+          counties!inner(name)
+        `)
+        .or(`name.ilike.%${query}%,counties.name.ilike.%${query}%`)
         .limit(10);
 
       if (error) {
@@ -52,11 +55,9 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({
       return (data || []).map(item => ({
         id: item.id?.toString() || '',
         name: item.name || '',
-        county: item.county || '',
-        total_voters: item.total_voters || 0,
-        lat: item.lat || 0,
-        lng: item.lng || 0,
-        wards: item.wards || []
+        county_name: item.counties?.name || '',
+        registration_target: item.registration_target || 0,
+        member_of_parliament: item.member_of_parliament || ''
       }));
     } catch (error) {
       console.error('Search error:', error);
@@ -78,7 +79,7 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({
           onSearch={fetchConstituencies}
           onSelect={handleSelect}
           getDisplayText={(constituency: Constituency) => 
-            `${constituency.name}, ${constituency.county}`
+            `${constituency.name}, ${constituency.county_name}`
           }
           className="pl-10 bg-white dark:bg-gray-800 border-green-200 dark:border-green-700 text-gray-900 dark:text-white"
         />
@@ -93,17 +94,17 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({
                   {selectedConstituency.name}
                 </h4>
                 <p className="text-sm text-green-700 dark:text-green-300">
-                  {selectedConstituency.county}
+                  {selectedConstituency.county_name}
                 </p>
               </div>
               <div className="text-right">
                 <div className="flex items-center text-green-600 dark:text-green-400">
                   <Users className="w-4 h-4 mr-1" />
                   <span className="font-medium">
-                    {selectedConstituency.total_voters?.toLocaleString() || 'N/A'}
+                    {selectedConstituency.registration_target?.toLocaleString() || 'N/A'}
                   </span>
                 </div>
-                <p className="text-xs text-green-500 dark:text-green-400">voters</p>
+                <p className="text-xs text-green-500 dark:text-green-400">target</p>
               </div>
             </div>
             {showButton && (

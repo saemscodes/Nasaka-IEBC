@@ -34,11 +34,13 @@ const CountyStatistics = () => {
       
       if (countiesError) throw countiesError;
 
-      // Fetch constituencies count per county
+      // Fetch constituencies with county names
       const { data: constituencies, error: constError } = await supabase
         .from('constituencies')
-        .select('county')
-        .order('county');
+        .select(`
+          id,
+          counties!inner(name)
+        `);
       
       if (constError) throw constError;
 
@@ -52,7 +54,10 @@ const CountyStatistics = () => {
 
       // Count constituencies per county
       const constituencyCounts = constituencies.reduce((acc: {[key: string]: number}, curr) => {
-        acc[curr.county] = (acc[curr.county] || 0) + 1;
+        const countyName = curr.counties?.name;
+        if (countyName) {
+          acc[countyName] = (acc[countyName] || 0) + 1;
+        }
         return acc;
       }, {});
 
@@ -66,7 +71,7 @@ const CountyStatistics = () => {
       const mappedData = counties.map(county => ({
         id: county.id,
         county_name: county.name,
-        total_voters: county.total_voters || 0,
+        total_voters: county.total_count || 0,
         constituencies_count: constituencyCounts[county.name] || 0,
         wards_count: wardCounts[county.name] || 0
       }));

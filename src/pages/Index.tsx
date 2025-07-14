@@ -19,7 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface Constituency {
   name: string;
   county: string;
-  total_voters?: number;
+  registration_target?: number;
 }
 
 const Index = () => {
@@ -164,7 +164,16 @@ const Index = () => {
           {/* Container 1: Search + Buttons */}
           <div className="mb-12">
             <div className="max-w-2xl mx-auto mb-6">
-              <ConstituencySearch onSelect={setSelectedConstituency} />
+              <ConstituencySearch 
+                onSelect={(constituency) => {
+                  // Map county_name to county for consistency
+                  setSelectedConstituency({
+                    name: constituency.name,
+                    county: constituency.county_name,
+                    registration_target: constituency.registration_target
+                  });
+                }} 
+              />
             </div>
             
             <div className="flex flex-col sm:flex-row gap-3 justify-center">

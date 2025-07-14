@@ -20,14 +20,14 @@ interface Ward {
 interface Constituency {
   id: number;
   name: string;
-  county: string;
-  total_voters: number;
+  county_name: string;
+  registration_target: number;
 }
 
 interface County {
   id: number;
   name: string;
-  total_voters: number;
+  total_count: number;
 }
 
 interface SignatureRequirement {
@@ -75,18 +75,23 @@ const WardSearchInterface = () => {
       setWards(wardsData || []);
       setFilteredWards(wardsData || []);
 
-      // Fetch constituencies
+      // Fetch constituencies with county data
       const { data: constituenciesData, error: constituenciesError } = await supabase
         .from('constituencies')
-        .select('*')
-        .order('county', { ascending: true });
+        .select(`
+          id,
+          name,
+          registration_target,
+          counties!inner(name)
+        `)
+        .order('name', { ascending: true });
 
       if (constituenciesError) throw constituenciesError;
       setConstituencies((constituenciesData || []).map(c => ({
         id: c.id,
         name: c.name,
-        county: c.county,
-        total_voters: c.total_voters || 0
+        county_name: c.counties?.name || '',
+        registration_target: c.registration_target || 0
       })));
       
       // Fetch counties
@@ -99,7 +104,7 @@ const WardSearchInterface = () => {
       setCounties((countiesData || []).map(c => ({
         id: c.id,
         name: c.name,
-        total_voters: c.total_voters || 0
+        total_count: c.total_count || 0
       })));
 
     } catch (error) {
@@ -160,7 +165,7 @@ const WardSearchInterface = () => {
     let filtered = constituencies;
     
     if (calcCounty) {
-      filtered = constituencies.filter(c => c.county === calcCounty);
+      filtered = constituencies.filter(c => c.county_name === calcCounty);
     }
     
     return filtered
