@@ -129,7 +129,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              className={`transition-colors duration-300 ${
+              className={`md:hidden transition-colors duration-300 ${
                 darkMode 
                   ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
                   : 'text-green-700 hover:text-green-900 hover:bg-green-50'

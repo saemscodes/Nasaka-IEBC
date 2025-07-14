@@ -1,64 +1,104 @@
-
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Search, MapPin, Users } from 'lucide-react';
-import { supabase } from "@/integrations/supabase/client";
-import SearchBox from "@/components/SearchBox";
+import SearchBox from '@/components/SearchBox';
+import LocationDetailViewer from '@/components/LocationDetailViewer';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Constituency {
-  id: string;
+  id: number;
   name: string;
   county_name: string;
-  registration_target?: number;
+  registration_target: number;
   member_of_parliament?: string;
 }
 
 interface ConstituencySearchProps {
-  onSelect?: (constituency: Constituency) => void;
-  placeholder?: string;
-  showButton?: boolean;
-  className?: string;
+  onSelect: (constituency: Constituency) => void;
 }
 
-const ConstituencySearch: React.FC<ConstituencySearchProps> = ({ 
-  onSelect, 
-  placeholder = "Search your constituency...",
-  showButton = true,
-  className = ""
-}) => {
-  const [selectedConstituency, setSelectedConstituency] = useState<Constituency | null>(null);
+const ConstituencySearch: React.FC<ConstituencySearchProps> = ({ onSelect }) => {
+  const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  const [showLocationViewer, setShowLocationViewer] = useState(false);
 
-  const fetchConstituencies = async (query: string): Promise<Constituency[]> => {
-    console.log('Searching for:', query);
-    
-    if (!query || query.length < 2) return [];
-    
+  const searchConstituencies = async (query: string): Promise<Constituency[]> => {
     try {
-      const { data, error } = await supabase
+      console.log('Searching for:', query);
+      
+      // Search constituencies by name
+      const { data: constituencies, error: constError } = await supabase
         .from('constituencies')
         .select(`
-          id, 
-          name, 
-          member_of_parliament, 
+          id,
+          name,
+          member_of_parliament,
           registration_target,
+          county_id,
           counties!inner(name)
         `)
-        .or(`name.ilike.%${query}%,counties.name.ilike.%${query}%`)
-        .limit(10);
+        .ilike('name', `%${query}%`)
+        .limit(5);
 
-      if (error) {
-        console.error('Search error:', error);
-        return [];
+      if (constError) {
+        console.error('Error searching constituencies:', constError);
+        throw constError;
       }
 
-      return (data || []).map(item => ({
-        id: item.id?.toString() || '',
-        name: item.name || '',
-        county_name: item.counties?.name || '',
-        registration_target: item.registration_target || 0,
-        member_of_parliament: item.member_of_parliament || ''
-      }));
+      // Search counties by name and get their constituencies
+      const { data: counties, error: countyError } = await supabase
+        .from('counties')
+        .select(`
+          id,
+          name,
+          constituencies (
+            id,
+            name,
+            member_of_parliament,
+            registration_target
+          )
+        `)
+        .ilike('name', `%${query}%`)
+        .limit(3);
+
+      if (countyError) {
+        console.error('Error searching counties:', countyError);
+      }
+
+      // Combine results
+      const results: Constituency[] = [];
+
+      // Add direct constituency matches
+      if (constituencies) {
+        constituencies.forEach(constituency => {
+          results.push({
+            id: constituency.id,
+            name: constituency.name,
+            county_name: constituency.counties?.name || 'Unknown County',
+            registration_target: constituency.registration_target,
+            member_of_parliament: constituency.member_of_parliament
+          });
+        });
+      }
+
+      // Add constituencies from county matches
+      if (counties) {
+        counties.forEach(county => {
+          if (county.constituencies) {
+            county.constituencies.forEach(constituency => {
+              // Avoid duplicates
+              if (!results.find(r => r.id === constituency.id)) {
+                results.push({
+                  id: constituency.id,
+                  name: constituency.name,
+                  county_name: county.name,
+                  registration_target: constituency.registration_target,
+                  member_of_parliament: constituency.member_of_parliament
+                });
+              }
+            });
+          }
+        });
+      }
+
+      return results.slice(0, 10); // Limit to 10 results
     } catch (error) {
       console.error('Search error:', error);
       return [];
@@ -66,67 +106,40 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({
   };
 
   const handleSelect = (constituency: Constituency) => {
-    setSelectedConstituency(constituency);
-    onSelect?.(constituency);
+    onSelect(constituency);
+    // Also show the location detail viewer
+    setSelectedLocation({
+      id: constituency.id,
+      name: constituency.name,
+      type: 'constituency',
+      county: constituency.county_name,
+      registration_target: constituency.registration_target,
+      member_of_parliament: constituency.member_of_parliament
+    });
+    setShowLocationViewer(true);
   };
 
   return (
-    <div className={`w-full ${className}`}>
-      <div className="relative">
-        <Search className="absolute left-3 top-3 w-4 h-4 text-green-500 dark:text-green-400 z-10" />
-        <SearchBox
-          placeholder={placeholder}
-          onSearch={fetchConstituencies}
-          onSelect={handleSelect}
-          getDisplayText={(constituency: Constituency) => 
-            `${constituency.name}, ${constituency.county_name}`
-          }
-          className="pl-10 bg-white dark:bg-gray-800 border-green-200 dark:border-green-700 text-gray-900 dark:text-white"
-        />
-      </div>
-
-      {selectedConstituency && (
-        <Card className="mt-3 border-green-200 dark:border-green-700 bg-white dark:bg-gray-800">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-semibold text-green-900 dark:text-green-100">
-                  {selectedConstituency.name}
-                </h4>
-                <p className="text-sm text-green-700 dark:text-green-300">
-                  {selectedConstituency.county_name}
-                </p>
-              </div>
-              <div className="text-right">
-                <div className="flex items-center text-green-600 dark:text-green-400">
-                  <Users className="w-4 h-4 mr-1" />
-                  <span className="font-medium">
-                    {selectedConstituency.registration_target?.toLocaleString() || 'N/A'}
-                  </span>
-                </div>
-                <p className="text-xs text-green-500 dark:text-green-400">target</p>
-              </div>
-            </div>
-            {showButton && (
-              <Button 
-                className="w-full mt-3 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white"
-                onClick={() => {
-                  // Dispatch custom event to navigate to petition wizard with prefilled data
-                  window.dispatchEvent(new CustomEvent('tab-navigation', { 
-                    detail: { 
-                      tabId: 'wizard',
-                      constituency: selectedConstituency 
-                    } 
-                  }));
-                }}
-              >
-                Start Petition for {selectedConstituency.name}
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      )}
-    </div>
+    <>
+      <SearchBox
+        placeholder="Search constituencies and counties..."
+        onSearch={searchConstituencies}
+        onSelect={handleSelect}
+        getDisplayText={(constituency) => 
+          `${constituency.name} (${constituency.county_name})`
+        }
+        className="w-full"
+      />
+      
+      <LocationDetailViewer
+        location={selectedLocation}
+        isOpen={showLocationViewer}
+        onClose={() => {
+          setShowLocationViewer(false);
+          setSelectedLocation(null);
+        }}
+      />
+    </>
   );
 };
 

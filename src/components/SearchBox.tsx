@@ -50,6 +50,7 @@ function SearchBox<T>({
 
       setIsLoading(true);
       try {
+        console.log('Searching for:', query);
         const searchResults = await onSearch(query);
         setResults(searchResults);
         setIsOpen(searchResults.length > 0);

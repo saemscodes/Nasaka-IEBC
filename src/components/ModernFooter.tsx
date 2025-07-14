@@ -15,8 +15,8 @@ const ModernFooter = () => {
                 <Shield className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-xl font-bold">PetaRecall</h3>
-                <p className="text-green-100 text-sm">Your Constitution. Your Power.</p>
+                <h3 className="text-xl font-bold">Recall254</h3>
+                <p className="text-green-100 text-sm">Not For GenZ, For Kenya</p>
               </div>
             </div>
             <p className="text-green-100 text-sm leading-relaxed">
@@ -98,7 +98,7 @@ const ModernFooter = () => {
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-green-100 text-sm">
-              &copy; 2024 PetaRecall Platform. Constitutional democracy through digital innovation.
+              &copy; 2024 Recall254 Platform. Constitutional democracy through digital innovation.
             </p>
             
             <div className="flex items-center space-x-4">

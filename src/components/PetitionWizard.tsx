@@ -35,14 +35,9 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
     deadline: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [user, setUser] = useState<any>(null);
 
   const totalSteps = 4;
   const progress = (currentStep / totalSteps) * 100;
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
 
   useEffect(() => {
     if (prefilledData) {
@@ -55,14 +50,6 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
     }
   }, [prefilledData]);
 
-  const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
-    
-    if (!user) {
-      toast.error('You must be logged in to create a petition');
-    }
-  };
 
   const availableGrounds = [
     { id: 'chapter_6', label: 'Chapter 6 Violation', description: 'Violation of leadership and integrity provisions' },
@@ -112,11 +99,6 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
   };
 
   const handleSubmit = async () => {
-    if (!user) {
-      toast.error('You must be logged in to create a petition');
-      return;
-    }
-
     if (!validateStep()) {
       toast.error('Please complete all required fields');
       return;
@@ -136,7 +118,7 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
           ward_target: formData.wardTarget,
           deadline: formData.deadline,
           status: 'active',
-          created_by: user.id
+          created_by: null
         }])
         .select();
 
@@ -165,26 +147,6 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
     }
   };
 
-  if (!user) {
-    return (
-      <Card className="border-red-200 dark:border-red-800 bg-white dark:bg-gray-900 max-w-2xl mx-auto">
-        <CardHeader className="text-center">
-          <CardTitle className="text-red-900 dark:text-red-100 flex items-center justify-center">
-            <Shield className="w-6 h-6 mr-2" />
-            Authentication Required
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-center">
-          <Alert className="border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/20">
-            <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
-            <AlertDescription className="text-red-800 dark:text-red-200">
-              You must be logged in to create a petition. Please sign in to continue.
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">

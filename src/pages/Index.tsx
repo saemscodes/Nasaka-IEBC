@@ -137,7 +137,7 @@ const Index = () => {
   const navigationItems = [
     { id: 'dashboard', label: 'Active Petitions', icon: Users },
     { id: 'search', label: 'Search Wards', icon: MapPin },
-    { id: 'sign', label: 'Sign Petition', icon: FileText },
+    { id: 'wizard', label: 'Create Petition', icon: FileText },
     { id: 'map', label: 'Electoral Map', icon: MapPin },
     { id: 'legal', label: 'Legal Framework', icon: Shield }
   ];
@@ -184,11 +184,11 @@ const Index = () => {
                 Start Petition
               </Button>
               <Button 
-                onClick={() => scrollToTab('map')}
+                onClick={() => window.open('/sign', '_blank')}
                 variant="outline" 
                 className="border-green-600 dark:border-green-500 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 px-6 py-3"
               >
-                IEBC Map
+                Sign Petition
               </Button>
             </div>
           </div>

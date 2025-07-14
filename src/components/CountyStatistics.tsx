@@ -30,7 +30,7 @@ const CountyStatistics = () => {
       const { data: counties, error: countiesError } = await supabase
         .from('counties')
         .select('*')
-        .order('total_voters', { ascending: false });
+        .order('total_count', { ascending: false });
       
       if (countiesError) throw countiesError;
 

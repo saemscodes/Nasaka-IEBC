@@ -13,30 +13,30 @@ const ConstitutionalFlowchart = () => {
       title: "Legal Grounds",
       description: "Article 104 violations with documented evidence",
       icon: Scale,
-      color: "bg-red-500 dark:bg-red-600",
-      textColor: "text-red-700 dark:text-red-300",
-      bgColor: "bg-red-50 dark:bg-red-900/20",
-      borderColor: "border-red-200 dark:border-red-700"
+      color: "bg-gradient-to-br from-green-600 to-green-700",
+      textColor: "text-green-800 dark:text-green-200",
+      bgColor: "bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-900/30 dark:to-green-800/20",
+      borderColor: "border-green-300 dark:border-green-600"
     },
     {
       id: 2,
       title: "Collect Signatures",
       description: "30% of registered voters with KICA-certified signatures",
       icon: Users,
-      color: "bg-blue-500 dark:bg-blue-600",
-      textColor: "text-blue-700 dark:text-blue-300",
-      bgColor: "bg-blue-50 dark:bg-blue-900/20",
-      borderColor: "border-blue-200 dark:border-blue-700"
+      color: "bg-gradient-to-br from-green-500 to-green-600",
+      textColor: "text-green-700 dark:text-green-300",
+      bgColor: "bg-gradient-to-br from-green-100/70 to-green-50 dark:from-green-800/30 dark:to-green-900/20",
+      borderColor: "border-green-200 dark:border-green-700"
     },
     {
       id: 3,
       title: "IEBC Review",
       description: "Official recall election within 90 days",
       icon: CheckCircle,
-      color: "bg-green-500 dark:bg-green-600",
-      textColor: "text-green-700 dark:text-green-300",
-      bgColor: "bg-green-50 dark:bg-green-900/20",
-      borderColor: "border-green-200 dark:border-green-700"
+      color: "bg-gradient-to-br from-green-700 to-emerald-600",
+      textColor: "text-green-900 dark:text-green-100",
+      bgColor: "bg-gradient-to-br from-emerald-50 to-green-100/60 dark:from-green-900/40 dark:to-emerald-900/20",
+      borderColor: "border-green-400 dark:border-green-500"
     }
   ];
 
