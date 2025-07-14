@@ -255,13 +255,37 @@ const EnhancedPetitionDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Petition Tabs */}
+     {/* Petition Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="active">Active Petitions</TabsTrigger>
-          <TabsTrigger value="urgent">Urgent Deadlines</TabsTrigger>
-          <TabsTrigger value="successful">Near Success</TabsTrigger>
-          <TabsTrigger value="create">Start New Petition</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1 h-auto p-1">
+          <TabsTrigger 
+            value="active" 
+            className="text-xs sm:text-sm px-2 py-2 sm:px-4 sm:py-2 whitespace-nowrap"
+          >
+            <span className="hidden sm:inline">Active Petitions</span>
+            <span className="sm:hidden">Active</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="urgent" 
+            className="text-xs sm:text-sm px-2 py-2 sm:px-4 sm:py-2 whitespace-nowrap"
+          >
+            <span className="hidden sm:inline">Urgent Deadlines</span>
+            <span className="sm:hidden">Urgent</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="successful" 
+            className="text-xs sm:text-sm px-2 py-2 sm:px-4 sm:py-2 whitespace-nowrap"
+          >
+            <span className="hidden sm:inline">Near Success</span>
+            <span className="sm:hidden">Success</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="create" 
+            className="text-xs sm:text-sm px-2 py-2 sm:px-4 sm:py-2 whitespace-nowrap"
+          >
+            <span className="hidden sm:inline">Start New Petition</span>
+            <span className="sm:hidden">New</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="active" className="mt-8">
