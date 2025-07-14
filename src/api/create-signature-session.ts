@@ -87,9 +87,8 @@ export default async function handler(req: Request): Promise<Response> {
       expires_at: expiresAt,
       redirect_url: redirectUrl
     };
-
-    // In production, this would store in Supabase:
-    // await supabase.from('signature_sessions').insert(sessionData);
+    
+    await supabase.from('signature_sessions').insert(sessionData);
     console.log('Signature session created:', sessionData);
 
     const response: SignatureSessionResponse = {
