@@ -257,31 +257,31 @@ const EnhancedPetitionDashboard = () => {
 
      {/* Petition Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1 h-auto p-1">
+        <TabsList className="grid w-full grid-cols-4 gap-1 h-auto p-1">
           <TabsTrigger 
             value="active" 
-            className="text-xs sm:text-sm px-2 py-2 sm:px-4 sm:py-2 whitespace-nowrap"
+            className="text-sm px-2 py-2 sm:px-4 sm:py-2 whitespace-nowrap"
           >
             <span className="hidden sm:inline">Active Petitions</span>
             <span className="sm:hidden">Active</span>
           </TabsTrigger>
           <TabsTrigger 
             value="urgent" 
-            className="text-xs sm:text-sm px-2 py-2 sm:px-4 sm:py-2 whitespace-nowrap"
+            className="text-sm px-2 py-2 sm:px-4 sm:py-2 whitespace-nowrap"
           >
             <span className="hidden sm:inline">Urgent Deadlines</span>
             <span className="sm:hidden">Urgent</span>
           </TabsTrigger>
           <TabsTrigger 
             value="successful" 
-            className="text-xs sm:text-sm px-2 py-2 sm:px-4 sm:py-2 whitespace-nowrap"
+            className="text-sm px-2 py-2 sm:px-4 sm:py-2 whitespace-nowrap"
           >
             <span className="hidden sm:inline">Near Success</span>
-            <span className="sm:hidden">Success</span>
+            <span className="sm:hidden">Incomplete</span>
           </TabsTrigger>
           <TabsTrigger 
             value="create" 
-            className="text-xs sm:text-sm px-2 py-2 sm:px-4 sm:py-2 whitespace-nowrap"
+            className="text-sm px-2 py-2 sm:px-4 sm:py-2 whitespace-nowrap"
           >
             <span className="hidden sm:inline">Start New Petition</span>
             <span className="sm:hidden">New</span>
