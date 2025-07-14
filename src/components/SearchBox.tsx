@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Search, Sparkles, Zap } from 'lucide-react';
+import { Loader2, Search } from 'lucide-react';
 
 interface SearchBoxProps<T> {
   placeholder: string;
@@ -12,7 +12,6 @@ interface SearchBoxProps<T> {
   value?: string;
   onChange?: (value: string) => void;
   disabled?: boolean;
-  placeholderRotation?: string[]; // New: Custom rotating placeholders
 }
 
 function SearchBox<T>({ 
@@ -23,70 +22,38 @@ function SearchBox<T>({
   className = "",
   value,
   onChange,
-  disabled = false,
-  placeholderRotation = []
+  disabled = false
 }: SearchBoxProps<T>) {
   const [query, setQuery] = useState(value || '');
   const [results, setResults] = useState<T[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [isFocused, setIsFocused] = useState(false);
-  const [currentPlaceholder, setCurrentPlaceholder] = useState(placeholder);
-  const [searchIntensity, setSearchIntensity] = useState(0);
-  
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+  
+  // HYBRID: Use refs for performance (no re-renders) + better state tracking
   const lastSearchRef = useRef<string | null>(null);
   const isUserSelectionRef = useRef<boolean>(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const placeholderIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Rotating placeholder animation
-  useEffect(() => {
-    if (placeholderRotation.length > 0 && !isFocused && !query) {
-      let index = 0;
-      placeholderIntervalRef.current = setInterval(() => {
-        setCurrentPlaceholder(placeholderRotation[index % placeholderRotation.length]);
-        index++;
-      }, 2000);
-    } else {
-      setCurrentPlaceholder(placeholder);
-    }
-
-    return () => {
-      if (placeholderIntervalRef.current) {
-        clearInterval(placeholderIntervalRef.current);
-      }
-    };
-  }, [placeholderRotation, isFocused, query, placeholder]);
-
-  // Search intensity animation (pulses during loading)
-  useEffect(() => {
-    if (isLoading) {
-      const interval = setInterval(() => {
-        setSearchIntensity(prev => (prev + 1) % 3);
-      }, 500);
-      return () => clearInterval(interval);
-    } else {
-      setSearchIntensity(0);
-    }
-  }, [isLoading]);
 
   useEffect(() => {
     if (value !== undefined && value !== query) {
       setQuery(value);
+      // Reset selection flag when external value changes
       isUserSelectionRef.current = false;
     }
   }, [value]);
 
   useEffect(() => {
     const performSearch = async () => {
+      // HYBRID: Don't search if user just selected an item
       if (isUserSelectionRef.current) {
         isUserSelectionRef.current = false;
         return;
       }
 
+      // HYBRID: Don't search if query too short, disabled, or same as last search
       if (query.length < 2 || disabled || query === lastSearchRef.current) {
         if (query.length < 2) {
           setResults([]);
@@ -95,13 +62,14 @@ function SearchBox<T>({
         return;
       }
 
-      const currentQuery = query;
+      const currentQuery = query; // Capture current query for race condition check
       lastSearchRef.current = query;
       setIsLoading(true);
       
       try {
         const searchResults = await onSearch(query);
         
+        // HYBRID: Race condition protection - only update if query hasn't changed
         if (currentQuery === query && currentQuery === lastSearchRef.current) {
           setResults(searchResults);
           setIsOpen(searchResults.length > 0);
@@ -109,17 +77,20 @@ function SearchBox<T>({
         }
       } catch (error) {
         console.error('Search error:', error);
+        // Only clear results if this was the current query
         if (currentQuery === query) {
           setResults([]);
           setIsOpen(false);
         }
       } finally {
+        // Only set loading false if this was the current query
         if (currentQuery === query) {
           setIsLoading(false);
         }
       }
     };
 
+    // Clear any existing timeout
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
@@ -140,7 +111,9 @@ function SearchBox<T>({
     setQuery(newValue);
     onChange?.(newValue);
     
+    // HYBRID: Reset flags when user types (smart cache management)
     isUserSelectionRef.current = false;
+    // Only reset search cache if user is actually typing (not just selecting)
     if (newValue !== lastSearchRef.current) {
       lastSearchRef.current = null;
     }
@@ -156,6 +129,7 @@ function SearchBox<T>({
     setIsOpen(false);
     setSelectedIndex(-1);
     
+    // HYBRID: Mark user selection and update cache
     isUserSelectionRef.current = true;
     lastSearchRef.current = displayText;
   };
@@ -191,16 +165,12 @@ function SearchBox<T>({
   };
 
   const handleFocus = () => {
-    if (!disabled) {
-      setIsFocused(true);
-      if (query.length >= 2 && results.length > 0) {
-        setIsOpen(true);
-      }
+    if (!disabled && query.length >= 2 && results.length > 0) {
+      setIsOpen(true);
     }
   };
 
   const handleBlur = (e: React.FocusEvent) => {
-    setIsFocused(false);
     setTimeout(() => {
       if (!e.relatedTarget || !resultsRef.current?.contains(e.relatedTarget as Node)) {
         setIsOpen(false);
@@ -211,224 +181,71 @@ function SearchBox<T>({
 
   return (
     <div className="relative w-full">
-      <style jsx>{`
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
+      <div className="relative">
+        <Input
+          ref={inputRef}
+          type="text"
+          placeholder={placeholder}
+          value={query}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          disabled={disabled}
+          className={`w-full pr-16 ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+        />
         
-        @keyframes pulse-glow {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
-          50% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
-        }
+        {/* HYBRID: Enhanced loading visual in input field */}
+        {isLoading && (
+          <div className="absolute inset-y-0 right-3 flex items-center">
+            <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+            <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+              Searching...
+            </span>
+          </div>
+        )}
         
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-2px); }
-        }
-        
-        @keyframes bounce-in {
-          0% { transform: scale(0.8) translateY(10px); opacity: 0; }
-          60% { transform: scale(1.05) translateY(-2px); opacity: 1; }
-          100% { transform: scale(1) translateY(0px); opacity: 1; }
-        }
-        
-        @keyframes search-pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.1); }
-        }
-        
-        .search-container {
-          position: relative;
-          overflow: hidden;
-        }
-        
-        .search-container::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.1), transparent);
-          animation: shimmer 2s infinite;
-          pointer-events: none;
-          z-index: 1;
-        }
-        
-        .search-input {
-          background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-          border: 2px solid #bbf7d0;
-          transition: all 0.3s ease;
-          position: relative;
-          z-index: 2;
-        }
-        
-        .search-input:focus {
-          background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-          border-color: #22c55e;
-          box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1), 0 4px 20px rgba(34, 197, 94, 0.15);
-          animation: pulse-glow 2s infinite;
-        }
-        
-        .search-input:hover:not(:focus) {
-          border-color: #86efac;
-          box-shadow: 0 2px 10px rgba(34, 197, 94, 0.1);
-        }
-        
-        .search-input::placeholder {
-          color: #059669;
-          opacity: 0.7;
-          transition: all 0.3s ease;
-        }
-        
-        .search-input:focus::placeholder {
-          color: #047857;
-          opacity: 0.5;
-        }
-        
-        .loading-text {
-          animation: search-pulse 1s infinite;
-        }
-        
-        .floating-icon {
-          animation: float 3s ease-in-out infinite;
-        }
-        
-        .bounce-in {
-          animation: bounce-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-        
-        .result-item {
-          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-          transform: translateX(0);
-        }
-        
-        .result-item:hover {
-          transform: translateX(4px);
-          background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-          box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
-        }
-        
-        .result-item.selected {
-          background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-          color: white;
-          transform: translateX(6px);
-          box-shadow: 0 6px 20px rgba(34, 197, 94, 0.3);
-        }
-        
-        .dropdown-card {
-          background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-          border: 1px solid #bbf7d0;
-          box-shadow: 0 10px 40px rgba(34, 197, 94, 0.15);
-          animation: bounce-in 0.3s ease-out;
-        }
-        
-        .search-icon-container {
-          transition: all 0.3s ease;
-        }
-        
-        .search-icon {
-          transition: all 0.3s ease;
-          color: #059669;
-        }
-        
-        .search-icon:hover {
-          color: #047857;
-          transform: scale(1.1);
-        }
-        
-        .intensity-0 { opacity: 0.6; }
-        .intensity-1 { opacity: 0.8; }
-        .intensity-2 { opacity: 1; transform: scale(1.05); }
-      `}</style>
-
-      <div className="search-container relative">
-        <div className="relative">
-          <Input
-            ref={inputRef}
-            type="text"
-            placeholder={currentPlaceholder}
-            value={query}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            disabled={disabled}
-            className={`search-input pr-20 ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
-          />
-          
-          {/* Animated loading state */}
-          {isLoading && (
-            <div className="absolute inset-y-0 right-3 flex items-center">
-              <div className="flex items-center space-x-2">
-                <Loader2 className={`w-4 h-4 animate-spin text-green-600 intensity-${searchIntensity}`} />
-                <Sparkles className="w-3 h-3 text-green-500 floating-icon" />
-                <span className="loading-text text-xs text-green-600 font-medium whitespace-nowrap">
-                  Searching...
-                </span>
-              </div>
-            </div>
-          )}
-          
-          {/* Search icon with hover effects */}
-          {!isLoading && (
-            <div className="search-icon-container absolute inset-y-0 right-3 flex items-center">
-              <div className="flex items-center space-x-1">
-                <Search className="search-icon w-4 h-4" />
-                {query.length >= 2 && (
-                  <Zap className="w-3 h-3 text-green-500 floating-icon" />
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Animated dropdown */}
-        {isOpen && !disabled && (
-          <Card className="dropdown-card absolute top-full left-0 right-0 z-50 mt-2 max-h-60 overflow-auto">
-            <CardContent className="p-0" ref={resultsRef}>
-              {isLoading ? (
-                <div className="px-4 py-4 flex items-center justify-center text-sm text-green-700">
-                  <div className="flex items-center space-x-3">
-                    <Loader2 className="w-4 h-4 animate-spin text-green-600" />
-                    <Sparkles className="w-4 h-4 text-green-500 floating-icon" />
-                    <span className="loading-text font-medium">Finding the perfect match...</span>
-                    <Sparkles className="w-4 h-4 text-green-500 floating-icon" style={{animationDelay: '0.5s'}} />
-                  </div>
-                </div>
-              ) : results.length > 0 ? (
-                results.map((item, index) => (
-                  <div
-                    key={index}
-                    className={`result-item px-4 py-3 cursor-pointer border-b border-green-100 last:border-b-0 ${
-                      index === selectedIndex ? 'selected' : ''
-                    }`}
-                    onClick={() => handleSelect(item)}
-                    onMouseEnter={() => setSelectedIndex(index)}
-                    style={{animationDelay: `${index * 0.05}s`}}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <Search className="w-3 h-3 text-green-500" />
-                      <span>{getDisplayText(item)}</span>
-                    </div>
-                  </div>
-                ))
-              ) : query.length >= 2 ? (
-                <div className="bounce-in px-4 py-6 text-center text-sm text-green-600">
-                  <div className="flex flex-col items-center space-y-2">
-                    <div className="floating-icon">
-                      <Search className="w-6 h-6 text-green-400" />
-                    </div>
-                    <div className="font-medium">No results found</div>
-                    <div className="text-xs text-green-500">Try a different search term</div>
-                  </div>
-                </div>
-              ) : null}
-            </CardContent>
-          </Card>
+        {/* HYBRID: Search icon when not loading */}
+        {!isLoading && (
+          <div className="absolute inset-y-0 right-3 flex items-center">
+            <Search className="w-4 h-4 text-gray-400 dark:text-gray-600" />
+          </div>
         )}
       </div>
+
+      {/* HYBRID: Smart dropdown with better state management */}
+      {isOpen && !disabled && (
+        <Card className="absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+          <CardContent className="p-0" ref={resultsRef}>
+            {isLoading ? (
+              <div className="px-4 py-3 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                <span>Searching for results...</span>
+              </div>
+            ) : results.length > 0 ? (
+              results.map((item, index) => (
+                <div
+                  key={index}
+                  className={`px-4 py-3 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors ${
+                    index === selectedIndex 
+                      ? 'bg-green-50 dark:bg-green-900/20 text-green-900 dark:text-green-100' 
+                      : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100'
+                  }`}
+                  onClick={() => handleSelect(item)}
+                  onMouseEnter={() => setSelectedIndex(index)}
+                >
+                  {getDisplayText(item)}
+                </div>
+              ))
+            ) : query.length >= 2 ? (
+              <div className="px-4 py-3 text-center text-sm text-gray-500 dark:text-gray-400">
+                <Search className="w-5 h-5 mx-auto mb-2 opacity-50" />
+                <div>No results found for "{query}"</div>
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
