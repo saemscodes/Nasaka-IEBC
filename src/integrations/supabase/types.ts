@@ -71,21 +71,27 @@ export type Database = {
           id: number
           member_of_parliament: string | null
           name: string
+          party: string | null
           registration_target: number
+          women_rep: string | null
         }
         Insert: {
           county_id: number
           id?: number
           member_of_parliament?: string | null
           name: string
+          party?: string | null
           registration_target: number
+          women_rep?: string | null
         }
         Update: {
           county_id?: number
           id?: number
           member_of_parliament?: string | null
           name?: string
+          party?: string | null
           registration_target?: number
+          women_rep?: string | null
         }
         Relationships: [
           {
@@ -96,6 +102,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      constituencies_backup: {
+        Row: {
+          county_id: number | null
+          id: number | null
+          member_of_parliament: string | null
+          name: string | null
+          registration_target: number | null
+        }
+        Insert: {
+          county_id?: number | null
+          id?: number | null
+          member_of_parliament?: string | null
+          name?: string | null
+          registration_target?: number | null
+        }
+        Update: {
+          county_id?: number | null
+          id?: number | null
+          member_of_parliament?: string | null
+          name?: string | null
+          registration_target?: number | null
+        }
+        Relationships: []
       }
       counties: {
         Row: {
