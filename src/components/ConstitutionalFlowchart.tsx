@@ -45,10 +45,10 @@ const ConstitutionalFlowchart = () => {
       <h3 className="text-xl font-semibold text-gray-900 dark:text-white text-center">Constitutional Recall Process</h3>
       
       {/* Desktop View */}
-      <div className="hidden md:flex items-center justify-center space-x-4">
+      <div className="hidden md:flex items-center justify-center">
         {flowSteps.map((step, index) => (
-          <React.Fragment key={step.id}>
-            <Card 
+          <div key={step.id} className="flex items-center">
+            <Card
               className={`w-72 transition-all duration-300 cursor-pointer ${step.borderColor} ${
                 hoveredStep === step.id ? 'shadow-lg scale-105' : 'shadow-md'
               } ${step.bgColor}`}
@@ -78,16 +78,16 @@ const ConstitutionalFlowchart = () => {
             </Card>
             
             {index < flowSteps.length - 1 && (
-              <ArrowRight className="w-6 h-6 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+              <ArrowRight className="w-6 h-6 text-gray-400 dark:text-gray-500 flex-shrink-0 ml-4" />
             )}
-          </React.Fragment>
+          </div>
         ))}
       </div>
 
       {/* Mobile View - Always Visible */}
       <div className="md:hidden space-y-4">
         {flowSteps.map((step, index) => (
-          <React.Fragment key={step.id}>
+          <div key={step.id}>
             <Card className={`${step.borderColor} ${step.bgColor} shadow-md`}>
               <CardHeader className="pb-3">
                 <div className="flex items-center space-x-3">
@@ -116,7 +116,7 @@ const ConstitutionalFlowchart = () => {
                 <ArrowRight className="w-6 h-6 text-gray-400 dark:text-gray-500 rotate-90" />
               </div>
             )}
-          </React.Fragment>
+          </div>
         ))}
       </div>
     </div>
