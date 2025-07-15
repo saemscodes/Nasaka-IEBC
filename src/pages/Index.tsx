@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -134,6 +133,21 @@ const Index = () => {
     }, 100);
   };
 
+  const scrollToPetitions = () => {
+    // First switch to the dashboard tab
+    scrollToTab('dashboard');
+    // Then scroll to the petitions section after a small delay
+    setTimeout(() => {
+      const petitionsSection = document.querySelector('.grid.grid-cols-1.lg\\:grid-cols-2.gap-6');
+      if (petitionsSection) {
+        const header = document.querySelector('header');
+        const headerHeight = header?.clientHeight || 64;
+        const sectionTop = petitionsSection.getBoundingClientRect().top + window.pageYOffset;
+        window.scrollTo({ top: sectionTop - headerHeight - 20, behavior: 'smooth' });
+      }
+    }, 300);
+  };
+
   const navigationItems = [
     { id: 'dashboard', label: 'Active Petitions', icon: Users },
     { id: 'search', label: 'Search Wards', icon: MapPin },
@@ -184,7 +198,7 @@ const Index = () => {
                 Start Petition
               </Button>
               <Button 
-                onClick={() => window.open('/sign', '_blank')}
+                onClick={scrollToPetitions}
                 variant="outline" 
                 className="border-green-600 dark:border-green-500 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 px-6 py-3"
               >
