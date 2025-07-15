@@ -33,23 +33,47 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
     window.location.href = "/";
   };
 
-  // Animation variants
-  const iconVariants = {
-    menu: {
-      open: { rotate: 90, opacity: 0 },
-      closed: { rotate: 0, opacity: 1 }
+  // Fixed animation variants - single container with proper transitions
+  const menuIconVariants = {
+    closed: {
+      rotate: 0,
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.2,
+        ease: "easeInOut"
+      }
     },
-    x: {
-      open: { 
-        rotate: 0, 
-        opacity: 1,
-        transition: { 
-          type: "spring",
-          stiffness: 300,
-          damping: 15
-        }
-      },
-      closed: { rotate: -90, opacity: 0 }
+    open: {
+      rotate: 90,
+      opacity: 0,
+      scale: 0.8,
+      transition: {
+        duration: 0.2,
+        ease: "easeInOut"
+      }
+    }
+  };
+
+  const xIconVariants = {
+    closed: {
+      rotate: -90,
+      opacity: 0,
+      scale: 0.8,
+      transition: {
+        duration: 0.2,
+        ease: "easeInOut"
+      }
+    },
+    open: {
+      rotate: 0,
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.2,
+        ease: "easeInOut",
+        delay: 0.1
+      }
     }
   };
 
@@ -145,7 +169,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
               {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </Button>
 
-            {/* Mobile Menu Button with Animation */}
+            {/* Mobile Menu Button with Fixed Animation */}
             <Button
               variant="ghost"
               size="sm"
@@ -156,24 +180,25 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
               }`}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              <motion.div
-                className="absolute inset-0 flex items-center justify-center"
-                initial={false}
-                animate={isMobileMenuOpen ? "open" : "closed"}
-              >
+              {/* Fixed positioning - both icons in the same spot with proper layering */}
+              <div className="absolute inset-0 flex items-center justify-center">
                 <motion.div
-                  variants={iconVariants.menu}
-                  transition={{ duration: 0.2 }}
+                  className="absolute"
+                  variants={menuIconVariants}
+                  initial="closed"
+                  animate={isMobileMenuOpen ? "open" : "closed"}
                 >
                   <Menu className="w-5 h-5" />
                 </motion.div>
                 <motion.div
-                  variants={iconVariants.x}
-                  transition={{ duration: 0.2 }}
+                  className="absolute"
+                  variants={xIconVariants}
+                  initial="closed"
+                  animate={isMobileMenuOpen ? "open" : "closed"}
                 >
                   <X className="w-5 h-5" />
                 </motion.div>
-              </motion.div>
+              </div>
             </Button>
           </div>
         </div>
