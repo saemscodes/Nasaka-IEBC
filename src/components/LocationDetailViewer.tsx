@@ -416,8 +416,8 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
       const sortedResults = uniqueResults.sort((a, b) => {
         const aExact = exactMatches.some(exact => exact.id === a.id);
         const bExact = exactMatches.some(exact => exact.id === b.id);
-        const aConstituency = constituencyMatches.some(const => const.id === a.id);
-        const bConstituency = constituencyMatches.some(const => const.id === b.id);
+        const aConstituency = constituencyMatches.some(constituency => constituency.id === a.id);
+        const bConstituency = constituencyMatches.some(constituency => constituency.id === b.id);
         
         if (aExact && !bExact) return -1;
         if (!aExact && bExact) return 1;
