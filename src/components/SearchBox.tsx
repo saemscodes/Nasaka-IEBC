@@ -1,9 +1,235 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from 'lucide-react';
-import AnimatedSearchIcon from './AnimatedSearchIcon';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const AnimatedSearchIcon = ({ 
+  className = "w-4 h-4 text-gray-400 dark:text-gray-600",
+  isIdle = true,
+  isActive = false,
+  isLoading = false
+}) => {
+  const [currentIcon, setCurrentIcon] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const timerRef = useRef(null);
+  const cycleRef = useRef(null);
+
+  // Icon definitions with smooth morphing paths
+  const iconPaths = [
+    // Search icon (starting and ending)
+    {
+      name: 'search',
+      paths: [
+        { d: "M11 11m-8 0a8 8 0 1 0 16 0a8 8 0 1 0 -16 0", strokeWidth: 2 },
+        { d: "m21 21l-4.3-4.3", strokeWidth: 2 }
+      ],
+      viewBox: "0 0 24 24"
+    },
+    // Book icon
+    {
+      name: 'book',
+      paths: [
+        { d: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20", strokeWidth: 2 },
+        { d: "M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z", strokeWidth: 2 }
+      ],
+      viewBox: "0 0 24 24"
+    },
+    // Document/Paper icon
+    {
+      name: 'document',
+      paths: [
+        { d: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z", strokeWidth: 2 },
+        { d: "M14 2v6h6", strokeWidth: 2 },
+        { d: "M16 13H8", strokeWidth: 1.5 },
+        { d: "M16 17H8", strokeWidth: 1.5 }
+      ],
+      viewBox: "0 0 24 24"
+    },
+    // Folder icon
+    {
+      name: 'folder',
+      paths: [
+        { d: "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z", strokeWidth: 2 }
+      ],
+      viewBox: "0 0 24 24"
+    }
+  ];
+
+  // Animation variants
+  const containerVariants = {
+    idle: { 
+      scale: 1,
+      rotate: 0,
+      transition: { type: "spring", stiffness: 400, damping: 30 }
+    },
+    hover: { 
+      scale: 1.05,
+      rotate: 1,
+      transition: { type: "spring", stiffness: 500, damping: 25 }
+    },
+    active: {
+      scale: 1.1,
+      rotate: 0,
+      transition: { type: "spring", stiffness: 600, damping: 20 }
+    },
+    bounce: {
+      scale: [1, 1.03, 1],
+      transition: { 
+        duration: 0.4,
+        times: [0, 0.6, 1],
+        type: "spring",
+        stiffness: 600,
+        damping: 35
+      }
+    }
+  };
+
+  const pathVariants = {
+    hidden: { 
+      pathLength: 0, 
+      opacity: 0,
+      transition: { duration: 0.2, ease: "easeOut" }
+    },
+    visible: { 
+      pathLength: 1, 
+      opacity: 1,
+      transition: { 
+        pathLength: { 
+          duration: 0.8, 
+          ease: [0.16, 1, 0.3, 1]
+        },
+        opacity: { duration: 0.3, ease: "easeOut" }
+      }
+    },
+    morphing: {
+      pathLength: [1, 0.2, 1],
+      opacity: [1, 0.4, 1],
+      transition: { 
+        duration: 0.5,
+        times: [0, 0.4, 1],
+        ease: [0.25, 0.46, 0.45, 0.94]
+      }
+    }
+  };
+
+  // Start animation cycle
+  const startCycle = () => {
+    if (!isIdle || isHovered || isLoading || isActive) return;
+    
+    timerRef.current = setTimeout(() => {
+      animateToNextIcon();
+    }, 300);
+  };
+
+  // Animate to next icon in sequence
+  const animateToNextIcon = () => {
+    if (!isIdle || isHovered || isLoading || isActive) return;
+    
+    setIsAnimating(true);
+    
+    const nextIndex = (currentIcon + 1) % iconPaths.length;
+    const isReturningToSearch = nextIndex === 0 && currentIcon !== 0;
+    
+    setTimeout(() => {
+      setCurrentIcon(nextIndex);
+      setIsAnimating(false);
+      
+      let delay;
+      if (isReturningToSearch) {
+        delay = 2500;
+      } else if (nextIndex === 0) {
+        delay = 5000;
+      } else {
+        delay = 1500;
+      }
+      
+      cycleRef.current = setTimeout(() => {
+        animateToNextIcon();
+      }, delay);
+    }, 350);
+  };
+
+  // Handle hover events
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (cycleRef.current) clearTimeout(cycleRef.current);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    setCurrentIcon(0);
+    setTimeout(startCycle, 100);
+  };
+
+  // Initialize animation cycle on mount
+  useEffect(() => {
+    if (isIdle && !isLoading && !isActive) {
+      startCycle();
+    }
+    
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (cycleRef.current) clearTimeout(cycleRef.current);
+    };
+  }, [isIdle, isLoading, isActive]);
+
+  const currentIconData = iconPaths[currentIcon];
+
+  return (
+    <motion.div
+      className="flex items-center justify-center"
+      variants={containerVariants}
+      initial="idle"
+      animate={
+        isLoading ? "bounce" : 
+        isActive ? "active" : 
+        isHovered ? "hover" : 
+        isAnimating ? "bounce" : "idle"
+      }
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <AnimatePresence mode="wait">
+        <motion.svg
+          key={currentIcon}
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox={currentIconData.viewBox}
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={className}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ 
+            duration: 0.35, 
+            ease: [0.25, 0.46, 0.45, 0.94]
+          }}
+        >
+          {currentIconData.paths.map((path, index) => (
+            <motion.path
+              key={`${currentIcon}-${index}`}
+              d={path.d}
+              strokeWidth={path.strokeWidth}
+              variants={pathVariants}
+              initial="hidden"
+              animate={isAnimating ? "morphing" : "visible"}
+              style={{
+                filter: isAnimating ? 'drop-shadow(0 0 2px rgba(99, 102, 241, 0.3))' : 'none'
+              }}
+            />
+          ))}
+        </motion.svg>
+      </AnimatePresence>
+    </motion.div>
+  );
+};
 
 interface SearchBoxProps<T> {
   placeholder: string;
@@ -186,24 +412,23 @@ function SearchBox<T>({
           className={`w-full pr-16 ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
         />
         
-        {isLoading && (
-          <div className="absolute inset-y-0 right-3 flex items-center">
-            <Loader2 className="w-4 h-4 animate-spin text-green-500" />
-            <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-              Searching...
-            </span>
-          </div>
-        )}
-        
-        {!isLoading && (
-          <div className="absolute inset-y-0 right-3 flex items-center">
+        <div className="absolute inset-y-0 right-3 flex items-center">
+          {isLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin text-green-500" />
+              <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                Searching...
+              </span>
+            </>
+          ) : (
             <AnimatedSearchIcon 
-              isLoading={isLoading}
+              isIdle={!isLoading && !isOpen}
               isActive={inputRef.current === document.activeElement}
+              isLoading={isLoading}
               className="w-4 h-4 text-green-600 dark:text-green-400"
             />
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {isOpen && !disabled && (
