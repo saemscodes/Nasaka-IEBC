@@ -196,7 +196,7 @@ const CountyDetailViewer: React.FC<CountyDetailViewerProps> = ({
             <div className="text-2xl font-bold text-green-800 dark:text-green-200">
               {selectedConstituency?.registration_target?.toLocaleString() || 'N/A'}
             </div>
-            <div className="text-sm text-green-600 dark:text-green-400">Registration Target</div>
+            <div className="text-sm text-green-600 dark:text-green-400">Registered Voters</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-800 dark:text-blue-200">
