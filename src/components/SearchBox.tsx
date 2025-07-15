@@ -137,8 +137,17 @@ const AnimatedSearchIcon = ({
     }
   };
 
+  // Clear all timers
+  const clearTimers = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (cycleRef.current) clearTimeout(cycleRef.current);
+    timerRef.current = null;
+    cycleRef.current = null;
+  };
+
   // Start animation cycle
   const startCycle = () => {
+    clearTimers();
     if (!isIdleRef.current || isHoveredRef.current || isLoadingRef.current || isActiveRef.current) return;
     
     timerRef.current = setTimeout(() => {
@@ -170,6 +179,10 @@ const AnimatedSearchIcon = ({
       
       cycleRef.current = setTimeout(() => {
         animateToNextIcon();
+        // After morphing finishes, check again and restart if we're idle
+        if (nextIndex === 0 && isIdleRef.current && !isLoadingRef.current && !isActiveRef.current && !isHoveredRef.current) {
+          startCycle();
+        }
       }, delay);
     }, 350);
   };
@@ -177,30 +190,31 @@ const AnimatedSearchIcon = ({
   // Handle hover events
   const handleMouseEnter = () => {
     setIsHovered(true);
-    if (timerRef.current) clearTimeout(timerRef.current);
-    if (cycleRef.current) clearTimeout(cycleRef.current);
+    clearTimers();
   };
 
   const handleMouseLeave = () => {
     setIsHovered(false);
     setCurrentIcon(0);
-    setTimeout(startCycle, 100);
+
+    // Wait for state to update before checking again
+    setTimeout(() => {
+      if (isIdleRef.current && !isLoadingRef.current && !isActiveRef.current && !isHoveredRef.current) {
+        startCycle();
+      }
+    }, 200);
   };
 
   // Initialize animation cycle on mount and when dependencies change
   useEffect(() => {
-    if (isIdle && !isLoading && !isActive) {
+    if (isIdle && !isLoading && !isActive && !isHovered) {
       startCycle();
     } else {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      if (cycleRef.current) clearTimeout(cycleRef.current);
+      clearTimers();
     }
     
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      if (cycleRef.current) clearTimeout(cycleRef.current);
-    };
-  }, [isIdle, isLoading, isActive]);
+    return clearTimers;
+  }, [isIdle, isLoading, isActive, isHovered]);
 
   const currentIconData = iconPaths[currentIcon];
 
