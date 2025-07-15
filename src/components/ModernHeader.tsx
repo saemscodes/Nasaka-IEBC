@@ -34,22 +34,18 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
     window.location.href = "/";
   };
 
-  // Handle dropdown visibility with animation delay
   useEffect(() => {
     if (isMobileMenuOpen) {
-      // Opening: render immediately
       setShouldRenderDropdown(true);
     } else {
-      // Closing: delay removal to allow animation to complete
       const timer = setTimeout(() => {
         setShouldRenderDropdown(false);
-      }, 300); // Match the animation duration
+      }, 300);
       
       return () => clearTimeout(timer);
     }
   }, [isMobileMenuOpen]);
 
-  // Fixed animation variants - single container with proper transitions
   const menuIconVariants = {
     closed: {
       rotate: 0,
@@ -89,7 +85,6 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
     }
   };
 
-  // Smooth dropdown animation variants
   const dropdownVariants = {
     closed: {
       opacity: 0,
@@ -130,7 +125,6 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
     }
   };
 
-  // Smooth logo transition variants
   const logoVariants = {
     light: {
       opacity: 1,
@@ -219,7 +213,6 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
             aria-label="Go to homepage"
           >
             <div className="w-10 h-10 flex items-center justify-center relative">
-              {/* Preload both images */}
               <link rel="preload" href="/logo_green.png" as="image" />
               <link rel="preload" href="/logo_white.png" as="image" />
               
@@ -272,8 +265,22 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
                 <span className="text-sm">{item.label}</span>
               </Button>
             ))}
-            
-            {/* Dark Mode Toggle */}
+          </nav>
+
+          {/* Right Side: Status Badge + Dark Mode Toggle + Mobile Menu */}
+          <div className="flex items-center space-x-3">
+            <Badge 
+              variant="outline" 
+              className={`hidden sm:flex transition-colors duration-300 ${
+                darkMode 
+                  ? 'border-green-600 text-green-400 bg-green-900/20' 
+                  : 'border-green-600 text-green-700 bg-green-50'
+              }`}
+            >
+              Beta
+            </Badge>
+
+            {/* Dark Mode Toggle - moved to the right */}
             <Button
               variant="ghost"
               size="sm"
@@ -303,53 +310,8 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
                 </motion.div>
               </div>
             </Button>
-          </nav>
 
-          {/* Status Badge + Mobile Menu */}
-          <div className="flex items-center space-x-3">
-            <Badge 
-              variant="outline" 
-              className={`hidden sm:flex transition-colors duration-300 ${
-                darkMode 
-                  ? 'border-green-600 text-green-400 bg-green-900/20' 
-                  : 'border-green-600 text-green-700 bg-green-50'
-              }`}
-            >
-              Beta
-            </Badge>
-
-            {/* Mobile Dark Mode Toggle */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleDarkMode}
-              className={`md:hidden transition-colors duration-300 relative w-10 h-10 ${
-                darkMode 
-                  ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
-                  : 'text-green-700 hover:text-green-900 hover:bg-green-50'
-              }`}
-            >
-              <div className="absolute inset-0 flex items-center justify-center">
-                <motion.div
-                  className="absolute"
-                  variants={themeIconVariants}
-                  initial="sun"
-                  animate={darkMode ? "moon" : "sun"}
-                >
-                  <Sun className="w-5 h-5" />
-                </motion.div>
-                <motion.div
-                  className="absolute"
-                  variants={moonIconVariants}
-                  initial="sun"
-                  animate={darkMode ? "moon" : "sun"}
-                >
-                  <Moon className="w-5 h-5" />
-                </motion.div>
-              </div>
-            </Button>
-
-            {/* Mobile Menu Button with Fixed Animation */}
+            {/* Mobile Menu Button */}
             <Button
               variant="ghost"
               size="sm"
@@ -360,7 +322,6 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
               }`}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              {/* Fixed positioning - both icons in the same spot with proper layering */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <motion.div
                   className="absolute"
@@ -383,7 +344,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
           </div>
         </div>
 
-        {/* Mobile Navigation with Smooth Close Animation */}
+        {/* Mobile Navigation */}
         {shouldRenderDropdown && (
           <motion.div
             className={`md:hidden border-t transition-colors duration-300 ${

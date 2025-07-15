@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Search } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import AnimatedSearchIcon from './AnimatedSearchIcon';
 
 interface SearchBoxProps<T> {
   placeholder: string;
@@ -32,7 +34,6 @@ function SearchBox<T>({
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   
-  // HYBRID: Use refs for performance (no re-renders) + better state tracking
   const lastSearchRef = useRef<string | null>(null);
   const isUserSelectionRef = useRef<boolean>(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -40,20 +41,17 @@ function SearchBox<T>({
   useEffect(() => {
     if (value !== undefined && value !== query) {
       setQuery(value);
-      // Reset selection flag when external value changes
       isUserSelectionRef.current = false;
     }
   }, [value]);
 
   useEffect(() => {
     const performSearch = async () => {
-      // HYBRID: Don't search if user just selected an item
       if (isUserSelectionRef.current) {
         isUserSelectionRef.current = false;
         return;
       }
 
-      // HYBRID: Don't search if query too short, disabled, or same as last search
       if (query.length < 2 || disabled || query === lastSearchRef.current) {
         if (query.length < 2) {
           setResults([]);
@@ -62,14 +60,13 @@ function SearchBox<T>({
         return;
       }
 
-      const currentQuery = query; // Capture current query for race condition check
+      const currentQuery = query;
       lastSearchRef.current = query;
       setIsLoading(true);
       
       try {
         const searchResults = await onSearch(query);
         
-        // HYBRID: Race condition protection - only update if query hasn't changed
         if (currentQuery === query && currentQuery === lastSearchRef.current) {
           setResults(searchResults);
           setIsOpen(searchResults.length > 0);
@@ -77,20 +74,17 @@ function SearchBox<T>({
         }
       } catch (error) {
         console.error('Search error:', error);
-        // Only clear results if this was the current query
         if (currentQuery === query) {
           setResults([]);
           setIsOpen(false);
         }
       } finally {
-        // Only set loading false if this was the current query
         if (currentQuery === query) {
           setIsLoading(false);
         }
       }
     };
 
-    // Clear any existing timeout
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
@@ -111,9 +105,7 @@ function SearchBox<T>({
     setQuery(newValue);
     onChange?.(newValue);
     
-    // HYBRID: Reset flags when user types (smart cache management)
     isUserSelectionRef.current = false;
-    // Only reset search cache if user is actually typing (not just selecting)
     if (newValue !== lastSearchRef.current) {
       lastSearchRef.current = null;
     }
@@ -129,7 +121,6 @@ function SearchBox<T>({
     setIsOpen(false);
     setSelectedIndex(-1);
     
-    // HYBRID: Mark user selection and update cache
     isUserSelectionRef.current = true;
     lastSearchRef.current = displayText;
   };
@@ -195,25 +186,26 @@ function SearchBox<T>({
           className={`w-full pr-16 ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
         />
         
-        {/* HYBRID: Enhanced loading visual in input field */}
         {isLoading && (
           <div className="absolute inset-y-0 right-3 flex items-center">
-            <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+            <Loader2 className="w-4 h-4 animate-spin text-green-500" />
             <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
               Searching...
             </span>
           </div>
         )}
         
-        {/* HYBRID: Search icon when not loading */}
         {!isLoading && (
           <div className="absolute inset-y-0 right-3 flex items-center">
-            <Search className="w-4 h-4 text-gray-400 dark:text-gray-600" />
+            <AnimatedSearchIcon 
+              isLoading={isLoading}
+              isActive={inputRef.current === document.activeElement}
+              className="w-4 h-4 text-green-600 dark:text-green-400"
+            />
           </div>
         )}
       </div>
 
-      {/* HYBRID: Smart dropdown with better state management */}
       {isOpen && !disabled && (
         <Card className="absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
           <CardContent className="p-0" ref={resultsRef}>
@@ -239,7 +231,7 @@ function SearchBox<T>({
               ))
             ) : query.length >= 2 ? (
               <div className="px-4 py-3 text-center text-sm text-gray-500 dark:text-gray-400">
-                <Search className="w-5 h-5 mx-auto mb-2 opacity-50" />
+                <AnimatedSearchIcon className="w-5 h-5 mx-auto mb-2 opacity-50" />
                 <div>No results found for "{query}"</div>
               </div>
             ) : null}
