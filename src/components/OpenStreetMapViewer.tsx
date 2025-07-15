@@ -59,6 +59,7 @@ const OpenStreetMapViewer = () => {
   const [layers, setLayers] = useState<MapLayer[]>([]);
   const [selectedCounty, setSelectedCounty] = useState<County | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [leafletLib, setLeafletLib] = useState<any>(null);
   const [csvData, setCsvData] = useState<any[]>([]);
   const mapRef = useRef<any>(null);
 
@@ -68,10 +69,20 @@ const OpenStreetMapViewer = () => {
 
   useEffect(() => {
     fetchMapData();
-    // Initialize Leaflet icons
-    if (typeof window !== 'undefined') {
-      import('leaflet-defaulticon-compatibility');
-    }
+    // Load Leaflet library dynamically
+    const loadLeaflet = async () => {
+      if (typeof window !== 'undefined') {
+        try {
+          const leaflet = await import('leaflet');
+          await import('leaflet-defaulticon-compatibility');
+          setLeafletLib(leaflet.default);
+        } catch (error) {
+          console.error('Error loading Leaflet:', error);
+        }
+      }
+    };
+    
+    loadLeaflet();
   }, []);
 
   const fetchMapData = async () => {
@@ -216,10 +227,9 @@ const OpenStreetMapViewer = () => {
   };
 
   const getMarkerIcon = (layerType: string, color: string) => {
-    if (typeof window === 'undefined') return null;
+    if (typeof window === 'undefined' || !leafletLib) return null;
     
-    const L = require('leaflet');
-    return new L.DivIcon({
+    return new leafletLib.DivIcon({
       html: `
         <div style="
           background-color: ${color};
@@ -271,17 +281,20 @@ const OpenStreetMapViewer = () => {
             />
             
             {/* Render markers for each visible layer */}
-            {layers.filter(layer => layer.visible).map(layer => 
+            {leafletLib && layers.filter(layer => layer.visible).map(layer => 
               layer.data.map((item, index) => {
                 const coords = layer.type === 'csv' && item.lat && item.lng 
                   ? [parseFloat(item.lat), parseFloat(item.lng)] as [number, number]
                   : generateMockCoordinates(item.name || item.ward_name || item.constituency || 'Unknown', index);
                 
+                const markerIcon = getMarkerIcon(layer.type, layer.color);
+                if (!markerIcon) return null;
+                
                 return (
                   <Marker
                     key={`${layer.id}-${index}`}
                     position={coords}
-                    icon={getMarkerIcon(layer.type, layer.color)}
+                    icon={markerIcon}
                   >
                     <Popup>
                       <div className="p-2 min-w-[200px]">
