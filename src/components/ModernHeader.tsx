@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
   scrollToTab
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [shouldRenderDropdown, setShouldRenderDropdown] = useState(false);
 
   const navigationItems = [
     { id: 'dashboard', label: 'Petitions', icon: FileText },
@@ -32,6 +33,21 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
   const goToHomepage = () => {
     window.location.href = "/";
   };
+
+  // Handle dropdown visibility with animation delay
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      // Opening: render immediately
+      setShouldRenderDropdown(true);
+    } else {
+      // Closing: delay removal to allow animation to complete
+      const timer = setTimeout(() => {
+        setShouldRenderDropdown(false);
+      }, 300); // Match the animation duration
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isMobileMenuOpen]);
 
   // Fixed animation variants - single container with proper transitions
   const menuIconVariants = {
@@ -160,6 +176,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       }
     }
   };
+  
   const themeIconVariants = {
     sun: {
       rotate: 0,
@@ -382,15 +399,15 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
+        {/* Mobile Navigation with Smooth Close Animation */}
+        {shouldRenderDropdown && (
           <motion.div
             className={`md:hidden border-t transition-colors duration-300 ${
               darkMode ? 'border-gray-700' : 'border-green-100'
             }`}
             variants={dropdownVariants}
             initial="closed"
-            animate="open"
+            animate={isMobileMenuOpen ? "open" : "closed"}
             exit="closed"
           >
             <nav className="py-4">
