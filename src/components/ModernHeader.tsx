@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Menu, X, FileText, Users, Scale, MapPin, Search, Moon, Sun } from 'lucide-react';
@@ -30,6 +31,26 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
 
   const goToHomepage = () => {
     window.location.href = "/";
+  };
+
+  // Animation variants
+  const iconVariants = {
+    menu: {
+      open: { rotate: 90, opacity: 0 },
+      closed: { rotate: 0, opacity: 1 }
+    },
+    x: {
+      open: { 
+        rotate: 0, 
+        opacity: 1,
+        transition: { 
+          type: "spring",
+          stiffness: 300,
+          damping: 15
+        }
+      },
+      closed: { rotate: -90, opacity: 0 }
+    }
   };
 
   return (
@@ -124,18 +145,35 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
               {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </Button>
 
-            {/* Mobile Menu Button */}
+            {/* Mobile Menu Button with Animation */}
             <Button
               variant="ghost"
               size="sm"
-              className={`md:hidden transition-colors duration-300 ${
+              className={`md:hidden transition-colors duration-300 relative w-10 h-10 ${
                 darkMode 
                   ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
                   : 'text-green-700 hover:text-green-900 hover:bg-green-50'
               }`}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              <motion.div
+                className="absolute inset-0 flex items-center justify-center"
+                initial={false}
+                animate={isMobileMenuOpen ? "open" : "closed"}
+              >
+                <motion.div
+                  variants={iconVariants.menu}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Menu className="w-5 h-5" />
+                </motion.div>
+                <motion.div
+                  variants={iconVariants.x}
+                  transition={{ duration: 0.2 }}
+                >
+                  <X className="w-5 h-5" />
+                </motion.div>
+              </motion.div>
             </Button>
           </div>
         </div>
