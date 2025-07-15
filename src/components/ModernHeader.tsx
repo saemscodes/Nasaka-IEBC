@@ -184,7 +184,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
               <img 
                 src={darkMode ? "/logo_white.png" : "/logo_green.png"}
                 alt="Recall254 Logo"
-                className="w-10 h-10 object-contain transition-opacity duration-300"
+                className="w-10 h-10 object-cover rounded-full transition-opacity duration-300"
               />
             </div>
             <div>
