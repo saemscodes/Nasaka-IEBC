@@ -421,7 +421,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
                       variant="ghost"
                       size="sm"
                       onClick={() => handleNavigation(item)}
-                      className={`w-full flex items-center space-x-3 justify-start transition-colors duration-300 ${
+                      className={`w-full flex items-center space-x-3 justify-start px-4 py-3 transition-colors duration-300 ${
                         darkMode 
                           ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
                           : 'text-green-700 hover:text-green-900 hover:bg-green-50'
