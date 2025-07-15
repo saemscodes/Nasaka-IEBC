@@ -281,7 +281,7 @@ const OpenStreetMapViewer = () => {
             />
             
             {/* Render markers for each visible layer */}
-            {leafletLib && layers.filter(layer => layer.visible).map(layer => 
+            {leafletLib && layers.filter(layer => layer.visible).flatMap(layer => 
               layer.data.map((item, index) => {
                 const coords = layer.type === 'csv' && item.lat && item.lng 
                   ? [parseFloat(item.lat), parseFloat(item.lng)] as [number, number]
