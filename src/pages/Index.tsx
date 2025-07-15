@@ -14,6 +14,7 @@ import PetitionWizard from '@/components/PetitionWizard';
 import CountyStatistics from '@/components/CountyStatistics';
 import ConstitutionalFlowchart from '@/components/ConstitutionalFlowchart';
 import { supabase } from "@/integrations/supabase/client";
+import TabbedMapViewer from '@/components/TabbedMapViewer';
 
 interface Constituency {
   name: string;
@@ -466,7 +467,7 @@ const Index = () => {
           )}
           {activeTab === 'map' && (
             <div ref={el => sectionsRef.current.map = el}>
-              <KenyaHeatMap />
+              <TabbedMapViewer />
             </div>
           )}
           {activeTab === 'legal' && (
