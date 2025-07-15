@@ -1,27 +1,9 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Users, TrendingUp, Building2, Layers, Download, Upload, Eye, EyeOff } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
-
-// Dynamic imports for Leaflet to handle SSR issues
-const MapContainer = React.lazy(() => 
-  import('react-leaflet').then(module => ({ default: module.MapContainer }))
-);
-const TileLayer = React.lazy(() => 
-  import('react-leaflet').then(module => ({ default: module.TileLayer }))
-);
-const Marker = React.lazy(() => 
-  import('react-leaflet').then(module => ({ default: module.Marker }))
-);
-const Popup = React.lazy(() => 
-  import('react-leaflet').then(module => ({ default: module.Popup }))
-);
-const GeoJSON = React.lazy(() => 
-  import('react-leaflet').then(module => ({ default: module.GeoJSON }))
-);
 
 interface County {
   id: number;
@@ -49,6 +31,150 @@ interface MapLayer {
   color: string;
 }
 
+// Map component that loads after Leaflet is ready
+const MapContent = ({ layers, leafletLib, kenyaCenter, defaultZoom }) => {
+  const [LeafletComponents, setLeafletComponents] = useState(null);
+  const mapRef = useRef(null);
+
+  useEffect(() => {
+    const loadLeafletComponents = async () => {
+      try {
+        if (typeof window !== 'undefined' && leafletLib) {
+          const leafletModule = await import('react-leaflet');
+          setLeafletComponents({
+            MapContainer: leafletModule.MapContainer,
+            TileLayer: leafletModule.TileLayer,
+            Marker: leafletModule.Marker,
+            Popup: leafletModule.Popup,
+            GeoJSON: leafletModule.GeoJSON
+          });
+        }
+      } catch (error) {
+        console.error('Error loading Leaflet components:', error);
+      }
+    };
+
+    loadLeafletComponents();
+  }, [leafletLib]);
+
+  const generateMockCoordinates = (name, index) => {
+    const baseLatOffset = (index % 10) * 0.5 - 2.5;
+    const baseLngOffset = (Math.floor(index / 10) % 10) * 0.8 - 4;
+    return [
+      kenyaCenter[0] + baseLatOffset + (Math.random() - 0.5) * 0.3,
+      kenyaCenter[1] + baseLngOffset + (Math.random() - 0.5) * 0.3
+    ];
+  };
+
+  const getMarkerIcon = (layerType, color) => {
+    if (typeof window === 'undefined' || !leafletLib) return null;
+    
+    return new leafletLib.DivIcon({
+      html: `
+        <div style="
+          background-color: ${color};
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          border: 2px solid white;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        "></div>
+      `,
+      className: 'custom-marker',
+      iconSize: [16, 16],
+      iconAnchor: [8, 8]
+    });
+  };
+
+  if (!LeafletComponents) {
+    return (
+      <div className="w-full h-[500px] bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 dark:border-green-400 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading map components...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const { MapContainer, TileLayer, Marker, Popup } = LeafletComponents;
+
+  return (
+    <div className="w-full h-[500px] rounded-lg overflow-hidden border border-green-200 dark:border-green-700">
+      <MapContainer
+        center={kenyaCenter}
+        zoom={defaultZoom}
+        scrollWheelZoom={true}
+        style={{ height: '100%', width: '100%' }}
+        ref={mapRef}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        
+        {/* Render markers for each visible layer */}
+        {leafletLib && layers.filter(layer => layer.visible).flatMap(layer => 
+          layer.data.map((item, index) => {
+            const coords = layer.type === 'csv' && item.lat && item.lng 
+              ? [parseFloat(item.lat), parseFloat(item.lng)]
+              : generateMockCoordinates(item.name || item.ward_name || item.constituency || 'Unknown', index);
+            
+            const markerIcon = getMarkerIcon(layer.type, layer.color);
+            if (!markerIcon) return null;
+            
+            return (
+              <Marker
+                key={`${layer.id}-${index}`}
+                position={coords}
+                icon={markerIcon}
+              >
+                <Popup>
+                  <div className="p-2 min-w-[200px]">
+                    <h4 className="font-semibold text-gray-800 mb-2">
+                      {item.name || item.ward_name || item.constituency || 'Unknown Location'}
+                    </h4>
+                    {layer.type === 'counties' && (
+                      <div className="space-y-1 text-sm">
+                        <p><strong>Governor:</strong> {item.governor || 'N/A'}</p>
+                        <p><strong>Senator:</strong> {item.senator || 'N/A'}</p>
+                        <p><strong>Total Voters:</strong> {item.total_count?.toLocaleString() || 'N/A'}</p>
+                        <p><strong>Target:</strong> {item.registration_target?.toLocaleString() || 'N/A'}</p>
+                      </div>
+                    )}
+                    {layer.type === 'constituencies' && (
+                      <div className="space-y-1 text-sm">
+                        <p><strong>MP:</strong> {item.member_of_parliament || 'N/A'}</p>
+                        <p><strong>Target:</strong> {item.registration_target?.toLocaleString() || 'N/A'}</p>
+                      </div>
+                    )}
+                    {layer.type === 'wards' && (
+                      <div className="space-y-1 text-sm">
+                        <p><strong>Constituency:</strong> {item.constituency || 'N/A'}</p>
+                        <p><strong>County:</strong> {item.county || 'N/A'}</p>
+                        <p><strong>Target:</strong> {item.registration_target?.toLocaleString() || 'N/A'}</p>
+                      </div>
+                    )}
+                    {layer.type === 'csv' && (
+                      <div className="space-y-1 text-sm">
+                        {Object.entries(item).map(([key, value]) => (
+                          key !== 'lat' && key !== 'lng' && (
+                            <p key={key}><strong>{key}:</strong> {String(value)}</p>
+                          )
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })
+        ).filter(Boolean)}
+      </MapContainer>
+    </div>
+  );
+};
+
 const OpenStreetMapViewer = () => {
   const [mapStats, setMapStats] = useState({
     totalCounties: 0,
@@ -56,26 +182,48 @@ const OpenStreetMapViewer = () => {
     totalVoters: 0
   });
   
-  const [layers, setLayers] = useState<MapLayer[]>([]);
-  const [selectedCounty, setSelectedCounty] = useState<County | null>(null);
+  const [layers, setLayers] = useState([]);
+  const [selectedCounty, setSelectedCounty] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [leafletLib, setLeafletLib] = useState<any>(null);
-  const [csvData, setCsvData] = useState<any[]>([]);
-  const mapRef = useRef<any>(null);
+  const [leafletLib, setLeafletLib] = useState(null);
+  const [csvData, setCsvData] = useState([]);
+  const [isLeafletReady, setIsLeafletReady] = useState(false);
 
   // Kenya center coordinates
-  const kenyaCenter: [number, number] = [-0.0236, 37.9062];
+  const kenyaCenter = [-0.0236, 37.9062];
   const defaultZoom = 6;
 
   useEffect(() => {
     fetchMapData();
+    
     // Load Leaflet library dynamically
     const loadLeaflet = async () => {
       if (typeof window !== 'undefined') {
         try {
           const leaflet = await import('leaflet');
-          await import('leaflet-defaulticon-compatibility');
+          
+          // Import leaflet CSS
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+          document.head.appendChild(link);
+          
+          // Wait for CSS to load
+          await new Promise((resolve) => {
+            link.onload = resolve;
+            setTimeout(resolve, 1000); // fallback timeout
+          });
+          
+          // Fix for default markers
+          delete leaflet.default.Icon.Default.prototype._getIconUrl;
+          leaflet.default.Icon.Default.mergeOptions({
+            iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+            iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+          });
+          
           setLeafletLib(leaflet.default);
+          setIsLeafletReady(true);
         } catch (error) {
           console.error('Error loading Leaflet:', error);
         }
@@ -123,7 +271,7 @@ const OpenStreetMapViewer = () => {
       });
 
       // Initialize layers
-      const initialLayers: MapLayer[] = [
+      const initialLayers = [
         {
           id: 'counties',
           name: 'Counties',
@@ -158,7 +306,7 @@ const OpenStreetMapViewer = () => {
     }
   };
 
-  const toggleLayerVisibility = (layerId: string) => {
+  const toggleLayerVisibility = (layerId) => {
     setLayers(prev => prev.map(layer => 
       layer.id === layerId 
         ? { ...layer, visible: !layer.visible }
@@ -166,18 +314,18 @@ const OpenStreetMapViewer = () => {
     ));
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const content = e.target?.result as string;
+        const content = e.target?.result;
         
         if (file.name.endsWith('.json')) {
           const jsonData = JSON.parse(content);
-          const newLayer: MapLayer = {
+          const newLayer = {
             id: `custom-${Date.now()}`,
             name: file.name.replace('.json', ''),
             type: 'constituencies',
@@ -191,7 +339,7 @@ const OpenStreetMapViewer = () => {
           const headers = lines[0].split(',');
           const data = lines.slice(1).map(line => {
             const values = line.split(',');
-            const obj: any = {};
+            const obj = {};
             headers.forEach((header, index) => {
               obj[header.trim()] = values[index]?.trim();
             });
@@ -199,7 +347,7 @@ const OpenStreetMapViewer = () => {
           }).filter(item => item[headers[0]]); // Filter out empty rows
 
           setCsvData(data);
-          const newLayer: MapLayer = {
+          const newLayer = {
             id: `csv-${Date.now()}`,
             name: file.name.replace('.csv', ''),
             type: 'csv',
@@ -216,36 +364,6 @@ const OpenStreetMapViewer = () => {
     reader.readAsText(file);
   };
 
-  // Generate mock coordinates for demonstration
-  const generateMockCoordinates = (name: string, index: number): [number, number] => {
-    const baseLatOffset = (index % 10) * 0.5 - 2.5;
-    const baseLngOffset = (Math.floor(index / 10) % 10) * 0.8 - 4;
-    return [
-      kenyaCenter[0] + baseLatOffset + (Math.random() - 0.5) * 0.3,
-      kenyaCenter[1] + baseLngOffset + (Math.random() - 0.5) * 0.3
-    ];
-  };
-
-  const getMarkerIcon = (layerType: string, color: string) => {
-    if (typeof window === 'undefined' || !leafletLib) return null;
-    
-    return new leafletLib.DivIcon({
-      html: `
-        <div style="
-          background-color: ${color};
-          width: 12px;
-          height: 12px;
-          border-radius: 50%;
-          border: 2px solid white;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        "></div>
-      `,
-      className: 'custom-marker',
-      iconSize: [16, 16],
-      iconAnchor: [8, 8]
-    });
-  };
-
   const renderMapContent = () => {
     if (isLoading) {
       return (
@@ -258,88 +376,24 @@ const OpenStreetMapViewer = () => {
       );
     }
 
-    return (
-      <React.Suspense fallback={
+    if (!isLeafletReady || !leafletLib) {
+      return (
         <div className="w-full h-[500px] bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 dark:border-green-400 mx-auto mb-4"></div>
             <p className="text-gray-600 dark:text-gray-400">Initializing map...</p>
           </div>
         </div>
-      }>
-        <div className="w-full h-[500px] rounded-lg overflow-hidden border border-green-200 dark:border-green-700">
-          <MapContainer
-            center={kenyaCenter}
-            zoom={defaultZoom}
-            scrollWheelZoom={true}
-            style={{ height: '100%', width: '100%' }}
-            ref={mapRef}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            
-            {/* Render markers for each visible layer */}
-            {leafletLib && layers.filter(layer => layer.visible).flatMap(layer => 
-              layer.data.map((item, index) => {
-                const coords = layer.type === 'csv' && item.lat && item.lng 
-                  ? [parseFloat(item.lat), parseFloat(item.lng)] as [number, number]
-                  : generateMockCoordinates(item.name || item.ward_name || item.constituency || 'Unknown', index);
-                
-                const markerIcon = getMarkerIcon(layer.type, layer.color);
-                if (!markerIcon) return null;
-                
-                return (
-                  <Marker
-                    key={`${layer.id}-${index}`}
-                    position={coords}
-                    icon={markerIcon}
-                  >
-                    <Popup>
-                      <div className="p-2 min-w-[200px]">
-                        <h4 className="font-semibold text-gray-800 mb-2">
-                          {item.name || item.ward_name || item.constituency || 'Unknown Location'}
-                        </h4>
-                        {layer.type === 'counties' && (
-                          <div className="space-y-1 text-sm">
-                            <p><strong>Governor:</strong> {item.governor || 'N/A'}</p>
-                            <p><strong>Senator:</strong> {item.senator || 'N/A'}</p>
-                            <p><strong>Total Voters:</strong> {item.total_count?.toLocaleString() || 'N/A'}</p>
-                            <p><strong>Target:</strong> {item.registration_target?.toLocaleString() || 'N/A'}</p>
-                          </div>
-                        )}
-                        {layer.type === 'constituencies' && (
-                          <div className="space-y-1 text-sm">
-                            <p><strong>MP:</strong> {item.member_of_parliament || 'N/A'}</p>
-                            <p><strong>Target:</strong> {item.registration_target?.toLocaleString() || 'N/A'}</p>
-                          </div>
-                        )}
-                        {layer.type === 'wards' && (
-                          <div className="space-y-1 text-sm">
-                            <p><strong>Constituency:</strong> {item.constituency || 'N/A'}</p>
-                            <p><strong>County:</strong> {item.county || 'N/A'}</p>
-                            <p><strong>Target:</strong> {item.registration_target?.toLocaleString() || 'N/A'}</p>
-                          </div>
-                        )}
-                        {layer.type === 'csv' && (
-                          <div className="space-y-1 text-sm">
-                            {Object.entries(item).map(([key, value]) => (
-                              key !== 'lat' && key !== 'lng' && (
-                                <p key={key}><strong>{key}:</strong> {String(value)}</p>
-                              )
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </Popup>
-                  </Marker>
-                );
-              })
-            ).filter(Boolean)}
-          </MapContainer>
-        </div>
-      </React.Suspense>
+      );
+    }
+
+    return (
+      <MapContent
+        layers={layers}
+        leafletLib={leafletLib}
+        kenyaCenter={kenyaCenter}
+        defaultZoom={defaultZoom}
+      />
     );
   };
 
