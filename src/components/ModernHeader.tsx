@@ -129,8 +129,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       scale: 1,
       transition: {
         duration: 0.6,
-        ease: "easeInOut",
-        delay: 0.1
+        ease: "easeInOut"
       }
     },
     dark: {
@@ -157,8 +156,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       scale: 1,
       transition: {
         duration: 0.6,
-        ease: "easeInOut",
-        delay: 0.1
+        ease: "easeInOut"
       }
     }
   };
