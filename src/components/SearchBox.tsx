@@ -13,8 +13,31 @@ const AnimatedSearchIcon = ({
   const [currentIcon, setCurrentIcon] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const timerRef = useRef(null);
-  const cycleRef = useRef(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const cycleRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Use refs to track latest state values
+  const isIdleRef = useRef(isIdle);
+  const isHoveredRef = useRef(isHovered);
+  const isActiveRef = useRef(isActive);
+  const isLoadingRef = useRef(isLoading);
+
+  // Sync refs with current state
+  useEffect(() => {
+    isIdleRef.current = isIdle;
+  }, [isIdle]);
+
+  useEffect(() => {
+    isHoveredRef.current = isHovered;
+  }, [isHovered]);
+
+  useEffect(() => {
+    isActiveRef.current = isActive;
+  }, [isActive]);
+
+  useEffect(() => {
+    isLoadingRef.current = isLoading;
+  }, [isLoading]);
 
   // Icon definitions with smooth morphing paths
   const iconPaths = [
@@ -116,7 +139,7 @@ const AnimatedSearchIcon = ({
 
   // Start animation cycle
   const startCycle = () => {
-    if (!isIdle || isHovered || isLoading || isActive) return;
+    if (!isIdleRef.current || isHoveredRef.current || isLoadingRef.current || isActiveRef.current) return;
     
     timerRef.current = setTimeout(() => {
       animateToNextIcon();
@@ -125,7 +148,7 @@ const AnimatedSearchIcon = ({
 
   // Animate to next icon in sequence
   const animateToNextIcon = () => {
-    if (!isIdle || isHovered || isLoading || isActive) return;
+    if (!isIdleRef.current || isHoveredRef.current || isLoadingRef.current || isActiveRef.current) return;
     
     setIsAnimating(true);
     
@@ -164,10 +187,13 @@ const AnimatedSearchIcon = ({
     setTimeout(startCycle, 100);
   };
 
-  // Initialize animation cycle on mount
+  // Initialize animation cycle on mount and when dependencies change
   useEffect(() => {
     if (isIdle && !isLoading && !isActive) {
       startCycle();
+    } else {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (cycleRef.current) clearTimeout(cycleRef.current);
     }
     
     return () => {
@@ -396,6 +422,9 @@ function SearchBox<T>({
     }, 150);
   };
 
+  const isInputFocused = inputRef.current === document.activeElement;
+  const isIdle = !isLoading && !isInputFocused && !isOpen;
+
   return (
     <div className="relative w-full">
       <div className="relative">
@@ -422,8 +451,8 @@ function SearchBox<T>({
             </>
           ) : (
             <AnimatedSearchIcon 
-              isIdle={!isLoading && !isOpen}
-              isActive={inputRef.current === document.activeElement}
+              isIdle={isIdle}
+              isActive={isInputFocused}
               isLoading={isLoading}
               className="w-4 h-4 text-green-600 dark:text-green-400"
             />
@@ -456,7 +485,12 @@ function SearchBox<T>({
               ))
             ) : query.length >= 2 ? (
               <div className="px-4 py-3 text-center text-sm text-gray-500 dark:text-gray-400">
-                <AnimatedSearchIcon className="w-5 h-5 mx-auto mb-2 opacity-50" />
+                <AnimatedSearchIcon 
+                  isIdle={false}
+                  isActive={false}
+                  isLoading={false}
+                  className="w-5 h-5 mx-auto mb-2 opacity-50" 
+                />
                 <div>No results found for "{query}"</div>
               </div>
             ) : null}
