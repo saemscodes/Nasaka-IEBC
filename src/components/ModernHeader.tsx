@@ -180,8 +180,12 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
             onClick={goToHomepage}
             aria-label="Go to homepage"
           >
-            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
-              <Shield className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 flex items-center justify-center">
+              <img 
+                src={darkMode ? "/logo_white.png" : "/logo_green.png"}
+                alt="Recall254 Logo"
+                className="w-10 h-10 object-contain transition-opacity duration-300"
+              />
             </div>
             <div>
               <h1 className={`text-lg font-bold transition-colors duration-300 ${
