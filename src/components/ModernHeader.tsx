@@ -401,37 +401,56 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
 
         {/* Mobile Navigation with Smooth Close Animation */}
         {shouldRenderDropdown && (
+  <motion.div
+    className={`md:hidden border-t transition-colors duration-300 ${
+      darkMode ? 'border-gray-700' : 'border-green-100'
+    }`}
+    variants={dropdownVariants}
+    initial="closed"
+    animate={isMobileMenuOpen ? "open" : "closed"}
+    exit="closed"
+  >
+    <nav className="py-4">
+      <div className="flex flex-col space-y-2">
+        {navigationItems.map((item) => (
           <motion.div
-            className={`md:hidden border-t transition-colors duration-300 ${
-              darkMode ? 'border-gray-700' : 'border-green-100'
-            }`}
-            variants={dropdownVariants}
-            initial="closed"
-            animate={isMobileMenuOpen ? "open" : "closed"}
-            exit="closed"
+            key={item.id}
+            variants={dropdownItemVariants}
           >
-            <nav className="py-4">
-              <div className="flex flex-col space-y-2">
-                {navigationItems.map((item) => (
-                  <motion.div
-                    key={item.id}
-                    variants={dropdownItemVariants}
-                  >
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleNavigation(item)}
-                      className={`flex items-center space-x-3 justify-start transition-colors duration-300 ${
-                        darkMode 
-                          ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
-                          : 'text-green-700 hover:text-green-900 hover:bg-green-50'
-                      }`}
-                    >
-                      <item.icon className="w-4 h-4" />
-                      <span>{item.label}</span>
-                    </Button>
-                  </motion.div>
-                ))}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleNavigation(item)}
+              className={`w-full flex items-center space-x-3 justify-start px-4 py-3 transition-colors duration-300 ${
+                darkMode 
+                  ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
+                  : 'text-green-700 hover:text-green-900 hover:bg-green-50'
+              }`}
+            >
+              <item.icon className="w-4 h-4" />
+              <span>{item.label}</span>
+            </Button>
+          </motion.div>
+        ))}
+        <motion.div 
+          className="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700"
+          variants={dropdownItemVariants}
+        >
+          <Badge 
+            variant="outline" 
+            className={`transition-colors duration-300 ${
+              darkMode 
+                ? 'border-green-600 text-green-400 bg-green-900/20' 
+                : 'border-green-600 text-green-700 bg-green-50'
+            }`}
+          >
+            Beta Version
+          </Badge>
+        </motion.div>
+      </div>
+    </nav>
+  </motion.div>
+)}
                 <motion.div 
                   className="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700"
                   variants={dropdownItemVariants}
