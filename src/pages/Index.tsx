@@ -182,26 +182,14 @@ const Index = () => {
                 className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white px-6 py-3"
               >
                 Start Petition
+              </Button>
               <Button 
-  onClick={() => {
-    // First switch to the dashboard tab
-    scrollToTab('dashboard');
-    // Then scroll to the petitions section after a small delay
-    setTimeout(() => {
-      const petitionsSection = document.querySelector('.grid.grid-cols-1.lg\\:grid-cols-2.gap-6');
-      if (petitionsSection) {
-        const header = document.querySelector('header');
-        const headerHeight = header?.clientHeight || 64;
-        const sectionTop = petitionsSection.getBoundingClientRect().top + window.pageYOffset;
-        window.scrollTo({ top: sectionTop - headerHeight - 20, behavior: 'smooth' });
-      }
-    }, 300);
-  }}
-  variant="outline" 
-  className="border-green-600 dark:border-green-500 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 px-6 py-3"
->
-  Sign Petition
-</Button>
+                onClick={() => window.open('/sign', '_blank')}
+                variant="outline" 
+                className="border-green-600 dark:border-green-500 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 px-6 py-3"
+              >
+                Sign Petition
+              </Button>
             </div>
           </div>
           
