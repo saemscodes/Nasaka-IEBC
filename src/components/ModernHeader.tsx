@@ -77,6 +77,95 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
     }
   };
 
+  // Smooth dropdown animation variants
+  const dropdownVariants = {
+    closed: {
+      opacity: 0,
+      height: 0,
+      y: -10,
+      transition: {
+        duration: 0.3,
+        ease: "easeInOut",
+        staggerChildren: 0.05,
+        staggerDirection: -1
+      }
+    },
+    open: {
+      opacity: 1,
+      height: "auto",
+      y: 0,
+      transition: {
+        duration: 0.3,
+        ease: "easeInOut",
+        staggerChildren: 0.05,
+        delayChildren: 0.1
+      }
+    }
+  };
+
+  const dropdownItemVariants = {
+    closed: {
+      opacity: 0,
+      x: -20,
+      transition: {
+        duration: 0.2,
+        ease: "easeInOut"
+      }
+    },
+    open: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.2,
+        ease: "easeInOut"
+      }
+    }
+  };
+
+  // Smooth theme toggle animation variants
+  const themeIconVariants = {
+    sun: {
+      rotate: 0,
+      scale: 1,
+      opacity: 1,
+      transition: {
+        duration: 0.3,
+        ease: "easeInOut"
+      }
+    },
+    moon: {
+      rotate: 180,
+      scale: 0.8,
+      opacity: 0,
+      transition: {
+        duration: 0.3,
+        ease: "easeInOut"
+      }
+    }
+  };
+
+  const moonIconVariants = {
+    sun: {
+      rotate: -180,
+      scale: 0.8,
+      opacity: 0,
+      transition: {
+        duration: 0.3,
+        ease: "easeInOut"
+      }
+    },
+    moon: {
+      rotate: 0,
+      scale: 1,
+      opacity: 1,
+      transition: {
+        duration: 0.3,
+        ease: "easeInOut",
+        delay: 0.1
+      }
+    }
+  };
+
   return (
     <header className={`sticky top-0 z-50 transition-all duration-300 ${
       darkMode 
@@ -132,13 +221,30 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
               variant="ghost"
               size="sm"
               onClick={toggleDarkMode}
-              className={`transition-colors duration-300 ${
+              className={`transition-colors duration-300 relative w-10 h-10 ${
                 darkMode 
                   ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
                   : 'text-green-700 hover:text-green-900 hover:bg-green-50'
               }`}
             >
-              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <motion.div
+                  className="absolute"
+                  variants={themeIconVariants}
+                  initial="sun"
+                  animate={darkMode ? "moon" : "sun"}
+                >
+                  <Sun className="w-4 h-4" />
+                </motion.div>
+                <motion.div
+                  className="absolute"
+                  variants={moonIconVariants}
+                  initial="sun"
+                  animate={darkMode ? "moon" : "sun"}
+                >
+                  <Moon className="w-4 h-4" />
+                </motion.div>
+              </div>
             </Button>
           </nav>
 
@@ -160,13 +266,30 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
               variant="ghost"
               size="sm"
               onClick={toggleDarkMode}
-              className={`md:hidden transition-colors duration-300 ${
+              className={`md:hidden transition-colors duration-300 relative w-10 h-10 ${
                 darkMode 
                   ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
                   : 'text-green-700 hover:text-green-900 hover:bg-green-50'
               }`}
             >
-              {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <motion.div
+                  className="absolute"
+                  variants={themeIconVariants}
+                  initial="sun"
+                  animate={darkMode ? "moon" : "sun"}
+                >
+                  <Sun className="w-5 h-5" />
+                </motion.div>
+                <motion.div
+                  className="absolute"
+                  variants={moonIconVariants}
+                  initial="sun"
+                  animate={darkMode ? "moon" : "sun"}
+                >
+                  <Moon className="w-5 h-5" />
+                </motion.div>
+              </div>
             </Button>
 
             {/* Mobile Menu Button with Fixed Animation */}
@@ -204,28 +327,40 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
         </div>
 
         {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
-          <div className={`md:hidden py-4 border-t transition-colors duration-300 ${
+        <motion.div
+          className={`md:hidden border-t transition-colors duration-300 ${
             darkMode ? 'border-gray-700' : 'border-green-100'
-          }`}>
-            <nav className="flex flex-col space-y-2">
+          }`}
+          variants={dropdownVariants}
+          initial="closed"
+          animate={isMobileMenuOpen ? "open" : "closed"}
+        >
+          <nav className="py-4">
+            <div className="flex flex-col space-y-2">
               {navigationItems.map((item) => (
-                <Button
+                <motion.div
                   key={item.id}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleNavigation(item)}
-                  className={`flex items-center space-x-3 justify-start transition-colors duration-300 ${
-                    darkMode 
-                      ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
-                      : 'text-green-700 hover:text-green-900 hover:bg-green-50'
-                  }`}
+                  variants={dropdownItemVariants}
                 >
-                  <item.icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleNavigation(item)}
+                    className={`flex items-center space-x-3 justify-start transition-colors duration-300 ${
+                      darkMode 
+                        ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
+                        : 'text-green-700 hover:text-green-900 hover:bg-green-50'
+                    }`}
+                  >
+                    <item.icon className="w-4 h-4" />
+                    <span>{item.label}</span>
+                  </Button>
+                </motion.div>
               ))}
-              <div className="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700">
+              <motion.div 
+                className="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700"
+                variants={dropdownItemVariants}
+              >
                 <Badge 
                   variant="outline" 
                   className={`transition-colors duration-300 ${
@@ -236,10 +371,10 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
                 >
                   Beta Version
                 </Badge>
-              </div>
-            </nav>
-          </div>
-        )}
+              </motion.div>
+            </div>
+          </nav>
+        </motion.div>
       </div>
     </header>
   );
