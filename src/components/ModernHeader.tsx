@@ -122,7 +122,46 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
     }
   };
 
-  // Smooth theme toggle animation variants
+  // Smooth logo transition variants
+  const logoVariants = {
+    light: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.6,
+        ease: "easeInOut",
+        delay: 0.1
+      }
+    },
+    dark: {
+      opacity: 0,
+      scale: 0.95,
+      transition: {
+        duration: 0.6,
+        ease: "easeInOut"
+      }
+    }
+  };
+
+  const logoVariantsDark = {
+    light: {
+      opacity: 0,
+      scale: 0.95,
+      transition: {
+        duration: 0.6,
+        ease: "easeInOut"
+      }
+    },
+    dark: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.6,
+        ease: "easeInOut",
+        delay: 0.1
+      }
+    }
+  };
   const themeIconVariants = {
     sun: {
       rotate: 0,
@@ -180,11 +219,26 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
             onClick={goToHomepage}
             aria-label="Go to homepage"
           >
-            <div className="w-10 h-10 flex items-center justify-center">
-              <img 
-                src={darkMode ? "/logo_white.png" : "/logo_green.png"}
-                alt="Recall254 Logo"
-                className="w-10 h-10 object-cover rounded-full transition-opacity duration-300"
+            <div className="w-10 h-10 flex items-center justify-center relative">
+              {/* Preload both images */}
+              <link rel="preload" href="/logo_green.png" as="image" />
+              <link rel="preload" href="/logo_white.png" as="image" />
+              
+              <motion.img 
+                src="/logo_green.png"
+                alt="Recall254 Logo Light"
+                className="w-10 h-10 object-cover rounded-full absolute"
+                variants={logoVariants}
+                initial="light"
+                animate={darkMode ? "dark" : "light"}
+              />
+              <motion.img 
+                src="/logo_white.png"
+                alt="Recall254 Logo Dark"
+                className="w-10 h-10 object-cover rounded-full absolute"
+                variants={logoVariantsDark}
+                initial="light"
+                animate={darkMode ? "dark" : "light"}
               />
             </div>
             <div>
