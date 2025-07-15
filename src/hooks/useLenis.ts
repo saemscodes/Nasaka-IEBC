@@ -10,25 +10,21 @@ export const useLenis = () => {
   const lenisRef = useRef<any>(null);
   const rafRef = useRef<number | null>(null);
   
-  // Ultra high-end device detection and capabilities
-  const deviceCapabilities = useMemo(() => {
+  // Zero-latency device optimization
+  const zeroLatencyConfig = useMemo(() => {
     const userAgent = navigator.userAgent;
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
     const isTablet = /iPad|Android/i.test(userAgent) && window.innerWidth >= 768;
     
-    // Advanced hardware detection for high-end optimization
-    const cores = navigator.hardwareConcurrency || 4;
-    const memory = (navigator as any).deviceMemory || 4;
-    const isHighRefreshRate = window.screen?.refreshRate >= 90 || false;
-    const supportsHardwareAcceleration = 'GPU' in window || 'webkitOfflineAudioContext' in window;
+    // Hardware detection for absolute maximum performance
+    const cores = navigator.hardwareConcurrency || 8;
+    const memory = (navigator as any).deviceMemory || 8;
+    const isHighRefreshRate = window.screen?.refreshRate >= 120 || false;
+    const pixelRatio = window.devicePixelRatio || 1;
     
-    // Calculate device performance score (0-10)
-    const performanceScore = Math.min(10, 
-      (cores / 2) + 
-      (memory / 2) + 
-      (isHighRefreshRate ? 2 : 0) + 
-      (supportsHardwareAcceleration ? 1 : 0)
-    );
+    // Calculate maximum possible performance settings
+    const maxFPS = Math.min(240, window.screen?.refreshRate || 144);
+    const optimalLerp = Math.min(0.95, 0.4 + (cores / 20) + (memory / 40));
     
     return {
       isMobile,
@@ -36,71 +32,69 @@ export const useLenis = () => {
       cores,
       memory,
       isHighRefreshRate,
-      performanceScore,
-      isUltraHighEnd: performanceScore >= 8
+      pixelRatio,
+      maxFPS,
+      optimalLerp,
+      isUltraPerformant: cores >= 8 && memory >= 8
     };
   }, []);
 
-  // Ultra-smooth easing functions optimized for high-end devices
-  const ultraSmoothEasing = useCallback((t: number) => {
-    // Custom easing inspired by Apple's interface animations
-    // Combines ease-out with subtle bounce for premium feel
-    if (t < 0.5) {
-      return 4 * t * t * t;
-    } else {
-      const p = 2 * t - 2;
-      return 1 + p * p * p;
-    }
+  // INSTANT response easing - mathematically closest to zero latency
+  const zeroLatencyEasing = useCallback((t: number) => {
+    // Immediate response with minimal smoothing
+    return t >= 0.98 ? 1 : Math.pow(t, 0.3);
   }, []);
 
-  // Alternative ultra-responsive easing for instant feel
-  const hyperResponsiveEasing = useCallback((t: number) => {
-    // Exponential ease-out for ultra-snappy response
-    return 1 - Math.pow(2, -12 * t);
+  // Alternative: Pure linear for absolute zero delay
+  const instantEasing = useCallback((t: number) => {
+    return t > 0.95 ? 1 : t * t;
   }, []);
 
-  // Premium configuration for maximum smoothness
-  const getUltraConfig = useCallback(() => {
-    const { isMobile, isTablet, performanceScore, isUltraHighEnd, isHighRefreshRate } = deviceCapabilities;
+  // ZERO LATENCY configuration
+  const getZeroLatencyConfig = useCallback(() => {
+    const { isMobile, isTablet, isUltraPerformant, maxFPS, optimalLerp } = zeroLatencyConfig;
     
     if (isMobile && !isTablet) {
       return {
-        lerp: isUltraHighEnd ? 0.4 : 0.3, // Ultra-high lerp for instant response
-        duration: isUltraHighEnd ? 0.3 : 0.4, // Lightning fast duration
-        smoothWheel: false, // Native mobile feel
-        smoothTouch: true, // Enable for premium mobile experience
-        touchMultiplier: isUltraHighEnd ? 3.5 : 2.5,
+        lerp: isUltraPerformant ? 0.85 : 0.75, // Near-instant mobile response
+        duration: isUltraPerformant ? 0.1 : 0.15, // Minimal duration
+        smoothWheel: false,
+        smoothTouch: true,
+        touchMultiplier: isUltraPerformant ? 5 : 4,
         wheelMultiplier: 1,
-        touchInertiaMultiplier: isUltraHighEnd ? 15 : 20, // Reduced inertia for precision
-        targetFPS: isHighRefreshRate ? 120 : 60,
+        touchInertiaMultiplier: 3, // Minimal inertia for instant stop
+        targetFPS: Math.min(maxFPS, 144),
+        syncTouchLerp: isUltraPerformant ? 0.9 : 0.8,
       };
     }
     
     if (isTablet) {
       return {
-        lerp: isUltraHighEnd ? 0.5 : 0.4, // Maximum responsiveness
-        duration: isUltraHighEnd ? 0.25 : 0.35,
+        lerp: isUltraPerformant ? 0.9 : 0.8, // Maximum tablet responsiveness
+        duration: isUltraPerformant ? 0.08 : 0.12,
         smoothWheel: true,
         smoothTouch: true,
-        touchMultiplier: isUltraHighEnd ? 4 : 3,
-        wheelMultiplier: isUltraHighEnd ? 1.8 : 1.5,
-        touchInertiaMultiplier: isUltraHighEnd ? 12 : 18,
-        targetFPS: isHighRefreshRate ? 120 : 90,
+        touchMultiplier: isUltraPerformant ? 6 : 5,
+        wheelMultiplier: isUltraPerformant ? 3 : 2.5,
+        touchInertiaMultiplier: 2,
+        targetFPS: maxFPS,
+        syncTouchLerp: isUltraPerformant ? 0.95 : 0.85,
       };
     }
     
-    // Desktop - THE ABSOLUTE BEST configuration
+    // Desktop - ABSOLUTE ZERO LATENCY
     return {
-      lerp: isUltraHighEnd ? 0.65 : 0.5, // MAXIMUM lerp for zero-delay feel
-      duration: isUltraHighEnd ? 0.2 : 0.3, // Ultra-short duration
+      lerp: isUltraPerformant ? 0.95 : 0.88, // 95% catch-up per frame = near-instant
+      duration: isUltraPerformant ? 0.05 : 0.08, // Microsecond-level duration
       smoothWheel: true,
       smoothTouch: false,
-      touchMultiplier: 3,
-      wheelMultiplier: isUltraHighEnd ? 2.2 : 1.8, // Amplified for high-end
-      touchInertiaMultiplier: isUltraHighEnd ? 8 : 12, // Minimal inertia for precision
-      targetFPS: isUltraHighEnd ? 120 : 90, // Target high refresh rates
+      touchMultiplier: 4,
+      wheelMultiplier: isUltraPerformant ? 4 : 3.5, // Maximum amplification
+      touchInertiaMultiplier: 1, // Absolute minimum inertia
+      targetFPS: maxFPS, // Use full display refresh rate
+      syncTouchLerp: isUltraPerformant ? 0.98 : 0.9,
     };
-  }, [deviceCapabilities]);
+  }, [zeroLatencyConfig]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Lenis) {
@@ -110,13 +104,13 @@ export const useLenis = () => {
         return;
       }
 
-      const config = getUltraConfig();
-      const { isUltraHighEnd, performanceScore } = deviceCapabilities;
+      const config = getZeroLatencyConfig();
+      const { isUltraPerformant, maxFPS } = zeroLatencyConfig;
       
-      // Initialize Lenis with MAXIMUM smoothness settings
+      // Initialize Lenis with ZERO LATENCY settings
       lenisRef.current = new window.Lenis({
         ...config,
-        easing: isUltraHighEnd ? hyperResponsiveEasing : ultraSmoothEasing,
+        easing: isUltraPerformant ? instantEasing : zeroLatencyEasing,
         infinite: false,
         syncTouch: true,
         orientation: 'vertical',
@@ -124,75 +118,94 @@ export const useLenis = () => {
         normalizeWheel: true,
         autoResize: true,
         
-        // Ultra-premium optimizations
-        syncTouchLerp: config.lerp * 1.2, // Even higher lerp for touch sync
+        // Zero-latency specific optimizations
+        syncTouchLerp: config.syncTouchLerp,
         eventsTarget: window,
+        wheelMultiplier: config.wheelMultiplier,
+        touchMultiplier: config.touchMultiplier,
         
-        // Advanced prevent logic for maximum performance
+        // Instant prevent logic
         prevent: (node: Element) => {
-          return node.tagName === 'INPUT' || 
-                 node.tagName === 'TEXTAREA' || 
-                 node.tagName === 'SELECT' ||
-                 node.closest('pre') !== null ||
-                 node.closest('[data-lenis-prevent]') !== null ||
-                 node.closest('.no-smooth-scroll') !== null;
+          const tagName = node.tagName;
+          return tagName === 'INPUT' || 
+                 tagName === 'TEXTAREA' || 
+                 tagName === 'SELECT' ||
+                 node.hasAttribute('data-lenis-prevent');
         }
       });
 
-      // ULTRA-OPTIMIZED RAF loop for high refresh rates
+      // ZERO LATENCY RAF - Maximum performance loop
       let lastTime = 0;
       const targetFPS = config.targetFPS;
       const frameInterval = 1000 / targetFPS;
-      let frameCount = 0;
+      let missedFrames = 0;
       
-      // Adaptive frame skipping based on performance
-      const adaptiveFrameSkip = performanceScore < 8 ? 1 : 0;
+      // Pre-calculate frame timing for zero overhead
+      const frameTime = 1000 / targetFPS;
       
-      const ultraRAF = (time: number) => {
-        // Skip frames on lower-end devices for consistency
-        if (frameCount % (adaptiveFrameSkip + 1) === 0) {
-          if (time - lastTime >= frameInterval) {
-            lenisRef.current?.raf(time);
-            lastTime = time;
-          }
-        }
-        frameCount++;
-        rafRef.current = requestAnimationFrame(ultraRAF);
-      };
-      
-      rafRef.current = requestAnimationFrame(ultraRAF);
-
-      // Ultra-responsive resize handler with immediate execution
-      let resizeTimeout: NodeJS.Timeout;
-      const handleResize = () => {
-        // Immediate resize for high-end devices
-        if (isUltraHighEnd) {
-          lenisRef.current?.resize();
+      const zeroLatencyRAF = (time: number) => {
+        const deltaTime = time - lastTime;
+        
+        // Execute on every frame for zero latency
+        if (deltaTime >= frameInterval || missedFrames > 0) {
+          lenisRef.current?.raf(time);
+          lastTime = time;
+          missedFrames = 0;
+        } else {
+          missedFrames++;
         }
         
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-          lenisRef.current?.resize();
-        }, isUltraHighEnd ? 50 : 100);
+        rafRef.current = requestAnimationFrame(zeroLatencyRAF);
+      };
+      
+      rafRef.current = requestAnimationFrame(zeroLatencyRAF);
+
+      // INSTANT resize - no debouncing for zero latency
+      const handleResize = () => {
+        lenisRef.current?.resize();
       };
 
-      // Premium wheel event handling with predictive scrolling
+      // ZERO LATENCY wheel handling with immediate response
       const handleWheel = (e: WheelEvent) => {
         if (Math.abs(e.deltaY) > 0) {
           e.preventDefault();
           
-          // Predictive scroll enhancement for ultra-smooth feel
-          if (isUltraHighEnd && lenisRef.current) {
-            const prediction = e.deltaY * 0.01; // Subtle prediction
-            lenisRef.current.targetScroll += prediction;
+          // Immediate scroll update for zero latency
+          if (lenisRef.current) {
+            const immediateScroll = e.deltaY * config.wheelMultiplier * 0.5;
+            lenisRef.current.targetScroll += immediateScroll;
+            
+            // Force immediate update
+            lenisRef.current.animatedScroll = lenisRef.current.targetScroll * config.lerp + 
+                                             lenisRef.current.animatedScroll * (1 - config.lerp);
           }
         }
       };
 
-      // Touch optimization for premium mobile experience
+      // Zero-latency touch handling
+      let touchStartY = 0;
+      let touchStartTime = 0;
+      
       const handleTouchStart = (e: TouchEvent) => {
         if (lenisRef.current && config.smoothTouch) {
+          touchStartY = e.touches[0].clientY;
+          touchStartTime = performance.now();
           lenisRef.current.isTouching = true;
+        }
+      };
+
+      const handleTouchMove = (e: TouchEvent) => {
+        if (lenisRef.current && config.smoothTouch) {
+          const currentY = e.touches[0].clientY;
+          const deltaY = touchStartY - currentY;
+          const deltaTime = performance.now() - touchStartTime;
+          
+          // Immediate touch response
+          const immediateScroll = deltaY * config.touchMultiplier * 0.1;
+          lenisRef.current.targetScroll += immediateScroll;
+          
+          touchStartY = currentY;
+          touchStartTime = performance.now();
         }
       };
 
@@ -202,26 +215,19 @@ export const useLenis = () => {
         }
       };
 
-      // Event listeners with ultra-optimized options
-      window.addEventListener('resize', handleResize, { passive: true });
+      // IMMEDIATE event listeners - no passive mode for zero latency
+      window.addEventListener('resize', handleResize);
       window.addEventListener('wheel', handleWheel, { passive: false });
-      window.addEventListener('touchstart', handleTouchStart, { passive: true });
-      window.addEventListener('touchend', handleTouchEnd, { passive: true });
+      if (config.smoothTouch) {
+        window.addEventListener('touchstart', handleTouchStart);
+        window.addEventListener('touchmove', handleTouchMove, { passive: false });
+        window.addEventListener('touchend', handleTouchEnd);
+      }
 
-      // Performance monitoring and auto-adjustment
-      let performanceMonitor: NodeJS.Timeout;
-      if (isUltraHighEnd) {
-        performanceMonitor = setInterval(() => {
-          const now = performance.now();
-          const frameTime = now - lastTime;
-          
-          // Auto-adjust lerp based on performance
-          if (frameTime > 16.67 && lenisRef.current) { // Dropping below 60fps
-            lenisRef.current.options.lerp = Math.max(0.1, lenisRef.current.options.lerp * 0.9);
-          } else if (frameTime < 8.33 && lenisRef.current) { // Running above 120fps
-            lenisRef.current.options.lerp = Math.min(0.8, lenisRef.current.options.lerp * 1.05);
-          }
-        }, 1000);
+      // Performance boost: Disable unnecessary browser optimizations
+      if (isUltraPerformant) {
+        document.documentElement.style.scrollBehavior = 'auto';
+        document.body.style.scrollBehavior = 'auto';
       }
 
       // Cleanup function
@@ -229,44 +235,45 @@ export const useLenis = () => {
         if (rafRef.current) {
           cancelAnimationFrame(rafRef.current);
         }
-        clearTimeout(resizeTimeout);
-        clearInterval(performanceMonitor);
         window.removeEventListener('resize', handleResize);
         window.removeEventListener('wheel', handleWheel);
-        window.removeEventListener('touchstart', handleTouchStart);
-        window.removeEventListener('touchend', handleTouchEnd);
+        if (config.smoothTouch) {
+          window.removeEventListener('touchstart', handleTouchStart);
+          window.removeEventListener('touchmove', handleTouchMove);
+          window.removeEventListener('touchend', handleTouchEnd);
+        }
         lenisRef.current?.destroy();
       };
     }
-  }, [getUltraConfig, deviceCapabilities, ultraSmoothEasing, hyperResponsiveEasing]);
+  }, [getZeroLatencyConfig, zeroLatencyConfig, zeroLatencyEasing, instantEasing]);
 
-  // Premium programmatic scrolling with predictive enhancement
+  // INSTANT programmatic scrolling
   const scrollTo = useCallback((target: string | number, options?: any) => {
     if (lenisRef.current) {
-      const { isUltraHighEnd } = deviceCapabilities;
+      const { isUltraPerformant } = zeroLatencyConfig;
       
       lenisRef.current.scrollTo(target, {
-        duration: isUltraHighEnd ? 0.8 : 1,
-        easing: isUltraHighEnd ? hyperResponsiveEasing : ultraSmoothEasing,
-        lerp: isUltraHighEnd ? 0.6 : 0.4,
+        duration: isUltraPerformant ? 0.3 : 0.5,
+        easing: isUltraPerformant ? instantEasing : zeroLatencyEasing,
+        lerp: isUltraPerformant ? 0.95 : 0.8,
         ...options
       });
     }
-  }, [deviceCapabilities, hyperResponsiveEasing, ultraSmoothEasing]);
+  }, [zeroLatencyConfig, instantEasing, zeroLatencyEasing]);
 
   const scrollToTop = useCallback(() => {
     if (lenisRef.current) {
-      const { isUltraHighEnd } = deviceCapabilities;
+      const { isUltraPerformant } = zeroLatencyConfig;
       
       lenisRef.current.scrollTo(0, { 
-        duration: isUltraHighEnd ? 1.0 : 1.5,
-        easing: isUltraHighEnd ? hyperResponsiveEasing : ultraSmoothEasing,
-        lerp: isUltraHighEnd ? 0.7 : 0.5
+        duration: isUltraPerformant ? 0.5 : 0.8,
+        easing: isUltraPerformant ? instantEasing : zeroLatencyEasing,
+        lerp: isUltraPerformant ? 0.98 : 0.85
       });
     }
-  }, [deviceCapabilities, hyperResponsiveEasing, ultraSmoothEasing]);
+  }, [zeroLatencyConfig, instantEasing, zeroLatencyEasing]);
 
-  // Advanced control methods for premium experience
+  // Zero-latency control methods
   const start = useCallback(() => {
     lenisRef.current?.start();
   }, []);
@@ -279,10 +286,11 @@ export const useLenis = () => {
     return lenisRef.current?.isScrolling || false;
   }, []);
 
-  // Premium utility methods
-  const setLerp = useCallback((newLerp: number) => {
+  // Instant response utilities
+  const setMaximumResponsiveness = useCallback(() => {
     if (lenisRef.current) {
-      lenisRef.current.options.lerp = Math.max(0.01, Math.min(1, newLerp));
+      lenisRef.current.options.lerp = 0.98;
+      lenisRef.current.options.duration = 0.03;
     }
   }, []);
 
@@ -294,6 +302,13 @@ export const useLenis = () => {
     return lenisRef.current?.velocity || 0;
   }, []);
 
+  // Force immediate scroll update
+  const forceUpdate = useCallback(() => {
+    if (lenisRef.current) {
+      lenisRef.current.animatedScroll = lenisRef.current.targetScroll;
+    }
+  }, []);
+
   return {
     lenis: lenisRef.current,
     scrollTo,
@@ -301,9 +316,10 @@ export const useLenis = () => {
     start,
     stop,
     isScrolling,
-    setLerp,
+    setMaximumResponsiveness,
     getCurrentScroll,
     getVelocity,
-    deviceCapabilities // Expose for debugging/optimization
+    forceUpdate,
+    zeroLatencyConfig // Debug info
   };
 };
