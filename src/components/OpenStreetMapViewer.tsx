@@ -336,7 +336,7 @@ const OpenStreetMapViewer = () => {
                   </Marker>
                 );
               })
-            )}
+            ).filter(Boolean)}
           </MapContainer>
         </div>
       </React.Suspense>
