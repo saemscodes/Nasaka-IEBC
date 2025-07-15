@@ -103,32 +103,9 @@ export type Database = {
           },
         ]
       }
-      constituencies_backup: {
-        Row: {
-          county_id: number | null
-          id: number | null
-          member_of_parliament: string | null
-          name: string | null
-          registration_target: number | null
-        }
-        Insert: {
-          county_id?: number | null
-          id?: number | null
-          member_of_parliament?: string | null
-          name?: string | null
-          registration_target?: number | null
-        }
-        Update: {
-          county_id?: number | null
-          id?: number | null
-          member_of_parliament?: string | null
-          name?: string | null
-          registration_target?: number | null
-        }
-        Relationships: []
-      }
       counties: {
         Row: {
+          county_code: string | null
           governor: string | null
           id: number
           name: string
@@ -137,6 +114,7 @@ export type Database = {
           total_count: number | null
         }
         Insert: {
+          county_code?: string | null
           governor?: string | null
           id?: number
           name: string
@@ -145,36 +123,13 @@ export type Database = {
           total_count?: number | null
         }
         Update: {
+          county_code?: string | null
           governor?: string | null
           id?: number
           name?: string
           registration_target?: number
           senator?: string | null
           total_count?: number | null
-        }
-        Relationships: []
-      }
-      counties_backup: {
-        Row: {
-          governor: string | null
-          id: number | null
-          name: string | null
-          registration_target: number | null
-          senator: string | null
-        }
-        Insert: {
-          governor?: string | null
-          id?: number | null
-          name?: string | null
-          registration_target?: number | null
-          senator?: string | null
-        }
-        Update: {
-          governor?: string | null
-          id?: number | null
-          name?: string | null
-          registration_target?: number | null
-          senator?: string | null
         }
         Relationships: []
       }
@@ -405,14 +360,25 @@ export type Database = {
           total_count?: number | null
           ward_name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "wards_county_fkey"
+            columns: ["county"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["name"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      normalize_county_name: {
+        Args: { name: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
