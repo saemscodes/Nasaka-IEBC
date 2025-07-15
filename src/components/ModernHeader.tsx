@@ -56,8 +56,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       opacity: 1,
       scale: 1,
       transition: {
-        duration: 0.2,
-        ease: "easeInOut"
+        duration: 0.2
       }
     },
     open: {
@@ -65,8 +64,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       opacity: 0,
       scale: 0.8,
       transition: {
-        duration: 0.2,
-        ease: "easeInOut"
+        duration: 0.2
       }
     }
   };
@@ -77,8 +75,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       opacity: 0,
       scale: 0.8,
       transition: {
-        duration: 0.2,
-        ease: "easeInOut"
+        duration: 0.2
       }
     },
     open: {
@@ -87,7 +84,6 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       scale: 1,
       transition: {
         duration: 0.2,
-        ease: "easeInOut",
         delay: 0.1
       }
     }
@@ -101,7 +97,6 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       y: -10,
       transition: {
         duration: 0.3,
-        ease: "easeInOut",
         staggerChildren: 0.05,
         staggerDirection: -1
       }
@@ -112,7 +107,6 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       y: 0,
       transition: {
         duration: 0.3,
-        ease: "easeInOut",
         staggerChildren: 0.05,
         delayChildren: 0.1
       }
@@ -124,16 +118,14 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       opacity: 0,
       x: -20,
       transition: {
-        duration: 0.2,
-        ease: "easeInOut"
+        duration: 0.2
       }
     },
     open: {
       opacity: 1,
       x: 0,
       transition: {
-        duration: 0.2,
-        ease: "easeInOut"
+        duration: 0.2
       }
     }
   };
@@ -144,16 +136,14 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       opacity: 1,
       scale: 1,
       transition: {
-        duration: 0.6,
-        ease: "easeInOut"
+        duration: 0.6
       }
     },
     dark: {
       opacity: 0,
       scale: 0.95,
       transition: {
-        duration: 0.6,
-        ease: "easeInOut"
+        duration: 0.6
       }
     }
   };
@@ -163,16 +153,14 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       opacity: 0,
       scale: 0.95,
       transition: {
-        duration: 0.6,
-        ease: "easeInOut"
+        duration: 0.6
       }
     },
     dark: {
       opacity: 1,
       scale: 1,
       transition: {
-        duration: 0.6,
-        ease: "easeInOut"
+        duration: 0.6
       }
     }
   };
@@ -183,8 +171,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       scale: 1,
       opacity: 1,
       transition: {
-        duration: 0.3,
-        ease: "easeInOut"
+        duration: 0.3
       }
     },
     moon: {
@@ -192,8 +179,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       scale: 0.8,
       opacity: 0,
       transition: {
-        duration: 0.3,
-        ease: "easeInOut"
+        duration: 0.3
       }
     }
   };
@@ -204,8 +190,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       scale: 0.8,
       opacity: 0,
       transition: {
-        duration: 0.3,
-        ease: "easeInOut"
+        duration: 0.3
       }
     },
     moon: {
@@ -214,7 +199,6 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       opacity: 1,
       transition: {
         duration: 0.3,
-        ease: "easeInOut",
         delay: 0.1
       }
     }

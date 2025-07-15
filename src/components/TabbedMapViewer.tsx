@@ -3,8 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Globe, AlertCircle, CheckCircle } from 'lucide-react';
-import { KenyaHeatMap } from "@/components/KenyaHeatMap";
-import { OpenStreetMapViewer } from "@/components/OpenStreetMapViewer";
+import KenyaHeatMap from "@/components/KenyaHeatMap";
+import OpenStreetMapViewer from "@/components/OpenStreetMapViewer";
 
 interface TabbedMapViewerProps {
   className?: string;
@@ -141,3 +141,5 @@ export const TabbedMapViewer: React.FC<TabbedMapViewerProps> = ({ className }) =
     </div>
   );
 };
+
+export default TabbedMapViewer;

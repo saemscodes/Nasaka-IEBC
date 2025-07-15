@@ -1,4 +1,6 @@
 
+import { supabase } from "@/integrations/supabase/client";
+
 export interface SignatureSessionRequest {
   cspProvider: string;
   voterData: {
@@ -72,7 +74,7 @@ export default async function handler(req: Request): Promise<Response> {
         }, { status: 400 });
     }
 
-    // Store session in database (Supabase)
+    // Store session in database (Supabase) - TODO: Create signature_sessions table
     const sessionData = {
       id: sessionId,
       csp_provider: cspProvider,
@@ -88,7 +90,8 @@ export default async function handler(req: Request): Promise<Response> {
       redirect_url: redirectUrl
     };
     
-    await supabase.from('signature_sessions').insert(sessionData);
+    // TODO: Uncomment when signature_sessions table is created
+    // await supabase.from('signature_sessions').insert(sessionData);
     console.log('Signature session created:', sessionData);
 
     const response: SignatureSessionResponse = {

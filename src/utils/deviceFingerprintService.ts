@@ -55,7 +55,7 @@ export class DeviceFingerprintService {
       const webglCanvas = document.createElement('canvas');
       const webglCtx = webglCanvas.getContext('webgl') || webglCanvas.getContext('experimental-webgl');
       let webglFingerprint = '';
-      if (webglCtx) {
+      if (webglCtx && webglCtx instanceof WebGLRenderingContext) {
         const renderer = webglCtx.getParameter(webglCtx.RENDERER);
         const vendor = webglCtx.getParameter(webglCtx.VENDOR);
         webglFingerprint = `${vendor}~${renderer}`;
