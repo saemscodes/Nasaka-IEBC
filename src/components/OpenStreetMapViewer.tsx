@@ -41,32 +41,37 @@ const OpenStreetMapViewer = () => {
   const [layers, setLayers] = useState<MapLayer[]>([]);
   const [selectedCounty, setSelectedCounty] = useState<County | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isMapReady, setIsMapReady] = useState(false);
+  const [mapContainer, setMapContainer] = useState<any>(null);
   const [csvData, setCsvData] = useState<any[]>([]);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
+  const LRef = useRef<any>(null);
 
   // Kenya center coordinates
   const kenyaCenter: [number, number] = [-0.0236, 37.9062];
   const defaultZoom = 6;
 
-  // Separate effect for data fetching
-  useEffect(() => {
-    fetchMapData();
-  }, []);
-
-  // Separate effect for map initialization
   useEffect(() => {
     initializeMap();
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
   }, []);
 
-  // Effect to update markers when layers change
   useEffect(() => {
-    if (isMapReady && mapInstanceRef.current) {
-      updateMapMarkers();
+    if (mapInstanceRef.current) {
+      fetchMapData();
     }
-  }, [layers, isMapReady]);
+  }, [mapInstanceRef.current]);
+
+  useEffect(() => {
+    if (mapInstanceRef.current && LRef.current) {
+      updateMarkers();
+    }
+  }, [layers]);
 
   const initializeMap = async () => {
     if (typeof window === 'undefined' || !mapRef.current) return;
@@ -75,76 +80,74 @@ const OpenStreetMapViewer = () => {
       // Dynamic import of Leaflet
       const leafletModule = await import('leaflet');
       const L = leafletModule.default;
-      
-      // Import CSS files
-      await Promise.all([
-        import('leaflet/dist/leaflet.css'),
-        import('leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css'),
-        import('leaflet-defaulticon-compatibility')
-      ]);
+      LRef.current = L;
 
-      // Wait a bit for CSS to load
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // Clear any existing map
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-      }
-
-      // Ensure container has dimensions
-      if (mapRef.current) {
-        mapRef.current.style.height = '500px';
-        mapRef.current.style.width = '100%';
-      }
-
-      // Initialize the map
-      mapInstanceRef.current = L.map(mapRef.current, {
-        center: kenyaCenter,
-        zoom: defaultZoom,
-        zoomControl: true,
-        scrollWheelZoom: true
-      });
-
-      // Add OpenStreetMap tiles with error handling
-      const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 18,
-        errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
-      });
-
-      tileLayer.addTo(mapInstanceRef.current);
-
-      // Fix for default markers
-      const iconRetinaUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png';
-      const iconUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png';
-      const shadowUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png';
-
-      const DefaultIcon = L.icon({
-        iconRetinaUrl,
-        iconUrl,
-        shadowUrl,
+      // Set default icon
+      const icon = L.icon({
+        iconUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png',
         iconSize: [25, 41],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
         shadowSize: [41, 41]
       });
+      L.Marker.prototype.options.icon = icon;
 
-      L.Marker.prototype.options.icon = DefaultIcon;
+      // Initialize the map
+      mapInstanceRef.current = L.map(mapRef.current, {
+        renderer: L.canvas()
+      }).setView(kenyaCenter, defaultZoom);
 
-      // Wait for map to be ready
-      mapInstanceRef.current.whenReady(() => {
-        setIsMapReady(true);
-        console.log('Map initialized successfully');
-      });
+      // Add OpenStreetMap tiles
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+        detectRetina: true
+      }).addTo(mapInstanceRef.current);
 
-      // Handle tile loading errors
-      tileLayer.on('tileerror', (e) => {
-        console.warn('Tile loading error:', e);
-      });
+      // Force resize to ensure tiles load correctly
+      setTimeout(() => {
+        mapInstanceRef.current.invalidateSize();
+      }, 100);
 
+      console.log('Map initialized successfully');
     } catch (error) {
       console.error('Error initializing map:', error);
     }
+  };
+
+  const updateMarkers = () => {
+    if (!mapInstanceRef.current || !LRef.current) return;
+    
+    const L = LRef.current;
+    
+    // Clear all existing markers
+    mapInstanceRef.current.eachLayer(layer => {
+      if (layer instanceof L.Marker || layer instanceof L.CircleMarker) {
+        mapInstanceRef.current.removeLayer(layer);
+      }
+    });
+
+    // Add new markers for visible layers
+    layers.forEach(layer => {
+      if (layer.visible) {
+        layer.data.forEach((item, index) => {
+          const coords = generateMockCoordinates(item.name || item.ward_name || item.constituency || 'Unknown', index);
+          
+          const marker = L.circleMarker(coords, {
+            color: layer.color,
+            fillColor: layer.color,
+            fillOpacity: 0.6,
+            radius: 6,
+            weight: 2
+          }).addTo(mapInstanceRef.current);
+
+          // Add popup
+          const popupContent = createPopupContent(item, layer.type);
+          marker.bindPopup(popupContent);
+        });
+      }
+    });
   };
 
   const fetchMapData = async () => {
@@ -213,7 +216,6 @@ const OpenStreetMapViewer = () => {
       ];
 
       setLayers(initialLayers);
-      
     } catch (error) {
       console.error('Error fetching map data:', error);
     } finally {
@@ -221,57 +223,9 @@ const OpenStreetMapViewer = () => {
     }
   };
 
-  const clearMarkers = () => {
-    markersRef.current.forEach(marker => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.removeLayer(marker);
-      }
-    });
-    markersRef.current = [];
-  };
-
-  const updateMapMarkers = async () => {
-    if (!mapInstanceRef.current) return;
-
-    try {
-      const L = (await import('leaflet')).default;
-      
-      // Clear existing markers
-      clearMarkers();
-      
-      // Add markers for visible layers
-      layers.forEach(layer => {
-        if (layer.visible && layer.data.length > 0) {
-          layer.data.forEach((item, index) => {
-            const coords = generateMockCoordinates(item.name || item.ward_name || item.constituency || 'Unknown', index);
-            
-            const marker = L.circleMarker(coords, {
-              color: layer.color,
-              fillColor: layer.color,
-              fillOpacity: 0.6,
-              radius: 8,
-              weight: 2,
-              opacity: 0.8
-            });
-
-            // Add popup
-            const popupContent = createPopupContent(item, layer.type);
-            marker.bindPopup(popupContent);
-
-            // Add to map and track
-            marker.addTo(mapInstanceRef.current);
-            markersRef.current.push(marker);
-          });
-        }
-      });
-    } catch (error) {
-      console.error('Error updating map markers:', error);
-    }
-  };
-
   const createPopupContent = (item: any, layerType: string) => {
-    let content = `<div class="p-3 min-w-[200px] max-w-[300px]">
-      <h4 class="font-semibold text-gray-800 mb-2 text-base">
+    let content = `<div class="p-2 min-w-[200px]">
+      <h4 class="font-semibold text-gray-800 mb-2">
         ${item.name || item.ward_name || item.constituency || 'Unknown Location'}
       </h4>`;
 
@@ -379,21 +333,11 @@ const OpenStreetMapViewer = () => {
     }
 
     return (
-      <div className="relative">
-        <div 
-          ref={mapRef}
-          className="w-full h-[500px] rounded-lg overflow-hidden border border-green-200 dark:border-green-700 bg-gray-100"
-          style={{ minHeight: '500px' }}
-        />
-        {!isMapReady && (
-          <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 dark:border-green-400 mx-auto mb-2"></div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Initializing map...</p>
-            </div>
-          </div>
-        )}
-      </div>
+      <div 
+        ref={mapRef}
+        className="w-full h-[500px] rounded-lg overflow-hidden border border-green-200 dark:border-green-700"
+        style={{ height: '500px', zIndex: 1 }}
+      />
     );
   };
 
