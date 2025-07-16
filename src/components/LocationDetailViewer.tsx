@@ -506,13 +506,13 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
   const getLocationIcon = () => {
     switch (location.type) {
       case 'county':
-        return <MapPin className="w-5 h-5" />;
+        return <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />;
       case 'constituency':
-        return <Building2 className="w-5 h-5" />;
+        return <Building2 className="w-4 h-4 sm:w-5 sm:h-5" />;
       case 'ward':
-        return <Users className="w-5 h-5" />;
+        return <Users className="w-4 h-4 sm:w-5 sm:h-5" />;
       default:
-        return <MapPin className="w-5 h-5" />;
+        return <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />;
     }
   };
 
@@ -531,38 +531,38 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
 
   return (
     <>
-      {/* Toast Notifications with smooth animations */}
-      <div className="fixed top-4 right-4 z-[60] space-y-2">
+      {/* Toast Notifications with mobile optimization */}
+      <div className="fixed top-2 sm:top-4 right-2 sm:right-4 z-[60] space-y-2 max-w-[calc(100vw-1rem)] sm:max-w-md">
         {toasts.map(toast => (
           <div
             key={toast.id}
             className={`
               transform transition-all duration-500 ease-out
               ${toast.progress > 0 ? 'translate-x-0 opacity-100 scale-100' : 'translate-x-full opacity-0 scale-95'}
-              max-w-md rounded-xl shadow-2xl border-2 backdrop-blur-sm
+              rounded-xl shadow-2xl border-2 backdrop-blur-sm text-xs sm:text-sm
               ${toast.type === 'success' ? 'bg-green-50/95 border-green-300 shadow-green-200/50' : ''}
               ${toast.type === 'error' ? 'bg-red-50/95 border-red-300 shadow-red-200/50' : ''}
               ${toast.type === 'warning' ? 'bg-yellow-50/95 border-yellow-300 shadow-yellow-200/50' : ''}
               ${toast.type === 'info' ? 'bg-blue-50/95 border-blue-300 shadow-blue-200/50' : ''}
             `}
           >
-            <div className="p-4">
+            <div className="p-3 sm:p-4">
               <div className="flex items-start">
                 <div className="flex-shrink-0">
-                  {toast.type === 'success' && <CheckCircle className="w-5 h-5 text-green-600" />}
-                  {toast.type === 'error' && <AlertCircle className="w-5 h-5 text-red-600" />}
-                  {toast.type === 'warning' && <AlertCircle className="w-5 h-5 text-yellow-600" />}
-                  {toast.type === 'info' && <Search className="w-5 h-5 text-blue-600" />}
+                  {toast.type === 'success' && <CheckCircle className="w-4 h-4 text-green-600" />}
+                  {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-red-600" />}
+                  {toast.type === 'warning' && <AlertCircle className="w-4 h-4 text-yellow-600" />}
+                  {toast.type === 'info' && <Search className="w-4 h-4 text-blue-600" />}
                 </div>
-                <div className="ml-3 flex-1">
-                  <h4 className={`text-sm font-bold ${
+                <div className="ml-2 sm:ml-3 flex-1 min-w-0">
+                  <h4 className={`font-bold truncate ${
                     toast.type === 'success' ? 'text-green-900' : 
                     toast.type === 'error' ? 'text-red-900' : 
                     toast.type === 'warning' ? 'text-yellow-900' : 'text-blue-900'
                   }`}>
                     {toast.title}
                   </h4>
-                  <p className={`text-sm mt-1 leading-relaxed ${
+                  <p className={`mt-1 leading-relaxed ${
                     toast.type === 'success' ? 'text-green-800' : 
                     toast.type === 'error' ? 'text-red-800' : 
                     toast.type === 'warning' ? 'text-yellow-800' : 'text-blue-800'
@@ -571,7 +571,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
                   </p>
                 </div>
               </div>
-              <div className="mt-3 bg-gray-200 rounded-full h-1.5 overflow-hidden">
+              <div className="mt-2 sm:mt-3 bg-gray-200 rounded-full h-1 sm:h-1.5 overflow-hidden">
                 <div 
                   className={`h-full rounded-full transition-all duration-150 ease-linear ${
                     toast.type === 'success' ? 'bg-gradient-to-r from-green-400 to-green-600' : 
@@ -586,21 +586,21 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
         ))}
       </div>
 
-      {/* Search Progress Steps with enhanced animations */}
+      {/* Search Progress Steps with mobile optimization */}
       {searchSteps.length > 0 && (
-        <div className="fixed bottom-4 left-4 z-[60] w-96">
+        <div className="fixed bottom-2 sm:bottom-4 left-2 sm:left-4 z-[60] w-[calc(100vw-1rem)] sm:w-96 max-w-md">
           <Card className="shadow-2xl border-2 border-blue-300 bg-gradient-to-br from-blue-50/95 to-indigo-50/95 backdrop-blur-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-blue-900 text-sm flex items-center">
-                <Search className="w-4 h-4 mr-2 animate-pulse" />
+            <CardHeader className="pb-2 sm:pb-3">
+              <CardTitle className="text-blue-900 text-xs sm:text-sm flex items-center">
+                <Search className="w-3 h-3 sm:w-4 sm:h-4 mr-2 animate-pulse" />
                 Petition Search Progress
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2 sm:space-y-3 max-h-64 overflow-y-auto green-scrollbar">
               {searchSteps.map((step, index) => (
                 <div
                   key={step.id}
-                  className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-500 transform ${
+                  className={`flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 rounded-lg transition-all duration-500 transform ${
                     step.status === 'active' ? 'bg-blue-100 border-2 border-blue-400 scale-105 shadow-lg' : 
                     step.status === 'completed' ? 'bg-green-100 border-2 border-green-400 shadow-md' : 
                     step.status === 'failed' ? 'bg-red-100 border-2 border-red-400 shadow-md' : 
@@ -613,9 +613,9 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
                     step.status === 'completed' ? 'animate-bounce' : ''
                   }`}>
                     {step.status === 'completed' ? (
-                      <CheckCircle className="w-5 h-5 text-green-700" />
+                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-700" />
                     ) : step.status === 'failed' ? (
-                      <AlertCircle className="w-5 h-5 text-red-700" />
+                      <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-700" />
                     ) : (
                       <div className={`${
                         step.status === 'active' ? 'text-blue-700' : 'text-gray-500'
@@ -625,7 +625,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-semibold truncate ${
+                    <p className={`text-xs sm:text-sm font-semibold truncate ${
                       step.status === 'completed' ? 'text-green-900' : 
                       step.status === 'failed' ? 'text-red-900' : 
                       step.status === 'active' ? 'text-blue-900' : 'text-gray-700'
@@ -641,7 +641,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
                     </p>
                   </div>
                   {step.duration && step.status === 'completed' && (
-                    <div className="text-xs text-gray-600 font-medium bg-white px-2 py-1 rounded">
+                    <div className="text-xs text-gray-600 font-medium bg-white px-1 sm:px-2 py-1 rounded hidden sm:block">
                       {step.duration}ms
                     </div>
                   )}
@@ -652,16 +652,16 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
         </div>
       )}
 
-      {/* Search Results Modal with enhanced design */}
+      {/* Search Results Modal with mobile optimization */}
       {showResults && searchResults.length > 0 && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[55] animate-fade-in">
-          <Card className="w-full max-w-5xl max-h-[85vh] overflow-y-auto bg-white shadow-2xl border-2 border-green-300 animate-scale-in">
-            <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b-2 border-green-200">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 z-[55] animate-fade-in">
+          <Card className="w-full max-w-[calc(100vw-1rem)] sm:max-w-5xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto bg-white shadow-2xl border-2 border-green-300 animate-scale-in">
+            <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b-2 border-green-200 p-3 sm:p-6">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-green-900 flex items-center text-xl">
-                  <FileText className="w-6 h-6 mr-2" />
-                  Found {searchResults.length} Active Petition{searchResults.length > 1 ? 's' : ''}
-                  <Badge className="ml-3 bg-green-100 text-green-800 border-green-300">
+                <CardTitle className="text-green-900 flex items-center text-sm sm:text-xl">
+                  <FileText className="w-4 h-4 sm:w-6 sm:h-6 mr-2" />
+                  <span className="truncate">Found {searchResults.length} Active Petition{searchResults.length > 1 ? 's' : ''}</span>
+                  <Badge className="ml-2 sm:ml-3 bg-green-100 text-green-800 border-green-300 text-xs">
                     Ready to Sign
                   </Badge>
                 </CardTitle>
@@ -669,71 +669,73 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowResults(false)}
-                  className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full p-2"
+                  className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full p-1 sm:p-2"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4 p-6">
+            <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6 max-h-[calc(90vh-8rem)] sm:max-h-[calc(85vh-8rem)] overflow-y-auto green-scrollbar">
               {searchResults.map((petition, index) => {
                 const matchType = getPetitionMatchType(petition);
                 return (
                   <div
                     key={petition.id}
-                    className="group border-2 rounded-xl p-5 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-green-300 transform hover:scale-[1.02]"
+                    className="group border-2 rounded-xl p-3 sm:p-5 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-green-300 transform hover:scale-[1.02]"
                     onClick={() => handlePetitionSelect(petition)}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h4 className="font-bold text-lg text-gray-900 group-hover:text-green-900 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between space-y-3 sm:space-y-0">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 mb-2">
+                          <h4 className="font-bold text-sm sm:text-lg text-gray-900 group-hover:text-green-900 transition-colors truncate">
                             {petition.mp_name}
                           </h4>
-                          <Badge className={`${matchType.color} font-medium`}>
-                            {matchType.type}
-                          </Badge>
-                          {index === 0 && (
-                            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300 flex items-center">
-                              <Star className="w-3 h-3 mr-1" />
-                              Top Match
+                          <div className="flex flex-wrap gap-1 sm:gap-2">
+                            <Badge className={`${matchType.color} font-medium text-xs`}>
+                              {matchType.type}
                             </Badge>
-                          )}
+                            {index === 0 && (
+                              <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300 flex items-center text-xs">
+                                <Star className="w-2 h-2 sm:w-3 sm:h-3 mr-1" />
+                                Top Match
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                        <p className="text-gray-700 font-medium mb-1">
+                        <p className="text-gray-700 font-medium mb-1 text-sm sm:text-base">
                           {petition.constituency}, {petition.county}
                         </p>
-                        <p className="text-gray-800 leading-relaxed mb-3">
+                        <p className="text-gray-800 leading-relaxed mb-3 text-xs sm:text-sm">
                           {petition.description}
                         </p>
-                        <div className="flex flex-wrap gap-2 mb-3">
+                        <div className="flex flex-wrap gap-1 sm:gap-2 mb-3">
                           {petition.grounds.map((ground, groundIndex) => (
                             <Badge key={groundIndex} variant="outline" className="text-xs bg-gray-50 hover:bg-gray-100 transition-colors">
                               {ground}
                             </Badge>
                           ))}
                         </div>
-                        <div className="flex items-center space-x-4 text-sm text-gray-600">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0 text-xs sm:text-sm text-gray-600">
                           <div className="flex items-center">
-                            <Users className="w-4 h-4 mr-1" />
+                            <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                             Target: {petition.signature_target?.toLocaleString() || 'N/A'} signatures
                           </div>
                           <div className="flex items-center">
-                            <Building2 className="w-4 h-4 mr-1" />
+                            <Building2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                             {petition.ward_target} wards required
                           </div>
                         </div>
                       </div>
-                      <div className="text-right text-sm text-gray-600 ml-6 flex-shrink-0">
+                      <div className="text-left sm:text-right text-xs sm:text-sm text-gray-600 sm:ml-6 flex-shrink-0">
                         <div className="flex items-center mb-2">
-                          <Clock className="w-4 h-4 mr-1" />
+                          <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                           Deadline: {new Date(petition.deadline).toLocaleDateString()}
                         </div>
                         <div className="text-xs text-gray-500 mb-3">
                           Created: {new Date(petition.created_at).toLocaleDateString()}
                         </div>
-                        <div className="group-hover:bg-green-600 group-hover:text-white bg-green-100 text-green-800 px-3 py-2 rounded-lg transition-all duration-300 flex items-center justify-center">
-                          <ArrowRight className="w-4 h-4 mr-1 group-hover:translate-x-1 transition-transform" />
+                        <div className="group-hover:bg-green-600 group-hover:text-white bg-green-100 text-green-800 px-2 sm:px-3 py-2 rounded-lg transition-all duration-300 flex items-center justify-center">
+                          <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 mr-1 group-hover:translate-x-1 transition-transform" />
                           Sign Now
                         </div>
                       </div>
@@ -742,8 +744,8 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
                 );
               })}
               
-              <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                <p className="text-sm text-blue-800 leading-relaxed">
+              <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                <p className="text-xs sm:text-sm text-blue-800 leading-relaxed">
                   <strong>How it works:</strong> Click on any petition above to view details and add your signature. 
                   Each petition requires signatures from multiple wards to meet legal requirements for recall proceedings.
                 </p>
@@ -753,20 +755,20 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
         </div>
       )}
 
-      {/* Main Location Detail Modal */}
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-        <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-800 shadow-2xl animate-scale-in">
-          <CardHeader className="border-b border-gray-200 dark:border-gray-700">
+      {/* Main Location Detail Modal with mobile optimization */}
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 animate-fade-in">
+        <Card className="w-full max-w-[calc(100vw-1rem)] sm:max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-800 shadow-2xl animate-scale-in">
+          <CardHeader className="border-b border-gray-200 dark:border-gray-700 p-3 sm:p-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className={`p-2 rounded-full ${getLocationTypeColor()}`}>
+              <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                <div className={`p-1.5 sm:p-2 rounded-full ${getLocationTypeColor()}`}>
                   {getLocationIcon()}
                 </div>
-                <div>
-                  <Badge variant="outline" className="mb-2">
+                <div className="min-w-0 flex-1">
+                  <Badge variant="outline" className="mb-1 sm:mb-2 text-xs">
                     {location.type.charAt(0).toUpperCase() + location.type.slice(1)}
                   </Badge>
-                  <CardTitle className="text-xl text-gray-900 dark:text-white">
+                  <CardTitle className="text-base sm:text-xl text-gray-900 dark:text-white truncate">
                     {location.name}
                   </CardTitle>
                 </div>
@@ -775,59 +777,59 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 flex-shrink-0"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
             </div>
           </CardHeader>
 
-          <CardContent className="p-6 space-y-6">
+          <CardContent className="p-3 sm:p-6 space-y-4 sm:space-y-6">
             {/* Location Hierarchy */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               {location.county && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                  <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-1">County</h4>
-                  <p className="text-blue-700 dark:text-blue-300">{location.county}</p>
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-1 text-sm sm:text-base">County</h4>
+                  <p className="text-blue-700 dark:text-blue-300 text-sm sm:text-base truncate">{location.county}</p>
                 </div>
               )}
               
               {location.constituency && (
-                <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
-                  <h4 className="font-semibold text-green-800 dark:text-green-200 mb-1">Constituency</h4>
-                  <p className="text-green-700 dark:text-green-300">{location.constituency}</p>
+                <div className="bg-green-50 dark:bg-green-900/20 p-3 sm:p-4 rounded-lg">
+                  <h4 className="font-semibold text-green-800 dark:text-green-200 mb-1 text-sm sm:text-base">Constituency</h4>
+                  <p className="text-green-700 dark:text-green-300 text-sm sm:text-base truncate">{location.constituency}</p>
                 </div>
               )}
               
               {location.type === 'ward' && (
-                <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
-                  <h4 className="font-semibold text-purple-800 dark:text-purple-200 mb-1">Ward</h4>
-                  <p className="text-purple-700 dark:text-purple-300">{location.name}</p>
+                <div className="bg-purple-50 dark:bg-purple-900/20 p-3 sm:p-4 rounded-lg">
+                  <h4 className="font-semibold text-purple-800 dark:text-purple-200 mb-1 text-sm sm:text-base">Ward</h4>
+                  <p className="text-purple-700 dark:text-purple-300 text-sm sm:text-base truncate">{location.name}</p>
                 </div>
               )}
             </div>
 
             {/* Key Statistics */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {location.registration_target && (
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                <div className="bg-gray-50 dark:bg-gray-700 p-3 sm:p-4 rounded-lg">
                   <div className="flex items-center space-x-2 mb-2">
-                    <Users className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                    <h4 className="font-semibold text-gray-800 dark:text-gray-200">Registration Target</h4>
+                    <Users className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-400" />
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-sm sm:text-base">Registration Target</h4>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
                     {location.registration_target.toLocaleString()}
                   </p>
                 </div>
               )}
               
               {location.total_voters && (
-                <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                <div className="bg-green-50 dark:bg-green-900/20 p-3 sm:p-4 rounded-lg">
                   <div className="flex items-center space-x-2 mb-2">
-                    <Users className="w-4 h-4 text-green-600 dark:text-green-400" />
-                    <h4 className="font-semibold text-green-800 dark:text-green-200">Total Voters</h4>
+                    <Users className="w-3 h-3 sm:w-4 sm:h-4 text-green-600 dark:text-green-400" />
+                    <h4 className="font-semibold text-green-800 dark:text-green-200 text-sm sm:text-base">Total Voters</h4>
                   </div>
-                  <p className="text-2xl font-bold text-green-900 dark:text-green-100">
+                  <p className="text-lg sm:text-2xl font-bold text-green-900 dark:text-green-100">
                     {location.total_voters.toLocaleString()}
                   </p>
                 </div>
@@ -836,39 +838,39 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
 
             {/* Leadership Information */}
             <div className="space-y-4">
-              <h4 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+              <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
                 Leadership
               </h4>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {location.member_of_parliament && (
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 p-4 rounded-lg border border-green-200 dark:border-green-700">
-                    <h5 className="font-semibold text-green-800 dark:text-green-200 mb-1">
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 p-3 sm:p-4 rounded-lg border border-green-200 dark:border-green-700">
+                    <h5 className="font-semibold text-green-800 dark:text-green-200 mb-1 text-sm sm:text-base">
                       Member of Parliament
                     </h5>
-                    <p className="text-green-700 dark:text-green-300 font-medium">
+                    <p className="text-green-700 dark:text-green-300 font-medium text-sm sm:text-base">
                       {location.member_of_parliament}
                     </p>
                   </div>
                 )}
                 
                 {location.governor && (
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700">
-                    <h5 className="font-semibold text-blue-800 dark:text-blue-200 mb-1">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 p-3 sm:p-4 rounded-lg border border-blue-200 dark:border-blue-700">
+                    <h5 className="font-semibold text-blue-800 dark:text-blue-200 mb-1 text-sm sm:text-base">
                       Governor
                     </h5>
-                    <p className="text-blue-700 dark:text-blue-300 font-medium">
+                    <p className="text-blue-700 dark:text-blue-300 font-medium text-sm sm:text-base">
                       {location.governor}
                     </p>
                   </div>
                 )}
                 
                 {location.senator && (
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20 p-4 rounded-lg border border-purple-200 dark:border-purple-700">
-                    <h5 className="font-semibold text-purple-800 dark:text-purple-200 mb-1">
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20 p-3 sm:p-4 rounded-lg border border-purple-200 dark:border-purple-700">
+                    <h5 className="font-semibold text-purple-800 dark:text-purple-200 mb-1 text-sm sm:text-base">
                       Senator
                     </h5>
-                    <p className="text-purple-700 dark:text-purple-300 font-medium">
+                    <p className="text-purple-700 dark:text-purple-300 font-medium text-sm sm:text-base">
                       {location.senator}
                     </p>
                   </div>
@@ -877,24 +879,24 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <Button variant="outline" onClick={onClose}>
+            <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <Button variant="outline" onClick={onClose} className="text-sm sm:text-base">
                 Close
               </Button>
               {location.member_of_parliament && (
                 <Button 
-                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white transition-all duration-300 transform hover:scale-105"
+                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
                   onClick={searchPetitions}
                   disabled={isSearching}
                 >
                   {isSearching ? (
                     <>
-                      <Search className="w-4 h-4 mr-2 animate-spin" />
+                      <Search className="w-3 h-3 sm:w-4 sm:h-4 mr-2 animate-spin" />
                       Searching...
                     </>
                   ) : (
                     <>
-                      <Search className="w-4 h-4 mr-2" />
+                      <Search className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                       View Related Petitions
                     </>
                   )}

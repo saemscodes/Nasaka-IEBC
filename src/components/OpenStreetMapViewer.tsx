@@ -1,154 +1,29 @@
-import React, { useEffect, useState, useRef } from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Users, TrendingUp, Building2, Layers, Download, Upload, Eye, EyeOff } from 'lucide-react';
+import { MapPin, Users, TrendingUp, Building2, Layers, Upload, Eye, EyeOff } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
+import SimpleOpenStreetMap from "@/components/SimpleOpenStreetMap";
 
-interface County {
-  id: number;
-  name: string;
-  total_count: number;
-  registration_target: number;
-  governor: string | null;
-  senator: string | null;
+interface OpenStreetMapViewerProps {
+  locations?: any[];
 }
 
-interface Constituency {
-  id: number;
-  name: string;
-  county_id: number;
-  registration_target: number;
-  member_of_parliament: string | null;
-}
-
-interface MapLayer {
-  id: string;
-  name: string;
-  type: 'counties' | 'constituencies' | 'wards' | 'csv';
-  visible: boolean;
-  data: any[];
-  color: string;
-}
-
-const OpenStreetMapViewer = () => {
+const OpenStreetMapViewer: React.FC<OpenStreetMapViewerProps> = ({ locations = [] }) => {
   const [mapStats, setMapStats] = useState({
     totalCounties: 0,
     totalConstituencies: 0,
     totalVoters: 0
   });
   
-  const [layers, setLayers] = useState<MapLayer[]>([]);
-  const [selectedCounty, setSelectedCounty] = useState<County | null>(null);
+  const [layers, setLayers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [mapContainer, setMapContainer] = useState<any>(null);
-  const [csvData, setCsvData] = useState<any[]>([]);
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const LRef = useRef<any>(null);
-
-  // Kenya center coordinates
-  const kenyaCenter: [number, number] = [-0.0236, 37.9062];
-  const defaultZoom = 6;
 
   useEffect(() => {
-    initializeMap();
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-    };
+    fetchMapData();
   }, []);
-
-  useEffect(() => {
-    if (mapInstanceRef.current) {
-      fetchMapData();
-    }
-  }, [mapInstanceRef.current]);
-
-  useEffect(() => {
-    if (mapInstanceRef.current && LRef.current) {
-      updateMarkers();
-    }
-  }, [layers]);
-
-  const initializeMap = async () => {
-    if (typeof window === 'undefined' || !mapRef.current) return;
-    
-    try {
-      // Dynamic import of Leaflet
-      const leafletModule = await import('leaflet');
-      const L = leafletModule.default;
-      LRef.current = L;
-
-      // Set default icon
-      const icon = L.icon({
-        iconUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png',
-        shadowUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-      });
-      L.Marker.prototype.options.icon = icon;
-
-      // Initialize the map
-      mapInstanceRef.current = L.map(mapRef.current, {
-        renderer: L.canvas()
-      }).setView(kenyaCenter, defaultZoom);
-
-      // Add OpenStreetMap tiles
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19,
-        detectRetina: true
-      }).addTo(mapInstanceRef.current);
-
-      // Force resize to ensure tiles load correctly
-      setTimeout(() => {
-        mapInstanceRef.current.invalidateSize();
-      }, 100);
-
-      console.log('Map initialized successfully');
-    } catch (error) {
-      console.error('Error initializing map:', error);
-    }
-  };
-
-  const updateMarkers = () => {
-    if (!mapInstanceRef.current || !LRef.current) return;
-    
-    const L = LRef.current;
-    
-    // Clear all existing markers
-    mapInstanceRef.current.eachLayer(layer => {
-      if (layer instanceof L.Marker || layer instanceof L.CircleMarker) {
-        mapInstanceRef.current.removeLayer(layer);
-      }
-    });
-
-    // Add new markers for visible layers
-    layers.forEach(layer => {
-      if (layer.visible) {
-        layer.data.forEach((item, index) => {
-          const coords = generateMockCoordinates(item.name || item.ward_name || item.constituency || 'Unknown', index);
-          
-          const marker = L.circleMarker(coords, {
-            color: layer.color,
-            fillColor: layer.color,
-            fillOpacity: 0.6,
-            radius: 6,
-            weight: 2
-          }).addTo(mapInstanceRef.current);
-
-          // Add popup
-          const popupContent = createPopupContent(item, layer.type);
-          marker.bindPopup(popupContent);
-        });
-      }
-    });
-  };
 
   const fetchMapData = async () => {
     try {
@@ -188,7 +63,7 @@ const OpenStreetMapViewer = () => {
       });
 
       // Initialize layers
-      const initialLayers: MapLayer[] = [
+      const initialLayers = [
         {
           id: 'counties',
           name: 'Counties',
@@ -223,36 +98,6 @@ const OpenStreetMapViewer = () => {
     }
   };
 
-  const createPopupContent = (item: any, layerType: string) => {
-    let content = `<div class="p-2 min-w-[200px]">
-      <h4 class="font-semibold text-gray-800 mb-2">
-        ${item.name || item.ward_name || item.constituency || 'Unknown Location'}
-      </h4>`;
-
-    if (layerType === 'counties') {
-      content += `<div class="space-y-1 text-sm">
-        <p><strong>Governor:</strong> ${item.governor || 'N/A'}</p>
-        <p><strong>Senator:</strong> ${item.senator || 'N/A'}</p>
-        <p><strong>Total Voters:</strong> ${item.total_count?.toLocaleString() || 'N/A'}</p>
-        <p><strong>Target:</strong> ${item.registration_target?.toLocaleString() || 'N/A'}</p>
-      </div>`;
-    } else if (layerType === 'constituencies') {
-      content += `<div class="space-y-1 text-sm">
-        <p><strong>MP:</strong> ${item.member_of_parliament || 'N/A'}</p>
-        <p><strong>Target:</strong> ${item.registration_target?.toLocaleString() || 'N/A'}</p>
-      </div>`;
-    } else if (layerType === 'wards') {
-      content += `<div class="space-y-1 text-sm">
-        <p><strong>Constituency:</strong> ${item.constituency || 'N/A'}</p>
-        <p><strong>County:</strong> ${item.county || 'N/A'}</p>
-        <p><strong>Target:</strong> ${item.registration_target?.toLocaleString() || 'N/A'}</p>
-      </div>`;
-    }
-
-    content += '</div>';
-    return content;
-  };
-
   const toggleLayerVisibility = (layerId: string) => {
     setLayers(prev => prev.map(layer => 
       layer.id === layerId 
@@ -272,7 +117,7 @@ const OpenStreetMapViewer = () => {
         
         if (file.name.endsWith('.json')) {
           const jsonData = JSON.parse(content);
-          const newLayer: MapLayer = {
+          const newLayer = {
             id: `custom-${Date.now()}`,
             name: file.name.replace('.json', ''),
             type: 'constituencies',
@@ -293,8 +138,7 @@ const OpenStreetMapViewer = () => {
             return obj;
           }).filter(item => item[headers[0]]);
 
-          setCsvData(data);
-          const newLayer: MapLayer = {
+          const newLayer = {
             id: `csv-${Date.now()}`,
             name: file.name.replace('.csv', ''),
             type: 'csv',
@@ -311,15 +155,6 @@ const OpenStreetMapViewer = () => {
     reader.readAsText(file);
   };
 
-  const generateMockCoordinates = (name: string, index: number): [number, number] => {
-    const baseLatOffset = (index % 10) * 0.5 - 2.5;
-    const baseLngOffset = (Math.floor(index / 10) % 10) * 0.8 - 4;
-    return [
-      kenyaCenter[0] + baseLatOffset + (Math.random() - 0.5) * 0.3,
-      kenyaCenter[1] + baseLngOffset + (Math.random() - 0.5) * 0.3
-    ];
-  };
-
   const renderMapContent = () => {
     if (isLoading) {
       return (
@@ -332,13 +167,7 @@ const OpenStreetMapViewer = () => {
       );
     }
 
-    return (
-      <div 
-        ref={mapRef}
-        className="w-full h-[500px] rounded-lg overflow-hidden border border-green-200 dark:border-green-700"
-        style={{ height: '500px', zIndex: 1 }}
-      />
-    );
+    return <SimpleOpenStreetMap height="500px" />;
   };
 
   return (

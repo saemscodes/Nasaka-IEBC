@@ -1,8 +1,104 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Import Leaflet CSS for OpenStreetMap */
+@import 'leaflet/dist/leaflet.css';
+@import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
+
+/* Import MapLibre CSS for MapLibre GL JS */
+@import 'maplibre-gl/dist/maplibre-gl.css';
+
+/* Green scrollbar styling */
+@layer base {
+  /* Webkit browsers (Chrome, Safari, Edge) */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #059669, #047857);
+    border-radius: 4px;
+    border: 1px solid #f1f5f9;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #047857, #065f46);
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #059669 #f1f5f9;
+  }
+
+  /* Dark mode scrollbars */
+  .dark ::-webkit-scrollbar-track {
+    background: #374151;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #10b981, #059669);
+    border-color: #374151;
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #059669, #047857);
+  }
+
+  .dark * {
+    scrollbar-color: #10b981 #374151;
+  }
+}
+
+/* Green scrollbar utility class */
+.green-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #059669 #f1f5f9;
+}
+
+.green-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.green-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.green-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #059669, #047857);
+  border-radius: 3px;
+}
+
+.green-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #047857, #065f46);
+}
+
+/* Dark mode green scrollbar */
+.dark .green-scrollbar {
+  scrollbar-color: #10b981 #374151;
+}
+
+.dark .green-scrollbar::-webkit-scrollbar-track {
+  background: #374151;
+}
+
+.dark .green-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #10b981, #059669);
+}
+
+.dark .green-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #059669, #047857);
+}
 
 @layer base {
   :root {
@@ -12,7 +108,7 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 221.2 83.2% 53.3%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96%;
     --secondary-foreground: 222.2 84% 4.9%;
@@ -24,15 +120,14 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+    --ring: 221.2 83.2% 53.3%;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+    --radius: 0.75rem;
   }
-
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
@@ -40,8 +135,8 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
@@ -52,7 +147,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --ring: 224.3 76.3% 94.1%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -70,100 +165,13 @@
   }
 }
 
-/* Fallback for non-JS users and accessibility */
-.no-js html {
-  scroll-behavior: auto !important;
-}
-
-/* Respect user's motion preferences */
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto !important;
-  }
-  
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* Enhanced smooth scrolling */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Green scrollbars for webkit browsers */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-green-50 dark:bg-green-950;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-green-400 dark:bg-green-600;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-green-500 dark:bg-green-500;
-}
-
-::-webkit-scrollbar-corner {
-  @apply bg-green-50 dark:bg-green-950;
-}
-
-/* Firefox scrollbars */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: hsl(142 76% 36%) hsl(138 62% 93%);
-}
-
-@media (prefers-color-scheme: dark) {
-  * {
-    scrollbar-color: hsl(142 71% 45%) hsl(140 60% 9%);
-  }
-}
-
-/* Custom scrollbar for specific containers */
-.green-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: hsl(142 76% 36%) hsl(138 62% 93%);
-}
-
-.green-scrollbar::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.green-scrollbar::-webkit-scrollbar-track {
-  @apply bg-green-50 dark:bg-green-950;
-  border-radius: 4px;
-}
-
-.green-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-green-400 dark:bg-green-600;
-  border-radius: 4px;
-}
-
-.green-scrollbar::-webkit-scrollbar-thumb:hover {
-  @apply bg-green-500 dark:bg-green-500;
-}
-
-/* Enhanced animations */
+/* Add fade-in and scale-in animations */
 @keyframes fade-in {
   from {
     opacity: 0;
-    transform: translateY(20px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -178,162 +186,10 @@ html {
   }
 }
 
-@keyframes slide-in-right {
-  from {
-    opacity: 0;
-    transform: translateX(100%);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
 .animate-fade-in {
-  animation: fade-in 0.5s ease-out;
+  animation: fade-in 0.3s ease-out;
 }
 
 .animate-scale-in {
   animation: scale-in 0.3s ease-out;
-}
-
-.animate-slide-in-right {
-  animation: slide-in-right 0.4s ease-out;
-}
-
-/* Leaflet map container responsive adjustments */
-.leaflet-container {
-  font-family: inherit;
-}
-
-.leaflet-popup-content-wrapper {
-  border-radius: 8px;
-}
-
-.leaflet-popup-content {
-  margin: 8px 12px;
-  line-height: 1.4;
-}
-
-/* Custom marker styles */
-.custom-marker {
-  border-radius: 50%;
-  transition: all 0.3s ease;
-}
-
-.custom-marker:hover {
-  transform: scale(1.2);
-}
-
-/* Enhanced toast animations */
-@keyframes toast-slide-in {
-  from {
-    transform: translateX(100%) scale(0.9);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0) scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes toast-slide-out {
-  from {
-    transform: translateX(0) scale(1);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(100%) scale(0.9);
-    opacity: 0;
-  }
-}
-
-/* Progress bar animation */
-@keyframes progress-pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-.progress-bar {
-  animation: progress-pulse 1.5s ease-in-out infinite;
-}
-
-/* Button hover effects */
-.btn-hover-lift {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.btn-hover-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-}
-
-/* Card hover effects */
-.card-hover {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-}
-
-/* Glassmorphism effect */
-.glass-effect {
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-}
-
-.dark .glass-effect {
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Focus improvements for accessibility */
-*:focus-visible {
-  outline: 2px solid #059669;
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-.dark *:focus-visible {
-  outline-color: #10b981;
-}
-
-/* Loading spinner enhancement */
-@keyframes enhanced-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-enhanced-spin {
-  animation: enhanced-spin 1s linear infinite;
-}
-
-/* Gradient text effect */
-.gradient-text {
-  background: linear-gradient(135deg, #059669, #10b981, #34d399);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-size: 200% 200%;
-  animation: gradient-shift 3s ease infinite;
-}
-
-@keyframes gradient-shift {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
 }
