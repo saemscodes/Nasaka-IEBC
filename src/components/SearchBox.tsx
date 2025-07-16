@@ -62,24 +62,24 @@ const containerVariants = {
 idle: {
 scale: 1,
 rotate: 0,
-transition: { type: "spring", stiffness: 400, damping: 30 }
+transition: { type: "spring" as const, stiffness: 400, damping: 30 }
 },
 hover: {
 scale: 1.05,
 rotate: 1,
-transition: { type: "spring", stiffness: 500, damping: 25 }
+transition: { type: "spring" as const, stiffness: 500, damping: 25 }
 },
 active: {
 scale: 1.1,
 rotate: 0,
-transition: { type: "spring", stiffness: 600, damping: 20 }
+transition: { type: "spring" as const, stiffness: 600, damping: 20 }
 },
 bounce: {
 scale: [1, 1.03, 1],
 transition: {
 duration: 0.4,
 times: [0, 0.6, 1],
-type: "spring",
+type: "spring" as const,
 stiffness: 600,
 damping: 35
 }
@@ -90,7 +90,7 @@ const pathVariants = {
 hidden: {
 pathLength: 0,
 opacity: 0,
-transition: { duration: 0.2, ease: "easeOut" }
+transition: { duration: 0.2, ease: "easeOut" as const }
 },
 visible: {
 pathLength: 1,
@@ -98,9 +98,9 @@ opacity: 1,
 transition: {
 pathLength: {
 duration: 0.8,
-ease: [0.16, 1, 0.3, 1]
+ease: [0.16, 1, 0.3, 1] as const
 },
-opacity: { duration: 0.3, ease: "easeOut" }
+opacity: { duration: 0.3, ease: "easeOut" as const }
 }
 },
 morphing: {
@@ -109,7 +109,7 @@ opacity: [1, 0.4, 1],
 transition: {
 duration: 0.5,
 times: [0, 0.4, 1],
-ease: [0.25, 0.46, 0.45, 0.94]
+ease: [0.25, 0.46, 0.45, 0.94] as const
 }
 }
 };
@@ -197,7 +197,7 @@ animate={{ opacity: 1, scale: 1 }}
 exit={{ opacity: 0, scale: 0.95 }}
 transition={{
 duration: 0.35,
-ease: [0.25, 0.46, 0.45, 0.94]
+ease: [0.25, 0.46, 0.45, 0.94] as const
 }}
 >
 {currentIconData.paths.map((path, index) => (

@@ -120,7 +120,7 @@ export const TabbedMapViewer: React.FC<TabbedMapViewerProps> = ({ className }) =
           <Card>
             <CardContent className="p-0">
               {openStreetMapLoaded ? (
-                <OpenStreetMapViewer />
+                <OpenStreetMapViewer locations={[]} />
               ) : (
                 <div className="h-96 flex items-center justify-center bg-gray-100 rounded-lg">
                   <div className="text-center">
