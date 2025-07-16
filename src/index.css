@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -92,35 +93,66 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Custom scrollbar styling */
-html::-webkit-scrollbar {
+/* Green scrollbars for webkit browsers */
+::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
-html::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-html::-webkit-scrollbar-thumb {
-  background: #888;
+::-webkit-scrollbar-track {
+  @apply bg-green-50 dark:bg-green-950;
   border-radius: 4px;
 }
 
-html::-webkit-scrollbar-thumb:hover {
-  background: #555;
+::-webkit-scrollbar-thumb {
+  @apply bg-green-400 dark:bg-green-600;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
 }
 
-/* Dark mode scrollbar */
-.dark html::-webkit-scrollbar-track {
-  background: #2d2d2d;
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-green-500 dark:bg-green-500;
 }
 
-.dark html::-webkit-scrollbar-thumb {
-  background: #555;
+::-webkit-scrollbar-corner {
+  @apply bg-green-50 dark:bg-green-950;
 }
 
-.dark html::-webkit-scrollbar-thumb:hover {
-  background: #777;
+/* Firefox scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(142 76% 36%) hsl(138 62% 93%);
+}
+
+@media (prefers-color-scheme: dark) {
+  * {
+    scrollbar-color: hsl(142 71% 45%) hsl(140 60% 9%);
+  }
+}
+
+/* Custom scrollbar for specific containers */
+.green-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(142 76% 36%) hsl(138 62% 93%);
+}
+
+.green-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.green-scrollbar::-webkit-scrollbar-track {
+  @apply bg-green-50 dark:bg-green-950;
+  border-radius: 4px;
+}
+
+.green-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-green-400 dark:bg-green-600;
+  border-radius: 4px;
+}
+
+.green-scrollbar::-webkit-scrollbar-thumb:hover {
+  @apply bg-green-500 dark:bg-green-500;
 }
 
 /* Enhanced animations */
