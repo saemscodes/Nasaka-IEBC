@@ -70,30 +70,36 @@ const AnimatedSearchIcon: React.FC<AnimatedSearchIconProps> = ({
         let currentIndex = 0;
         
         const runSequence = () => {
-          if (currentIndex < animationSequence.length) {
-            const nextIcon = animationSequence[currentIndex];
-            const timing = sequenceTimings[currentIndex];
-            
-            if (currentIndex > 0) {
-              setIsTransitioning(true);
+          try {
+            if (currentIndex < animationSequence.length) {
+              const nextIcon = animationSequence[currentIndex];
+              const timing = sequenceTimings[currentIndex];
               
-              setTimeout(() => {
-                setCurrentIcon(nextIcon);
-                setTimeout(() => setIsTransitioning(false), 600);
-              }, 100);
-            } else {
-              setCurrentIcon(nextIcon);
-            }
-            
-            animationRef.current = setTimeout(() => {
-              currentIndex++;
-              if (currentIndex >= animationSequence.length) {
-                currentIndex = 0;
-                setTimeout(runSequence, 1000);
+              if (currentIndex > 0) {
+                setIsTransitioning(true);
+                
+                setTimeout(() => {
+                  setCurrentIcon(nextIcon);
+                  setTimeout(() => setIsTransitioning(false), 600);
+                }, 100);
               } else {
-                runSequence();
+                setCurrentIcon(nextIcon);
               }
-            }, timing);
+              
+              animationRef.current = setTimeout(() => {
+                currentIndex++;
+                if (currentIndex >= animationSequence.length) {
+                  currentIndex = 0;
+                  setTimeout(runSequence, 1000);
+                } else {
+                  runSequence();
+                }
+              }, timing);
+            }
+          } catch (error) {
+            console.error('Animation sequence error:', error);
+            setCurrentIcon('search');
+            setIsTransitioning(false);
           }
         };
 

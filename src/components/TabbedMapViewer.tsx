@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Globe, ExternalLink, Layers } from 'lucide-react';
+import ErrorBoundary from "@/components/ErrorBoundary";
 import SimpleOpenStreetMap from "@/components/SimpleOpenStreetMap";
 import GeoJsonIoViewer from "@/components/GeoJsonIoViewer";
 import UMapViewer from "@/components/UMapViewer";
@@ -57,50 +58,60 @@ export const TabbedMapViewer: React.FC<TabbedMapViewerProps> = ({ className }) =
         </div>
 
         <TabsContent value="osm" className="mt-0">
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <div className="text-center">
-                  <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-2">
-                    OpenStreetMap - Kenya
-                  </h3>
-                  <p className="text-green-700 dark:text-green-300 mb-4">
-                    Interactive map using React-Leaflet with OpenStreetMap tiles
-                  </p>
-                </div>
-                <SimpleOpenStreetMap />
-                <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg border border-green-200 dark:border-green-700">
-                  <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2">Features</h4>
-                  <div className="space-y-1 text-sm text-green-700 dark:text-green-300">
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
-                      <span>Free and open-source mapping</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
-                      <span>Interactive pan and zoom</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
-                      <span>Click markers for information</span>
+          <ErrorBoundary>
+            <Card>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-2">
+                      OpenStreetMap - Kenya
+                    </h3>
+                    <p className="text-green-700 dark:text-green-300 mb-4">
+                      Interactive map using React-Leaflet with OpenStreetMap tiles
+                    </p>
+                  </div>
+                  <ErrorBoundary>
+                    <SimpleOpenStreetMap />
+                  </ErrorBoundary>
+                  <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg border border-green-200 dark:border-green-700">
+                    <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2">Features</h4>
+                    <div className="space-y-1 text-sm text-green-700 dark:text-green-300">
+                      <div className="flex items-center">
+                        <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                        <span>Free and open-source mapping</span>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                        <span>Interactive pan and zoom</span>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                        <span>Click markers for information</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </ErrorBoundary>
         </TabsContent>
 
         <TabsContent value="geojsonio" className="mt-0">
-          <GeoJsonIoViewer />
+          <ErrorBoundary>
+            <GeoJsonIoViewer />
+          </ErrorBoundary>
         </TabsContent>
 
         <TabsContent value="umap" className="mt-0">
-          <UMapViewer />
+          <ErrorBoundary>
+            <UMapViewer />
+          </ErrorBoundary>
         </TabsContent>
 
         <TabsContent value="maptiler" className="mt-0">
-          <MapTilerViewer />
+          <ErrorBoundary>
+            <MapTilerViewer />
+          </ErrorBoundary>
         </TabsContent>
       </Tabs>
     </div>
