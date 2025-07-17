@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -18,12 +17,12 @@ const AnimatedSearchIcon: React.FC<AnimatedSearchIconProps> = ({
   const [isHovered, setIsHovered] = useState(false);
   const animationRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Define icon paths optimized for morphing
+  // Define icon paths with corrected search icon
   const iconPaths = {
     search: {
       paths: [
-        "M11 11 A8 8 0 1 0 11 11 A8 8 0 1 0 11 11 Z", 
-        "M21 21 L16.65 16.65 L21 21 Z"
+        "M19 11 A8 8 0 1 0 3 11 A8 8 0 1 0 19 11 Z",  // Fixed circle path
+        "M16.65 16.65 L21 21"  // Fixed handle path
       ],
       scale: 1,
       rotation: 0
@@ -58,56 +57,46 @@ const AnimatedSearchIcon: React.FC<AnimatedSearchIconProps> = ({
   const sequenceTimings = [300, 1500, 1500, 1500, 5000];
 
   useEffect(() => {
-    if (isLoading || isActive) {
+    if (isLoading || isActive || isHovered) {
       if (animationRef.current) clearTimeout(animationRef.current);
       setCurrentIcon('search');
       setIsTransitioning(false);
       return;
     }
 
-    if (!isHovered) {
-      const startAnimationCycle = () => {
-        let currentIndex = 0;
-        
-        const runSequence = () => {
-          try {
-            if (currentIndex < animationSequence.length) {
-              const nextIcon = animationSequence[currentIndex];
-              const timing = sequenceTimings[currentIndex];
-              
-              if (currentIndex > 0) {
-                setIsTransitioning(true);
-                
-                setTimeout(() => {
-                  setCurrentIcon(nextIcon);
-                  setTimeout(() => setIsTransitioning(false), 600);
-                }, 100);
-              } else {
-                setCurrentIcon(nextIcon);
-              }
-              
-              animationRef.current = setTimeout(() => {
-                currentIndex++;
-                if (currentIndex >= animationSequence.length) {
-                  currentIndex = 0;
-                  setTimeout(runSequence, 1000);
-                } else {
-                  runSequence();
-                }
-              }, timing);
-            }
-          } catch (error) {
-            console.error('Animation sequence error:', error);
-            setCurrentIcon('search');
-            setIsTransitioning(false);
-          }
-        };
+    const startAnimationCycle = () => {
+      let currentIndex = 0;
+      
+      const runSequence = () => {
+        if (currentIndex >= animationSequence.length) {
+          currentIndex = 0;
+          setTimeout(runSequence, 1000);
+          return;
+        }
 
-        runSequence();
+        const nextIcon = animationSequence[currentIndex];
+        const timing = sequenceTimings[currentIndex];
+        
+        if (currentIndex > 0) {
+          setIsTransitioning(true);
+          setTimeout(() => {
+            setCurrentIcon(nextIcon);
+            setTimeout(() => setIsTransitioning(false), 600);
+          }, 100);
+        } else {
+          setCurrentIcon(nextIcon);
+        }
+        
+        animationRef.current = setTimeout(() => {
+          currentIndex++;
+          runSequence();
+        }, timing);
       };
 
-      startAnimationCycle();
-    }
+      runSequence();
+    };
+
+    startAnimationCycle();
 
     return () => {
       if (animationRef.current) clearTimeout(animationRef.current);
@@ -138,7 +127,7 @@ const AnimatedSearchIcon: React.FC<AnimatedSearchIconProps> = ({
       opacity: 1,
       rotate: currentIconData.rotation,
       transition: {
-        type: "spring" as const,
+        type: "spring",
         damping: 15,
         stiffness: 300,
         duration: 0.6
@@ -156,7 +145,7 @@ const AnimatedSearchIcon: React.FC<AnimatedSearchIconProps> = ({
       scale: currentIconData.scale * 1.25,
       rotate: currentIconData.rotation + 5,
       transition: {
-        type: "spring" as const,
+        type: "spring",
         damping: 10,
         stiffness: 400
       }
@@ -173,7 +162,7 @@ const AnimatedSearchIcon: React.FC<AnimatedSearchIconProps> = ({
       opacity: 1,
       transition: {
         pathLength: {
-          type: "spring" as const,
+          type: "spring",
           damping: 20,
           stiffness: 100,
           duration: 0.8
@@ -199,7 +188,7 @@ const AnimatedSearchIcon: React.FC<AnimatedSearchIconProps> = ({
       transition: {
         duration: 0.6,
         times: [0, 0.5, 1],
-        ease: "easeOut" as const
+        ease: "easeOut"
       }
     }
   };
@@ -258,7 +247,7 @@ const AnimatedSearchIcon: React.FC<AnimatedSearchIconProps> = ({
                   opacity: 0.3, 
                   scale: 1.4,
                   transition: {
-                    type: "spring" as const,
+                    type: "spring",
                     damping: 20,
                     stiffness: 300
                   }
@@ -280,7 +269,7 @@ const AnimatedSearchIcon: React.FC<AnimatedSearchIconProps> = ({
               scale: [0.8, 1.3, 0.8],
               transition: {
                 duration: 0.8,
-                ease: "easeInOut" as const
+                ease: "easeInOut"
               }
             }}
             exit={{ opacity: 0 }}
