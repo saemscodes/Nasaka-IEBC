@@ -187,11 +187,8 @@ setSelectedIndex(-1);
             onFocus={handleFocus}
             onBlur={handleBlur}
             disabled={disabled}
-            className={`w-full pr-16 
-            ${disabled ? 'opacity-50 cursor-not-allowed' : ''} 
-            focus:ring-green-500 focus:border-green-500
-            ${className}`}
-         />
+            className={`w-full pr-16 ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+          />
 
           <div className="absolute inset-y-0 right-3 flex items-center">
             {isLoading ? (
