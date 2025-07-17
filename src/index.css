@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,8 +6,8 @@
 @import 'leaflet/dist/leaflet.css';
 @import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 
-/* Import MapLibre CSS for MapLibre GL JS */
-@import 'maplibre-gl/dist/maplibre-gl.css';
+/* Import OpenLayers CSS for MapTiler */
+@import 'ol/ol.css';
 
 /* Green scrollbar styling */
 @layer base {
