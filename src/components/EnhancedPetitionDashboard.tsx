@@ -157,7 +157,7 @@ const handleCreatePetition = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-kenya-green/30">
+        <Card className="border-kenya-green-500/30">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -169,7 +169,7 @@ const handleCreatePetition = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-kenya-black/30">
+        <Card className="border-kenya-green/30">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
