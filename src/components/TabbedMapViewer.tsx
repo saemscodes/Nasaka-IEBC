@@ -1,12 +1,10 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MapPin, Globe, ExternalLink, Layers, RefreshCw } from 'lucide-react';
 import ErrorBoundary from "@/components/ErrorBoundary";
-import SimpleOpenStreetMap from "@/components/SimpleOpenStreetMap";
 import GeoJsonIoViewer from "@/components/GeoJsonIoViewer";
 import UMapViewer from "@/components/UMapViewer";
 import MapTilerViewer from "@/components/MapTilerViewer";
@@ -24,25 +22,16 @@ interface MapStatus {
 }
 
 export const TabbedMapViewer: React.FC<TabbedMapViewerProps> = ({ className }) => {
-  const [activeTab, setActiveTab] = useState<'dual' | 'geojsonio' | 'osm'>('dual');
+  const [activeTab, setActiveTab] = useState<'dual' | 'geojsonio'>('dual');
   const [mapStatuses, setMapStatuses] = useState<MapStatus[]>([
-    { id: 'umap', name: 'UMap', working: true, lastChecked: Date.now() },
+    { id: 'geojsonio', name: 'GeoJSON.io', working: true, lastChecked: Date.now() },
     { id: 'maptiler', name: 'MapTiler', working: true, lastChecked: Date.now() },
-    { id: 'osm', name: 'OpenStreetMap', working: true, lastChecked: Date.now() }
+    { id: 'umap', name: 'UMap', working: true, lastChecked: Date.now() }
   ]);
-  const [backupMap, setBackupMap] = useState<string>('osm');
   const { toast } = useToast();
 
   const getWorkingMaps = () => {
     return mapStatuses.filter(map => map.working);
-  };
-
-  const getBackupMap = () => {
-    const workingMaps = getWorkingMaps();
-    const availableBackups = workingMaps.filter(map => 
-      map.id !== 'umap' && map.id !== 'maptiler'
-    );
-    return availableBackups.length > 0 ? availableBackups[0].id : 'osm';
   };
 
   const markMapAsBroken = (mapId: string) => {
@@ -74,9 +63,9 @@ export const TabbedMapViewer: React.FC<TabbedMapViewerProps> = ({ className }) =
 
   return (
     <div className={className}>
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'dual' | 'geojsonio' | 'osm')}>
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'dual' | 'geojsonio')}>
         <div className="flex items-center justify-between mb-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="dual" className="flex items-center space-x-2">
               <div className="flex">
                 <Globe className="w-4 h-4" />
@@ -96,14 +85,6 @@ export const TabbedMapViewer: React.FC<TabbedMapViewerProps> = ({ className }) =
                 ✓
               </Badge>
             </TabsTrigger>
-            <TabsTrigger value="osm" className="flex items-center space-x-2">
-              <MapPin className="w-4 h-4" />
-              <span className="hidden sm:inline">OpenStreetMap</span>
-              <span className="sm:hidden">OSM</span>
-              <Badge variant="default" className="ml-1 bg-green-100 text-green-800">
-                ✓
-              </Badge>
-            </TabsTrigger>
           </TabsList>
           
           <Button
@@ -119,35 +100,34 @@ export const TabbedMapViewer: React.FC<TabbedMapViewerProps> = ({ className }) =
 
         <TabsContent value="dual" className="mt-0">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Primary Map - UMap (Default) */}
+            {/* Primary Map - GeoJSON.io (New Default) */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">
-                  Primary: UMap OpenStreetMap
+                  Primary: GeoJSON.io
                 </h3>
                 <Badge variant="default" className="bg-green-100 text-green-800">
-                  {mapStatuses.find(m => m.id === 'umap')?.working ? 'Active' : 'Backup Mode'}
+                  {mapStatuses.find(m => m.id === 'geojsonio')?.working ? 'Active' : 'Error'}
                 </Badge>
               </div>
               <ErrorBoundary
                 fallback={
                   <div className="h-96 bg-red-50 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
                     <div className="text-center">
-                      <p className="text-red-600 dark:text-red-400 mb-2">UMap Failed to Load</p>
-                      <Button onClick={() => markMapAsBroken('umap')} size="sm">
-                        Switch to Backup
+                      <p className="text-red-600 dark:text-red-400 mb-2">GeoJSON.io Failed to Load</p>
+                      <Button onClick={() => markMapAsBroken('geojsonio')} size="sm">
+                        Report Error
                       </Button>
                     </div>
                   </div>
                 }
               >
-                {mapStatuses.find(m => m.id === 'umap')?.working ? (
-                  <UMapViewer />
+                {mapStatuses.find(m => m.id === 'geojsonio')?.working ? (
+                  <GeoJsonIoViewer />
                 ) : (
                   <div className="h-96 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg flex items-center justify-center">
                     <div className="text-center">
-                      <p className="text-yellow-600 dark:text-yellow-400 mb-2">UMap Unavailable</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Showing backup map</p>
+                      <p className="text-yellow-600 dark:text-yellow-400 mb-2">GeoJSON.io Unavailable</p>
                     </div>
                   </div>
                 )}
@@ -180,7 +160,7 @@ export const TabbedMapViewer: React.FC<TabbedMapViewerProps> = ({ className }) =
                   <MapTilerViewer />
                 ) : (
                   <ErrorBoundary>
-                    <SimpleOpenStreetMap />
+                    <UMapViewer />
                   </ErrorBoundary>
                 )}
               </ErrorBoundary>
@@ -209,45 +189,6 @@ export const TabbedMapViewer: React.FC<TabbedMapViewerProps> = ({ className }) =
         <TabsContent value="geojsonio" className="mt-0">
           <ErrorBoundary>
             <GeoJsonIoViewer />
-          </ErrorBoundary>
-        </TabsContent>
-
-        <TabsContent value="osm" className="mt-0">
-          <ErrorBoundary>
-            <Card>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="text-center">
-                    <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-2">
-                      OpenStreetMap - Kenya
-                    </h3>
-                    <p className="text-green-700 dark:text-green-300 mb-4">
-                      Interactive map using React-Leaflet with OpenStreetMap tiles
-                    </p>
-                  </div>
-                  <ErrorBoundary>
-                    <SimpleOpenStreetMap />
-                  </ErrorBoundary>
-                  <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg border border-green-200 dark:border-green-700">
-                    <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2">Features</h4>
-                    <div className="space-y-1 text-sm text-green-700 dark:text-green-300">
-                      <div className="flex items-center">
-                        <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
-                        <span>Free and open-source mapping</span>
-                      </div>
-                      <div className="flex items-center">
-                        <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
-                        <span>Interactive pan and zoom</span>
-                      </div>
-                      <div className="flex items-center">
-                        <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
-                        <span>Click markers for information</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </ErrorBoundary>
         </TabsContent>
       </Tabs>
