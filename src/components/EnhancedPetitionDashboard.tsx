@@ -150,7 +150,7 @@ const handleCreatePetition = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Active Petitions</p>
-                <p className="text-3xl font-bold text-kenya-green">{overallStats.totalPetitions}</p>
+                <p className="text-3xl font-bold text-kenya-green dark:text-green-500">{overallStats.totalPetitions}</p>
               </div>
               <FileText className="w-8 h-8 text-kenya-green" />
             </div>
@@ -162,7 +162,7 @@ const handleCreatePetition = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Signatures</p>
-                <p className="text-3xl font-bold text-kenya-red">{overallStats.totalSignatures.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-kenya-red dark:text-green-500">{overallStats.totalSignatures.toLocaleString()}</p>
               </div>
               <Users className="w-8 h-8 text-kenya-red" />
             </div>
@@ -174,7 +174,7 @@ const handleCreatePetition = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Avg. Compliance</p>
-                <p className="text-3xl font-bold text-kenya-black">{Math.round(overallStats.averageCompliance)}%</p>
+                <p className="text-3xl font-bold text-kenya-black dark:text-green-500">{Math.round(overallStats.averageCompliance)}%</p>
               </div>
               <BarChart3 className="w-8 h-8 text-kenya-black" />
             </div>
