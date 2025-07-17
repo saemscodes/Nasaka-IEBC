@@ -74,7 +74,7 @@ export const TabbedMapViewer: React.FC<TabbedMapViewerProps> = ({ className }) =
 
   return (
     <div className={className}>
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'dual' | 'umap' | 'maptiler')}>
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'dual' | 'geojsonio' | 'osm')}>
         <div className="flex items-center justify-between mb-4">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="dual" className="flex items-center space-x-2">
@@ -90,16 +90,16 @@ export const TabbedMapViewer: React.FC<TabbedMapViewerProps> = ({ className }) =
             </TabsTrigger>
             <TabsTrigger value="geojsonio" className="flex items-center space-x-2">
               <ExternalLink className="w-4 h-4" />
-              <span className="hidden sm:inline">UMap OpenStreetMap</span>
-              <span className="sm:hidden">UMap</span>
+              <span className="hidden sm:inline">GeoJSON.io</span>
+              <span className="sm:hidden">GeoJSON</span>
               <Badge variant="default" className="ml-1 bg-blue-100 text-blue-800">
                 ✓
               </Badge>
             </TabsTrigger>
             <TabsTrigger value="osm" className="flex items-center space-x-2">
               <MapPin className="w-4 h-4" />
-              <span className="hidden sm:inline">MapTiler Map</span>
-              <span className="sm:hidden">MapTiler</span>
+              <span className="hidden sm:inline">OpenStreetMap</span>
+              <span className="sm:hidden">OSM</span>
               <Badge variant="default" className="ml-1 bg-green-100 text-green-800">
                 ✓
               </Badge>
@@ -119,34 +119,34 @@ export const TabbedMapViewer: React.FC<TabbedMapViewerProps> = ({ className }) =
 
         <TabsContent value="dual" className="mt-0">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Primary Map - GeoJSON.io (Default) */}
+            {/* Primary Map - UMap (Default) */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">
-                  Primary: GeoJSON.io Map
+                  Primary: UMap OpenStreetMap
                 </h3>
                 <Badge variant="default" className="bg-green-100 text-green-800">
-                  {mapStatuses.find(m => m.id === 'geojsonio')?.working ? 'Active' : 'Backup Mode'}
+                  {mapStatuses.find(m => m.id === 'umap')?.working ? 'Active' : 'Backup Mode'}
                 </Badge>
               </div>
               <ErrorBoundary
                 fallback={
                   <div className="h-96 bg-red-50 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
                     <div className="text-center">
-                      <p className="text-red-600 dark:text-red-400 mb-2">GeoJSON.io Failed to Load</p>
-                      <Button onClick={() => markMapAsBroken('geojsonio')} size="sm">
+                      <p className="text-red-600 dark:text-red-400 mb-2">UMap Failed to Load</p>
+                      <Button onClick={() => markMapAsBroken('umap')} size="sm">
                         Switch to Backup
                       </Button>
                     </div>
                   </div>
                 }
               >
-                {mapStatuses.find(m => m.id === 'geojsonio')?.working ? (
+                {mapStatuses.find(m => m.id === 'umap')?.working ? (
                   <UMapViewer />
                 ) : (
                   <div className="h-96 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg flex items-center justify-center">
                     <div className="text-center">
-                      <p className="text-yellow-600 dark:text-yellow-400 mb-2">GeoJSON.IO Unavailable</p>
+                      <p className="text-yellow-600 dark:text-yellow-400 mb-2">UMap Unavailable</p>
                       <p className="text-sm text-gray-600 dark:text-gray-400">Showing backup map</p>
                     </div>
                   </div>
