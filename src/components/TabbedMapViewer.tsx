@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,7 +29,7 @@ export const TabbedMapViewer: React.FC<TabbedMapViewerProps> = ({ className }) =
     { id: 'maptiler', name: 'MapTiler', working: true, lastChecked: Date.now() },
     { id: 'osm', name: 'OpenStreetMap', working: true, lastChecked: Date.now() }
   ]);
-  const [backupMap, setBackupMap] = useState<string>('osm');
+  const [backupMap, setBackupMap] = useState<string>('maptiler');
   const { toast } = useToast();
 
   const getWorkingMaps = () => {
@@ -40,9 +39,9 @@ export const TabbedMapViewer: React.FC<TabbedMapViewerProps> = ({ className }) =
   const getBackupMap = () => {
     const workingMaps = getWorkingMaps();
     const availableBackups = workingMaps.filter(map => 
-      map.id !== 'umap' && map.id !== 'maptiler'
+      map.id !== 'osm' && map.id !== 'umap'
     );
-    return availableBackups.length > 0 ? availableBackups[0].id : 'osm';
+    return availableBackups.length > 0 ? availableBackups[0].id : 'maptiler';
   };
 
   const markMapAsBroken = (mapId: string) => {
@@ -119,13 +118,48 @@ export const TabbedMapViewer: React.FC<TabbedMapViewerProps> = ({ className }) =
 
         <TabsContent value="dual" className="mt-0">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Primary Map - UMap (Default) */}
+            {/* Primary Map - OpenStreetMap (New Default) */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">
-                  Primary: UMap OpenStreetMap
+                  Primary: OpenStreetMap
                 </h3>
                 <Badge variant="default" className="bg-green-100 text-green-800">
+                  {mapStatuses.find(m => m.id === 'osm')?.working ? 'Active' : 'Backup Mode'}
+                </Badge>
+              </div>
+              <ErrorBoundary
+                fallback={
+                  <div className="h-96 bg-red-50 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+                    <div className="text-center">
+                      <p className="text-red-600 dark:text-red-400 mb-2">OpenStreetMap Failed to Load</p>
+                      <Button onClick={() => markMapAsBroken('osm')} size="sm">
+                        Switch to Backup
+                      </Button>
+                    </div>
+                  </div>
+                }
+              >
+                {mapStatuses.find(m => m.id === 'osm')?.working ? (
+                  <SimpleOpenStreetMap />
+                ) : (
+                  <div className="h-96 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg flex items-center justify-center">
+                    <div className="text-center">
+                      <p className="text-yellow-600 dark:text-yellow-400 mb-2">OpenStreetMap Unavailable</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Showing backup map</p>
+                    </div>
+                  </div>
+                )}
+              </ErrorBoundary>
+            </div>
+
+            {/* Secondary Map - UMap */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-100">
+                  Secondary: UMap
+                </h3>
+                <Badge variant="default" className="bg-purple-100 text-purple-800">
                   {mapStatuses.find(m => m.id === 'umap')?.working ? 'Active' : 'Backup Mode'}
                 </Badge>
               </div>
@@ -144,43 +178,8 @@ export const TabbedMapViewer: React.FC<TabbedMapViewerProps> = ({ className }) =
                 {mapStatuses.find(m => m.id === 'umap')?.working ? (
                   <UMapViewer />
                 ) : (
-                  <div className="h-96 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg flex items-center justify-center">
-                    <div className="text-center">
-                      <p className="text-yellow-600 dark:text-yellow-400 mb-2">UMap Unavailable</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Showing backup map</p>
-                    </div>
-                  </div>
-                )}
-              </ErrorBoundary>
-            </div>
-
-            {/* Secondary Map - MapTiler */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-100">
-                  Secondary: MapTiler
-                </h3>
-                <Badge variant="default" className="bg-purple-100 text-purple-800">
-                  {mapStatuses.find(m => m.id === 'maptiler')?.working ? 'Active' : 'Backup Mode'}
-                </Badge>
-              </div>
-              <ErrorBoundary
-                fallback={
-                  <div className="h-96 bg-red-50 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
-                    <div className="text-center">
-                      <p className="text-red-600 dark:text-red-400 mb-2">MapTiler Failed to Load</p>
-                      <Button onClick={() => markMapAsBroken('maptiler')} size="sm">
-                        Switch to Backup
-                      </Button>
-                    </div>
-                  </div>
-                }
-              >
-                {mapStatuses.find(m => m.id === 'maptiler')?.working ? (
-                  <MapTilerViewer />
-                ) : (
                   <ErrorBoundary>
-                    <SimpleOpenStreetMap />
+                    <MapTilerViewer />
                   </ErrorBoundary>
                 )}
               </ErrorBoundary>
