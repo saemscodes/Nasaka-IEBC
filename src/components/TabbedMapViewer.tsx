@@ -64,39 +64,56 @@ export const TabbedMapViewer: React.FC<TabbedMapViewerProps> = ({ className }) =
   return (
     <div className={className}>
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'dual' | 'geojsonio')}>
-        <div className="flex items-center justify-between mb-4">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="dual" className="flex items-center space-x-2">
-              <div className="flex">
-                <Globe className="w-4 h-4" />
-                <Layers className="w-4 h-4 -ml-1" />
-              </div>
-              <span className="hidden sm:inline">Dual Maps</span>
-              <span className="sm:hidden">Dual</span>
-              <Badge variant="default" className="ml-1 bg-green-100 text-green-800">
-                Default
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger value="geojsonio" className="flex items-center space-x-2">
-              <ExternalLink className="w-4 h-4" />
-              <span className="hidden sm:inline">GeoJSON.io</span>
-              <span className="sm:hidden">GeoJSON</span>
-              <Badge variant="default" className="ml-1 bg-blue-100 text-blue-800">
-                ✓
-              </Badge>
-            </TabsTrigger>
-          </TabsList>
-          
-          <Button
-            onClick={resetMapStatus}
-            size="sm"
-            variant="outline"
-            className="ml-4"
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Reset Status
-          </Button>
+  <div className="flex items-center justify-between mb-4">
+    <TabsList className="flex w-full max-w-[70%] sm:grid sm:grid-cols-2">
+      {/* Dual Maps Tab - Mobile Optimized */}
+      <TabsTrigger 
+        value="dual" 
+        className="flex-1 flex flex-col items-center p-1 sm:p-2 sm:flex-row sm:space-x-2"
+      >
+        <div className="flex sm:block">
+          <Globe className="w-3 h-3 sm:w-4 sm:h-4" />
+          <Layers className="w-3 h-3 -ml-1 sm:w-4 sm:h-4" />
         </div>
+        <span className="text-xs mt-0.5 sm:text-base sm:mt-0 sm:inline">Dual</span>
+        <Badge 
+          variant="default" 
+          className="absolute -top-1 -right-1 scale-75 sm:static sm:scale-100 sm:ml-1 bg-green-100 text-green-800"
+        >
+          <span className="hidden sm:inline">Default</span>
+          <span className="sm:hidden">✓</span>
+        </Badge>
+      </TabsTrigger>
+
+      {/* GeoJSON.io Tab - Mobile Optimized */}
+      <TabsTrigger 
+        value="geojsonio" 
+        className="flex-1 flex flex-col items-center p-1 sm:p-2 sm:flex-row sm:space-x-2"
+      >
+        <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4" />
+        <span className="text-xs mt-0.5 sm:text-base sm:mt-0">GeoJSON</span>
+        <Badge 
+          variant="default" 
+          className="absolute -top-1 -right-1 scale-75 sm:static sm:scale-100 sm:ml-1 bg-blue-100 text-blue-800"
+        >
+          <span className="hidden sm:inline">✓</span>
+          <span className="sm:hidden">✓</span>
+        </Badge>
+      </TabsTrigger>
+    </TabsList>
+    
+    {/* Reset Button - Mobile Optimized */}
+    <Button
+      onClick={resetMapStatus}
+      size="sm"
+      variant="outline"
+      className="ml-1 sm:ml-4"
+      aria-label="Reset map status"
+    >
+      <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4" />
+      <span className="hidden sm:inline sm:ml-2">Reset</span>
+    </Button>
+  </div>
 
         <TabsContent value="dual" className="mt-0">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
