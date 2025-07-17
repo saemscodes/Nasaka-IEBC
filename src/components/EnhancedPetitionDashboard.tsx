@@ -152,7 +152,7 @@ const handleCreatePetition = () => {
                 <p className="text-sm font-medium text-gray-600">Active Petitions</p>
                 <p className="text-3xl font-bold text-kenya-green dark:text-green-500">{overallStats.totalPetitions}</p>
               </div>
-              <FileText className="w-8 h-8 text-kenya-green" />
+              <FileText className="w-8 h-8 text-kenya-green dark:text-green-500" />
             </div>
           </CardContent>
         </Card>
@@ -164,7 +164,7 @@ const handleCreatePetition = () => {
                 <p className="text-sm font-medium text-gray-600">Total Signatures</p>
                 <p className="text-3xl font-bold text-kenya-red dark:text-green-500">{overallStats.totalSignatures.toLocaleString()}</p>
               </div>
-              <Users className="w-8 h-8 text-kenya-red" />
+              <Users className="w-8 h-8 text-kenya-red dark:text-green-500" />
             </div>
           </CardContent>
         </Card>
@@ -176,7 +176,7 @@ const handleCreatePetition = () => {
                 <p className="text-sm font-medium text-gray-600">Avg. Compliance</p>
                 <p className="text-3xl font-bold text-kenya-black dark:text-green-500">{Math.round(overallStats.averageCompliance)}%</p>
               </div>
-              <BarChart3 className="w-8 h-8 text-kenya-black" />
+              <BarChart3 className="w-8 h-8 text-kenya-black dark:text-green-500" />
             </div>
           </CardContent>
         </Card>
@@ -188,7 +188,7 @@ const handleCreatePetition = () => {
                 <p className="text-sm font-medium text-gray-600">Success Rate</p>
                 <p className="text-3xl font-bold text-green-500">23%</p>
               </div>
-              <TrendingUp className="w-8 h-8 text-green-500" />
+              <TrendingUp className="w-8 h-8 text-green-500 dark:text-green-500" />
             </div>
           </CardContent>
         </Card>
