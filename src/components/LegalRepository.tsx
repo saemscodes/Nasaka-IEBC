@@ -22,7 +22,10 @@ const LegalRepository = () => {
         'Tamper-evident'
       ],
       status: 'active',
-      relevance: ['signature-creation', 'petition-submission']
+      relevance: ['signature-creation', 'petition-submission'],
+      fullTextUrl: "https://kenyalaw.org/kl/fileadmin/pdfdownloads/Acts/KenyaInformationandCommunicationsAct(No2of1998).pdf#page=1",
+      analysisUrl: "https://www.kaplanstratton.com/wp-content/uploads/2022/03/Legal-Recognition-of-Electronic-Signatures-in-Kenya.pdf#page=1"
+      
     },
     katibaRuling: {
       id: 'HC-PET-209-2016',
@@ -31,7 +34,9 @@ const LegalRepository = () => {
       excerpt: 'The procedural requirements for recall petitions must not create impossible hurdles... Digital solutions that enhance practical effectiveness are constitutionally permissible',
       citation: 'Para. 71-75, High Court Petition 209 of 2016',
       status: 'landmark',
-      relevance: ['petition-initiation', 'technology-use']
+      relevance: ['petition-initiation', 'technology-use'],
+      fullTextUrl: "https://new.kenyalaw.org/akn/ke/judgment/keca/2020/513/eng@2020-07-24",
+      analysisUrl: "https://new.kenyalaw.org/akn/ke/judgment/kehc/2025/8557/eng@2025-04-30#:~:text=This%20violates%20Article%2027(1,of%20association%20and%20administrative%20justice."
     },
     electionsAct: {
       id: 'ELECTIONS-ACT-45-46',
@@ -43,7 +48,9 @@ const LegalRepository = () => {
         'Geographic distribution required (§46(4))'
       ],
       status: 'active',
-      relevance: ['petition-requirements', 'geographic-distribution']
+      relevance: ['petition-requirements', 'geographic-distribution'],
+      fullTextUrl: "https://www.iebc.or.ke/uploads/resources/kqI5cmgeyB.pdf",
+      analysisUrl: "https://www.idea.int/answer/ans9283269885535"
     },
     constitution104: {
       id: 'CONST-ART-104',
@@ -57,7 +64,9 @@ const LegalRepository = () => {
         'Grounds must be substantial'
       ],
       status: 'constitutional',
-      relevance: ['fundamental-rights', 'recall-process']
+      relevance: ['fundamental-rights', 'recall-process'],
+      fullTextUrl: "https://www.iebc.or.ke/uploads/resources/kqI5cmgeyB.pdf",
+      analysisUrl: "http://www.parliament.go.ke/sites/default/files/2023-03/The_Constitution_of_Kenya_2010.pdf#page=63"
     }
   };
 
