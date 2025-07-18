@@ -554,7 +554,7 @@ const Index = () => {
       {/* Live Statistics */}
       <section className={`py-6 border-y transition-colors duration-300 ${
         darkMode 
-          ? 'bg-gray-700/50 border-gray-600' 
+          ? 'bg-gray-900/50 border-gray-600' 
           : 'bg-white/50 border-green-100'
       }`}>
         <div className="container mx-auto px-4">
@@ -596,7 +596,7 @@ const Index = () => {
 
       {/* Constitutional Framework Section */}
       <section className={`py-12 transition-colors duration-300 ${
-        darkMode ? 'bg-gray-800/50' : 'bg-gradient-to-br from-green-50/20 to-white'
+        darkMode ? 'bg-gray-900/50' : 'bg-gradient-to-br from-green-50/20 to-white'
       }`}>
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
