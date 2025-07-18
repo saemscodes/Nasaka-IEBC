@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { QRCodeService, QRReceiptData } from './qrCodeService';
+import { BlockchainService, BlockchainHashData } from './blockchainService';
 
 export interface SignatureFlowData {
   petitionId: string;
@@ -19,6 +20,7 @@ export interface SignatureResult {
   receiptCode?: string;
   qrCode?: string;
   receiptData?: QRReceiptData;
+  blockchainHash?: string;
   error?: string;
 }
 
@@ -64,6 +66,21 @@ export class SignatureFlowService {
         throw signatureError;
       }
 
+      // Generate blockchain hash
+      const voterHash = BlockchainService.createVoterHash(data.voterId, data.voterName);
+      const blockchainHashData: BlockchainHashData = {
+        signatureId: signature.id,
+        petitionId: data.petitionId,
+        voterHash,
+        timestamp: signature.signature_timestamp,
+        wardConstituency: `${data.ward}-${data.constituency}`
+      };
+
+      const blockchainHash = await BlockchainService.generateBlockchainHash(blockchainHashData);
+      
+      // Store blockchain hash
+      await BlockchainService.storeBlockchainHash(signature.id, blockchainHash);
+
       // Generate QR receipt
       const qrResult = await QRCodeService.generateQRReceipt({
         signatureId: signature.id,
@@ -85,6 +102,7 @@ export class SignatureFlowService {
             voter_constituency: data.constituency,
             voter_ward: data.ward,
             receipt_code: qrResult.receiptCode,
+            blockchain_hash: blockchainHash,
             ip_address: await this.getClientIP(),
             user_agent: navigator.userAgent
           }
@@ -95,7 +113,8 @@ export class SignatureFlowService {
         signatureId: signature.id,
         receiptCode: qrResult.receiptCode,
         qrCode: qrResult.qrCode,
-        receiptData: qrResult.receiptData
+        receiptData: qrResult.receiptData,
+        blockchainHash
       };
 
     } catch (error) {
@@ -110,9 +129,39 @@ export class SignatureFlowService {
   static async verifySignature(receiptCode: string, lastFourDigits: string): Promise<{
     isValid: boolean;
     data?: QRReceiptData;
+    blockchainValid?: boolean;
     error?: string;
   }> {
-    return await QRCodeService.verifyQRReceipt(receiptCode, lastFourDigits);
+    const qrResult = await QRCodeService.verifyQRReceipt(receiptCode, lastFourDigits);
+    
+    if (!qrResult.isValid || !qrResult.data) {
+      return qrResult;
+    }
+
+    // Additional blockchain verification
+    try {
+      const { data: signature } = await supabase
+        .from('signatures')
+        .select('blockchain_hash')
+        .eq('id', qrResult.data.signatureId)
+        .single();
+
+      if (signature?.blockchain_hash) {
+        const blockchainVerification = await BlockchainService.verifyBlockchainHash(
+          qrResult.data.signatureId,
+          signature.blockchain_hash
+        );
+
+        return {
+          ...qrResult,
+          blockchainValid: blockchainVerification.isValid
+        };
+      }
+    } catch (error) {
+      console.error('Blockchain verification error:', error);
+    }
+
+    return qrResult;
   }
 
   static async renewSignature(receiptCode: string): Promise<{

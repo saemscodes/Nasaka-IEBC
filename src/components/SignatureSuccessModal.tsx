@@ -2,12 +2,11 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Download, Mail, Copy, QrCode, Shield, AlertTriangle } from 'lucide-react';
-import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CheckCircle, Download, Mail, Copy, Shield, Lock } from 'lucide-react';
 import QRReceiptViewer from './QRReceiptViewer';
-import { QRReceiptData } from '@/utils/qrCodeService';
+import { toast } from 'sonner';
 
 interface SignatureSuccessModalProps {
   isOpen: boolean;
@@ -16,10 +15,11 @@ interface SignatureSuccessModalProps {
     signatureId: string;
     receiptCode: string;
     qrCode: string;
-    receiptData: QRReceiptData;
+    receiptData: any;
     voterName: string;
     voterEmail?: string;
     petitionTitle: string;
+    blockchainHash?: string;
   };
 }
 
@@ -28,171 +28,141 @@ const SignatureSuccessModal: React.FC<SignatureSuccessModalProps> = ({
   onClose,
   signatureData
 }) => {
-  const [showReceipt, setShowReceipt] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [showQRReceipt, setShowQRReceipt] = useState(false);
 
-  const handleCopyCode = async () => {
-    try {
-      await navigator.clipboard.writeText(signatureData.receiptCode);
-      setCopied(true);
-      toast.success('Receipt code copied to clipboard!');
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      toast.error('Failed to copy code');
+  const copyBlockchainHash = () => {
+    if (signatureData.blockchainHash) {
+      navigator.clipboard.writeText(signatureData.blockchainHash);
+      toast.success('Blockchain hash copied to clipboard!');
     }
   };
 
-  const handleDownloadQR = () => {
+  const downloadReceipt = () => {
+    const receiptData = {
+      signatureId: signatureData.signatureId,
+      receiptCode: signatureData.receiptCode,
+      petitionTitle: signatureData.petitionTitle,
+      voterName: signatureData.voterName,
+      timestamp: new Date().toISOString(),
+      blockchainHash: signatureData.blockchainHash
+    };
+
+    const blob = new Blob([JSON.stringify(receiptData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = signatureData.qrCode;
-    link.download = `petition-receipt-${signatureData.receiptCode}.png`;
-    document.body.appendChild(link);
+    link.href = url;
+    link.download = `petition-signature-receipt-${signatureData.receiptCode}.json`;
     link.click();
-    document.body.removeChild(link);
-    toast.success('QR code downloaded!');
-  };
-
-  const handleEmailReceipt = () => {
-    if (signatureData.voterEmail) {
-      // This would integrate with an email service
-      toast.success('Receipt sent to your email!');
-    } else {
-      toast.error('No email address provided');
-    }
-  };
-
-  const handleRenewSignature = () => {
-    // This would integrate with the renewal service
-    toast.success('Signature renewed successfully!');
+    URL.revokeObjectURL(url);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center text-green-800 dark:text-green-200">
+          <DialogTitle className="flex items-center text-green-900 dark:text-green-100">
             <CheckCircle className="w-6 h-6 mr-2 text-green-600" />
-            Signature Recorded Successfully!
+            Petition Signature Successfully Recorded
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {!showReceipt ? (
-            // Success Summary View
-            <div className="space-y-4">
-              <Card className="border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50/50 to-white dark:from-green-900/20 dark:to-gray-800">
-                <CardHeader>
-                  <CardTitle className="text-green-900 dark:text-green-100">
-                    {signatureData.petitionTitle}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                    <div>
-                      <p className="font-semibold text-green-900 dark:text-green-100">Your Receipt Code</p>
-                      <p className="text-sm text-green-700 dark:text-green-300">Keep this code safe for verification</p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge className="bg-green-700 text-white font-mono text-lg px-4 py-2">
-                        {signatureData.receiptCode}
-                      </Badge>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleCopyCode}
-                        className="border-green-300 dark:border-green-600"
-                      >
-                        {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                      </Button>
-                    </div>
-                  </div>
+          {/* Success Summary */}
+          <Alert className="border-green-200 dark:border-green-700 bg-green-50 dark:bg-green-950/20">
+            <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <AlertDescription className="text-green-800 dark:text-green-200">
+              <strong>Congratulations!</strong> Your signature for "{signatureData.petitionTitle}" has been securely recorded and verified.
+            </AlertDescription>
+          </Alert>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Signer</p>
-                      <p className="text-blue-700 dark:text-blue-300">{signatureData.voterName}</p>
-                    </div>
-                    <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                      <p className="text-sm font-medium text-purple-900 dark:text-purple-100">Location</p>
-                      <p className="text-purple-700 dark:text-purple-300">
-                        {signatureData.receiptData.ward}, {signatureData.receiptData.constituency}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-3 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                    <Shield className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-yellow-900 dark:text-yellow-100">Security Notice</p>
-                      <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                        Your signature is protected by KICA §83C digital certificate encryption. 
-                        Keep your receipt code confidential and use it only for verification purposes.
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Button
-                  onClick={handleDownloadQR}
-                  className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Download QR
-                </Button>
-                
-                <Button
-                  onClick={handleEmailReceipt}
-                  variant="outline"
-                  className="flex items-center justify-center"
-                  disabled={!signatureData.voterEmail}
-                >
-                  <Mail className="w-4 h-4 mr-2" />
-                  Email Receipt
-                </Button>
-                
-                <Button
-                  onClick={() => setShowReceipt(true)}
-                  variant="outline"
-                  className="flex items-center justify-center border-green-300 dark:border-green-600 text-green-700 dark:text-green-300"
-                >
-                  <QrCode className="w-4 h-4 mr-2" />
-                  View Receipt
-                </Button>
+          {/* Blockchain Security Info */}
+          {signatureData.blockchainHash && (
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+              <div className="flex items-center mb-3">
+                <Shield className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" />
+                <h3 className="font-semibold text-gray-900 dark:text-white">Blockchain Security</h3>
+                <Badge variant="secondary" className="ml-2">
+                  <Lock className="w-3 h-3 mr-1" />
+                  Secured
+                </Badge>
               </div>
-
-              <div className="text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                Your signature has been secured with blockchain-level cryptographic hashing for maximum integrity and tamper-proof verification.
+              </p>
+              <div className="flex items-center space-x-2">
+                <div className="flex-1">
+                  <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                    Blockchain Hash:
+                  </label>
+                  <div className="font-mono text-sm bg-white dark:bg-gray-700 p-2 rounded border break-all">
+                    {signatureData.blockchainHash}
+                  </div>
+                </div>
                 <Button
-                  onClick={onClose}
-                  className="bg-green-600 hover:bg-green-700 text-white px-8"
+                  variant="outline"
+                  size="sm"
+                  onClick={copyBlockchainHash}
+                  className="border-blue-200 dark:border-blue-600 text-blue-700 dark:text-blue-300"
                 >
-                  Continue
+                  <Copy className="w-4 h-4" />
                 </Button>
               </div>
             </div>
-          ) : (
-            // Full QR Receipt View
-            <div className="space-y-4">
+          )}
+
+          {/* Quick Actions */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button
+              onClick={() => setShowQRReceipt(!showQRReceipt)}
+              className="flex-1 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
+            >
+              {showQRReceipt ? 'Hide' : 'Show'} QR Receipt
+            </Button>
+            <Button
+              onClick={downloadReceipt}
+              variant="outline"
+              className="flex-1 border-green-200 dark:border-green-600 text-green-700 dark:text-green-300"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Download Receipt
+            </Button>
+            {signatureData.voterEmail && (
               <Button
-                variant="ghost"
-                onClick={() => setShowReceipt(false)}
-                className="text-green-700 dark:text-green-300"
+                variant="outline"
+                className="flex-1 border-blue-200 dark:border-blue-600 text-blue-700 dark:text-blue-300"
               >
-                ← Back to Summary
+                <Mail className="w-4 h-4 mr-2" />
+                Email Receipt
               </Button>
-              
+            )}
+          </div>
+
+          {/* QR Receipt Viewer */}
+          {showQRReceipt && (
+            <div className="border-t pt-6">
               <QRReceiptViewer
                 qrCode={signatureData.qrCode}
                 receiptCode={signatureData.receiptCode}
                 receiptData={signatureData.receiptData}
                 voterName={signatureData.voterName}
                 voterEmail={signatureData.voterEmail}
-                onRenew={handleRenewSignature}
-                onEmailReceipt={handleEmailReceipt}
               />
             </div>
           )}
+
+          {/* Important Information */}
+          <Alert className="border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-950/20">
+            <AlertDescription className="text-blue-800 dark:text-blue-200">
+              <strong>Important:</strong> Save your receipt code and blockchain hash safely. These are your proof of signature and cannot be recovered if lost. Your signature is now part of the official petition record.
+            </AddressDescription>
+          </Alert>
+
+          {/* Close Button */}
+          <div className="flex justify-end pt-4 border-t">
+            <Button onClick={onClose} variant="outline">
+              Close
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

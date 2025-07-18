@@ -228,11 +228,25 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "petitions_constituency_fkey"
+            columns: ["constituency"]
+            isOneToOne: false
+            referencedRelation: "constituencies"
+            referencedColumns: ["name"]
+          },
+          {
             foreignKeyName: "petitions_created_by_fkey1"
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "petitions_signature_target_fkey"
+            columns: ["signature_target"]
+            isOneToOne: false
+            referencedRelation: "constituencies"
+            referencedColumns: ["registration_target"]
           },
         ]
       }

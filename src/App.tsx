@@ -8,6 +8,9 @@ import { useLenis } from "./hooks/useLenis";
 import Index from "./pages/Index";
 import SignPetition from "./pages/SignPetition";
 import NotFound from "./pages/NotFound";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsAndConditions from "./pages/TermsAndConditions";
+import VerifySignature from "./pages/VerifySignature";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +23,9 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/sign/:id" element={<SignPetition />} />
+        <Route path="/verify" element={<VerifySignature />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsAndConditions />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

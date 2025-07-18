@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,8 +13,10 @@ import ConstituencySearch from '@/components/ConstituencySearch';
 import PetitionWizard from '@/components/PetitionWizard';
 import CountyStatistics from '@/components/CountyStatistics';
 import ConstitutionalFlowchart from '@/components/ConstitutionalFlowchart';
-import { supabase } from "@/integrations/supabase/client";
 import TabbedMapViewer from '@/components/TabbedMapViewer';
+import Aurora from '@/components/Aurora';
+import RotatingText from '@/components/RotatingText';
+import { supabase } from "@/integrations/supabase/client";
 
 interface Constituency {
   name: string;
@@ -140,9 +141,7 @@ const Index = () => {
   };
 
   const scrollToPetitions = () => {
-    // First switch to the dashboard tab
     scrollToTab('dashboard');
-    // Then scroll to the petitions section after a small delay
     setTimeout(() => {
       const petitionsSection = document.querySelector('.grid.grid-cols-1.lg\\:grid-cols-2.gap-6');
       if (petitionsSection) {
@@ -156,7 +155,6 @@ const Index = () => {
 
   const handleSignatureComplete = (receiptCode: string) => {
     console.log('Signature completed with receipt code:', receiptCode);
-    // Refresh petition stats after signature
     fetchRealPetitionStats();
   };
 
@@ -180,8 +178,36 @@ const Index = () => {
         scrollToTab={scrollToTab} 
       />
 
-      {/* Hero Section - Minimalistic Centered */}
-      <section className={`py-16 transition-colors duration-300 ${
+      {/* Hero Section - Desktop and Tablet Only */}
+      <section className="h-screen relative overflow-hidden hidden md:block">
+        <Aurora
+          colorStops={["#000000", "#DC143C", "#006400"]}
+          blend={0.5}
+          amplitude={1.0}
+          speed={0.5}
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="flex items-center space-x-4 text-2xl sm:text-4xl md:text-6xl font-bold">
+            <span className="text-red-600">Recall</span>
+            <div className="px-4 sm:px-6 md:px-8 bg-gradient-to-r from-green-600 to-red-600 dark:from-green-500 dark:to-red-500 text-white overflow-hidden py-2 sm:py-3 md:py-4 justify-center rounded-lg">
+              <RotatingText
+                texts={["Working Systems?", "Leaders That Care?","Life's Joys?", "Following The Law?", "A Future You Want?", "Your MP's!"]}
+                durations={[3000, 3000, 5000, 3000, 3000, 7000]}
+                staggerFrom="last"
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "-120%" }}
+                staggerDuration={0.025}
+                splitLevelClassName="overflow-hidden pb-1 sm:pb-2 md:pb-3"
+                transition={{ type: "spring", damping: 30, stiffness: 400 }}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Original Hero Section - Mobile Only */}
+      <section className={`py-16 transition-colors duration-300 md:hidden ${
         darkMode 
           ? 'bg-gray-800' 
           : 'bg-gradient-to-br from-green-50/40 via-white to-green-50/20'
@@ -192,7 +218,6 @@ const Index = () => {
             <div className="max-w-2xl mx-auto mb-6">
               <ConstituencySearch 
                 onSelect={(constituency) => {
-                  // Map county_name to county for consistency
                   setSelectedConstituency({
                     name: constituency.name,
                     county: constituency.county_name,
@@ -235,15 +260,14 @@ const Index = () => {
                 ? 'border-gray-700' 
                 : 'border-green-200/50'
             }`}>
-              {/* Background Image */}
               <div className={`absolute inset-0 bg-cover bg-center z-0 ${
                 darkMode 
                   ? 'bg-gradient-to-br from-green-900/70 to-gray-800/70' 
                   : 'bg-gradient-to-br from-green-50/70 to-green-100/70'
               }`} style={{ 
                 backgroundImage: darkMode 
-                  ? "linear-gradient(rgba(3, 46, 21, 0.7), url('https://images.unsplash.com/photo-1546521343-4eb2c01aa44b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80')"
-                  : "linear-gradient(rgba(236, 253, 245, 0.7), url('https://images.unsplash.com/photo-1546521343-4eb2c01aa44b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80')"
+                  ? "linear-gradient(rgba(3, 46, 21, 0.7), url('https://images.unsplash.com/photo-1546521343-4eb2c01aa44b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
+                  : "linear-gradient(rgba(236, 253, 245, 0.7), url('https://images.unsplash.com/photo-1546521343-4eb2c01aa44b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
               }}>
               </div>
               
@@ -297,15 +321,186 @@ const Index = () => {
                 ? 'border-gray-700' 
                 : 'border-emerald-200/50'
             }`}>
-              {/* Background Image */}
               <div className={`absolute inset-0 bg-cover bg-center z-0 ${
                 darkMode 
                   ? 'bg-gradient-to-br from-emerald-900/70 to-gray-800/70' 
                   : 'bg-gradient-to-br from-emerald-50/70 to-emerald-100/70'
               }`} style={{ 
                 backgroundImage: darkMode 
-                  ? "linear-gradient(rgba(2, 44, 34, 0.7), url('https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80')"
-                  : "linear-gradient(rgba(236, 253, 245, 0.7), url('https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80')"
+                  ? "linear-gradient(rgba(2, 44, 34, 0.7), url('https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
+                  : "linear-gradient(rgba(236, 253, 245, 0.7), url('https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
+              }}>
+              </div>
+              
+              <CardContent className="p-6 flex flex-col h-full relative z-10">
+                <div className="flex items-center mb-4">
+                  <div className={`p-2 rounded-full mr-3 ${
+                    darkMode 
+                      ? 'bg-emerald-800/50 text-emerald-300' 
+                      : 'bg-emerald-100 text-emerald-700'
+                  }`}>
+                    <UserPlus className="w-6 h-6" />
+                  </div>
+                  <h4 className={`text-lg font-bold ${
+                    darkMode ? 'text-white' : 'text-emerald-900'
+                  }`}>
+                    Become a Voter
+                  </h4>
+                </div>
+                
+                <div className="flex-grow flex flex-col justify-center mb-6">
+                  <p className={`mb-4 transition-colors duration-300 text-center ${
+                    darkMode ? 'text-gray-200' : 'text-emerald-800'
+                  }`}>
+                    Learn how to register as a voter in Kenya
+                  </p>
+                </div>
+                
+                <Button 
+                  asChild
+                  className={`mt-auto ${
+                    darkMode 
+                      ? 'bg-emerald-700 hover:bg-emerald-600' 
+                      : 'bg-emerald-600 hover:bg-emerald-700'
+                  }`}
+                >
+                  <a 
+                    href="https://www.iebc.or.ke/registration/?how" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white"
+                  >
+                    How To Register
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Search Section - Desktop and Tablet only (Mobile has it in hero) */}
+      <section className={`py-16 transition-colors duration-300 hidden md:block ${
+        darkMode 
+          ? 'bg-gray-800' 
+          : 'bg-gradient-to-br from-green-50/40 via-white to-green-50/20'
+      }`}>
+        <div className="container mx-auto px-4 text-center max-w-4xl">
+          {/* Container 1: Search + Buttons */}
+          <div className="mb-12">
+            <div className="max-w-2xl mx-auto mb-6">
+              <ConstituencySearch 
+                onSelect={(constituency) => {
+                  setSelectedConstituency({
+                    name: constituency.name,
+                    county: constituency.county_name,
+                    registration_target: constituency.registration_target
+                  });
+                }} 
+              />
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button 
+                onClick={() => scrollToTab('wizard')}
+                className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white px-6 py-3"
+              >
+                Start Petition
+              </Button>
+              <Button 
+                onClick={scrollToPetitions}
+                variant="outline" 
+                className="border-green-600 dark:border-green-500 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 px-6 py-3"
+              >
+                Sign Petition
+              </Button>
+            </div>
+          </div>
+          
+          {/* Container 2: Voter Registration - Split Layout */}
+          <div className="text-left mb-6">
+            <h3 className={`text-xl font-bold mb-4 transition-colors duration-300 ${
+              darkMode ? 'text-white' : 'text-green-900'
+            }`}>
+              Voter Registration Services
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {/* Left Card - Registered Voters */}
+            <Card className={`relative overflow-hidden transition-colors duration-300 h-full ${
+              darkMode 
+                ? 'border-gray-700' 
+                : 'border-green-200/50'
+            }`}>
+              <div className={`absolute inset-0 bg-cover bg-center z-0 ${
+                darkMode 
+                  ? 'bg-gradient-to-br from-green-900/70 to-gray-800/70' 
+                  : 'bg-gradient-to-br from-green-50/70 to-green-100/70'
+              }`} style={{ 
+                backgroundImage: darkMode 
+                  ? "linear-gradient(rgba(3, 46, 21, 0.7), url('https://images.unsplash.com/photo-1546521343-4eb2c01aa44b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
+                  : "linear-gradient(rgba(236, 253, 245, 0.7), url('https://images.unsplash.com/photo-1546521343-4eb2c01aa44b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
+              }}>
+              </div>
+              
+              <CardContent className="p-6 flex flex-col h-full relative z-10">
+                <div className="flex items-center mb-4">
+                  <div className={`p-2 rounded-full mr-3 ${
+                    darkMode 
+                      ? 'bg-green-800/50 text-green-300' 
+                      : 'bg-green-100 text-green-700'
+                  }`}>
+                    <UserCheck className="w-6 h-6" />
+                  </div>
+                  <h4 className={`text-lg font-bold ${
+                    darkMode ? 'text-white' : 'text-green-900'
+                  }`}>
+                    Already Registered?
+                  </h4>
+                </div>
+                
+                <div className="flex-grow flex flex-col justify-center mb-6">
+                  <p className={`mb-4 transition-colors duration-300 text-center ${
+                    darkMode ? 'text-gray-200' : 'text-green-800'
+                  }`}>
+                    Verify your voter registration status with IEBC
+                  </p>
+                </div>
+                
+                <Button 
+                  asChild
+                  className={`mt-auto ${
+                    darkMode 
+                      ? 'bg-green-700 hover:bg-green-600' 
+                      : 'bg-green-600 hover:bg-green-700'
+                  }`}
+                >
+                  <a 
+                    href="https://verify.iebc.or.ke/" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white"
+                  >
+                    Verify Registration Status
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <Card className={`relative overflow-hidden transition-colors duration-300 h-full ${
+              darkMode 
+                ? 'border-gray-700' 
+                : 'border-emerald-200/50'
+            }`}>
+              <div className={`absolute inset-0 bg-cover bg-center z-0 ${
+                darkMode 
+                  ? 'bg-gradient-to-br from-emerald-900/70 to-gray-800/70' 
+                  : 'bg-gradient-to-br from-emerald-50/70 to-emerald-100/70'
+              }`} style={{ 
+                backgroundImage: darkMode 
+                  ? "linear-gradient(rgba(2, 44, 34, 0.7), url('https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
+                  : "linear-gradient(rgba(236, 253, 245, 0.7), url('https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
               }}>
               </div>
               
@@ -471,11 +666,11 @@ const Index = () => {
               <WardSearchInterface />
             </div>
           )}
-          {activeTab === 'sign' && (
+          {activeTab === 'sign' && selectedPetition && (
             <div ref={el => sectionsRef.current.sign = el}>
               <EnhancedSignatureFlow 
-                petitionId={selectedPetition?.id || 'default-petition'}
-                petitionTitle={selectedPetition?.title || 'Select a petition to sign'}
+                petitionId={selectedPetition.id}
+                petitionTitle={selectedPetition.title}
                 onComplete={handleSignatureComplete}
               />
             </div>
