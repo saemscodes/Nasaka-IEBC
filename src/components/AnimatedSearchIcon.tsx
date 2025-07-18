@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 
 interface AnimatedSearchIconProps {
   className?: string;
@@ -116,7 +117,7 @@ const AnimatedSearchIcon: React.FC<AnimatedSearchIconProps> = ({
 
   const currentIconData = iconPaths[currentIcon];
 
-  const iconVariants = {
+  const iconVariants: Variants = {
     initial: { 
       scale: 0.8, 
       opacity: 0,
@@ -127,7 +128,7 @@ const AnimatedSearchIcon: React.FC<AnimatedSearchIconProps> = ({
       opacity: 1,
       rotate: currentIconData.rotation,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         damping: 15,
         stiffness: 300,
         duration: 0.6
@@ -145,14 +146,14 @@ const AnimatedSearchIcon: React.FC<AnimatedSearchIconProps> = ({
       scale: currentIconData.scale * 1.25,
       rotate: currentIconData.rotation + 5,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         damping: 10,
         stiffness: 400
       }
     }
   };
 
-  const pathVariants = {
+  const pathVariants: Variants = {
     initial: { 
       pathLength: 0,
       opacity: 0
@@ -162,7 +163,7 @@ const AnimatedSearchIcon: React.FC<AnimatedSearchIconProps> = ({
       opacity: 1,
       transition: {
         pathLength: {
-          type: "spring",
+          type: "spring" as const,
           damping: 20,
           stiffness: 100,
           duration: 0.8
@@ -181,14 +182,14 @@ const AnimatedSearchIcon: React.FC<AnimatedSearchIconProps> = ({
     }
   };
 
-  const bounceVariants = {
+  const bounceVariants: Variants = {
     initial: { y: 0 },
     bounce: { 
       y: [0, -8, 0],
       transition: {
         duration: 0.6,
         times: [0, 0.5, 1],
-        ease: "easeOut"
+        ease: "easeOut" as const
       }
     }
   };
@@ -247,7 +248,7 @@ const AnimatedSearchIcon: React.FC<AnimatedSearchIconProps> = ({
                   opacity: 0.3, 
                   scale: 1.4,
                   transition: {
-                    type: "spring",
+                    type: "spring" as const,
                     damping: 20,
                     stiffness: 300
                   }
@@ -269,7 +270,7 @@ const AnimatedSearchIcon: React.FC<AnimatedSearchIconProps> = ({
               scale: [0.8, 1.3, 0.8],
               transition: {
                 duration: 0.8,
-                ease: "easeInOut"
+                ease: "easeInOut" as const
               }
             }}
             exit={{ opacity: 0 }}

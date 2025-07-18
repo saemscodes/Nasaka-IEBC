@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,6 +27,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [darkMode, setDarkMode] = useState(false);
   const [selectedConstituency, setSelectedConstituency] = useState<Constituency | null>(null);
+  const [selectedPetition, setSelectedPetition] = useState<{id: string, title: string} | null>(null);
   const [petitionStats, setPetitionStats] = useState({
     totalSignatures: 0,
     validSignatures: 0,
@@ -56,9 +58,12 @@ const Index = () => {
 
   useEffect(() => {
     const handleTabNavigation = (event: CustomEvent) => {
-      const { tabId, constituency } = event.detail;
+      const { tabId, constituency, petition } = event.detail;
       if (constituency) {
         setSelectedConstituency(constituency);
+      }
+      if (petition) {
+        setSelectedPetition(petition);
       }
       scrollToTab(tabId);
     };
@@ -147,6 +152,12 @@ const Index = () => {
         window.scrollTo({ top: sectionTop - headerHeight - 20, behavior: 'smooth' });
       }
     }, 300);
+  };
+
+  const handleSignatureComplete = (receiptCode: string) => {
+    console.log('Signature completed with receipt code:', receiptCode);
+    // Refresh petition stats after signature
+    fetchRealPetitionStats();
   };
 
   const navigationItems = [
@@ -462,7 +473,11 @@ const Index = () => {
           )}
           {activeTab === 'sign' && (
             <div ref={el => sectionsRef.current.sign = el}>
-              <EnhancedSignatureFlow />
+              <EnhancedSignatureFlow 
+                petitionId={selectedPetition?.id || 'default-petition'}
+                petitionTitle={selectedPetition?.title || 'Select a petition to sign'}
+                onComplete={handleSignatureComplete}
+              />
             </div>
           )}
           {activeTab === 'map' && (
