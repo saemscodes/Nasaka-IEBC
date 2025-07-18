@@ -1,0 +1,22 @@
+{
+  "name": "Recall254 – Hold Leaders Accountable",
+  "short_name": "Recall254",
+  "description": "CEKA’s tool to educate and activate Kenyans on the constitutional recall process.",
+  "start_url": "/?utm_source=web_app_manifest",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#2a9d8f",
+  "icons": [
+    {
+      "src": "/logo_green.png",
+      "sizes": "500x500",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo_white.png",
+      "sizes": "500x500",
+      "type": "image/png"
+    }  
+    ]
+}
