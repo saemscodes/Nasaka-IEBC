@@ -274,7 +274,7 @@ const AnimatedSearchIcon: React.FC<AnimatedSearchIconProps> = ({
               }
             }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-current rounded-full -z-10"
+            className="absolute inset-0 bg-white dark:bg-gray-900 rounded-full -z-10"
           />
         )}
       </AnimatePresence>
