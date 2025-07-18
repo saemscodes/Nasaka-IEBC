@@ -154,7 +154,7 @@ const SignatureSuccessModal: React.FC<SignatureSuccessModalProps> = ({
           <Alert className="border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-950/20">
             <AlertDescription className="text-blue-800 dark:text-blue-200">
               <strong>Important:</strong> Save your receipt code and blockchain hash safely. These are your proof of signature and cannot be recovered if lost. Your signature is now part of the official petition record.
-            </AddressDescription>
+            </AlertDescription>
           </Alert>
 
           {/* Close Button */}
