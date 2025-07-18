@@ -382,7 +382,7 @@ const Index = () => {
       {/* Search Section - Desktop and Tablet only (Mobile has it in hero) */}
       <section className={`py-16 transition-colors duration-300 hidden md:block ${
         darkMode 
-          ? 'bg-gray-800' 
+          ? 'bg-gray-900/50' 
           : 'bg-gradient-to-br from-green-50/40 via-white to-green-50/20'
       }`}>
         <div className="container mx-auto px-4 text-center max-w-4xl">
