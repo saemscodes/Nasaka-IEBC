@@ -26,9 +26,22 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
   ];
   
   const handleNavigation = (item: typeof navigationItems[0]) => {
-    scrollToTab(item.id);
-    setIsMobileMenuOpen(false);
-  };
+  scrollToTab(item.id);
+  setIsMobileMenuOpen(false);
+  
+  // Additional logic for petitions section
+  if (item.id === 'dashboard') {
+    setTimeout(() => {
+      const petitionsSection = document.querySelector('.grid.grid-cols-1.lg\\:grid-cols-2.gap-6');
+      if (petitionsSection) {
+        const header = document.querySelector('header');
+        const headerHeight = header?.clientHeight || 64;
+        const sectionTop = petitionsSection.getBoundingClientRect().top + window.pageYOffset;
+        window.scrollTo({ top: sectionTop - headerHeight - 20, behavior: 'smooth' });
+      }
+    }, 300);
+  }
+};
 
   const goToHomepage = () => {
     window.location.href = "/";
