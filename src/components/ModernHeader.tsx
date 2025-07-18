@@ -26,22 +26,22 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
   ];
   
   const handleNavigation = (item: typeof navigationItems[0]) => {
-  scrollToTab(item.id);
-  setIsMobileMenuOpen(false);
-  
-  // Additional logic for petitions section
-  if (item.id === 'dashboard') {
-    setTimeout(() => {
-      const petitionsSection = document.querySelector('.grid.grid-cols-1.lg\\:grid-cols-2.gap-6');
-      if (petitionsSection) {
-        const header = document.querySelector('header');
-        const headerHeight = header?.clientHeight || 64;
-        const sectionTop = petitionsSection.getBoundingClientRect().top + window.pageYOffset;
-        window.scrollTo({ top: sectionTop - headerHeight - 20, behavior: 'smooth' });
-      }
-    }, 300);
-  }
-};
+    scrollToTab(item.id);
+    setIsMobileMenuOpen(false);
+    
+    // Additional logic for petitions section
+    if (item.id === 'dashboard') {
+      setTimeout(() => {
+        const petitionsSection = document.querySelector('.grid.grid-cols-1.lg\\:grid-cols-2.gap-6');
+        if (petitionsSection) {
+          const header = document.querySelector('header');
+          const headerHeight = header?.clientHeight || 64;
+          const sectionTop = petitionsSection.getBoundingClientRect().top + window.pageYOffset;
+          window.scrollTo({ top: sectionTop - headerHeight - 20, behavior: 'smooth' });
+        }
+      }, 300);
+    }
+  };
 
   const goToHomepage = () => {
     window.location.href = "/";
@@ -214,11 +214,11 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
   return (
     <header className={`sticky top-0 z-50 transition-all duration-300 ${
       darkMode 
-        ? 'bg-gray-900/95 backdrop-blur-sm border-gray-700' 
-        : 'bg-white/95 backdrop-blur-sm border-green-100'
+        ? 'bg-gray-900/80 backdrop-blur-md border-gray-700/60' 
+        : 'bg-white/80 backdrop-blur-md border-green-100/60'
     } border-b`}>
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-16 bg-transparent">
           {/* Logo */}
           <div 
             className="flex items-center space-x-3 cursor-pointer"
@@ -270,8 +270,8 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
                 onClick={() => handleNavigation(item)}
                 className={`flex items-center space-x-2 transition-colors duration-300 ${
                   darkMode 
-                    ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
-                    : 'text-green-700 hover:text-green-900 hover:bg-green-50'
+                    ? 'text-gray-300 hover:text-white hover:bg-gray-700/50' 
+                    : 'text-green-700 hover:text-green-900 hover:bg-green-50/50'
                 }`}
               >
                 <item.icon className="w-4 h-4" />
@@ -286,22 +286,22 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
               variant="outline" 
               className={`hidden sm:flex transition-colors duration-300 ${
                 darkMode 
-                  ? 'border-green-600 text-green-400 bg-green-900/20' 
-                  : 'border-green-600 text-green-700 bg-green-50'
+                  ? 'border-green-600 text-green-400 bg-green-900/30' 
+                  : 'border-green-600 text-green-700 bg-green-50/70'
               }`}
             >
               Beta
             </Badge>
 
-            {/* Dark Mode Toggle - moved to the right */}
+            {/* Dark Mode Toggle */}
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleDarkMode}
               className={`transition-colors duration-300 relative w-10 h-10 ${
                 darkMode 
-                  ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
-                  : 'text-green-700 hover:text-green-900 hover:bg-green-50'
+                  ? 'text-gray-300 hover:text-white hover:bg-gray-700/50' 
+                  : 'text-green-700 hover:text-green-900 hover:bg-green-50/50'
               }`}
             >
               <div className="absolute inset-0 flex items-center justify-center">
@@ -330,8 +330,8 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
               size="sm"
               className={`md:hidden transition-colors duration-300 relative w-10 h-10 ${
                 darkMode 
-                  ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
-                  : 'text-green-700 hover:text-green-900 hover:bg-green-50'
+                  ? 'text-gray-300 hover:text-white hover:bg-gray-700/50' 
+                  : 'text-green-700 hover:text-green-900 hover:bg-green-50/50'
               }`}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
@@ -361,7 +361,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
         {shouldRenderDropdown && (
           <motion.div
             className={`md:hidden border-t transition-colors duration-300 ${
-              darkMode ? 'border-gray-700' : 'border-green-100'
+              darkMode ? 'border-gray-700/50' : 'border-green-100/50'
             }`}
             variants={dropdownVariants}
             initial="closed"
@@ -381,8 +381,8 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
                       onClick={() => handleNavigation(item)}
                       className={`w-full flex items-center space-x-3 justify-start px-4 py-3 transition-colors duration-300 ${
                         darkMode 
-                          ? 'text-gray-300 hover:text-white hover:bg-gray-700' 
-                          : 'text-green-700 hover:text-green-900 hover:bg-green-50'
+                          ? 'text-gray-300 hover:text-white hover:bg-gray-700/50' 
+                          : 'text-green-700 hover:text-green-900 hover:bg-green-50/50'
                       }`}
                     >
                       <item.icon className="w-4 h-4" />
@@ -391,15 +391,15 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
                   </motion.div>
                 ))}
                 <motion.div 
-                  className="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700"
+                  className="pt-2 mt-2 border-t border-gray-200/50 dark:border-gray-700/50"
                   variants={dropdownItemVariants}
                 >
                   <Badge 
                     variant="outline" 
                     className={`transition-colors duration-300 ${
                       darkMode 
-                        ? 'border-green-600 text-green-400 bg-green-900/20' 
-                        : 'border-green-600 text-green-700 bg-green-50'
+                        ? 'border-green-600 text-green-400 bg-green-900/30' 
+                        : 'border-green-600 text-green-700 bg-green-50/70'
                     }`}
                   >
                     Beta Version
