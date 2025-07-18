@@ -177,12 +177,24 @@ const LegalRepository = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="grounds" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="grounds">1. Legal Grounds</TabsTrigger>
-              <TabsTrigger value="signatures">2. Signature Collection</TabsTrigger>
-              <TabsTrigger value="verification">3. Verification</TabsTrigger>
-              <TabsTrigger value="recall-vote">4. Recall Vote</TabsTrigger>
-            </TabsList>
+            <TabsList className="flex md:grid w-full md:grid-cols-4 overflow-x-auto pb-1">
+  <TabsTrigger value="grounds" className="min-w-max text-xs md:text-sm px-2 md:px-4">
+    <span className="hidden sm:inline">1. Legal Grounds</span>
+    <span className="sm:hidden">1. Legal</span>
+  </TabsTrigger>
+  <TabsTrigger value="signatures" className="min-w-max text-xs md:text-sm px-2 md:px-4">
+    <span className="hidden sm:inline">2. Signature Collection</span>
+    <span className="sm:hidden">2. Signatures</span>
+  </TabsTrigger>
+  <TabsTrigger value="verification" className="min-w-max text-xs md:text-sm px-2 md:px-4">
+    <span className="hidden sm:inline">3. Verification</span>
+    <span className="sm:hidden">3. Verify</span>
+  </TabsTrigger>
+  <TabsTrigger value="recall-vote" className="min-w-max text-xs md:text-sm px-2 md:px-4">
+    <span className="hidden sm:inline">4. Recall Vote</span>
+    <span className="sm:hidden">4. Vote</span>
+  </TabsTrigger>
+</TabsList>
 
             <TabsContent value="grounds" className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
