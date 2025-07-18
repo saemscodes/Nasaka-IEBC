@@ -140,18 +140,28 @@ const LegalRepository = () => {
 
               {/* Expanded Content */}
               {selectedLaw === key && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="flex space-x-2">
-                    <Button size="sm" className="bg-kenya-green hover:bg-kenya-green/90">
-                      <BookOpen className="w-4 h-4 mr-1" />
-                      Full Text
-                    </Button>
-                    <Button size="sm" variant="outline" className="border-kenya-green text-kenya-green">
-                      Legal Analysis
-                    </Button>
-                  </div>
-                </div>
-              )}
+  <div className="mt-4 pt-4 border-t border-gray-200">
+    <div className="flex space-x-2">
+      <a 
+        href={doc.fullTextUrl} 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-kenya-green hover:bg-kenya-green/90 text-white h-9 px-3 py-2"
+      >
+        <BookOpen className="w-4 h-4 mr-1" />
+        Full Text
+      </a>
+      <a 
+        href={doc.analysisUrl} 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground border-kenya-green text-kenya-green h-9 px-3 py-2"
+      >
+        Legal Analysis
+      </a>
+    </div>
+  </div>
+)}
             </CardContent>
           </Card>
         ))}
