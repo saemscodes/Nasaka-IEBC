@@ -83,7 +83,7 @@ export class QRCodeService {
 
     const qrCode = await QRCode.toDataURL(qrCodeData, qrCodeOptions);
 
-    // Store QR receipt in database
+    // Store QR receipt in database using the correct table name
     await supabase
       .from('signatures')
       .update({
@@ -117,7 +117,7 @@ export class QRCodeService {
 
       const [, systemCode, userHash, petitionPrefix] = parts;
 
-      // Query database for matching signature
+      // Query database for matching signature using the correct table name
       const { data: signatures, error } = await supabase
         .from('signatures')
         .select('*')

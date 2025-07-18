@@ -226,7 +226,15 @@ export type Database = {
           updated_at?: string
           ward_target?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "petitions_created_by_fkey1"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -362,11 +370,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "wards_county_fkey"
-            columns: ["county"]
+            foreignKeyName: "wards_member_of_parliament_fkey"
+            columns: ["member_of_parliament"]
             isOneToOne: false
-            referencedRelation: "counties"
-            referencedColumns: ["name"]
+            referencedRelation: "constituencies"
+            referencedColumns: ["member_of_parliament"]
           },
         ]
       }
@@ -377,6 +385,10 @@ export type Database = {
     Functions: {
       normalize_county_name: {
         Args: { name: string }
+        Returns: string
+      }
+      normalize_text: {
+        Args: { text_to_normalize: string }
         Returns: string
       }
     }
