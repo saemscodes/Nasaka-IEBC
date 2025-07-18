@@ -3,35 +3,76 @@
 <html lang="en" class="no-js">
   <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Recall254</title>
-    <meta name="description" content="Your Vote. Our Future." />
-    <meta name="author" content="CEKA" />
 
-    <meta property="og:title" content="Recall254" />
-    <meta property="og:description" content="Your Vote. Our Future" />
+    <!-- Primary Meta Tags -->
+    <title>Recall254 – Empowering Kenyans to Recall Underperforming Leaders</title>
+    <meta name="description" content="Recall254 by CEKA educates Kenyans on their constitutional right to recall elected leaders. Learn the legal grounds, process, and how to take action for accountability." />
+    <meta name="author" content="CEKA – Civic Education Kenya App" />
+    <link rel="canonical" href="https://recall254.vercel.app" />
+
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/logo_green.png" />
+    <meta property="og:url" content="https://recall254.vercel.app" />
+    <meta property="og:title" content="Recall254 – Your Right to Remove Non-Performing Leaders" />
+    <meta property="og:description" content="Built by CEKA, Recall254 guides Kenyans through the constitutional recall process with clear steps and legal insights." />
+    <meta property="og:image" content="https://recall254.vercel.app/logo_green.png" />
 
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@CivicEdKenya" />
-    <meta name="twitter:image" content="/logo_white.png" />
+    <meta name="twitter:creator" content="@CivicEdKenya" />
+    <meta name="twitter:title" content="Recall254 – Hold Your Leaders Accountable" />
+    <meta name="twitter:description" content="Explore your right to recall elected leaders in Kenya with CEKA's civic education tool." />
+    <meta name="twitter:image" content="https://recall254.vercel.app/logo_white.png" />
 
-    
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-defaulticon-compatibility@0.1.2/dist/leaflet-defaulticon-compatibility.css" />
+    <!-- Favicon & Manifest -->
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/logo_green.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Recall254",
+        "url": "https://recall254.vercel.app",
+        "description": "Recall254 by CEKA educates Kenyans on their constitutional right to recall elected leaders who fail to deliver.",
+        "publisher": {
+          "@type": "Organization",
+          "name": "CEKA – Civic Education Kenya App"
+        }
+      }
+    </script>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-somehash" crossorigin="" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-defaulticon-compatibility@0.1.2/dist/leaflet-defaulticon-compatibility.css" integrity="sha384-somehash" crossorigin="" />
+
+    <!-- Robots -->
+    <meta name="robots" content="index, follow" />
   </head>
 
   <body>
+    <!-- JavaScript Fallback for Non-JS Agents -->
+    <noscript>
+      <div style="padding: 2rem; text-align: center;">
+        <h1>Recall254: Empowering Kenyans to Recall Underperforming Leaders</h1>
+        <p>This platform by CEKA helps citizens understand the constitutional recall process and how to take action against non-performing elected officials.</p>
+        <p><a href="https://recall254.vercel.app">Visit Recall254</a></p>
+      </div>
+    </noscript>
+
+    <!-- React Root -->
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    
-   
-    
+
     <!-- Remove no-js class if JavaScript is enabled -->
     <script>
       document.documentElement.classList.remove("no-js");
     </script>
   </body>
 </html>
+
