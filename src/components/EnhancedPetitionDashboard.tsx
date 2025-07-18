@@ -186,7 +186,7 @@ const handleCreatePetition = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Success Rate</p>
-                <p className="text-3xl font-bold text-green-500">23%</p>
+                <p className="text-3xl font-bold text-green-500">0%</p>
               </div>
               <TrendingUp className="w-8 h-8 text-green-500 dark:text-green-500" />
             </div>
