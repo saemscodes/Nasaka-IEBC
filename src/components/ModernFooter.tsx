@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Shield, Phone, CheckCircle, Scale } from 'lucide-react';
 
@@ -101,14 +100,20 @@ const ModernFooter = () => {
               &copy; 2024 Recall254 Platform. Constitutional democracy through digital innovation.
             </p>
             
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-xs">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-green-200">System Online</span>
-              </div>
-              <div className="text-xs text-green-200">
-                Last Updated: {new Date().toLocaleDateString()}
-              </div>
+            {/* Improved link section */}
+            <div className="flex items-center space-x-6">
+              <a 
+                href="/privacy" 
+                className="text-green-100 hover:text-white transition-colors text-sm hover:underline underline-offset-4"
+              >
+                Privacy Policy
+              </a>
+              <a 
+                href="/terms" 
+                className="text-green-100 hover:text-white transition-colors text-sm hover:underline underline-offset-4"
+              >
+                Terms of Service
+              </a>
             </div>
           </div>
         </div>
