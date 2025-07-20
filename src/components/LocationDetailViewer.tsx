@@ -786,7 +786,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
 
           <CardContent className="p-3 sm:p-6 space-y-4 sm:space-y-6">
             {/* Location Hierarchy */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 justify-items-center">
               {location.county && (
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-lg">
                   <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-1 text-sm sm:text-base">County</h4>
@@ -810,7 +810,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
             </div>
 
             {/* Key Statistics */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 justify-items-center">
               {location.registration_target && (
                 <div className="bg-gray-50 dark:bg-gray-700 p-3 sm:p-4 rounded-lg">
                   <div className="flex items-center space-x-2 mb-2">
@@ -837,12 +837,12 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
             </div>
 
             {/* Leadership Information */}
-            <div className="space-y-4">
+            <div className="space-y-4 ">
               <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
                 Leadership
               </h4>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 justify-items-center">
                 {location.member_of_parliament && (
                   <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 p-3 sm:p-4 rounded-lg border border-green-200 dark:border-green-700">
                     <h5 className="font-semibold text-green-800 dark:text-green-200 mb-1 text-sm sm:text-base">
