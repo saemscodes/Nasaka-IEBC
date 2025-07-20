@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, ArrowLeft, Shield, Scale, Database, Lock, Users, FileText, AlertCircle } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { ChevronDown, ArrowLeft, Shield, Scale, Database, Lock, Users, FileText } from 'lucide-react';
 
 const PrivacyPolicy = () => {
   const [expandedSections, setExpandedSections] = useState({});
+  const contentRefs = useRef({});
 
   const toggleSection = (sectionId) => {
     setExpandedSections(prev => ({
@@ -13,28 +14,39 @@ const PrivacyPolicy = () => {
 
   const CollapsibleSection = ({ id, title, icon: Icon, children, defaultExpanded = false }) => {
     const isExpanded = expandedSections[id] ?? defaultExpanded;
-    
+    const contentRef = useRef(null);
+    contentRefs.current[id] = contentRef;
+
     return (
       <div className="border-b border-gray-200 dark:border-gray-700">
         <button
           onClick={() => toggleSection(id)}
-          className="w-full flex items-center justify-between py-6 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200"
+          className="w-full flex items-center justify-between py-6 text-left transition-all duration-300 ease-in-out px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/30 hover:shadow-sm hover:-translate-y-0.5"
         >
           <div className="flex items-center space-x-3">
             <Icon className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
           </div>
-          {isExpanded ? (
-            <ChevronUp className="w-5 h-5 text-gray-500" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-gray-500" />
-          )}
+          <div className="pr-4">
+            <ChevronDown 
+              className={`w-5 h-5 text-gray-500 transition-all duration-300 ease-in-out transform ${
+                isExpanded ? 'rotate-180' : ''
+              } hover:scale-110`}
+            />
+          </div>
         </button>
-        {isExpanded && (
-          <div className="pb-6 pl-8 text-gray-700 dark:text-gray-300 leading-relaxed space-y-4">
+        <div 
+          ref={contentRef}
+          className="overflow-hidden transition-all duration-300 ease-in-out"
+          style={{
+            maxHeight: isExpanded ? `${contentRef.current?.scrollHeight || 1000}px` : '0px',
+            opacity: isExpanded ? 1 : 0.8
+          }}
+        >
+          <div className="pb-6 pl-8 pr-4 text-gray-700 dark:text-gray-300 leading-relaxed space-y-4">
             {children}
           </div>
-        )}
+        </div>
       </div>
     );
   };
@@ -46,9 +58,9 @@ const PrivacyPolicy = () => {
         <div className="max-w-4xl mx-auto px-6 py-8">
           <button 
             onClick={() => window.history.back()}
-            className="flex items-center text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 mb-6 font-medium"
+            className="flex items-center text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 mb-6 font-medium transition-colors duration-200"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="w-4 h-4 mr-2 transition-transform duration-200 hover:-translate-x-1" />
             Back to Recall254
           </button>
           
@@ -83,7 +95,7 @@ const PrivacyPolicy = () => {
         </div>
 
         {/* Collapsible Sections */}
-        <div className="space-y-0">
+        <div className="space-y-0 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
           <CollapsibleSection
             id="legal-framework"
             title="Legal Framework & Constitutional Basis"
