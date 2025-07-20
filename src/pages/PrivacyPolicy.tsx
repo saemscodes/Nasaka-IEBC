@@ -1,285 +1,266 @@
-
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Shield, Scale, FileText, Users, Database, Lock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import ModernHeader from '@/components/ModernHeader';
-import ModernFooter from '@/components/ModernFooter';
+import React, { useState } from 'react';
+import { ChevronDown, ChevronUp, ArrowLeft, Shield, Scale, Database, Lock, Users, FileText, AlertCircle } from 'lucide-react';
 
 const PrivacyPolicy = () => {
-  const navigate = useNavigate();
+  const [expandedSections, setExpandedSections] = useState({});
+
+  const toggleSection = (sectionId) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
+  };
+
+  const CollapsibleSection = ({ id, title, icon: Icon, children, defaultExpanded = false }) => {
+    const isExpanded = expandedSections[id] ?? defaultExpanded;
+    
+    return (
+      <div className="border-b border-gray-200 dark:border-gray-700">
+        <button
+          onClick={() => toggleSection(id)}
+          className="w-full flex items-center justify-between py-6 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200"
+        >
+          <div className="flex items-center space-x-3">
+            <Icon className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
+          </div>
+          {isExpanded ? (
+            <ChevronUp className="w-5 h-5 text-gray-500" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-500" />
+          )}
+        </button>
+        {isExpanded && (
+          <div className="pb-6 pl-8 text-gray-700 dark:text-gray-300 leading-relaxed space-y-4">
+            {children}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
-      <ModernHeader 
-        darkMode={false} 
-        toggleDarkMode={() => {}} 
-        scrollToTab={() => {}} 
-      />
-      
-      <div className="container mx-auto px-4 py-8">
-        <Button 
-          onClick={() => navigate('/')} 
-          variant="ghost" 
-          className="mb-6 text-blue-700 dark:text-blue-300"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Home
-        </Button>
-
-        <div className="max-w-4xl mx-auto space-y-8">
-          <Card className="border-blue-200 dark:border-blue-800">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
-              <CardTitle className="flex items-center text-2xl text-blue-900 dark:text-blue-100">
-                <Shield className="w-6 h-6 mr-3" />
-                Privacy Policy
-              </CardTitle>
-              <div className="flex items-center space-x-4 text-sm">
-                <Badge variant="outline" className="border-blue-300 text-blue-700">
-                  Effective: January 1, 2024
-                </Badge>
-                <Badge variant="outline" className="border-green-300 text-green-700">
-                  KICA §83C Compliant
-                </Badge>
-                <Badge variant="outline" className="border-purple-300 text-purple-700">
-                  Constitution 2010
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="p-8 space-y-6">
-              <div className="prose prose-blue dark:prose-invert max-w-none">
-                <h3 className="flex items-center text-xl font-semibold text-blue-900 dark:text-blue-100">
-                  <Scale className="w-5 h-5 mr-2" />
-                  Legal Framework & Constitutional Basis
-                </h3>
-                <p className="text-gray-700 dark:text-gray-300">
-                  This privacy policy governs the Katiba Recall Platform ("Platform"), developed in accordance with 
-                  Article 104 of the Constitution of Kenya 2010, which provides for the recall of Members of Parliament. 
-                  Our data processing practices comply with:
-                </p>
-                <ul className="list-disc pl-6 space-y-2 text-gray-700 dark:text-gray-300">
-                  <li><strong>Kenya Information and Communications Act (KICA), Section 83C</strong> - Digital signature standards</li>
-                  <li><strong>Data Protection Act, 2019</strong> - Personal data protection requirements</li>
-                  <li><strong>Computer Misuse and Cybercrimes Act, 2018</strong> - Cybersecurity provisions</li>
-                  <li><strong>Access to Information Act, 2016</strong> - Information access rights</li>
-                  <li><strong>Constitution of Kenya 2010, Articles 31-35</strong> - Privacy and information rights</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-green-200 dark:border-green-800">
-            <CardHeader className="bg-green-50 dark:bg-green-900/20">
-              <CardTitle className="flex items-center text-green-900 dark:text-green-100">
-                <Database className="w-5 h-5 mr-2" />
-                Data Collection & Processing
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-green-800 dark:text-green-200">Personal Data Collected</h4>
-                  <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
-                    <li>• Full legal name (as per identification document)</li>
-                    <li>• National ID, Passport, or other government-issued ID number</li>
-                    <li>• Phone number for verification</li>
-                    <li>• Electoral constituency and ward</li>
-                    <li>• Polling station (where applicable)</li>
-                    <li>• Email address (optional)</li>
-                  </ul>
-                </div>
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-green-800 dark:text-green-200">Technical Data Collected</h4>
-                  <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
-                    <li>• Digital signature certificates (CAK-licensed CSP)</li>
-                    <li>• Device fingerprints for security</li>
-                    <li>• IP addresses and geolocation data</li>
-                    <li>• Browser and device information</li>
-                    <li>• Timestamp and audit trail data</li>
-                    <li>• QR receipt codes and verification tokens</li>
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-purple-200 dark:border-purple-800">
-            <CardHeader className="bg-purple-50 dark:bg-purple-900/20">
-              <CardTitle className="flex items-center text-purple-900 dark:text-purple-100">
-                <Lock className="w-5 h-5 mr-2" />
-                Data Security & Encryption
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 space-y-4">
-              <div className="bg-purple-100 dark:bg-purple-900/30 p-4 rounded-lg">
-                <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-2">
-                  KICA Section 83C Compliance
-                </h4>
-                <p className="text-sm text-purple-800 dark:text-purple-200">
-                  All digital signatures are created using Communications Authority of Kenya (CAK) licensed 
-                  Certification Service Providers (CSPs) with end-to-end encryption meeting ISO 27001 standards.
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <h5 className="font-semibold mb-2">Data at Rest</h5>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    AES-256 encryption with rotating keys stored in secure hardware modules
-                  </p>
-                </div>
-                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <h5 className="font-semibold mb-2">Data in Transit</h5>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    TLS 1.3 encryption for all communications with certificate pinning
-                  </p>
-                </div>
-                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <h5 className="font-semibold mb-2">Access Control</h5>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Multi-factor authentication and role-based access with audit logging
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-red-200 dark:border-red-800">
-            <CardHeader className="bg-red-50 dark:bg-red-900/20">
-              <CardTitle className="flex items-center text-red-900 dark:text-red-100">
-                <Users className="w-5 h-5 mr-2" />
-                Your Rights Under Kenyan Law
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold text-red-800 dark:text-red-200 mb-3">Constitutional Rights (Article 31)</h4>
-                  <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
-                    <li>• Right to privacy and protection of personal information</li>
-                    <li>• Right to access information held by the state</li>
-                    <li>• Right to correction of false or misleading information</li>
-                    <li>• Right to reasonable compensation for interference</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-red-800 dark:text-red-200 mb-3">Data Protection Act Rights</h4>
-                  <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
-                    <li>• Right to be informed about data processing</li>
-                    <li>• Right to access your personal data</li>
-                    <li>• Right to rectification of inaccurate data</li>
-                    <li>• Right to erasure (with legal limitations)</li>
-                    <li>• Right to restrict processing</li>
-                    <li>• Right to data portability</li>
-                  </ul>
-                </div>
-              </div>
-
-              <Separator className="my-4" />
-
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                <h4 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-2">
-                  Important Legal Limitations
-                </h4>
-                <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                  <strong>Article 104 Requirements:</strong> Once a petition signature is verified and becomes part 
-                  of an official recall process, certain data cannot be deleted or modified to maintain the integrity 
-                  of the democratic process. However, personal identifiers may be anonymized while preserving 
-                  verification capabilities.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-orange-200 dark:border-orange-800">
-            <CardHeader className="bg-orange-50 dark:bg-orange-900/20">
-              <CardTitle className="flex items-center text-orange-900 dark:text-orange-100">
-                <FileText className="w-5 h-5 mr-2" />
-                Data Sharing & Third Parties
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 space-y-4">
-              <div className="space-y-4">
-                <div className="p-4 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                  <h4 className="font-semibold text-orange-900 dark:text-orange-100 mb-2">
-                    Authorized Government Entities
-                  </h4>
-                  <ul className="text-sm text-orange-800 dark:text-orange-200 space-y-1">
-                    <li>• <strong>Independent Electoral and Boundaries Commission (IEBC)</strong> - For petition verification</li>
-                    <li>• <strong>Office of the Attorney General</strong> - For legal proceedings</li>
-                    <li>• <strong>Directorate of Criminal Investigations (DCI)</strong> - For fraud investigation</li>
-                    <li>• <strong>Ethics and Anti-Corruption Commission (EACC)</strong> - For integrity verification</li>
-                  </ul>
-                </div>
-
-                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <h4 className="font-semibold mb-2">Technical Service Providers</h4>
-                  <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                    <li>• CAK-licensed Certification Service Providers (CSPs) for digital signatures</li>
-                    <li>• Secure cloud infrastructure providers (with data residency in Kenya)</li>
-                    <li>• Audit and compliance verification services</li>
-                  </ul>
-                </div>
-
-                <div className="p-4 bg-red-100 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-800">
-                  <h4 className="font-semibold text-red-900 dark:text-red-100 mb-2">
-                    We Do NOT Share Data With:
-                  </h4>
-                  <ul className="text-sm text-red-800 dark:text-red-200 space-y-1">
-                    <li>• Political parties or campaigns</li>
-                    <li>• Commercial marketing companies</li>
-                    <li>• Social media platforms</li>
-                    <li>• Foreign governments or entities</li>
-                    <li>• Non-governmental organizations (unless legally required)</li>
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-gray-200 dark:border-gray-700">
-            <CardHeader>
-              <CardTitle className="text-gray-900 dark:text-white">Contact & Complaints</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold mb-3">Platform Data Protection Officer</h4>
-                  <div className="text-sm space-y-1 text-gray-600 dark:text-gray-400">
-                    <p>Email: privacy@katibarecall.ke</p>
-                    <p>Phone: +254-700-KATIBA</p>
-                    <p>Physical Address: Nairobi, Kenya</p>
-                    <p>Response Time: 30 days maximum</p>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-3">Office of the Data Protection Commissioner</h4>
-                  <div className="text-sm space-y-1 text-gray-600 dark:text-gray-400">
-                    <p>Website: www.odpc.go.ke</p>
-                    <p>Email: info@odpc.go.ke</p>
-                    <p>Phone: +254-20-2628000</p>
-                    <p>For formal complaints and appeals</p>
-                  </div>
-                </div>
-              </div>
-
-              <Separator className="my-4" />
-
-              <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                <p>
-                  This privacy policy was last updated on January 18, 2025, and is subject to Kenyan law. 
-                  Any disputes will be resolved in the courts of Kenya.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+    <div className="min-h-screen bg-white dark:bg-gray-900">
+      {/* Header */}
+      <div className="border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-4xl mx-auto px-6 py-8">
+          <button 
+            onClick={() => window.history.back()}
+            className="flex items-center text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 mb-6 font-medium"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Recall254
+          </button>
+          
+          <div className="flex items-center space-x-4 mb-4">
+            <Shield className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Privacy Policy</h1>
+          </div>
+          
+          <div className="flex flex-wrap gap-3 text-sm">
+            <span className="px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200 rounded-full">
+              Effective: January 20, 2025
+            </span>
+            <span className="px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full">
+              Data Protection Act 2019 Compliant
+            </span>
+            <span className="px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full">
+              Constitution 2010, Article 31
+            </span>
+          </div>
         </div>
       </div>
-      
-      <ModernFooter />
+
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        {/* Introduction */}
+        <div className="mb-8 p-6 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
+          <p className="text-gray-800 dark:text-gray-200 leading-relaxed">
+            Recall254 facilitates the constitutional process of Member of Parliament recall under 
+            <strong> Article 104 of the Constitution of Kenya 2010</strong>. This policy governs 
+            how we collect, use, and protect your personal data in compliance with Kenyan law.
+          </p>
+        </div>
+
+        {/* Collapsible Sections */}
+        <div className="space-y-0">
+          <CollapsibleSection
+            id="legal-framework"
+            title="Legal Framework & Constitutional Basis"
+            icon={Scale}
+            defaultExpanded={true}
+          >
+            <p>
+              Recall254 operates under Kenyan constitutional authority. Our data processing complies with:
+            </p>
+            
+            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mt-4">
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Primary Legal Authorities</h4>
+              <ul className="space-y-2">
+                <li><strong>Constitution of Kenya 2010, Article 104:</strong> Legal basis for recall of MPs</li>
+                <li><strong>Constitution of Kenya 2010, Article 31:</strong> Right to privacy</li>
+                <li><strong>Data Protection Act, 2019:</strong> Governs personal data processing</li>
+                <li><strong>Elections Act, 2011:</strong> Framework for electoral processes</li>
+              </ul>
+            </div>
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            id="data-collection"
+            title="Data Collection & Processing"
+            icon={Database}
+          >
+            <p>
+              We collect personal data necessary to verify voter eligibility for recall processes:
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Personal Information</h4>
+                <ul className="space-y-1 text-sm">
+                  <li>• Full legal name</li>
+                  <li>• National ID/passport number</li>
+                  <li>• Mobile phone number</li>
+                  <li>• Electoral constituency/ward</li>
+                </ul>
+              </div>
+              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Technical Data</h4>
+                <ul className="space-y-1 text-sm">
+                  <li>• IP address</li>
+                  <li>• Device type</li>
+                  <li>• Timestamp of interactions</li>
+                  <li>• Digital signatures</li>
+                </ul>
+              </div>
+            </div>
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            id="data-security"
+            title="Data Security & Protection"
+            icon={Lock}
+          >
+            <p>
+              We implement comprehensive security measures meeting international standards:
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Encryption</h4>
+                <p className="text-sm">AES-256 for data at rest, TLS 1.3 for data in transit</p>
+              </div>
+              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Access Controls</h4>
+                <p className="text-sm">Multi-factor authentication with audit logging</p>
+              </div>
+              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Data Storage</h4>
+                <p className="text-sm">Secure cloud infrastructure with Kenyan data residency</p>
+              </div>
+            </div>
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            id="user-rights"
+            title="Your Rights Under Kenyan Law"
+            icon={Users}
+          >
+            <p>
+              You have specific rights regarding your personal data:
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <div>
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-4">Constitutional Rights</h4>
+                <div className="space-y-3">
+                  <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                    <h5 className="font-medium text-gray-900 dark:text-white">Right to Privacy</h5>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">Protection against unreasonable interference</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-4">Data Protection Rights</h4>
+                <div className="space-y-3">
+                  <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                    <h5 className="font-medium text-gray-900 dark:text-white">Access & Correction</h5>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">Request copies and correction of data</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            id="data-sharing"
+            title="Data Sharing & Disclosure"
+            icon={FileText}
+          >
+            <p>
+              We share personal data only as required by law for recall processes:
+            </p>
+
+            <div className="mt-6 space-y-4">
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                <h4 className="font-semibold text-emerald-900 dark:text-emerald-100 mb-3">Authorized Entities</h4>
+                <ul className="space-y-2 text-emerald-800 dark:text-emerald-200 text-sm">
+                  <li><strong>IEBC:</strong> For petition verification</li>
+                  <li><strong>Office of the AG:</strong> For legal proceedings</li>
+                  <li><strong>DCI:</strong> For investigation of electoral fraud</li>
+                </ul>
+              </div>
+
+              <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                <h4 className="font-semibold text-red-900 dark:text-red-100 mb-3">Prohibited Recipients</h4>
+                <ul className="space-y-1 text-red-800 dark:text-red-200 text-sm">
+                  <li>• Political parties or campaigns</li>
+                  <li>• Commercial marketing companies</li>
+                  <li>• Foreign governments or entities</li>
+                </ul>
+              </div>
+            </div>
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            id="contact-complaints"
+            title="Contact & Complaints"
+            icon={Shield}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Recall254 DPO</h4>
+                <div className="space-y-2 text-gray-700 dark:text-gray-300 text-sm">
+                  <p><strong>Email:</strong> privacy@recall254.co.ke</p>
+                  <p><strong>Phone:</strong> +254-700-732255</p>
+                  <p><strong>Response Time:</strong> Within 30 days</p>
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Data Commissioner</h4>
+                <div className="space-y-2 text-gray-700 dark:text-gray-300 text-sm">
+                  <p><strong>Website:</strong> www.odpc.go.ke</p>
+                  <p><strong>Email:</strong> info@odpc.go.ke</p>
+                  <p><strong>Phone:</strong> +254-20-2628000</p>
+                </div>
+              </div>
+            </div>
+          </CollapsibleSection>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700 text-center">
+          <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+            <p className="font-medium">Recall254 Privacy Policy</p>
+            <p>Last Updated: January 20, 2025 | Version 2.0</p>
+            <p>Governed by Kenyan Law | Disputes subject to Kenyan Courts</p>
+            <p className="italic mt-4 text-emerald-700 dark:text-emerald-400">
+              "Every person has the right to privacy" - Article 31(a), Constitution of Kenya 2010
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
