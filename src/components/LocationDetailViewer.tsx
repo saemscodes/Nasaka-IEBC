@@ -785,6 +785,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
           </CardHeader>
 
           <CardContent className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+            <div classname="flex justify-center">
             {/* Location Hierarchy */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 justify-items-center">
               {location.county && (
@@ -903,6 +904,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
                 </Button>
               )}
             </div>
+            </div>  
           </CardContent>
         </Card>
       </div>
