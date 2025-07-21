@@ -512,6 +512,7 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
             onInitialize={initializeKeys}
             onRecover={handleKeyRecovery}
             keyError={keyError}
+            onSign={() => handleSubmit(true)} // Pass signing handler
           />
         </CardContent>
       </Card>
