@@ -18,7 +18,8 @@ import {
   Key,
   Lock,
   Download,
-  RotateCw
+  RotateCw,
+  RefreshCw
 } from 'lucide-react';
 import { toast } from "sonner";
 import SignatureSuccessModal from './SignatureSuccessModal';
