@@ -4,8 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Key, Smartphone, RefreshCw, CheckCircle, AlertTriangle, Lock } from 'lucide-react';
-import { getKeyInfo, generateKeyPair, clearCryptoData } from '@/utils/cryptoService';
+import { Shield, Key, Smartphone, RefreshCw, CheckCircle, AlertTriangle, Lock, Download, Copy, FileText } from 'lucide-react';
+import { getKeyInfo, generateKeyPair, clearCryptoData, generateKeyBackup, downloadKeyBackup, exportKeyBackupAsMarkdown } from '@/utils/cryptoService';
 import { toast } from 'sonner';
 
 const CryptoStatusCard: React.FC = () => {
@@ -50,6 +50,39 @@ const CryptoStatusCard: React.FC = () => {
     } catch (error) {
       console.error('Clear keys error:', error);
       toast.error('Failed to clear keys');
+    }
+  };
+
+  const handleDownloadBackup = async () => {
+    try {
+      const backupData = await generateKeyBackup();
+      if (!backupData) {
+        toast.error('No keys available for backup');
+        return;
+      }
+      
+      downloadKeyBackup(backupData);
+      toast.success('Key backup downloaded successfully');
+    } catch (error) {
+      console.error('Backup download error:', error);
+      toast.error('Failed to download key backup');
+    }
+  };
+
+  const handleCopyBackup = async () => {
+    try {
+      const backupData = await generateKeyBackup();
+      if (!backupData) {
+        toast.error('No keys available for backup');
+        return;
+      }
+      
+      const markdown = exportKeyBackupAsMarkdown(backupData);
+      await navigator.clipboard.writeText(markdown);
+      toast.success('Key backup copied to clipboard');
+    } catch (error) {
+      console.error('Backup copy error:', error);
+      toast.error('Failed to copy key backup');
     }
   };
 
@@ -137,6 +170,42 @@ const CryptoStatusCard: React.FC = () => {
               </div>
             </div>
 
+            {/* Key Backup Section */}
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <div className="flex items-center space-x-2 mb-3">
+                <FileText className="w-4 h-4 text-blue-600" />
+                <span className="text-sm font-medium">Key Backup & Verification</span>
+              </div>
+              
+              <Alert className="border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-950/20 mb-3">
+                <AlertDescription className="text-blue-800 dark:text-blue-200 text-xs">
+                  <strong>Security Note:</strong> Key backups contain only your PUBLIC key for verification. 
+                  Your private key remains encrypted and secure on your device.
+                </AlertDescription>
+              </Alert>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button
+                  onClick={handleDownloadBackup}
+                  variant="outline"
+                  size="sm"
+                  className="border-blue-200 dark:border-blue-600 text-blue-700 dark:text-blue-300"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Backup
+                </Button>
+                <Button
+                  onClick={handleCopyBackup}
+                  variant="outline"
+                  size="sm"
+                  className="border-blue-200 dark:border-blue-600 text-blue-700 dark:text-blue-300"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy to Clipboard
+                </Button>
+              </div>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 onClick={handleGenerateKeys}
@@ -195,6 +264,10 @@ const CryptoStatusCard: React.FC = () => {
                   <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
                   PBKDF2 key derivation (310,000 iterations)
                 </li>
+                <li className="flex items-center">
+                  <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                  Downloadable key backup for verification
+                </li>
               </ul>
             </div>
 
@@ -221,6 +294,7 @@ const CryptoStatusCard: React.FC = () => {
         <div className="text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700">
           <p>🔒 All cryptographic operations use Web Crypto API</p>
           <p>🛡️ Keys are encrypted and stored locally on your device</p>
+          <p>📁 Public key backups available for verification purposes</p>
           <p>⚖️ Compliant with KICA §83C digital signature standards</p>
         </div>
       </CardContent>
