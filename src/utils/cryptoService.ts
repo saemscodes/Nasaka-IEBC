@@ -1,4 +1,3 @@
-
 import { get, set, del } from 'idb-keyval';
 
 const PRIVATE_KEY_NAME = 'recall254_private_key';
@@ -410,4 +409,118 @@ function base64ToArrayBuffer(base64: string): ArrayBuffer {
     bytes[i] = binaryString.charCodeAt(i);
   }
   return bytes.buffer;
+}
+
+// Key recovery function
+export async function recoverKeys(oldPassphrase: string, newPassphrase: string): Promise<boolean> {
+  try {
+    const keyData = await get(PRIVATE_KEY_NAME) as CryptoKeyData;
+    if (!keyData) throw new Error('NO_KEYS_FOUND');
+    
+    // Unwrap with old passphrase
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(oldPassphrase),
+      'PBKDF2',
+      false,
+      ['deriveKey']
+    );
+    
+    const encryptionKey = await crypto.subtle.deriveKey(
+      {
+        name: 'PBKDF2',
+        salt: keyData.salt,
+        iterations: 310000,
+        hash: 'SHA-256'
+      },
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['unwrapKey']
+    );
+    
+    const privateKey = await crypto.subtle.unwrapKey(
+      'pkcs8',
+      keyData.wrappedKey,
+      encryptionKey,
+      {
+        name: 'AES-GCM',
+        iv: keyData.iv
+      },
+      {
+        name: 'ECDSA',
+        namedCurve: 'P-384'
+      },
+      false,
+      ['sign']
+    );
+    
+    // Re-wrap with new passphrase
+    const newSalt = crypto.getRandomValues(new Uint8Array(16));
+    const newIv = crypto.getRandomValues(new Uint8Array(12));
+    const newKeyMaterial = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(newPassphrase),
+      'PBKDF2',
+      false,
+      ['deriveKey']
+    );
+    
+    const newEncryptionKey = await crypto.subtle.deriveKey(
+      {
+        name: 'PBKDF2',
+        salt: newSalt,
+        iterations: 310000,
+        hash: 'SHA-256'
+      },
+      newKeyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['wrapKey']
+    );
+    
+    const rewrappedKey = await crypto.subtle.wrapKey(
+      'pkcs8',
+      privateKey,
+      newEncryptionKey,
+      { name: 'AES-GCM', iv: newIv }
+    );
+    
+    // Update stored keys
+    const updatedKeyData: CryptoKeyData = {
+      ...keyData,
+      wrappedKey: rewrappedKey,
+      salt: newSalt,
+      iv: newIv
+    };
+    
+    await set(PRIVATE_KEY_NAME, updatedKeyData);
+    console.log('🔑 Keys successfully recovered with new passphrase');
+    return true;
+  } catch (error) {
+    console.error('Key recovery failed:', error);
+    throw new Error('KEY_RECOVERY_FAILED');
+  }
+}
+
+// Browser compatibility check
+export function checkCryptoSupport(): {
+  supported: boolean;
+  reason?: string;
+} {
+  if (!window.crypto || !window.crypto.subtle) {
+    return {
+      supported: false,
+      reason: 'Web Cryptography API not supported'
+    };
+  }
+  
+  if (!window.indexedDB) {
+    return {
+      supported: false,
+      reason: 'IndexedDB not supported'
+    };
+  }
+  
+  return { supported: true };
 }
