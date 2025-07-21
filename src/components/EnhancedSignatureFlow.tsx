@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Shield, 
   User, 
@@ -16,11 +17,14 @@ import {
   AlertCircle,
   Loader2,
   QrCode,
-  FileText
+  FileText,
+  Key,
+  Lock
 } from 'lucide-react';
 import { toast } from "sonner";
 import { SignatureFlowService, SignatureFlowData } from '@/utils/signatureFlowService';
 import SignatureSuccessModal from './SignatureSuccessModal';
+import CryptoStatusCard from './CryptoStatusCard';
 
 interface EnhancedSignatureFlowProps {
   petitionId: string;
@@ -98,19 +102,29 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
 
     setIsProcessing(true);
     try {
-      const result = await SignatureFlowService.processSignature(formData);
+      console.log('🚀 Initiating cryptographic signature process...');
+      
+      const result = await SignatureFlowService.processSignature(formData, petitionTitle);
       
       if (result.success && result.signatureId && result.receiptCode && result.qrCode && result.receiptData) {
+        console.log('✅ Signature process completed successfully');
+        
         setSignatureResult({
           signatureId: result.signatureId,
           receiptCode: result.receiptCode,
           qrCode: result.qrCode,
           receiptData: result.receiptData,
+          blockchainHash: result.blockchainHash,
+          cryptoSignature: result.cryptoSignature,
+          publicKey: result.publicKey,
+          deviceId: result.deviceId,
           voterName: formData.voterName,
           voterEmail: formData.voterEmail,
           petitionTitle
         });
+        
         setShowSuccessModal(true);
+        toast.success('🔐 Petition signed with cryptographic security!');
         onComplete(result.receiptCode);
       } else {
         toast.error(result.error || 'Failed to process signature');
@@ -125,7 +139,7 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
 
   const renderStepIndicator = () => (
     <div className="flex items-center justify-center space-x-4 mb-6">
-      {[1, 2, 3].map((step) => (
+      {[1, 2, 3, 4].map((step) => (
         <div key={step} className="flex items-center">
           <div className={`
             w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
@@ -136,7 +150,7 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
           `}>
             {currentStep > step ? <CheckCircle className="w-4 h-4" /> : step}
           </div>
-          {step < 3 && (
+          {step < 4 && (
             <div className={`w-16 h-1 mx-2 ${
               currentStep > step ? 'bg-green-600' : 'bg-gray-200 dark:bg-gray-700'
             }`} />
@@ -273,7 +287,7 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
             Previous
           </Button>
           <Button onClick={handleNext} className="bg-green-600 hover:bg-green-700">
-            Review & Sign
+            Security Check
           </Button>
         </div>
       </CardContent>
@@ -281,11 +295,36 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
   );
 
   const renderStep3 = () => (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center text-blue-900 dark:text-blue-100">
+            <Key className="w-5 h-5 mr-2" />
+            Cryptographic Security Status
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CryptoStatusCard />
+        </CardContent>
+      </Card>
+
+      <div className="flex items-center justify-between pt-4">
+        <Button variant="outline" onClick={() => setCurrentStep(2)}>
+          Previous
+        </Button>
+        <Button onClick={handleNext} className="bg-green-600 hover:bg-green-700">
+          Review & Sign
+        </Button>
+      </div>
+    </div>
+  );
+
+  const renderStep4 = () => (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center text-green-900 dark:text-green-100">
           <FileText className="w-5 h-5 mr-2" />
-          Review & Confirm Signature
+          Review & Confirm Cryptographic Signature
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -315,6 +354,19 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
           </div>
         </div>
 
+        <Alert className="border-green-200 dark:border-green-700 bg-green-50 dark:bg-green-950/20">
+          <Lock className="h-4 w-4 text-green-600 dark:text-green-400" />
+          <AlertDescription className="text-green-800 dark:text-green-200">
+            <strong>Enhanced Security</strong> - Your signature will be protected with:
+            <ul className="list-disc list-inside mt-2 space-y-1">
+              <li>ECDSA-P384 cryptographic signature</li>
+              <li>Blockchain-level hashing</li>
+              <li>QR code receipt with verification</li>
+              <li>Tamper-proof audit trail</li>
+            </ul>
+          </AlertDescription>
+        </Alert>
+
         <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
           <div className="flex items-start space-x-3">
             <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
@@ -322,14 +374,14 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
               <p className="font-medium text-yellow-900 dark:text-yellow-100">Legal Declaration</p>
               <p className="text-sm text-yellow-800 dark:text-yellow-200 mt-1">
                 By proceeding, you confirm that all information provided is accurate and truthful. 
-                You understand that providing false information is a criminal offense under Kenyan law.
+                Your cryptographic signature will create a legally binding digital record under KICA §83C.
               </p>
             </div>
           </div>
         </div>
 
         <div className="flex items-center justify-between pt-4">
-          <Button variant="outline" onClick={() => setCurrentStep(2)}>
+          <Button variant="outline" onClick={() => setCurrentStep(3)}>
             Previous
           </Button>
           <Button 
@@ -340,12 +392,12 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
             {isProcessing ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Processing...
+                Creating Cryptographic Signature...
               </>
             ) : (
               <>
                 <QrCode className="w-4 h-4 mr-2" />
-                Sign Petition
+                Sign with Cryptography
               </>
             )}
           </Button>
@@ -359,9 +411,15 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
       <div className="space-y-6">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            Digital Petition Signature
+            Enhanced Digital Petition Signature
           </h2>
-          <Progress value={(currentStep / 3) * 100} className="w-full max-w-md mx-auto" />
+          <Progress value={(currentStep / 4) * 100} className="w-full max-w-md mx-auto" />
+          <div className="flex items-center justify-center mt-2 space-x-2">
+            <Shield className="w-4 h-4 text-green-600" />
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              Secured with cryptographic signatures
+            </span>
+          </div>
         </div>
 
         {renderStepIndicator()}
@@ -369,6 +427,7 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
         {currentStep === 1 && renderStep1()}
         {currentStep === 2 && renderStep2()}
         {currentStep === 3 && renderStep3()}
+        {currentStep === 4 && renderStep4()}
       </div>
 
       {signatureResult && (
