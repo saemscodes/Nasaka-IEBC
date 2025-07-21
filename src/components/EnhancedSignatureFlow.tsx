@@ -178,86 +178,80 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (!validateStep(2)) return;
+  if (!validateStep(2)) return;
 
-    setIsProcessing(true);
-    try {
-      console.log('🚀 Starting signature processing with crypto integration');
-      
-      // Check for existing signatures first
-      const { data: existingSignatures, error: existingError } = await supabase
-        .from('signatures')
-        .select('id')
-        .eq('petition_id', petitionId)
-        .eq('voter_id', formData.voterId)
-        .select('*', { head: true, count: 'exact' });
+  setIsProcessing(true);
 
-      if (existingError) throw existingError;
-      if (existingSignatures && existingSignatures.length > 0) {
-        throw new Error('You have already signed this petition');
-      }
+  try {
+    console.log('🚀 Starting signature processing with crypto integration');
+    
+    const { data: existingSignatures, error: existingError } = await supabase
+      .from('signatures')
+      .select('id')
+      .eq('petition_id', petitionId)
+      .eq('voter_id', formData.voterId)
+      .select('*', { head: true, count: 'exact' });
 
-      // Generate cryptographic signature
-      console.log('🔐 Generating cryptographic signature...');
-      const signature = await signPetitionData(
-        { petitionId, petitionTitle },
-        formData
-      );
+    if (existingError) throw existingError;
+    if (existingSignatures && existingSignatures.length > 0) {
+      throw new Error('You have already signed this petition');
+    }
 
-      // Verify locally first
-      const verification = await verifySignatureLocally(signature);
-      if (!verification.isValid) {
-        throw new Error('Local verification failed');
-      }
+    console.log('🔐 Generating cryptographic signature...');
+    const signature = await signPetitionData(
+      { petitionId, petitionTitle },
+      formData
+    );
 
-      // Submit to server
-      const { data: signatureRecord, error } = await supabase
-        .from('signatures')
-        .insert({
-          petition_id: petitionId,
-          voter_id: formData.voterId,
-          voter_name: formData.voterName,
-          constituency: formData.constituency,
-          ward: formData.ward,
-          polling_station: formData.pollingStation,
-          signature_payload: signature.payload,
-          signature_value: signature.signature,
-          public_key: signature.publicKeyJwk,
-          key_version: signature.keyVersion,
-          device_id: signature.deviceId,
-          verification_status: {
-            verified: true,
-            method: 'digital_signature',
-            timestamp: new Date().toISOString()
-          }
-        })
-        .select()
-        .single();
+    const verification = await verifySignatureLocally(signature);
+    if (!verification.isValid) {
+      throw new Error('Local verification failed');
+    }
 
-      if (error) throw error;
+    const { data: signatureRecord, error } = await supabase
+      .from('signatures')
+      .insert({
+        petition_id: petitionId,
+        voter_id: formData.voterId,
+        voter_name: formData.voterName,
+        constituency: formData.constituency,
+        ward: formData.ward,
+        polling_station: formData.pollingStation,
+        signature_payload: signature.payload,
+        signature_value: signature.signature,
+        public_key: signature.publicKeyJwk,
+        key_version: signature.keyVersion,
+        device_id: signature.deviceId,
+        verification_status: {
+          verified: true,
+          method: 'digital_signature',
+          timestamp: new Date().toISOString()
+        }
+      })
+      .select()
+      .single();
 
-      // Generate receipt (pseudocode - implement based on your system)
-      const receiptCode = `RC-${Date.now().toString(36).toUpperCase()}`;
-      
-      setSignatureResult({
-        signatureId: signatureRecord.id,
-        receiptCode,
-        voterName: formData.voterName,
-        voterEmail: formData.voterEmail,
-        petitionTitle,
-        signatureData: signature
-      });
-      
-      setShowSuccessModal(true);
-      toast.success('🔐 Petition signed with cryptographic security!');
-      onComplete(receiptCode);
-    } catch (error) {
-      console.error('Signature submission error:', error);
+    if (error) throw error;
 
-      
-      }
-      
-      if (error.message === 'KEY_DERIVATION_FAILED') {
+    const receiptCode = `RC-${Date.now().toString(36).toUpperCase()}`;
+
+    setSignatureResult({
+      signatureId: signatureRecord.id,
+      receiptCode,
+      voterName: formData.voterName,
+      voterEmail: formData.voterEmail,
+      petitionTitle,
+      signatureData: signature
+    });
+
+    setShowSuccessModal(true);
+    toast.success('🔐 Petition signed with cryptographic security!');
+    onComplete(receiptCode);
+
+  } catch (error: any) {
+    console.error('Signature submission error:', error);
+
+    if (error.message === 'KEY_DERIVATION_FAILED') {
       toast.error(
         <div className="max-w-md">
           <p className="font-medium">Security Key Mismatch</p>
@@ -282,18 +276,17 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
           </div>
         </div>
       );
-      } 
-      else if (error.message === 'USER_CANCELLED_PASSPHRASE') {
-        toast.info('Signing cancelled - passphrase required');
-        return;
-        
-      } else {
-        toast.error(`Signature failed: ${error.message}`);
-      }
-    } finally {
-      setIsProcessing(false);
+    } else if (error.message === 'USER_CANCELLED_PASSPHRASE') {
+      toast.info('Signing cancelled - passphrase required');
+    } else {
+      toast.error(`Signature failed: ${error.message}`);
     }
-  };
+
+  } finally {
+    setIsProcessing(false);
+  }
+};
+
 
   const securePrompt = (message: string): Promise<string> => {
     return new Promise((resolve) => {
