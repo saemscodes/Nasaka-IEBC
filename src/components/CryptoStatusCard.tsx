@@ -45,6 +45,17 @@ const CryptoStatusCard: React.FC<{ onSign?: () => void }> = ({ onSign }) => {
   const [keyError, setKeyError] = useState('');
 
   useEffect(() => {
+  const checkKeys = async () => {
+    const valid = await validateKeyConsistency();
+    if (!valid) {
+      setKeyError('KEY_STORAGE_MISMATCH');
+      toast.warning('Security keys need regeneration');
+    }
+  };
+  checkKeys();
+}, []);
+
+  useEffect(() => {
     checkKeyStatus();
   }, []);
 
