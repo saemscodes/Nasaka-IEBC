@@ -45,6 +45,13 @@ export async function generateKeyPair(userPassphrase?: string): Promise<JsonWebK
   try {
     // Generate or retrieve device ID
     let deviceId = await get(DEVICE_ID);
+    
+    // Add to generateKeyPair()
+    if (await get(DEVICE_ID) {
+      await del(PRIVATE_KEY_NAME);
+      await del(PUBLIC_KEY_NAME);
+    }
+
     if (!deviceId) {
       deviceId = crypto.randomUUID();
       await set(DEVICE_ID, deviceId);
