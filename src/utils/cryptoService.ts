@@ -116,7 +116,7 @@ export async function generateKeyPair(userPassphrase?: string): Promise<JsonWebK
       iv,
       version: keyVersion,
       deviceId,
-      created: userPassphrase ? "user-passphrase" : keyVersion // Add flag
+      created: userPassphrase ? "user-passphrase" : "device-based" // Ensure consistent type
     };
 
     await set(PRIVATE_KEY_NAME, cryptoKeyData);
