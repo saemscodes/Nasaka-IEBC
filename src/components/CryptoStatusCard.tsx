@@ -1,17 +1,48 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Key, Smartphone, RefreshCw, CheckCircle, AlertTriangle, Lock, Download, Copy, FileText } from 'lucide-react';
-import { getKeyInfo, generateKeyPair, clearCryptoData, generateKeyBackup, downloadKeyBackup, exportKeyBackupAsMarkdown } from '@/utils/cryptoService';
+import { 
+  Shield, 
+  Key, 
+  Smartphone, 
+  RefreshCw, 
+  CheckCircle, 
+  AlertTriangle, 
+  Lock, 
+  Download, 
+  Copy, 
+  FileText,
+  RotateCw,
+  AlertCircle
+} from 'lucide-react';
+import { 
+  getKeyInfo, 
+  generateKeyPair, 
+  clearCryptoData, 
+  generateKeyBackup, 
+  downloadKeyBackup, 
+  exportKeyBackupAsMarkdown,
+  recoverKeys
+} from '@/utils/cryptoService';
 import { toast } from 'sonner';
 
+// Define proper types for key info
+interface KeyInfo {
+  hasKeys: boolean;
+  deviceId?: string;
+  keyVersion?: string;
+  publicKey?: JsonWebKey;
+  created?: string;
+}
+
 const CryptoStatusCard: React.FC = () => {
-  const [keyInfo, setKeyInfo] = useState<any>(null);
+  const [keyInfo, setKeyInfo] = useState<KeyInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [recovering, setRecovering] = useState(false);
+  const [keyError, setKeyError] = useState('');
 
   useEffect(() => {
     checkKeyStatus();
@@ -21,8 +52,11 @@ const CryptoStatusCard: React.FC = () => {
     try {
       const info = await getKeyInfo();
       setKeyInfo(info);
+      setKeyError('');
     } catch (error) {
       console.error('Error checking key status:', error);
+      setKeyError('KEY_CHECK_FAILED');
+      toast.error('Failed to check key status');
     } finally {
       setLoading(false);
     }
@@ -36,9 +70,30 @@ const CryptoStatusCard: React.FC = () => {
       toast.success('Cryptographic keys generated successfully!');
     } catch (error) {
       console.error('Key generation error:', error);
+      setKeyError('KEY_GENERATION_FAILED');
       toast.error('Failed to generate keys. Please try again.');
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleRecoverKeys = async () => {
+    setRecovering(true);
+    try {
+      const oldPassphrase = await securePrompt('Enter your old passphrase');
+      const newPassphrase = await securePrompt('Enter a new security passphrase');
+      
+      const success = await recoverKeys(oldPassphrase, newPassphrase);
+      if (success) {
+        await checkKeyStatus();
+        toast.success('Keys successfully recovered!');
+      }
+    } catch (error) {
+      console.error('Key recovery failed:', error);
+      setKeyError('KEY_RECOVERY_FAILED');
+      toast.error('Key recovery failed. Please try again.');
+    } finally {
+      setRecovering(false);
     }
   };
 
@@ -49,6 +104,7 @@ const CryptoStatusCard: React.FC = () => {
       toast.success('All cryptographic data cleared');
     } catch (error) {
       console.error('Clear keys error:', error);
+      setKeyError('CLEAR_KEYS_FAILED');
       toast.error('Failed to clear keys');
     }
   };
@@ -65,6 +121,7 @@ const CryptoStatusCard: React.FC = () => {
       toast.success('Key backup downloaded successfully');
     } catch (error) {
       console.error('Backup download error:', error);
+      setKeyError('BACKUP_FAILED');
       toast.error('Failed to download key backup');
     }
   };
@@ -82,18 +139,72 @@ const CryptoStatusCard: React.FC = () => {
       toast.success('Key backup copied to clipboard');
     } catch (error) {
       console.error('Backup copy error:', error);
+      setKeyError('COPY_FAILED');
       toast.error('Failed to copy key backup');
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-KE', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+  const securePrompt = (message: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5); z-index: 10000; display: flex;
+        align-items: center; justify-content: center;
+      `;
+      
+      const container = document.createElement('div');
+      container.style.cssText = `
+        background: white; padding: 20px; border-radius: 8px;
+        width: 300px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      `;
+      
+      const label = document.createElement('p');
+      label.textContent = message;
+      label.style.marginBottom = '10px';
+      label.style.fontWeight = '500';
+      
+      const input = document.createElement('input');
+      input.type = 'password';
+      input.style.cssText = `
+        width: 100%; padding: 10px; margin-bottom: 15px;
+        border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
+      `;
+      
+      const button = document.createElement('button');
+      button.textContent = 'Submit';
+      button.style.cssText = `
+        padding: 8px 15px; background: #15803d; color: white;
+        border: none; border-radius: 4px; cursor: pointer; font-weight: 500;
+      `;
+      
+      button.addEventListener('click', () => {
+        document.body.removeChild(modal);
+        resolve(input.value);
+      });
+      
+      container.appendChild(label);
+      container.appendChild(input);
+      container.appendChild(button);
+      modal.appendChild(container);
+      document.body.appendChild(modal);
+      input.focus();
     });
+  };
+
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return 'Unknown';
+    try {
+      return new Date(dateString).toLocaleDateString('en-KE', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return 'Invalid date';
+    }
   };
 
   if (loading) {
@@ -118,6 +229,15 @@ const CryptoStatusCard: React.FC = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {keyError && (
+          <Alert className="border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-950/20">
+            <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+            <AlertDescription className="text-red-800 dark:text-red-200">
+              <strong>Security Error:</strong> Operation failed ({keyError})
+            </AlertDescription>
+          </Alert>
+        )}
+
         {keyInfo?.hasKeys ? (
           <>
             <Alert className="border-green-200 dark:border-green-700 bg-green-50 dark:bg-green-950/20">
@@ -163,7 +283,7 @@ const CryptoStatusCard: React.FC = () => {
                     <span className="text-gray-600 dark:text-gray-400">Storage:</span>
                     <Badge variant="secondary" className="ml-1 text-xs">
                       <Lock className="w-3 h-3 mr-1" />
-                      Encrypted
+                      AES-256-GCM Encrypted
                     </Badge>
                   </div>
                 </div>
@@ -180,7 +300,7 @@ const CryptoStatusCard: React.FC = () => {
               <Alert className="border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-950/20 mb-3">
                 <AlertDescription className="text-blue-800 dark:text-blue-200 text-xs">
                   <strong>Security Note:</strong> Key backups contain only your PUBLIC key for verification. 
-                  Your private key remains encrypted and secure on your device.
+                  Your private key remains encrypted with PBKDF2 (310,000 iterations) and secure on your device.
                 </AlertDescription>
               </Alert>
 
@@ -209,7 +329,7 @@ const CryptoStatusCard: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 onClick={handleGenerateKeys}
-                disabled={generating}
+                disabled={generating || recovering}
                 variant="outline"
                 size="sm"
                 className="border-blue-200 dark:border-blue-600 text-blue-700 dark:text-blue-300"
@@ -223,6 +343,25 @@ const CryptoStatusCard: React.FC = () => {
                   <>
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Regenerate Keys
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={handleRecoverKeys}
+                disabled={recovering || generating}
+                variant="outline"
+                size="sm"
+                className="border-purple-200 dark:border-purple-600 text-purple-700 dark:text-purple-300"
+              >
+                {recovering ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Recovering...
+                  </>
+                ) : (
+                  <>
+                    <RotateCw className="w-4 h-4 mr-2" />
+                    Recover Keys
                   </>
                 )}
               </Button>
@@ -271,29 +410,49 @@ const CryptoStatusCard: React.FC = () => {
               </ul>
             </div>
 
-            <Button
-              onClick={handleGenerateKeys}
-              disabled={generating}
-              className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
-            >
-              {generating ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Generating Cryptographic Keys...
-                </>
-              ) : (
-                <>
-                  <Key className="w-4 h-4 mr-2" />
-                  Generate Cryptographic Keys
-                </>
-              )}
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button
+                onClick={handleGenerateKeys}
+                disabled={generating || recovering}
+                className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
+              >
+                {generating ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Generating Cryptographic Keys...
+                  </>
+                ) : (
+                  <>
+                    <Key className="w-4 h-4 mr-2" />
+                    Generate Cryptographic Keys
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={handleRecoverKeys}
+                disabled={recovering || generating}
+                variant="outline"
+                className="w-full border-purple-200 dark:border-purple-600 text-purple-700 dark:text-purple-300"
+              >
+                {recovering ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Recovering Keys...
+                  </>
+                ) : (
+                  <>
+                    <RotateCw className="w-4 h-4 mr-2" />
+                    Recover Existing Keys
+                  </>
+                )}
+              </Button>
+            </div>
           </>
         )}
 
         <div className="text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700">
-          <p>🔒 All cryptographic operations use Web Crypto API</p>
-          <p>🛡️ Keys are encrypted and stored locally on your device</p>
+          <p>🔐 All cryptographic operations use Web Crypto API</p>
+          <p>🛡️ Keys are encrypted with PBKDF2 and stored in IndexedDB</p>
           <p>📁 Public key backups available for verification purposes</p>
           <p>⚖️ Compliant with KICA §83C digital signature standards</p>
         </div>
