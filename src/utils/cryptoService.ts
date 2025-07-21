@@ -45,12 +45,6 @@ export async function generateKeyPair(userPassphrase?: string): Promise<JsonWebK
   try {
     // Generate or retrieve device ID
     let deviceId = await get(DEVICE_ID);
-    
-    // Add to generateKeyPair()
-    if (await get(DEVICE_ID)) {
-      await del(PRIVATE_KEY_NAME);
-      await del(PUBLIC_KEY_NAME);
-    }
 
     if (!deviceId) {
       deviceId = crypto.randomUUID();
@@ -160,7 +154,7 @@ export async function signPetitionData(
     }
 
     // Detect if passphrase is required
-    const requiresPassphrase = created === "user-passphrase";
+    const requiresPassphrase = keyData.created === "user-passphrase";
     const passphraseData = requiresPassphrase
       ? await securePrompt('Enter your security passphrase to sign')
       : `${storedDeviceId}-${version}`;
@@ -499,6 +493,10 @@ function base64ToArrayBuffer(base64: string): ArrayBuffer {
 // Key recovery function
 export async function recoverKeys(oldPassphrase: string, newPassphrase: string): Promise<boolean> {
   try {
+     if (newPassphrase.length < 8) {
+      throw new Error('PASSPHRASE_TOO_SHORT');
+    }
+
     const keyData = await get(PRIVATE_KEY_NAME) as CryptoKeyData;
     if (!keyData) throw new Error('NO_KEYS_FOUND');
     
@@ -584,7 +582,7 @@ export async function recoverKeys(oldPassphrase: string, newPassphrase: string):
     return true;
   } catch (error) {
     console.error('Key recovery failed:', error);
-    throw new Error('KEY_RECOVERY_FAILED');
+    throw error;
   }
 }
 
