@@ -210,7 +210,7 @@ const CryptoStatusCard: React.FC<{ onSign?: () => void }> = ({ onSign }) => {
       document.body.appendChild(modal);
       input.focus();
     });
-  };
+  });
 
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'Unknown';
