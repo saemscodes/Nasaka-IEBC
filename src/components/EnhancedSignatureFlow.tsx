@@ -315,7 +315,15 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
         width: 100%; padding: 10px; margin-bottom: 15px;
         border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
       `;
+
+      const timeout = setTimeout(() => {
+        document.body.removeChild(modal);
+        reject(new Error('PROMPT_TIMEOUT'));
+      }, 120000); // 2-minute timeout
       
+      button.addEventListener('click', () => {
+        clearTimeout(timeout);
+        
       const button = document.createElement('button');
       button.textContent = 'Submit';
       button.style.cssText = `
