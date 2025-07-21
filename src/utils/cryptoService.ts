@@ -229,7 +229,7 @@ export async function signPetitionData(
   }
 }
 
-export async function securePrompt = (message: string): Promise<string> => {
+export async function securePrompt(message: string): Promise<string> {
     return new Promise((resolve) => {
       const modal = document.createElement('div');
       modal.style.cssText = `
