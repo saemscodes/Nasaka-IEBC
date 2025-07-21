@@ -24,7 +24,8 @@ import {
   generateKeyBackup, 
   downloadKeyBackup, 
   exportKeyBackupAsMarkdown,
-  recoverKeys
+  recoverKeys,
+  validateKeyConsistency
 } from '@/utils/cryptoService';
 import { toast } from 'sonner';
 
