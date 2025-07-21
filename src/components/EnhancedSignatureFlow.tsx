@@ -253,6 +253,9 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
       onComplete(receiptCode);
     } catch (error) {
       console.error('Signature submission error:', error);
+
+      
+      }
       
       if (error.message === 'KEY_DERIVATION_FAILED') {
       toast.error(
@@ -279,6 +282,11 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
           </div>
         </div>
       );
+      } 
+      else if (error.message === 'USER_CANCELLED_PASSPHRASE') {
+        toast.info('Signing cancelled - passphrase required');
+        return;
+        
       } else {
         toast.error(`Signature failed: ${error.message}`);
       }
