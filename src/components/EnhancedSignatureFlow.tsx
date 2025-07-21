@@ -30,7 +30,8 @@ import {
   recoverKeys,
   checkCryptoSupport,
   generateKeyBackup,
-  downloadKeyBackup
+  downloadKeyBackup,
+  validateKeyConsistency
 } from '@/utils/cryptoService';
 import { supabase } from "@/integrations/supabase/client";
 
