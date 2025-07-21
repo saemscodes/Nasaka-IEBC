@@ -159,10 +159,15 @@ export async function signPetitionData(
       return signPetitionData(petitionData, voterData, context);
     }
 
-    // Recreate encryption key
-    const passphraseData = useUserPassphrase 
+    // Detect if passphrase is required
+    const requiresPassphrase = created === "user-passphrase";
+    const passphraseData = requiresPassphrase
       ? await securePrompt('Enter your security passphrase to sign')
-      : `${storedDeviceId}-${version}`;  // Use stored ID
+      : `${storedDeviceId}-${version}`;
+
+    if (requiresPassphrase && !passphraseData) {
+      throw new Error('PASSPHRASE_REQUIRED_CANCELLED');
+    }
 
     const keyMaterial = await crypto.subtle.importKey(
       'raw',
@@ -240,7 +245,10 @@ export async function signPetitionData(
       timestamp
     };
   } catch (error) {
-    console.error('Signing error:', error);
+    // Update error handling
+    if (error.message === 'PASSPHRASE_REQUIRED_CANCELLED') {
+      throw new Error('USER_CANCELLED_PASSPHRASE');
+    }
     if (error.name === 'OperationError') {
       throw new Error('KEY_DERIVATION_FAILED');
     }
