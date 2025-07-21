@@ -302,6 +302,12 @@ export async function validateKeyConsistency(): Promise<boolean> {
   if (!keyData) return false;
   
   const storedDeviceId = await get(DEVICE_ID);
+  // Handle case where device ID hasn't been stored separately
+  if (!storedDeviceId) {
+    await set(DEVICE_ID, keyData.deviceId);
+    return true;
+  }
+  
   return keyData.deviceId === storedDeviceId;
 }
 
