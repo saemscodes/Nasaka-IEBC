@@ -133,7 +133,6 @@ export async function signPetitionData(
   try {
     // Check if keys exist
     const keyData = await get(PRIVATE_KEY_NAME) as CryptoKeyData;
-    const useUserPassphrase = keyData.created !== keyData.version; // If created != version, user passphrase was used
     const publicKeyJwk = await get(PUBLIC_KEY_NAME);
     
     if (!keyData || !publicKeyJwk) {
@@ -143,11 +142,21 @@ export async function signPetitionData(
     }
 
     const { wrappedKey, salt, iv, version, deviceId } = keyData as CryptoKeyData;
+    const storedDeviceId = await get(DEVICE_ID) || deviceId; // Critical fix
+
+    // Handle device ID mismatch
+    if (deviceId !== storedDeviceId) {
+      console.warn('Device ID mismatch detected. Regenerating keys...');
+      await clearCryptoData();
+      await generateKeyPair();
+      return signPetitionData(petitionData, voterData, context);
+    }
 
     // Recreate encryption key
     const passphraseData = useUserPassphrase 
       ? await securePrompt('Enter your security passphrase to sign')
-      : `${deviceId}-${version}`;
+      : `${storedDeviceId}-${version}`;  // Use stored ID
+
     const keyMaterial = await crypto.subtle.importKey(
       'raw',
       new TextEncoder().encode(passphraseData),
@@ -225,10 +234,12 @@ export async function signPetitionData(
     };
   } catch (error) {
     console.error('Signing error:', error);
+    if (error.name === 'OperationError') {
+      throw new Error('KEY_DERIVATION_FAILED');
+    }
     throw new Error('CRYPTOGRAPHIC_SIGNING_FAILED');
   }
 }
-
 export async function securePrompt(message: string): Promise<string> {
     return new Promise((resolve) => {
       const modal = document.createElement('div');
