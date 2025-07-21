@@ -288,61 +288,122 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
 };
 
 
-  const securePrompt = (message: string): Promise<string> => {
-    return new Promise((resolve) => {
-      const modal = document.createElement('div');
-      modal.style.cssText = `
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5); z-index: 10000; display: flex;
-        align-items: center; justify-content: center;
-      `;
-      
-      const container = document.createElement('div');
-      container.style.cssText = `
-        background: white; padding: 20px; border-radius: 8px;
-        width: 300px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      `;
-      
-      const label = document.createElement('p');
-      label.textContent = message;
-      label.style.marginBottom = '10px';
-      label.style.fontWeight = '500';
-      
-      const input = document.createElement('input');
-      input.type = 'password';
-      input.style.cssText = `
-        width: 100%; padding: 10px; margin-bottom: 15px;
-        border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
-      `;
+const securePrompt = (message: string): Promise<string> => {
+  return new Promise((resolve, reject) => { // Added reject parameter
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 10000; display: flex;
+      align-items: center; justify-content: center;
+    `;
+    
+    const container = document.createElement('div');
+    container.style.cssText = `
+      background: white; padding: 20px; border-radius: 8px;
+      width: 300px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    `;
+    
+    const label = document.createElement('p');
+    label.textContent = message;
+    label.style.marginBottom = '10px';
+    label.style.fontWeight = '500';
+    
+    const input = document.createElement('input');
+    input.type = 'password';
+    input.style.cssText = `
+      width: 100%; padding: 10px; margin-bottom: 15px;
+      border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
+    `;
 
-      const timeout = setTimeout(() => {
+    // Create button BEFORE using it
+    const button = document.createElement('button');
+    button.textContent = 'Submit';
+    button.style.cssText = `
+      padding: 8px 15px; background: #15803d; color: white;
+      border: none; border-radius: 4px; cursor: pointer; font-weight: 500;
+    `;
+
+    // Create cancel button for better UX
+    const cancelButton = document.createElement('button');
+    cancelButton.textContent = 'Cancel';
+    cancelButton.style.cssText = `
+      padding: 8px 15px; background: #dc2626; color: white;
+      border: none; border-radius: 4px; cursor: pointer; font-weight: 500;
+      margin-left: 10px;
+    `;
+
+    // Setup timeout
+    const timeout = setTimeout(() => {
+      if (document.body.contains(modal)) {
         document.body.removeChild(modal);
         reject(new Error('PROMPT_TIMEOUT'));
-      }, 120000); // 2-minute timeout
-      
-      button.addEventListener('click', () => {
-        clearTimeout(timeout);
-        
-      const button = document.createElement('button');
-      button.textContent = 'Submit';
-      button.style.cssText = `
-        padding: 8px 15px; background: #15803d; color: white;
-        border: none; border-radius: 4px; cursor: pointer; font-weight: 500;
-      `;
-      
-      button.addEventListener('click', () => {
+      }
+    }, 120000); // 2-minute timeout
+    
+    // Helper function to cleanup and resolve/reject
+    const cleanup = () => {
+      clearTimeout(timeout);
+      if (document.body.contains(modal)) {
         document.body.removeChild(modal);
-        resolve(input.value);
-      });
-      
-      container.appendChild(label);
-      container.appendChild(input);
-      container.appendChild(button);
-      modal.appendChild(container);
-      document.body.appendChild(modal);
-      input.focus();
+      }
+    };
+
+    // Submit button handler
+    button.addEventListener('click', () => {
+      const value = input.value.trim();
+      if (value.length === 0) {
+        input.style.borderColor = '#dc2626';
+        input.focus();
+        return;
+      }
+      cleanup();
+      resolve(value);
     });
-  };
+
+    // Cancel button handler
+    cancelButton.addEventListener('click', () => {
+      cleanup();
+      reject(new Error('USER_CANCELLED_PASSPHRASE'));
+    });
+
+    // Enter key handler
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        button.click();
+      } else if (e.key === 'Escape') {
+        cancelButton.click();
+      }
+    });
+
+    // Reset border color when typing
+    input.addEventListener('input', () => {
+      input.style.borderColor = '#ccc';
+    });
+
+    // Create button container for better layout
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = 'display: flex; justify-content: center; gap: 10px;';
+    buttonContainer.appendChild(button);
+    buttonContainer.appendChild(cancelButton);
+    
+    // Assemble the modal
+    container.appendChild(label);
+    container.appendChild(input);
+    container.appendChild(buttonContainer);
+    modal.appendChild(container);
+    document.body.appendChild(modal);
+    
+    // Focus the input
+    input.focus();
+
+    // Close on outside click (optional)
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        cancelButton.click();
+      }
+    });
+  });
+};
 
   const renderStepIndicator = () => (
     <div className="flex items-center justify-center space-x-4 mb-6">
