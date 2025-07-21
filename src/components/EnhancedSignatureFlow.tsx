@@ -289,7 +289,7 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
 
 
 const securePrompt = (message: string): Promise<string> => {
-  return new Promise((resolve, reject) => { // Added reject parameter
+  return new Promise((resolve, reject) => {
     const modal = document.createElement('div');
     modal.style.cssText = `
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -315,7 +315,6 @@ const securePrompt = (message: string): Promise<string> => {
       border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
     `;
 
-    // Create button BEFORE using it
     const button = document.createElement('button');
     button.textContent = 'Submit';
     button.style.cssText = `
@@ -323,85 +322,39 @@ const securePrompt = (message: string): Promise<string> => {
       border: none; border-radius: 4px; cursor: pointer; font-weight: 500;
     `;
 
-    // Create cancel button for better UX
-    const cancelButton = document.createElement('button');
-    cancelButton.textContent = 'Cancel';
-    cancelButton.style.cssText = `
-      padding: 8px 15px; background: #dc2626; color: white;
-      border: none; border-radius: 4px; cursor: pointer; font-weight: 500;
-      margin-left: 10px;
-    `;
-
-    // Setup timeout
     const timeout = setTimeout(() => {
-      if (document.body.contains(modal)) {
-        document.body.removeChild(modal);
-        reject(new Error('PROMPT_TIMEOUT'));
-      }
+      document.body.removeChild(modal);
+      reject(new Error('PROMPT_TIMEOUT'));
     }, 120000); // 2-minute timeout
-    
-    // Helper function to cleanup and resolve/reject
+
     const cleanup = () => {
       clearTimeout(timeout);
-      if (document.body.contains(modal)) {
-        document.body.removeChild(modal);
-      }
+      document.body.removeChild(modal);
     };
 
-    // Submit button handler
     button.addEventListener('click', () => {
-      const value = input.value.trim();
-      if (value.length === 0) {
-        input.style.borderColor = '#dc2626';
-        input.focus();
-        return;
+      if (input.value.trim()) {
+        cleanup();
+        resolve(input.value);
       }
-      cleanup();
-      resolve(value);
     });
 
-    // Cancel button handler
-    cancelButton.addEventListener('click', () => {
-      cleanup();
-      reject(new Error('USER_CANCELLED_PASSPHRASE'));
-    });
-
-    // Enter key handler
-    input.addEventListener('keydown', (e) => {
+    // Handle Enter key press
+    input.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
-        button.click();
-      } else if (e.key === 'Escape') {
-        cancelButton.click();
+        if (input.value.trim()) {
+          cleanup();
+          resolve(input.value);
+        }
       }
     });
 
-    // Reset border color when typing
-    input.addEventListener('input', () => {
-      input.style.borderColor = '#ccc';
-    });
-
-    // Create button container for better layout
-    const buttonContainer = document.createElement('div');
-    buttonContainer.style.cssText = 'display: flex; justify-content: center; gap: 10px;';
-    buttonContainer.appendChild(button);
-    buttonContainer.appendChild(cancelButton);
-    
-    // Assemble the modal
     container.appendChild(label);
     container.appendChild(input);
-    container.appendChild(buttonContainer);
+    container.appendChild(button);
     modal.appendChild(container);
     document.body.appendChild(modal);
-    
-    // Focus the input
     input.focus();
-
-    // Close on outside click (optional)
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        cancelButton.click();
-      }
-    });
   });
 };
 
