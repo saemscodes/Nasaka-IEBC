@@ -254,36 +254,31 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
     } catch (error) {
       console.error('Signature submission error:', error);
       
-      if (error.message === 'CRYPTOGRAPHIC_SIGNING_FAILED') {
-        setKeyError('CRYPTO_SIGN_FAIL');
-        toast.error(
-          <div className="max-w-md">
-            <p className="font-medium">Cryptographic signing failed</p>
-            <p className="text-sm mt-1">Possible causes:</p>
-            <ul className="list-disc pl-5 mt-1 space-y-1">
-              <li>Browser security restrictions</li>
-              <li>Corrupted security keys</li>
-              <li>Passphrase mismatch</li>
-            </ul>
-            <div className="mt-3 flex space-x-2">
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => window.location.reload()}
-              >
-                <RotateCw className="mr-2 h-4 w-4" />
-                Refresh
-              </Button>
-              <Button 
-                size="sm"
-                onClick={handleKeyRecovery}
-              >
-                <Key className="mr-2 h-4 w-4" />
-                Recover Keys
-              </Button>
-            </div>
+      if (error.message === 'KEY_DERIVATION_FAILED') {
+      toast.error(
+        <div className="max-w-md">
+          <p className="font-medium">Security Key Mismatch</p>
+          <p className="text-sm mt-1">This usually happens when:</p>
+          <ul className="list-disc pl-5 mt-1 space-y-1">
+            <li>Browser storage was partially cleared</li>
+            <li>You're using a different security context</li>
+            <li>Device identification changed</li>
+          </ul>
+          <div className="mt-3 flex space-x-2">
+            <Button 
+              size="sm"
+              onClick={async () => {
+                await clearCryptoData();
+                await generateKeyPair();
+                handleSubmit();
+              }}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Reset Keys & Retry
+            </Button>
           </div>
-        );
+        </div>
+      );
       } else {
         toast.error(`Signature failed: ${error.message}`);
       }
