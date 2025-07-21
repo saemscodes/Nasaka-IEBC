@@ -37,7 +37,7 @@ interface KeyInfo {
   created?: string;
 }
 
-const CryptoStatusCard: React.FC = () => {
+const CryptoStatusCard: React.FC<{ onSign?: () => void }> = ({ onSign }) => {
   const [keyInfo, setKeyInfo] = useState<KeyInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -373,7 +373,17 @@ const CryptoStatusCard: React.FC = () => {
               >
                 Clear Keys
               </Button>
-            </div>
+              </div>
+
+              {onSign && (
+            <Button
+              onClick={onSign}
+              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+              Test Signing Function
+            </Button>
+          )}
+            
           </>
         ) : (
           <>
