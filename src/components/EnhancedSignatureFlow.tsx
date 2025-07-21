@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,25 +10,45 @@ import {
   Shield, 
   User, 
   MapPin, 
-  Phone, 
-  Mail, 
   CheckCircle, 
   AlertCircle,
   Loader2,
   QrCode,
   FileText,
   Key,
-  Lock
+  Lock,
+  Download,
+  RotateCw
 } from 'lucide-react';
 import { toast } from "sonner";
-import { SignatureFlowService, SignatureFlowData } from '@/utils/signatureFlowService';
 import SignatureSuccessModal from './SignatureSuccessModal';
 import CryptoStatusCard from './CryptoStatusCard';
+import { 
+  generateKeyPair, 
+  signPetitionData, 
+  getKeyInfo, 
+  recoverKeys,
+  checkCryptoSupport,
+  generateKeyBackup,
+  downloadKeyBackup
+} from '@/utils/cryptoService';
+import { supabase } from "@/integrations/supabase/client";
 
 interface EnhancedSignatureFlowProps {
   petitionId: string;
   petitionTitle: string;
   onComplete: (receiptCode: string) => void;
+}
+
+interface SignatureFlowData {
+  petitionId: string;
+  voterName: string;
+  voterPhone: string;
+  voterId: string;
+  constituency: string;
+  ward: string;
+  pollingStation: string;
+  voterEmail: string;
 }
 
 const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
@@ -41,6 +60,9 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [signatureResult, setSignatureResult] = useState<any>(null);
+  const [keysReady, setKeysReady] = useState(false);
+  const [cryptoSupported, setCryptoSupported] = useState(true);
+  const [keyError, setKeyError] = useState('');
   
   const [formData, setFormData] = useState<SignatureFlowData>({
     petitionId,
@@ -54,6 +76,29 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
   });
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    // Check crypto support on mount
+    const support = checkCryptoSupport();
+    setCryptoSupported(support.supported);
+    
+    if (!support.supported) {
+      toast.error(`Security features unavailable: ${support.reason}`);
+      return;
+    }
+    
+    // Check if keys exist
+    const checkKeys = async () => {
+      try {
+        const { hasKeys } = await getKeyInfo();
+        setKeysReady(hasKeys);
+      } catch (error) {
+        console.error('Key check error:', error);
+      }
+    };
+    
+    checkKeys();
+  }, []);
 
   const validateStep = (step: number): boolean => {
     const errors: Record<string, string> = {};
@@ -97,44 +142,202 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
     }
   };
 
+  const initializeKeys = async () => {
+    try {
+      const passphrase = await securePrompt('Create a security passphrase');
+      const confirmPassphrase = await securePrompt('Confirm your passphrase');
+      
+      if (passphrase !== confirmPassphrase) {
+        toast.error('Passphrases do not match');
+        return;
+      }
+      
+      await generateKeyPair(passphrase);
+      setKeysReady(true);
+      toast.success('Security keys successfully created');
+    } catch (error) {
+      console.error('Key initialization failed:', error);
+      toast.error('Failed to initialize security keys');
+    }
+  };
+
+  const handleKeyRecovery = async () => {
+    try {
+      const oldPassphrase = await securePrompt('Enter your old passphrase');
+      const newPassphrase = await securePrompt('Enter a new security passphrase');
+      
+      const success = await recoverKeys(oldPassphrase, newPassphrase);
+      if (success) {
+        setKeysReady(true);
+        toast.success('Keys successfully recovered!');
+      }
+    } catch (error) {
+      console.error('Key recovery failed:', error);
+      toast.error('Key recovery failed. Please try again.');
+    }
+  };
+
   const handleSubmit = async () => {
     if (!validateStep(2)) return;
 
     setIsProcessing(true);
     try {
-      console.log('🚀 Initiating cryptographic signature process...');
+      console.log('🚀 Starting signature processing with crypto integration');
       
-      const result = await SignatureFlowService.processSignature(formData, petitionTitle);
-      
-      if (result.success && result.signatureId && result.receiptCode && result.qrCode && result.receiptData) {
-        console.log('✅ Signature process completed successfully');
-        
-        setSignatureResult({
-          signatureId: result.signatureId,
-          receiptCode: result.receiptCode,
-          qrCode: result.qrCode,
-          receiptData: result.receiptData,
-          blockchainHash: result.blockchainHash,
-          cryptoSignature: result.cryptoSignature,
-          publicKey: result.publicKey,
-          deviceId: result.deviceId,
-          voterName: formData.voterName,
-          voterEmail: formData.voterEmail,
-          petitionTitle
-        });
-        
-        setShowSuccessModal(true);
-        toast.success('🔐 Petition signed with cryptographic security!');
-        onComplete(result.receiptCode);
-      } else {
-        toast.error(result.error || 'Failed to process signature');
+      // Check for existing signatures first
+      const { data: existingSignatures, error: existingError } = await supabase
+        .from('signatures')
+        .select('id')
+        .eq('petition_id', petitionId)
+        .eq('voter_id', formData.voterId)
+        .select('*', { head: true, count: 'exact' });
+
+      if (existingError) throw existingError;
+      if (existingSignatures && existingSignatures.length > 0) {
+        throw new Error('You have already signed this petition');
       }
+
+      // Generate cryptographic signature
+      console.log('🔐 Generating cryptographic signature...');
+      const signature = await signPetitionData(
+        { petitionId, petitionTitle },
+        formData
+      );
+
+      // Verify locally first
+      const verification = await verifySignatureLocally(signature);
+      if (!verification.isValid) {
+        throw new Error('Local verification failed');
+      }
+
+      // Submit to server
+      const { data: signatureRecord, error } = await supabase
+        .from('signatures')
+        .insert({
+          petition_id: petitionId,
+          voter_id: formData.voterId,
+          voter_name: formData.voterName,
+          constituency: formData.constituency,
+          ward: formData.ward,
+          polling_station: formData.pollingStation,
+          signature_payload: signature.payload,
+          signature_value: signature.signature,
+          public_key: signature.publicKeyJwk,
+          key_version: signature.keyVersion,
+          device_id: signature.deviceId,
+          verification_status: {
+            verified: true,
+            method: 'digital_signature',
+            timestamp: new Date().toISOString()
+          }
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Generate receipt (pseudocode - implement based on your system)
+      const receiptCode = `RC-${Date.now().toString(36).toUpperCase()}`;
+      
+      setSignatureResult({
+        signatureId: signatureRecord.id,
+        receiptCode,
+        voterName: formData.voterName,
+        voterEmail: formData.voterEmail,
+        petitionTitle,
+        signatureData: signature
+      });
+      
+      setShowSuccessModal(true);
+      toast.success('🔐 Petition signed with cryptographic security!');
+      onComplete(receiptCode);
     } catch (error) {
       console.error('Signature submission error:', error);
-      toast.error('Failed to submit signature. Please try again.');
+      
+      if (error.message === 'CRYPTOGRAPHIC_SIGNING_FAILED') {
+        setKeyError('CRYPTO_SIGN_FAIL');
+        toast.error(
+          <div className="max-w-md">
+            <p className="font-medium">Cryptographic signing failed</p>
+            <p className="text-sm mt-1">Possible causes:</p>
+            <ul className="list-disc pl-5 mt-1 space-y-1">
+              <li>Browser security restrictions</li>
+              <li>Corrupted security keys</li>
+              <li>Passphrase mismatch</li>
+            </ul>
+            <div className="mt-3 flex space-x-2">
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => window.location.reload()}
+              >
+                <RotateCw className="mr-2 h-4 w-4" />
+                Refresh
+              </Button>
+              <Button 
+                size="sm"
+                onClick={handleKeyRecovery}
+              >
+                <Key className="mr-2 h-4 w-4" />
+                Recover Keys
+              </Button>
+            </div>
+          </div>
+        );
+      } else {
+        toast.error(`Signature failed: ${error.message}`);
+      }
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const securePrompt = (message: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5); z-index: 10000; display: flex;
+        align-items: center; justify-content: center;
+      `;
+      
+      const container = document.createElement('div');
+      container.style.cssText = `
+        background: white; padding: 20px; border-radius: 8px;
+        width: 300px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      `;
+      
+      const label = document.createElement('p');
+      label.textContent = message;
+      label.style.marginBottom = '10px';
+      label.style.fontWeight = '500';
+      
+      const input = document.createElement('input');
+      input.type = 'password';
+      input.style.cssText = `
+        width: 100%; padding: 10px; margin-bottom: 15px;
+        border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
+      `;
+      
+      const button = document.createElement('button');
+      button.textContent = 'Submit';
+      button.style.cssText = `
+        padding: 8px 15px; background: #15803d; color: white;
+        border: none; border-radius: 4px; cursor: pointer; font-weight: 500;
+      `;
+      
+      button.addEventListener('click', () => {
+        document.body.removeChild(modal);
+        resolve(input.value);
+      });
+      
+      container.appendChild(label);
+      container.appendChild(input);
+      container.appendChild(button);
+      modal.appendChild(container);
+      document.body.appendChild(modal);
+      input.focus();
+    });
   };
 
   const renderStepIndicator = () => (
@@ -304,7 +507,12 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <CryptoStatusCard />
+          <CryptoStatusCard 
+            keysReady={keysReady} 
+            onInitialize={initializeKeys}
+            onRecover={handleKeyRecovery}
+            keyError={keyError}
+          />
         </CardContent>
       </Card>
 
@@ -380,13 +588,39 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
           </div>
         </div>
 
+        {!keysReady && (
+          <Alert className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/20">
+            <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+            <AlertDescription className="text-red-800 dark:text-red-200">
+              <strong>Security Keys Not Initialized</strong> - You must set up cryptographic keys before signing.
+              <div className="mt-2 flex space-x-2">
+                <Button 
+                  size="sm"
+                  onClick={initializeKeys}
+                >
+                  <Key className="mr-2 h-4 w-4" />
+                  Create Keys
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={handleKeyRecovery}
+                >
+                  <RotateCw className="mr-2 h-4 w-4" />
+                  Recover Keys
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="flex items-center justify-between pt-4">
           <Button variant="outline" onClick={() => setCurrentStep(3)}>
             Previous
           </Button>
           <Button 
             onClick={handleSubmit} 
-            disabled={isProcessing}
+            disabled={isProcessing || !keysReady}
             className="bg-green-600 hover:bg-green-700"
           >
             {isProcessing ? (
@@ -405,6 +639,46 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
       </CardContent>
     </Card>
   );
+
+  if (!cryptoSupported) {
+    return (
+      <Card className="max-w-md mx-auto mt-8">
+        <CardHeader className="bg-red-100 dark:bg-red-900/30 rounded-t-lg">
+          <CardTitle className="flex items-center text-red-700 dark:text-red-200">
+            <AlertCircle className="w-6 h-6 mr-2" />
+            Security Unavailable
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="space-y-4">
+            <p className="text-red-600 dark:text-red-300">
+              Your browser does not support required security features for digital signatures.
+            </p>
+            
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+              <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-2">
+                Recommended Actions:
+              </h4>
+              <ul className="list-disc pl-5 space-y-1 text-yellow-700 dark:text-yellow-300">
+                <li>Update to the latest browser version</li>
+                <li>Use Chrome, Firefox, Edge, or Safari</li>
+                <li>Enable JavaScript and IndexedDB</li>
+                <li>Check browser security settings</li>
+              </ul>
+            </div>
+            
+            <Button 
+              className="w-full mt-4"
+              onClick={() => window.location.reload()}
+            >
+              <RotateCw className="mr-2 h-4 w-4" />
+              Check Again
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <>
