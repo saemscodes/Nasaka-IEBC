@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { QRCodeService, QRReceiptData } from './qrCodeService';
 import { BlockchainService, BlockchainHashData } from './blockchainService';
@@ -95,10 +96,13 @@ export class SignatureFlowService {
             deviceId: cryptoResult.deviceId
           },
           device_fingerprint: {
-            ...keyInfo,
             timestamp: new Date().toISOString(),
             user_agent: navigator.userAgent,
-            crypto_algorithm: 'ECDSA-P384-SHA384'
+            crypto_algorithm: 'ECDSA-P384-SHA384',
+            hasKeys: keyInfo.hasKeys,
+            deviceId: keyInfo.deviceId,
+            keyVersion: keyInfo.keyVersion,
+            created: keyInfo.created
           }
         })
         .select()
@@ -117,8 +121,7 @@ export class SignatureFlowService {
         petitionId: data.petitionId,
         voterHash,
         timestamp: signature.signature_timestamp,
-        wardConstituency: `${data.ward}-${data.constituency}`,
-        cryptoSignature: cryptoResult.signature // Include crypto signature in blockchain
+        wardConstituency: `${data.ward}-${data.constituency}`
       };
 
       const blockchainHash = await BlockchainService.generateBlockchainHash(blockchainHashData);
@@ -135,9 +138,7 @@ export class SignatureFlowService {
         voterName: data.voterName,
         voterPhone: data.voterPhone,
         constituency: data.constituency,
-        ward: data.ward,
-        cryptoSignature: cryptoResult.signature.substring(0, 16) + '...', // Truncated for QR
-        deviceId: cryptoResult.deviceId
+        ward: data.ward
       });
 
       console.log('📱 QR receipt generated');

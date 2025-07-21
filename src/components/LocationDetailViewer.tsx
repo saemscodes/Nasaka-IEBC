@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -785,29 +784,30 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
           </CardHeader>
 
           <CardContent className="p-3 sm:p-6 space-y-4 sm:space-y-6">
-            <div classname="flex justify-center">
-            {/* Location Hierarchy */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 justify-items-center">
-              {location.county && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-lg">
-                  <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-1 text-sm sm:text-base">County</h4>
-                  <p className="text-blue-700 dark:text-blue-300 text-sm sm:text-base truncate">{location.county}</p>
-                </div>
-              )}
-              
-              {location.constituency && (
-                <div className="bg-green-50 dark:bg-green-900/20 p-3 sm:p-4 rounded-lg">
-                  <h4 className="font-semibold text-green-800 dark:text-green-200 mb-1 text-sm sm:text-base">Constituency</h4>
-                  <p className="text-green-700 dark:text-green-300 text-sm sm:text-base truncate">{location.constituency}</p>
-                </div>
-              )}
-              
-              {location.type === 'ward' && (
-                <div className="bg-purple-50 dark:bg-purple-900/20 p-3 sm:p-4 rounded-lg">
-                  <h4 className="font-semibold text-purple-800 dark:text-purple-200 mb-1 text-sm sm:text-base">Ward</h4>
-                  <p className="text-purple-700 dark:text-purple-300 text-sm sm:text-base truncate">{location.name}</p>
-                </div>
-              )}
+            <div className="flex justify-center">
+              {/* Location Hierarchy */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 justify-items-center">
+                {location.county && (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-lg">
+                    <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-1 text-sm sm:text-base">County</h4>
+                    <p className="text-blue-700 dark:text-blue-300 text-sm sm:text-base truncate">{location.county}</p>
+                  </div>
+                )}
+                
+                {location.constituency && (
+                  <div className="bg-green-50 dark:bg-green-900/20 p-3 sm:p-4 rounded-lg">
+                    <h4 className="font-semibold text-green-800 dark:text-green-200 mb-1 text-sm sm:text-base">Constituency</h4>
+                    <p className="text-green-700 dark:text-green-300 text-sm sm:text-base truncate">{location.constituency}</p>
+                  </div>
+                )}
+                
+                {location.type === 'ward' && (
+                  <div className="bg-purple-50 dark:bg-purple-900/20 p-3 sm:p-4 rounded-lg">
+                    <h4 className="font-semibold text-purple-800 dark:text-purple-200 mb-1 text-sm sm:text-base">Ward</h4>
+                    <p className="text-purple-700 dark:text-purple-300 text-sm sm:text-base truncate">{location.name}</p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Key Statistics */}
@@ -838,7 +838,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
             </div>
 
             {/* Leadership Information */}
-            <div className="space-y-4 ">
+            <div className="space-y-4">
               <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
                 Leadership
               </h4>
@@ -904,7 +904,6 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
                 </Button>
               )}
             </div>
-            </div>  
           </CardContent>
         </Card>
       </div>
