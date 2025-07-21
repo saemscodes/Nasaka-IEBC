@@ -148,10 +148,9 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
       const passphrase = await securePrompt('Create a security passphrase');
       const confirmPassphrase = await securePrompt('Confirm your passphrase');
       
-      if (passphrase !== confirmPassphrase) {
-        toast.error('Passphrases do not match');
-        return;
-      }
+       if (passphrase.length < 8) {
+      throw new Error('PASSPHRASE_TOO_SHORT');
+    }
       
       await generateKeyPair(passphrase);
       setKeysReady(true);
