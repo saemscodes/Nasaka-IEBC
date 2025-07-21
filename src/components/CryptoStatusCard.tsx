@@ -157,61 +157,59 @@ const CryptoStatusCard: React.FC<{ onSign?: () => void }> = ({ onSign }) => {
   };
 
   const securePrompt = (message: string): Promise<string> => {
-    return new Promise((resolve) => {
-      const modal = document.createElement('div');
-      modal.style.cssText = `
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5); z-index: 10000; display: flex;
-        align-items: center; justify-content: center;
-      `;
-      
-      const container = document.createElement('div');
-      container.style.cssText = `
-        background: white; padding: 20px; border-radius: 8px;
-        width: 300px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      `;
-      
-      const label = document.createElement('p');
-      label.textContent = message;
-      label.style.marginBottom = '10px';
-      label.style.fontWeight = '500';
-      
-      const input = document.createElement('input');
-      input.type = 'password';
-      input.style.cssText = `
-        width: 100%; padding: 10px; margin-bottom: 15px;
-        border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
-      `;
+  return new Promise((resolve, reject) => {  // Added reject parameter
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 10000; display: flex;
+      align-items: center; justify-content: center;
+    `;
+    
+    const container = document.createElement('div');
+    container.style.cssText = `
+      background: white; padding: 20px; border-radius: 8px;
+      width: 300px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    `;
+    
+    const label = document.createElement('p');
+    label.textContent = message;
+    label.style.marginBottom = '10px';
+    label.style.fontWeight = '500';
+    
+    const input = document.createElement('input');
+    input.type = 'password';
+    input.style.cssText = `
+      width: 100%; padding: 10px; margin-bottom: 15px;
+      border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
+    `;
 
-      const timeout = setTimeout(() => {
-        document.body.removeChild(modal);
-        reject(new Error('PROMPT_TIMEOUT'));
-      }, 120000); // 2-minute timeout
-      
-      button.addEventListener('click', () => {
+    const button = document.createElement('button');  // Moved button creation up
+    button.textContent = 'Submit';
+    button.style.cssText = `
+      padding: 8px 15px; background: #15803d; color: white;
+      border: none; border-radius: 4px; cursor: pointer; font-weight: 500;
+    `;
+
+    const timeout = setTimeout(() => {
+      document.body.removeChild(modal);
+      reject(new Error('PROMPT_TIMEOUT'));
+    }, 120000); // 2-minute timeout
+
+    button.addEventListener('click', () => {
       clearTimeout(timeout);
-      
-      const button = document.createElement('button');
-      button.textContent = 'Submit';
-      button.style.cssText = `
-        padding: 8px 15px; background: #15803d; color: white;
-        border: none; border-radius: 4px; cursor: pointer; font-weight: 500;
-      `;
-      
-      button.addEventListener('click', () => {
-        document.body.removeChild(modal);
-        resolve(input.value);
-      });
-      
-      container.appendChild(label);
-      container.appendChild(input);
-      container.appendChild(button);
-      modal.appendChild(container);
-      document.body.appendChild(modal);
-      input.focus();
+      document.body.removeChild(modal);
+      resolve(input.value);
     });
+    
+    container.appendChild(label);
+    container.appendChild(input);
+    container.appendChild(button);
+    modal.appendChild(container);
+    document.body.appendChild(modal);
+    input.focus();
   });
-
+};
+  
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'Unknown';
     try {
