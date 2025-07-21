@@ -288,6 +288,14 @@ export async function securePrompt(message: string): Promise<string> {
     });
   };
 
+export async function validateKeyConsistency(): Promise<boolean> {
+  const keyData = await get(PRIVATE_KEY_NAME) as CryptoKeyData;
+  if (!keyData) return false;
+  
+  const storedDeviceId = await get(DEVICE_ID);
+  return keyData.deviceId === storedDeviceId;
+}
+
 // Verify signature locally (for immediate feedback)
 export async function verifySignatureLocally(signatureResult: SignatureResult): Promise<VerificationData> {
   try {
