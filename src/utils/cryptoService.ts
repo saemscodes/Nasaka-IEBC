@@ -109,7 +109,7 @@ export async function generateKeyPair(userPassphrase?: string): Promise<JsonWebK
       iv,
       version: keyVersion,
       deviceId,
-      created: new Date().toISOString()
+      created: userPassphrase ? "user-passphrase" : keyVersion // Add flag
     };
 
     await set(PRIVATE_KEY_NAME, cryptoKeyData);
@@ -132,7 +132,8 @@ export async function signPetitionData(
 ): Promise<SignatureResult> {
   try {
     // Check if keys exist
-    const keyData = await get(PRIVATE_KEY_NAME);
+    const keyData = await get(PRIVATE_KEY_NAME) as CryptoKeyData;
+    const useUserPassphrase = keyData.created !== keyData.version; // If created != version, user passphrase was used
     const publicKeyJwk = await get(PUBLIC_KEY_NAME);
     
     if (!keyData || !publicKeyJwk) {
@@ -144,7 +145,9 @@ export async function signPetitionData(
     const { wrappedKey, salt, iv, version, deviceId } = keyData as CryptoKeyData;
 
     // Recreate encryption key
-    const passphraseData = `${deviceId}-${version}`;
+    const passphraseData = useUserPassphrase 
+      ? await securePrompt('Enter your security passphrase to sign')
+      : `${deviceId}-${version}`;
     const keyMaterial = await crypto.subtle.importKey(
       'raw',
       new TextEncoder().encode(passphraseData),
@@ -225,6 +228,54 @@ export async function signPetitionData(
     throw new Error('CRYPTOGRAPHIC_SIGNING_FAILED');
   }
 }
+
+export async function securePrompt = (message: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5); z-index: 10000; display: flex;
+        align-items: center; justify-content: center;
+      `;
+      
+      const container = document.createElement('div');
+      container.style.cssText = `
+        background: white; padding: 20px; border-radius: 8px;
+        width: 300px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      `;
+      
+      const label = document.createElement('p');
+      label.textContent = message;
+      label.style.marginBottom = '10px';
+      label.style.fontWeight = '500';
+      
+      const input = document.createElement('input');
+      input.type = 'password';
+      input.style.cssText = `
+        width: 100%; padding: 10px; margin-bottom: 15px;
+        border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
+      `;
+      
+      const button = document.createElement('button');
+      button.textContent = 'Submit';
+      button.style.cssText = `
+        padding: 8px 15px; background: #15803d; color: white;
+        border: none; border-radius: 4px; cursor: pointer; font-weight: 500;
+      `;
+      
+      button.addEventListener('click', () => {
+        document.body.removeChild(modal);
+        resolve(input.value);
+      });
+      
+      container.appendChild(label);
+      container.appendChild(input);
+      container.appendChild(button);
+      modal.appendChild(container);
+      document.body.appendChild(modal);
+      input.focus();
+    });
+  };
 
 // Verify signature locally (for immediate feedback)
 export async function verifySignatureLocally(signatureResult: SignatureResult): Promise<VerificationData> {
