@@ -2,41 +2,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Phone, CheckCircle, Scale } from 'lucide-react';
 
-// Define logo animation variants
-const logoVariants = {
-  light: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      duration: 0.6
-    }
-  },
-  dark: {
-    opacity: 0,
-    scale: 0.95,
-    transition: {
-      duration: 0.6
-    }
-  }
-};
-
-const logoVariantsDark = {
-  light: {
-    opacity: 0,
-    scale: 0.95,
-    transition: {
-      duration: 0.6
-    }
-  },
-  dark: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      duration: 0.6
-    }
-  }
-};
-
 interface ModernFooterProps {
   darkMode?: boolean;
   scrollToTab: (tabId: string) => void;
@@ -46,42 +11,81 @@ const ModernFooter: React.FC<ModernFooterProps> = ({
   darkMode = false,
   scrollToTab 
 }) => {
+  // Define logo animation variants
+  const logoVariants = {
+    light: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.6
+      }
+    },
+    dark: {
+      opacity: 0,
+      scale: 0.95,
+      transition: {
+        duration: 0.6
+      }
+    }
+  };
+
+  const logoVariantsDark = {
+    light: {
+      opacity: 0,
+      scale: 0.95,
+      transition: {
+        duration: 0.6
+      }
+    },
+    dark: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.6
+      }
+    }
+  };
+
   // Define legal navigation items with their targets
   const legalNavigationItems = [
     { 
       id: 'constitution', 
       label: 'Constitution Article 104',
-      target: '#legal'
+      target: 'legal'  // All point to the Legal tab
     },
     { 
       id: 'kica', 
       label: 'KICA §83C (Digital Signatures)',
-      target: '#legal'
+      target: 'legal'
     },
     { 
       id: 'elections', 
       label: 'Elections Act 2011',
-      target: '#legal'
+      target: 'legal'
     },
     { 
       id: 'katiba', 
       label: 'Katiba Institute Ruling',
-      target: '#legal'
+      target: 'legal'
     }
   ];
   
   // Handle navigation for legal items
-  const handleLegalNavigation = (target: string) => {
-    scrollToTab(target);
+  const handleLegalNavigation = (item: typeof legalNavigationItems[0]) => {
+    // First, switch to the legal tab
+    scrollToTab(item.target);
     
-    // Scroll to top of section with header offset
+    // Then, after a delay, scroll to the specific section
     setTimeout(() => {
-      const section = document.querySelector(`#${target}`);
+      const section = document.getElementById(item.id);
       if (section) {
         const header = document.querySelector('header');
         const headerHeight = header?.clientHeight || 64;
         const sectionTop = section.getBoundingClientRect().top + window.pageYOffset;
-        window.scrollTo({ top: sectionTop - headerHeight - 20, behavior: 'smooth' });
+        window.scrollTo({ 
+          top: sectionTop - headerHeight - 20, 
+          behavior: 'smooth' 
+        });
       }
     }, 300);
   };
@@ -136,7 +140,7 @@ const ModernFooter: React.FC<ModernFooterProps> = ({
               {legalNavigationItems.map((item) => (
                 <div
                   key={item.id}
-                  onClick={() => handleLegalNavigation(item.target)}
+                  onClick={() => handleLegalNavigation(item)}
                   className="block text-green-100 hover:text-white transition-colors cursor-pointer"
                 >
                   {item.label}
