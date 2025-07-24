@@ -366,7 +366,7 @@ const EnhancedPetitionDashboard = () => {
             value="active" 
             className="text-base px-4 py-3 data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-lg"
           >
-            <span className="hidden sm:inline">Active Petitions</span>
+            <span className="hidden sm:inline text-green-900/80">Active Petitions</span>
             <span className="sm:hidden">Active</span>
           </TabsTrigger>
           <TabsTrigger 
