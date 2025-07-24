@@ -139,8 +139,8 @@
   inset: 0;
   padding: 6px;
   background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
-      rgba(132, 0, 255, calc(var(--glow-intensity) * 0.8)) 0%,
-      rgba(132, 0, 255, calc(var(--glow-intensity) * 0.4)) 30%,
+      rgba(0, 128, 64, calc(var(--glow-intensity) * 0.8)) 0%,
+      rgba(0, 128, 64, calc(var(--glow-intensity) * 0.4)) 30%,
       transparent 60%);
   border-radius: inherit;
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -157,7 +157,7 @@
 }
 
 .card--border-glow:hover {
-  box-shadow: 0 4px 20px rgba(46, 24, 78, 0.4), 0 0 30px var(--purple-glow);
+  box-shadow: 0 4px 20px rgba(24, 78, 46, 0.4), 0 0 30px var(--green-glow);
 }
 
 .particle-container {
@@ -172,13 +172,18 @@
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: rgba(132, 0, 255, 0.2);
+  background: rgba(0, 128, 64, 0.2);
   border-radius: 50%;
   z-index: -1;
 }
 
 .particle-container:hover {
-  box-shadow: 0 4px 20px rgba(46, 24, 78, 0.2), 0 0 30px var(--purple-glow);
+  box-shadow: 0 4px 20px rgba(24, 78, 46, 0.2), 0 0 30px var(--green-glow);
+}
+
+/* Add new green glow variable */
+:root {
+  --green-glow: rgba(0, 128, 64, 0.6);
 }
 
 /* Global spotlight styles */
