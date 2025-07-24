@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, MapPin, Clock, FileText, AlertTriangle, CheckCircle, TrendingUp, BarChart3 } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
-import PetitionCard from "./PetitionCard";
+import PetitionCard from './PetitionCard';
 import { useToast } from "@/hooks/use-toast";
 import MagicBento from "@/components/MagicBento";
 
@@ -127,7 +127,7 @@ const EnhancedPetitionDashboard = () => {
 
   const overallStats = calculateOverallStats();
 
-  // Prepare MagicBento data with theme support and swapped content
+  // Prepare MagicBento data with theme support
   const bentoData = [
     // Square 1: Active Petitions
     {
@@ -318,7 +318,7 @@ const EnhancedPetitionDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 px-4">
-      {/* MagicBento Dashboard with dark green border */}
+      {/* MagicBento Dashboard with border styling */}
       <MagicBento 
         cardData={bentoData}
         textAutoHide={true}
@@ -402,10 +402,7 @@ const EnhancedPetitionDashboard = () => {
                   </div>
                   <p className="text-green-300 mb-6 text-lg">{petition.description}</p>
                   <div className="flex justify-center">
-                    <Button 
-                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base"
-                      onClick={() => handleJoinPetition(petition.id)}
-                    >
+                    <Button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base">
                       Sign Now - Deadline Approaching
                     </Button>
                   </div>
@@ -444,10 +441,7 @@ const EnhancedPetitionDashboard = () => {
                       This petition is making excellent progress! Help push it over the constitutional threshold.
                     </p>
                     <div className="flex justify-center">
-                      <Button 
-                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base"
-                        onClick={() => handleJoinPetition(petition.id)}
-                      >
+                      <Button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base">
                         Join the Movement
                       </Button>
                     </div>
