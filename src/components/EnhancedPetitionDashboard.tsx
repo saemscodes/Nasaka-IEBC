@@ -489,8 +489,8 @@ const EnhancedPetitionDashboard = () => {
                 <div className="flex items-start">
                   <AlertTriangle className="w-6 h-6 text-green-400 mr-4 mt-1" />
                   <div>
-                    <h4 className="font-bold text-green-200 mb-3 text-lg">Legal Requirements</h4>
-                    <ul className="text-green-300 space-y-2 text-base">
+                    <h4 className="font-bold text-green-800 dark:text-green-200 mb-3 text-lg">Legal Requirements</h4>
+                    <ul className="text-green-700 dark:text-green-300 space-y-2 text-base">
                       <li className="flex items-start">
                         <span className="mr-2">•</span>
                         Must have substantial grounds (Chapter 6, funds misuse, or electoral crime)
