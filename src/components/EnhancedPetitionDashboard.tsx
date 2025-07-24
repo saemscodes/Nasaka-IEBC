@@ -265,7 +265,7 @@ const EnhancedPetitionDashboard = () => {
                         <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200 dark:bg-green-800">
                           <div 
                             style={{ width: `${wardProgress}%` }}
-                            className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"
+                            className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500"
                           ></div>
                         </div>
                       </div>
