@@ -21,7 +21,7 @@ const ConstitutionalFlowchart = () => {
     {
       id: 2,
       title: "Collect Signatures",
-      description: "30% of registered voters with KICA-certified signatures",
+      description: "30% of registered voters with KICA-compliant signatures",
       icon: Users,
       color: "bg-gradient-to-br from-green-500 to-green-600",
       textColor: "text-green-700 dark:text-green-300",
