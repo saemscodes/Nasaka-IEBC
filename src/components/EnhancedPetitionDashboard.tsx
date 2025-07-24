@@ -487,7 +487,7 @@ const EnhancedPetitionDashboard = () => {
             <div className="space-y-8 max-w-3xl mx-auto">
               <div className="border border-green-500/50 rounded-xl p-6 bg-green-900/20">
                 <div className="flex items-start">
-                  <AlertTriangle className="w-6 h-6 text-green-400 mr-4 mt-1" />
+                  <AlertTriangle className="w-6 h-6 text-green-700 mr-4 mt-1" />
                   <div>
                     <h4 className="font-bold text-green-800 dark:text-green-200 mb-3 text-lg">Legal Requirements</h4>
                     <ul className="text-green-700 dark:text-green-300 space-y-2 text-base">
