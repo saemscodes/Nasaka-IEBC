@@ -319,12 +319,12 @@ const Index = () => {
             <Card className={`relative overflow-hidden transition-colors duration-300 h-full ${
               darkMode 
                 ? 'border-gray-700' 
-                : 'border-emerald-200/50'
+                : 'border-green-200/50'
             }`}>
               <div className={`absolute inset-0 bg-cover bg-center z-0 ${
                 darkMode 
-                  ? 'bg-gradient-to-br from-emerald-900/70 to-gray-800/70' 
-                  : 'bg-gradient-to-br from-emerald-50/70 to-emerald-100/70'
+                  ? 'bg-gradient-to-br from-green-900/70 to-gray-800/70' 
+                  : 'bg-gradient-to-br from-green-50/70 to-green-100/70'
               }`} style={{ 
                 backgroundImage: darkMode 
                   ? "linear-gradient(rgba(2, 44, 34, 0.7), url('https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
@@ -336,13 +336,13 @@ const Index = () => {
                 <div className="flex items-center mb-4">
                   <div className={`p-2 rounded-full mr-3 ${
                     darkMode 
-                      ? 'bg-emerald-800/50 text-emerald-300' 
-                      : 'bg-emerald-100 text-emerald-700'
+                      ? 'bg-green-800/50 text-green-300' 
+                      : 'bg-green-100 text-green-700'
                   }`}>
                     <UserPlus className="w-6 h-6" />
                   </div>
                   <h4 className={`text-lg font-bold ${
-                    darkMode ? 'text-white' : 'text-emerald-900'
+                    darkMode ? 'text-white' : 'text-green-900'
                   }`}>
                     Become a Voter
                   </h4>
@@ -350,7 +350,7 @@ const Index = () => {
                 
                 <div className="flex-grow flex flex-col justify-center mb-6">
                   <p className={`mb-4 transition-colors duration-300 text-center ${
-                    darkMode ? 'text-gray-200' : 'text-emerald-800'
+                    darkMode ? 'text-gray-200' : 'text-green-800'
                   }`}>
                     Learn how to register as a voter in Kenya
                   </p>
@@ -360,8 +360,8 @@ const Index = () => {
                   asChild
                   className={`mt-auto ${
                     darkMode 
-                      ? 'bg-emerald-700 hover:bg-emerald-600' 
-                      : 'bg-emerald-600 hover:bg-emerald-700'
+                      ? 'bg-green-700 hover:bg-green-600' 
+                      : 'bg-green-600 hover:bg-green-700'
                   }`}
                 >
                   <a 
