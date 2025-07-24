@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, MapPin, Clock, FileText, AlertTriangle, CheckCircle, TrendingUp, BarChart3 } from 'lucide-react';
+import { Users, MapPin, Clock, FileText, AlertTriangle, CheckCircle, TrendingUp, BarChart3 } from 'lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import PetitionCard from './PetitionCard';
+import PetitionCard from './PetitionCard";
 import { useToast } from "@/hooks/use-toast";
 import MagicBento from "@/components/MagicBento";
 
@@ -127,165 +127,182 @@ const EnhancedPetitionDashboard = () => {
 
   const overallStats = calculateOverallStats();
 
-  // Prepare MagicBento data with green theme
+  // Prepare MagicBento data with theme support and swapped content
   const bentoData = [
+    // Square 1: Active Petitions
     {
       color: "#001a00",
       title: overallStats.totalPetitions.toString(),
       description: "Active Petitions",
       label: "Live",
       customContent: (
-        <div className="h-full w-full flex flex-col items-center justify-center">
-          <div className="text-4xl font-bold text-green-300">{overallStats.totalPetitions}</div>
-          <div className="text-lg text-green-200 mt-2">Active Petitions</div>
+        <div className="h-full w-full flex flex-col items-center justify-center p-4">
+          <div className="text-4xl font-bold dark:text-green-300 text-gray-800">{overallStats.totalPetitions}</div>
+          <div className="text-lg dark:text-green-200 text-gray-700 mt-2">Active Petitions</div>
         </div>
       )
     },
+    // Square 2: Total Signatures
     {
       color: "#001a00",
       title: overallStats.totalSignatures.toLocaleString(),
       description: "Total Signatures",
       label: "Support",
       customContent: (
-        <div className="h-full w-full flex flex-col items-center justify-center">
-          <div className="text-4xl font-bold text-green-300">{overallStats.totalSignatures.toLocaleString()}</div>
-          <div className="text-lg text-green-200 mt-2">Total Signatures</div>
+        <div className="h-full w-full flex flex-col items-center justify-center p-4">
+          <div className="text-4xl font-bold dark:text-green-300 text-gray-800">{overallStats.totalSignatures.toLocaleString()}</div>
+          <div className="text-lg dark:text-green-200 text-gray-700 mt-2">Total Signatures</div>
         </div>
       )
     },
-    {
-      color: "#001a00",
-      title: `${Math.round(overallStats.averageCompliance)}%`,
-      description: "Avg. Compliance",
-      label: "Progress",
-      customContent: (
-        <div className="h-full w-full flex flex-col items-center justify-center">
-          <div className="text-4xl font-bold text-green-300">{Math.round(overallStats.averageCompliance)}%</div>
-          <div className="text-lg text-green-200 mt-2">Avg. Compliance</div>
-        </div>
-      )
-    },
-    {
-      color: "#001a00",
-      title: "0%",
-      description: "Success Rate",
-      label: "Achievement",
-      customContent: (
-        <div className="h-full w-full flex flex-col items-center justify-center">
-          <div className="text-4xl font-bold text-green-300">0%</div>
-          <div className="text-lg text-green-200 mt-2">Success Rate</div>
-        </div>
-      )
-    },
-    {
-      color: "#001a00",
-      label: "Dashboard",
-      title: "Constitutional Compliance",
-      description: "Real-time monitoring",
-      customContent: (
-        <div className="h-full w-full flex flex-col">
-          <div className="card__header">
-            <div className="card__label text-green-300">Dashboard</div>
-          </div>
-          <div className="card__content flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 p-2">
-            <div className="space-y-3">
-              <h4 className="font-semibold text-base text-green-100">Signature Thresholds</h4>
-              <div className="space-y-3">
-                {petitions.slice(0, 2).map(petition => {
-                  const stats = petitionStats[petition.id];
-                  const progress = stats ? (stats.current_signatures / petition.signature_target) * 100 : 0;
-                  return (
-                    <div key={petition.id} className="flex items-center space-x-3">
-                      <div className="w-4 h-4 rounded-full" style={{
-                        backgroundColor: progress >= 30 ? '#00cc00' : progress >= 15 ? '#66cc00' : '#cc9900'
-                      }}></div>
-                      <span className="text-sm flex-1 text-green-100">{petition.mp_name}</span>
-                      <span className="text-sm font-bold text-green-100">{Math.round(progress)}%</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            
-            <div className="space-y-3">
-              <h4 className="font-semibold text-base text-green-100">Ward Distribution</h4>
-              <div className="space-y-3">
-                {petitions.slice(0, 2).map(petition => {
-                  const stats = petitionStats[petition.id];
-                  const wardProgress = stats ? (stats.wards_covered / petition.ward_target) * 100 : 0;
-                  return (
-                    <div key={petition.id} className="flex items-center space-x-3">
-                      <div className="w-4 h-4 rounded-full" style={{
-                        backgroundColor: wardProgress >= 50 ? '#00cc00' : wardProgress >= 25 ? '#66cc00' : '#cc9900'
-                      }}></div>
-                      <span className="text-sm flex-1 text-green-100">{petition.constituency}</span>
-                      <span className="text-sm font-bold text-green-100">{stats?.wards_covered || 0}/{petition.ward_target}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            
-            <div className="space-y-3">
-              <h4 className="font-semibold text-base text-green-100">Legal Deadlines</h4>
-              <div className="space-y-3">
-                {petitions.slice(0, 2).map(petition => {
-                  const daysLeft = Math.ceil((new Date(petition.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                  return (
-                    <div key={petition.id} className="flex items-center space-x-3">
-                      <div className="w-4 h-4 rounded-full" style={{
-                        backgroundColor: daysLeft > 14 ? '#00cc00' : daysLeft > 7 ? '#66cc00' : '#cc9900'
-                      }}></div>
-                      <span className="text-sm flex-1 text-green-100">{petition.mp_name}</span>
-                      <span className="text-sm font-bold text-green-100">{daysLeft}d</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      )
-    },
+    // Square 3: Urgent Deadlines (formerly Success Rate)
     {
       color: "#001a00",
       label: "Urgent",
       title: "Deadlines",
       description: "Petitions nearing deadline",
       customContent: (
-        <div className="h-full w-full flex flex-col">
+        <div className="h-full w-full flex flex-col p-4">
           <div className="card__header">
-            <div className="card__label text-green-300">Urgent</div>
+            <div className="card__label dark:text-green-300 text-gray-800">Urgent</div>
           </div>
-          <div className="card__content flex-1">
-            <h2 className="card__title text-xl text-green-100">Deadlines</h2>
-            <p className="card__description text-green-200">Petitions nearing deadline</p>
-            <div className="mt-4 space-y-4">
-              {petitions
-                .filter(p => {
-                  const daysLeft = Math.ceil((new Date(p.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                  return daysLeft <= 7;
-                })
-                .slice(0, 2)
-                .map(petition => {
-                  const daysLeft = Math.ceil((new Date(petition.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                  return (
-                    <div key={petition.id} className="flex items-center p-3 bg-green-900/30 rounded-lg">
-                      <div className="flex-1">
-                        <div className="text-base font-bold text-green-100">{petition.mp_name}</div>
-                        <div className="text-sm text-green-200">{daysLeft} days left</div>
-                      </div>
-                      <Button 
-                        className="text-sm px-4 py-2 bg-green-600 hover:bg-green-700 text-white"
-                        onClick={() => handleJoinPetition(petition.id)}
-                      >
-                        Sign Now
-                      </Button>
+          <h2 className="card__title text-xl dark:text-green-100 text-gray-800 mt-2">Deadlines</h2>
+          <p className="card__description dark:text-green-200 text-gray-700">Petitions nearing deadline</p>
+          <div className="mt-4 space-y-4">
+            {petitions
+              .filter(p => {
+                const daysLeft = Math.ceil((new Date(p.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                return daysLeft <= 7;
+              })
+              .slice(0, 2)
+              .map(petition => {
+                const daysLeft = Math.ceil((new Date(petition.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                return (
+                  <div key={petition.id} className="flex items-center p-3 dark:bg-green-900/30 bg-gray-100 rounded-lg">
+                    <div className="flex-1">
+                      <div className="text-base font-bold dark:text-green-100 text-gray-800">{petition.mp_name}</div>
+                      <div className="text-sm dark:text-green-200 text-gray-700">{daysLeft} days left</div>
                     </div>
-                  );
-                })}
-            </div>
+                    <Button 
+                      className="text-sm px-4 py-2 bg-green-600 hover:bg-green-700 text-white"
+                      onClick={() => handleJoinPetition(petition.id)}
+                    >
+                      Sign Now
+                    </Button>
+                  </div>
+                );
+              })}
           </div>
+        </div>
+      )
+    },
+    // Square 4: Success Rate (formerly Urgent Deadlines)
+    {
+      color: "#001a00",
+      title: "0%",
+      description: "Success Rate",
+      label: "Achievement",
+      customContent: (
+        <div className="h-full w-full flex flex-col items-center justify-center p-4">
+          <div className="text-4xl font-bold dark:text-green-300 text-gray-800">0%</div>
+          <div className="text-lg dark:text-green-200 text-gray-700 mt-2">Success Rate</div>
+        </div>
+      )
+    },
+    // Square 5: Dashboard (formerly Avg. Compliance)
+    {
+      color: "#001a00",
+      label: "Dashboard",
+      title: "Constitutional Compliance",
+      description: "Real-time monitoring",
+      customContent: (
+        <div className="h-full w-full flex flex-col p-4">
+          <div className="card__header">
+            <div className="card__label dark:text-green-300 text-gray-800">Dashboard</div>
+          </div>
+          <div className="card__content flex-1 grid grid-cols-1 gap-4 mt-4">
+            {petitions.slice(0, 2).map(petition => {
+              const stats = petitionStats[petition.id];
+              const signatureProgress = stats ? (stats.current_signatures / petition.signature_target) * 100 : 0;
+              const wardProgress = stats ? (stats.wards_covered / petition.ward_target) * 100 : 0;
+              const daysLeft = Math.ceil((new Date(petition.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+              
+              return (
+                <div key={petition.id} className="space-y-4 p-4 dark:bg-green-900/20 bg-gray-50 rounded-xl">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-base dark:text-green-100 text-gray-800">{petition.mp_name}</h3>
+                    <Badge variant="outline" className="dark:border-green-500 border-gray-300 dark:text-green-300 text-gray-700">
+                      {petition.constituency}
+                    </Badge>
+                  </div>
+                  
+                  {/* Signature Progress */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm dark:text-green-200 text-gray-700">Signatures</span>
+                      <span className="text-sm font-bold dark:text-green-100 text-gray-800">
+                        {Math.round(signatureProgress)}%
+                      </span>
+                    </div>
+                    <div className="relative pt-1">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-xs font-semibold inline-block dark:text-green-200 text-gray-700">
+                            {stats?.current_signatures || 0} / {petition.signature_target}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200 dark:bg-green-800">
+                        <div 
+                          style={{ width: `${signatureProgress}%` }}
+                          className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Ward Distribution */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm dark:text-green-200 text-gray-700">Ward Coverage</span>
+                      <span className="text-sm font-bold dark:text-green-100 text-gray-800">
+                        {stats?.wards_covered || 0}/{petition.ward_target}
+                      </span>
+                    </div>
+                    <div className="relative pt-1">
+                      <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200 dark:bg-green-800">
+                        <div 
+                          style={{ width: `${wardProgress}%` }}
+                          className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Deadline */}
+                  <div className="flex items-center space-x-2">
+                    <Clock className="w-4 h-4 dark:text-green-300 text-gray-700" />
+                    <span className="text-sm dark:text-green-200 text-gray-700">
+                      {daysLeft} days remaining
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )
+    },
+    // Square 6: Avg. Compliance (formerly Dashboard)
+    {
+      color: "#001a00",
+      title: `${Math.round(overallStats.averageCompliance)}%`,
+      description: "Avg. Compliance",
+      label: "Progress",
+      customContent: (
+        <div className="h-full w-full flex flex-col items-center justify-center p-4">
+          <div className="text-4xl font-bold dark:text-green-300 text-gray-800">{Math.round(overallStats.averageCompliance)}%</div>
+          <div className="text-lg dark:text-green-200 text-gray-700 mt-2">Avg. Compliance</div>
         </div>
       )
     }
@@ -301,7 +318,7 @@ const EnhancedPetitionDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 px-4">
-      {/* MagicBento Dashboard */}
+      {/* MagicBento Dashboard with dark green border */}
       <MagicBento 
         cardData={bentoData}
         textAutoHide={true}
@@ -313,7 +330,10 @@ const EnhancedPetitionDashboard = () => {
         clickEffect={true}
         spotlightRadius={300}
         particleCount={12}
-        glowColor="0, 204, 0" // Green glow
+        glowColor="0, 100, 0" // Darker green glow
+        borderColor="#003300" // Very dark green border
+        borderWidth={2}
+        className="border-[#003300] dark:border-[#002200]" // Added border styling
       />
 
       {/* Petition Tabs */}
@@ -382,7 +402,10 @@ const EnhancedPetitionDashboard = () => {
                   </div>
                   <p className="text-green-300 mb-6 text-lg">{petition.description}</p>
                   <div className="flex justify-center">
-                    <Button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base">
+                    <Button 
+                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base"
+                      onClick={() => handleJoinPetition(petition.id)}
+                    >
                       Sign Now - Deadline Approaching
                     </Button>
                   </div>
@@ -421,7 +444,10 @@ const EnhancedPetitionDashboard = () => {
                       This petition is making excellent progress! Help push it over the constitutional threshold.
                     </p>
                     <div className="flex justify-center">
-                      <Button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base">
+                      <Button 
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base"
+                        onClick={() => handleJoinPetition(petition.id)}
+                      >
                         Join the Movement
                       </Button>
                     </div>
@@ -433,21 +459,21 @@ const EnhancedPetitionDashboard = () => {
 
         <TabsContent value="create" className="mt-8">
           <div className="border-2 border-green-500/30 rounded-xl p-8 bg-green-900/10">
-            <h2 className="text-2xl font-bold text-kenya-black flex items-center mb-6 justify-center">
-              <CheckCircle className="w-6 h-6 mr-3 text-green-900" />
+            <h2 className="text-2xl font-bold text-green-200 flex items-center mb-6 justify-center">
+              <CheckCircle className="w-6 h-6 mr-3 text-green-400" />
               Start a New Recall Petition
             </h2>
-            <p className="text-kenya-black mb-8 text-lg text-center">
+            <p className="text-green-300 mb-8 text-lg text-center">
               Initiate a constitutionally compliant MP recall petition with full legal documentation
             </p>
             
             <div className="space-y-8 max-w-3xl mx-auto">
               <div className="border border-green-500/50 rounded-xl p-6 bg-green-900/20">
                 <div className="flex items-start">
-                  <AlertTriangle className="w-6 h-6 text-green-900 mr-4 mt-1" />
+                  <AlertTriangle className="w-6 h-6 text-green-400 mr-4 mt-1" />
                   <div>
-                    <h4 className="font-bold text-kenya-black mb-3 text-lg">Legal Requirements</h4>
-                    <ul className="text-kenya-black space-y-2 text-base">
+                    <h4 className="font-bold text-green-200 mb-3 text-lg">Legal Requirements</h4>
+                    <ul className="text-green-300 space-y-2 text-base">
                       <li className="flex items-start">
                         <span className="mr-2">•</span>
                         Must have substantial grounds (Chapter 6, funds misuse, or electoral crime)
