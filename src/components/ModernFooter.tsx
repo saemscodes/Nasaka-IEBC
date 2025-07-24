@@ -34,13 +34,13 @@ const ModernFooter = () => {
               <a href="#" className="block text-green-100 hover:text-white transition-colors">
                 Constitution Article 104
               </a>
-              <a href="#" className="block text-green-100 hover:text-white transition-colors">
+              <a href="#legal" className="block text-green-100 hover:text-white transition-colors">
                 KICA §83C (Digital Signatures)
               </a>
-              <a href="#" className="block text-green-100 hover:text-white transition-colors">
+              <a href="#legal" className="block text-green-100 hover:text-white transition-colors">
                 Elections Act 2011
               </a>
-              <a href="#" className="block text-green-100 hover:text-white transition-colors">
+              <a href="#legal" className="block text-green-100 hover:text-white transition-colors">
                 Katiba Institute Ruling
               </a>
             </div>
@@ -73,7 +73,7 @@ const ModernFooter = () => {
             <div className="space-y-2 text-sm">
               <div className="flex items-center space-x-2">
                 <CheckCircle className="w-4 h-4 text-green-400" />
-                <span className="text-green-100">KICA §83C Certified</span>
+                <span className="text-green-100">KICA §83C Compliant</span>
               </div>
               <div className="flex items-center space-x-2">
                 <CheckCircle className="w-4 h-4 text-green-400" />
