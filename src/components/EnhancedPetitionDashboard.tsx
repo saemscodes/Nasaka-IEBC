@@ -155,48 +155,138 @@ const EnhancedPetitionDashboard = () => {
         </div>
       )
     },
-    // Square 3: Urgent Deadlines (formerly Success Rate)
+    // Square 3: Urgent Deadlines
     {
       color: "#001a00",
       label: "Urgent",
       title: "Deadlines",
       description: "Petitions nearing deadline",
       customContent: (
-        <div className="h-full w-full flex flex-col p-4">
-          <div className="card__header">
+        <div className="h-full w-full flex flex-col">
+          <div className="card__header p-4">
             <div className="card__label dark:text-green-300 text-gray-800">Urgent</div>
+            <h2 className="card__title text-xl dark:text-green-100 text-gray-800 mt-2">Deadlines</h2>
+            <p className="card__description dark:text-green-200 text-gray-700">Petitions nearing deadline</p>
           </div>
-          <h2 className="card__title text-xl dark:text-green-100 text-gray-800 mt-2">Deadlines</h2>
-          <p className="card__description dark:text-green-200 text-gray-700">Petitions nearing deadline</p>
-          <div className="mt-4 space-y-4">
-            {petitions
-              .filter(p => {
-                const daysLeft = Math.ceil((new Date(p.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                return daysLeft <= 7;
-              })
-              .slice(0, 2)
-              .map(petition => {
-                const daysLeft = Math.ceil((new Date(petition.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                return (
-                  <div key={petition.id} className="flex items-center p-3 dark:bg-green-900/30 bg-gray-100 rounded-lg">
-                    <div className="flex-1">
-                      <div className="text-base font-bold dark:text-green-100 text-gray-800">{petition.mp_name}</div>
-                      <div className="text-sm dark:text-green-200 text-gray-700">{daysLeft} days left</div>
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-4 pt-0">
+            <div className="mt-4 space-y-4">
+              {petitions
+                .filter(p => {
+                  const daysLeft = Math.ceil((new Date(p.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                  return daysLeft <= 7;
+                })
+                .slice(0, 3) // Show up to 3 petitions
+                .map(petition => {
+                  const daysLeft = Math.ceil((new Date(petition.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                  return (
+                    <div key={petition.id} className="flex items-center p-3 dark:bg-green-900/30 bg-gray-100 rounded-lg">
+                      <div className="flex-1">
+                        <div className="text-base font-bold dark:text-green-100 text-gray-800">{petition.mp_name}</div>
+                        <div className="text-sm dark:text-green-200 text-gray-700">{daysLeft} days left</div>
+                      </div>
+                      <Button 
+                        className="text-sm px-4 py-2 bg-green-600 hover:bg-green-700 text-white"
+                        onClick={() => handleJoinPetition(petition.id)}
+                      >
+                        Sign Now
+                      </Button>
                     </div>
-                    <Button 
-                      className="text-sm px-4 py-2 bg-green-600 hover:bg-green-700 text-white"
-                      onClick={() => handleJoinPetition(petition.id)}
-                    >
-                      Sign Now
-                    </Button>
-                  </div>
-                );
-              })}
+                  );
+                })}
+            </div>
           </div>
         </div>
       )
     },
-    // Square 4: Success Rate (formerly Urgent Deadlines)
+    // Square 4: Dashboard (swapped to this position - larger square)
+    {
+      color: "#001a00",
+      label: "Dashboard",
+      title: "Constitutional Compliance",
+      description: "Real-time monitoring",
+      customContent: (
+        <div className="h-full w-full flex flex-col">
+          <div className="card__header p-4">
+            <div className="card__label dark:text-green-300 text-gray-800">Dashboard</div>
+            <h2 className="card__title text-xl dark:text-green-100 text-gray-800 mt-2">Constitutional Compliance</h2>
+            <p className="card__description dark:text-green-200 text-gray-700">Real-time monitoring</p>
+          </div>
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-4 pt-0">
+            <div className="grid grid-cols-1 gap-4">
+              {petitions.slice(0, 3).map(petition => { // Show up to 3 petitions
+                const stats = petitionStats[petition.id];
+                const signatureProgress = stats ? (stats.current_signatures / petition.signature_target) * 100 : 0;
+                const wardProgress = stats ? (stats.wards_covered / petition.ward_target) * 100 : 0;
+                const daysLeft = Math.ceil((new Date(petition.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                
+                return (
+                  <div key={petition.id} className="space-y-4 p-4 dark:bg-green-900/20 bg-gray-50 rounded-xl">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-base dark:text-green-100 text-gray-800">{petition.mp_name}</h3>
+                      <Badge variant="outline" className="dark:border-green-500 border-gray-300 dark:text-green-300 text-gray-700">
+                        {petition.constituency}
+                      </Badge>
+                    </div>
+                    
+                    {/* Signature Progress */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm dark:text-green-200 text-gray-700">Signatures</span>
+                        <span className="text-sm font-bold dark:text-green-100 text-gray-800">
+                          {Math.round(signatureProgress)}%
+                        </span>
+                      </div>
+                      <div className="relative pt-1">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-xs font-semibold inline-block dark:text-green-200 text-gray-700">
+                              {stats?.current_signatures || 0} / {petition.signature_target}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200 dark:bg-green-800">
+                          <div 
+                            style={{ width: `${signatureProgress}%` }}
+                            className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500"
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Ward Distribution */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm dark:text-green-200 text-gray-700">Ward Coverage</span>
+                        <span className="text-sm font-bold dark:text-green-100 text-gray-800">
+                          {stats?.wards_covered || 0}/{petition.ward_target}
+                        </span>
+                      </div>
+                      <div className="relative pt-1">
+                        <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200 dark:bg-green-800">
+                          <div 
+                            style={{ width: `${wardProgress}%` }}
+                            className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Deadline */}
+                    <div className="flex items-center space-x-2">
+                      <Clock className="w-4 h-4 dark:text-green-300 text-gray-700" />
+                      <span className="text-sm dark:text-green-200 text-gray-700">
+                        {daysLeft} days remaining
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )
+    },
+    // Square 5: Success Rate (swapped to this position)
     {
       color: "#001a00",
       title: "0%",
@@ -209,91 +299,7 @@ const EnhancedPetitionDashboard = () => {
         </div>
       )
     },
-    // Square 5: Dashboard (formerly Avg. Compliance)
-    {
-      color: "#001a00",
-      label: "Dashboard",
-      title: "Constitutional Compliance",
-      description: "Real-time monitoring",
-      customContent: (
-        <div className="h-full w-full flex flex-col p-4">
-          <div className="card__header">
-            <div className="card__label dark:text-green-300 text-gray-800">Dashboard</div>
-          </div>
-          <div className="card__content flex-1 grid grid-cols-1 gap-4 mt-4">
-            {petitions.slice(0, 2).map(petition => {
-              const stats = petitionStats[petition.id];
-              const signatureProgress = stats ? (stats.current_signatures / petition.signature_target) * 100 : 0;
-              const wardProgress = stats ? (stats.wards_covered / petition.ward_target) * 100 : 0;
-              const daysLeft = Math.ceil((new Date(petition.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-              
-              return (
-                <div key={petition.id} className="space-y-4 p-4 dark:bg-green-900/20 bg-gray-50 rounded-xl">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-base dark:text-green-100 text-gray-800">{petition.mp_name}</h3>
-                    <Badge variant="outline" className="dark:border-green-500 border-gray-300 dark:text-green-300 text-gray-700">
-                      {petition.constituency}
-                    </Badge>
-                  </div>
-                  
-                  {/* Signature Progress */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm dark:text-green-200 text-gray-700">Signatures</span>
-                      <span className="text-sm font-bold dark:text-green-100 text-gray-800">
-                        {Math.round(signatureProgress)}%
-                      </span>
-                    </div>
-                    <div className="relative pt-1">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="text-xs font-semibold inline-block dark:text-green-200 text-gray-700">
-                            {stats?.current_signatures || 0} / {petition.signature_target}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200 dark:bg-green-800">
-                        <div 
-                          style={{ width: `${signatureProgress}%` }}
-                          className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500"
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Ward Distribution */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm dark:text-green-200 text-gray-700">Ward Coverage</span>
-                      <span className="text-sm font-bold dark:text-green-100 text-gray-800">
-                        {stats?.wards_covered || 0}/{petition.ward_target}
-                      </span>
-                    </div>
-                    <div className="relative pt-1">
-                      <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200 dark:bg-green-800">
-                        <div 
-                          style={{ width: `${wardProgress}%` }}
-                          className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Deadline */}
-                  <div className="flex items-center space-x-2">
-                    <Clock className="w-4 h-4 dark:text-green-300 text-gray-700" />
-                    <span className="text-sm dark:text-green-200 text-gray-700">
-                      {daysLeft} days remaining
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )
-    },
-    // Square 6: Avg. Compliance (formerly Dashboard)
+    // Square 6: Avg. Compliance
     {
       color: "#001a00",
       title: `${Math.round(overallStats.averageCompliance)}%`,
@@ -318,7 +324,24 @@ const EnhancedPetitionDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 px-4">
-      {/* MagicBento Dashboard with border styling */}
+      <style jsx>{`
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: #4ade80 transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: #4ade80;
+          border-radius: 3px;
+        }
+      `}</style>
+      
+      {/* MagicBento Dashboard */}
       <MagicBento 
         cardData={bentoData}
         textAutoHide={true}
