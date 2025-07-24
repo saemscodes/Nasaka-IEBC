@@ -10,9 +10,27 @@ const ModernFooter = () => {
           {/* Brand Section */}
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <Shield className="w-6 h-6 text-white" />
-              </div>
+              <div className="w-10 h-10 flex items-center justify-center relative">
+              <link rel="preload" href="/logo_green.png" as="image" />
+              <link rel="preload" href="/logo_white.png" as="image" />
+              
+              <motion.img 
+                src="/logo_green.png"
+                alt="Recall254 Logo Light"
+                className="w-10 h-10 object-cover rounded-full absolute"
+                variants={logoVariants}
+                initial="light"
+                animate={darkMode ? "dark" : "light"}
+              />
+              <motion.img 
+                src="/logo_white.png"
+                alt="Recall254 Logo Dark"
+                className="w-10 h-10 object-cover rounded-full absolute"
+                variants={logoVariantsDark}
+                initial="light"
+                animate={darkMode ? "dark" : "light"}
+              />
+            </div>
               <div>
                 <h3 className="text-xl font-bold">Recall254</h3>
                 <p className="text-green-100 text-sm">Not For GenZ, For Kenya</p>
