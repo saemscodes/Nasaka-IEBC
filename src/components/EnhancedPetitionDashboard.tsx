@@ -208,7 +208,7 @@ const handleCreatePetition = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-3">
-              <h4 className="font-semibold text-kenya-black">Signature Thresholds</h4>
+              <h4 className="font-semibold text-kenya-black dark:text-kenya-green">Signature Thresholds</h4>
               <div className="space-y-2">
                 {petitions.slice(0, 3).map(petition => {
                   const stats = petitionStats[petition.id];
