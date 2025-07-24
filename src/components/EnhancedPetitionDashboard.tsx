@@ -138,7 +138,7 @@ const EnhancedPetitionDashboard = () => {
       customContent: (
         <div className="h-full w-full flex flex-col items-center justify-center p-4">
           <div className="text-4xl font-bold dark:text-green-300 text-green-300">{overallStats.totalPetitions}</div>
-          <div className="text-lg dark:text-green-200 text-green-200 mt-2">Active Petitions</div>
+          <div className="text-lg dark:text-green-300 text-green-300 mt-2">Active Petitions</div>
         </div>
       )
     },
@@ -151,7 +151,7 @@ const EnhancedPetitionDashboard = () => {
       customContent: (
         <div className="h-full w-full flex flex-col items-center justify-center p-4">
           <div className="text-4xl font-bold dark:text-green-300 text-green-300">{overallStats.totalSignatures.toLocaleString()}</div>
-          <div className="text-lg dark:text-green-200 text-green-200 mt-2">Total Signatures</div>
+          <div className="text-lg dark:text-green-300 text-green-300 mt-2">Total Signatures</div>
         </div>
       )
     },
@@ -295,7 +295,7 @@ const EnhancedPetitionDashboard = () => {
       customContent: (
         <div className="h-full w-full flex flex-col items-center justify-center p-4">
           <div className="text-4xl font-bold dark:text-green-300 text-green-300">0%</div>
-          <div className="text-lg dark:text-green-200 text-green-200 mt-2">Success Rate</div>
+          <div className="text-lg dark:text-green-300 text-green-300 mt-2">Success Rate</div>
         </div>
       )
     },
