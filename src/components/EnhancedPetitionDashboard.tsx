@@ -130,28 +130,52 @@ const EnhancedPetitionDashboard = () => {
   // Prepare MagicBento data with green theme
   const bentoData = [
     {
-      color: "#001a00", // Dark green
+      color: "#001a00",
       title: overallStats.totalPetitions.toString(),
       description: "Active Petitions",
       label: "Live",
+      customContent: (
+        <div className="h-full w-full flex flex-col items-center justify-center">
+          <div className="text-4xl font-bold text-green-300">{overallStats.totalPetitions}</div>
+          <div className="text-lg text-green-200 mt-2">Active Petitions</div>
+        </div>
+      )
     },
     {
       color: "#001a00",
       title: overallStats.totalSignatures.toLocaleString(),
       description: "Total Signatures",
       label: "Support",
+      customContent: (
+        <div className="h-full w-full flex flex-col items-center justify-center">
+          <div className="text-4xl font-bold text-green-300">{overallStats.totalSignatures.toLocaleString()}</div>
+          <div className="text-lg text-green-200 mt-2">Total Signatures</div>
+        </div>
+      )
     },
     {
       color: "#001a00",
       title: `${Math.round(overallStats.averageCompliance)}%`,
       description: "Avg. Compliance",
       label: "Progress",
+      customContent: (
+        <div className="h-full w-full flex flex-col items-center justify-center">
+          <div className="text-4xl font-bold text-green-300">{Math.round(overallStats.averageCompliance)}%</div>
+          <div className="text-lg text-green-200 mt-2">Avg. Compliance</div>
+        </div>
+      )
     },
     {
       color: "#001a00",
       title: "0%",
       description: "Success Rate",
       label: "Achievement",
+      customContent: (
+        <div className="h-full w-full flex flex-col items-center justify-center">
+          <div className="text-4xl font-bold text-green-300">0%</div>
+          <div className="text-lg text-green-200 mt-2">Success Rate</div>
+        </div>
+      )
     },
     {
       color: "#001a00",
@@ -161,22 +185,22 @@ const EnhancedPetitionDashboard = () => {
       customContent: (
         <div className="h-full w-full flex flex-col">
           <div className="card__header">
-            <div className="card__label">Dashboard</div>
+            <div className="card__label text-green-300">Dashboard</div>
           </div>
           <div className="card__content flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 p-2">
             <div className="space-y-3">
-              <h4 className="font-semibold text-sm text-green-100">Signature Thresholds</h4>
-              <div className="space-y-2">
+              <h4 className="font-semibold text-base text-green-100">Signature Thresholds</h4>
+              <div className="space-y-3">
                 {petitions.slice(0, 2).map(petition => {
                   const stats = petitionStats[petition.id];
                   const progress = stats ? (stats.current_signatures / petition.signature_target) * 100 : 0;
                   return (
                     <div key={petition.id} className="flex items-center space-x-3">
-                      <div className="w-3 h-3 rounded-full" style={{
+                      <div className="w-4 h-4 rounded-full" style={{
                         backgroundColor: progress >= 30 ? '#00cc00' : progress >= 15 ? '#66cc00' : '#cc9900'
                       }}></div>
-                      <span className="text-xs flex-1 text-green-100">{petition.mp_name}</span>
-                      <span className="text-xs font-mono text-green-100">{Math.round(progress)}%</span>
+                      <span className="text-sm flex-1 text-green-100">{petition.mp_name}</span>
+                      <span className="text-sm font-bold text-green-100">{Math.round(progress)}%</span>
                     </div>
                   );
                 })}
@@ -184,18 +208,18 @@ const EnhancedPetitionDashboard = () => {
             </div>
             
             <div className="space-y-3">
-              <h4 className="font-semibold text-sm text-green-100">Ward Distribution</h4>
-              <div className="space-y-2">
+              <h4 className="font-semibold text-base text-green-100">Ward Distribution</h4>
+              <div className="space-y-3">
                 {petitions.slice(0, 2).map(petition => {
                   const stats = petitionStats[petition.id];
                   const wardProgress = stats ? (stats.wards_covered / petition.ward_target) * 100 : 0;
                   return (
                     <div key={petition.id} className="flex items-center space-x-3">
-                      <div className="w-3 h-3 rounded-full" style={{
+                      <div className="w-4 h-4 rounded-full" style={{
                         backgroundColor: wardProgress >= 50 ? '#00cc00' : wardProgress >= 25 ? '#66cc00' : '#cc9900'
                       }}></div>
-                      <span className="text-xs flex-1 text-green-100">{petition.constituency}</span>
-                      <span className="text-xs font-mono text-green-100">{stats?.wards_covered || 0}/{petition.ward_target}</span>
+                      <span className="text-sm flex-1 text-green-100">{petition.constituency}</span>
+                      <span className="text-sm font-bold text-green-100">{stats?.wards_covered || 0}/{petition.ward_target}</span>
                     </div>
                   );
                 })}
@@ -203,17 +227,17 @@ const EnhancedPetitionDashboard = () => {
             </div>
             
             <div className="space-y-3">
-              <h4 className="font-semibold text-sm text-green-100">Legal Deadlines</h4>
-              <div className="space-y-2">
+              <h4 className="font-semibold text-base text-green-100">Legal Deadlines</h4>
+              <div className="space-y-3">
                 {petitions.slice(0, 2).map(petition => {
                   const daysLeft = Math.ceil((new Date(petition.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                   return (
                     <div key={petition.id} className="flex items-center space-x-3">
-                      <div className="w-3 h-3 rounded-full" style={{
+                      <div className="w-4 h-4 rounded-full" style={{
                         backgroundColor: daysLeft > 14 ? '#00cc00' : daysLeft > 7 ? '#66cc00' : '#cc9900'
                       }}></div>
-                      <span className="text-xs flex-1 text-green-100">{petition.mp_name}</span>
-                      <span className="text-xs font-mono text-green-100">{daysLeft}d</span>
+                      <span className="text-sm flex-1 text-green-100">{petition.mp_name}</span>
+                      <span className="text-sm font-bold text-green-100">{daysLeft}d</span>
                     </div>
                   );
                 })}
@@ -231,12 +255,12 @@ const EnhancedPetitionDashboard = () => {
       customContent: (
         <div className="h-full w-full flex flex-col">
           <div className="card__header">
-            <div className="card__label">Urgent</div>
+            <div className="card__label text-green-300">Urgent</div>
           </div>
           <div className="card__content flex-1">
-            <h2 className="card__title text-green-100">Deadlines</h2>
+            <h2 className="card__title text-xl text-green-100">Deadlines</h2>
             <p className="card__description text-green-200">Petitions nearing deadline</p>
-            <div className="mt-4 space-y-3">
+            <div className="mt-4 space-y-4">
               {petitions
                 .filter(p => {
                   const daysLeft = Math.ceil((new Date(p.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
@@ -246,13 +270,13 @@ const EnhancedPetitionDashboard = () => {
                 .map(petition => {
                   const daysLeft = Math.ceil((new Date(petition.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                   return (
-                    <div key={petition.id} className="flex items-center">
+                    <div key={petition.id} className="flex items-center p-3 bg-green-900/30 rounded-lg">
                       <div className="flex-1">
-                        <div className="text-xs font-bold text-green-100">{petition.mp_name}</div>
-                        <div className="text-xs text-green-200">{daysLeft} days left</div>
+                        <div className="text-base font-bold text-green-100">{petition.mp_name}</div>
+                        <div className="text-sm text-green-200">{daysLeft} days left</div>
                       </div>
                       <Button 
-                        className="text-xs p-1 bg-green-600 hover:bg-green-700 text-white"
+                        className="text-sm px-4 py-2 bg-green-600 hover:bg-green-700 text-white"
                         onClick={() => handleJoinPetition(petition.id)}
                       >
                         Sign Now
@@ -276,7 +300,7 @@ const EnhancedPetitionDashboard = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
+    <div className="max-w-7xl mx-auto space-y-8 px-4">
       {/* MagicBento Dashboard */}
       <MagicBento 
         cardData={bentoData}
@@ -293,40 +317,40 @@ const EnhancedPetitionDashboard = () => {
       />
 
       {/* Petition Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4 gap-1 h-auto p-1">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-12">
+        <TabsList className="grid w-full grid-cols-4 gap-2 h-auto p-1 bg-green-900/20 rounded-xl">
           <TabsTrigger 
             value="active" 
-            className="text-base sm:text-sm px-2 py-2 sm:px-4 sm:py-2 whitespace-nowrap"
+            className="text-base px-4 py-3 data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-lg"
           >
             <span className="hidden sm:inline">Active Petitions</span>
             <span className="sm:hidden">Active</span>
           </TabsTrigger>
           <TabsTrigger 
             value="urgent" 
-            className="text-base sm:text-sm px-2 py-2 sm:px-4 sm:py-2 whitespace-nowrap"
+            className="text-base px-4 py-3 data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-lg"
           >
             <span className="hidden sm:inline">Urgent Deadlines</span>
             <span className="sm:hidden">Urgent</span>
           </TabsTrigger>
           <TabsTrigger 
             value="successful" 
-            className="text-base sm:text-sm px-2 py-2 sm:px-4 sm:py-2 whitespace-nowrap"
+            className="text-base px-4 py-3 data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-lg"
           >
             <span className="hidden sm:inline">Near Success</span>
             <span className="sm:hidden">Incomplete</span>
           </TabsTrigger>
           <TabsTrigger 
             value="create" 
-            className="text-base sm:text-sm px-2 py-2 sm:px-4 sm:py-2 whitespace-nowrap"
+            className="text-base px-4 py-3 data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-lg"
           >
-            <span className="hidden sm:inline">Start New Petition</span>
+            <span className="hidden sm:inline">Start New</span>
             <span className="sm:hidden">New</span>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="active" className="mt-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {petitions.map(petition => (
               <PetitionCard 
                 key={petition.id} 
@@ -342,31 +366,33 @@ const EnhancedPetitionDashboard = () => {
         </TabsContent>
 
         <TabsContent value="urgent" className="mt-8">
-          <div className="space-y-4">
+          <div className="space-y-6">
             {petitions
               .filter(p => {
                 const daysLeft = Math.ceil((new Date(p.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                 return daysLeft <= 7;
               })
               .map(petition => (
-                <div key={petition.id} className="border-2 border-green-500/30 rounded-lg p-4 bg-green-900/10">
+                <div key={petition.id} className="border-2 border-green-500/30 rounded-xl p-6 bg-green-900/10">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xl font-bold text-green-200">{petition.mp_name} - {petition.constituency}</h3>
-                    <Badge className="bg-green-600 text-white">
-                      URGENT
+                    <Badge className="bg-red-600 text-white px-3 py-1 text-sm">
+                      URGENT • {Math.ceil((new Date(petition.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} DAYS LEFT
                     </Badge>
                   </div>
-                  <p className="text-green-300 mb-4">{petition.description}</p>
-                  <Button className="bg-green-600 hover:bg-green-700 text-white">
-                    Sign Now - Deadline Approaching
-                  </Button>
+                  <p className="text-green-300 mb-6 text-lg">{petition.description}</p>
+                  <div className="flex justify-center">
+                    <Button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base">
+                      Sign Now - Deadline Approaching
+                    </Button>
+                  </div>
                 </div>
               ))}
           </div>
         </TabsContent>
 
         <TabsContent value="successful" className="mt-8">
-          <div className="space-y-4">
+          <div className="space-y-6">
             {petitions
               .filter(p => {
                 const stats = petitionStats[p.id];
@@ -377,20 +403,28 @@ const EnhancedPetitionDashboard = () => {
                 const stats = petitionStats[petition.id];
                 const progress = stats ? (stats.current_signatures / petition.signature_target) * 100 : 0;
                 return (
-                  <div key={petition.id} className="border-2 border-green-500/30 rounded-lg p-4 bg-green-900/10">
+                  <div key={petition.id} className="border-2 border-green-500/30 rounded-xl p-6 bg-green-900/10">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-xl font-bold text-green-200">{petition.mp_name} - {petition.constituency}</h3>
-                      <Badge className="bg-green-600 text-white">
-                        {Math.round(progress)}% Complete
+                      <Badge className="bg-green-600 text-white px-3 py-1 text-sm">
+                        {Math.round(progress)}% COMPLETE
                       </Badge>
                     </div>
-                    <Progress value={progress} className="mb-4 bg-green-800" indicatorClassName="bg-green-500" />
-                    <p className="text-green-300 mb-4">
+                    <div className="mb-6">
+                      <div className="flex justify-between text-green-300 mb-1">
+                        <span>Progress</span>
+                        <span>{stats?.current_signatures || 0}/{petition.signature_target} signatures</span>
+                      </div>
+                      <Progress value={progress} className="h-3 bg-green-800" indicatorClassName="bg-green-500" />
+                    </div>
+                    <p className="text-green-300 mb-6 text-lg">
                       This petition is making excellent progress! Help push it over the constitutional threshold.
                     </p>
-                    <Button className="bg-green-600 hover:bg-green-700 text-white">
-                      Join the Movement
-                    </Button>
+                    <div className="flex justify-center">
+                      <Button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base">
+                        Join the Movement
+                      </Button>
+                    </div>
                   </div>
                 );
               })}
@@ -398,37 +432,51 @@ const EnhancedPetitionDashboard = () => {
         </TabsContent>
 
         <TabsContent value="create" className="mt-8">
-          <div className="border-2 border-green-500/30 rounded-lg p-6 bg-green-900/10">
-            <h2 className="text-2xl font-bold text-green-200 flex items-center mb-4">
+          <div className="border-2 border-green-500/30 rounded-xl p-8 bg-green-900/10">
+            <h2 className="text-2xl font-bold text-green-200 flex items-center mb-6 justify-center">
               <CheckCircle className="w-6 h-6 mr-3 text-green-400" />
               Start a New Recall Petition
             </h2>
-            <p className="text-green-300 mb-6">
+            <p className="text-green-300 mb-8 text-lg text-center">
               Initiate a constitutionally compliant MP recall petition with full legal documentation
             </p>
             
-            <div className="space-y-6">
-              <div className="border border-green-500/50 rounded-lg p-4 bg-green-900/20">
+            <div className="space-y-8 max-w-3xl mx-auto">
+              <div className="border border-green-500/50 rounded-xl p-6 bg-green-900/20">
                 <div className="flex items-start">
-                  <AlertTriangle className="w-5 h-5 text-green-400 mr-3 mt-0.5" />
+                  <AlertTriangle className="w-6 h-6 text-green-400 mr-4 mt-1" />
                   <div>
-                    <h4 className="font-semibold text-green-200 mb-2">Legal Requirements</h4>
-                    <ul className="text-green-300 space-y-1">
-                      <li>• Must have substantial grounds (Chapter 6, funds misuse, or electoral crime)</li>
-                      <li>• Requires supporting legal documentation</li>
-                      <li>• 30-day collection period with constitutional thresholds</li>
-                      <li>• Geographic distribution across 50% of wards</li>
+                    <h4 className="font-bold text-green-200 mb-3 text-lg">Legal Requirements</h4>
+                    <ul className="text-green-300 space-y-2 text-base">
+                      <li className="flex items-start">
+                        <span className="mr-2">•</span>
+                        Must have substantial grounds (Chapter 6, funds misuse, or electoral crime)
+                      </li>
+                      <li className="flex items-start">
+                        <span className="mr-2">•</span>
+                        Requires supporting legal documentation
+                      </li>
+                      <li className="flex items-start">
+                        <span className="mr-2">•</span>
+                        30-day collection period with constitutional thresholds
+                      </li>
+                      <li className="flex items-start">
+                        <span className="mr-2">•</span>
+                        Geographic distribution across 50% of wards
+                      </li>
                     </ul>
                   </div>
                 </div>
               </div>
 
-              <Button className="w-full bg-green-600 hover:bg-green-700 text-white py-3"
-                onClick={handleCreatePetition}
-              >
-                <FileText className="w-5 h-5 mr-2" />
-                Begin Petition Creation Wizard
-              </Button>
+              <div className="flex justify-center">
+                <Button className="w-full max-w-md bg-green-600 hover:bg-green-700 text-white py-4 text-lg"
+                  onClick={handleCreatePetition}
+                >
+                  <FileText className="w-5 h-5 mr-2" />
+                  Begin Petition Creation Wizard
+                </Button>
+              </div>
             </div>
           </div>
         </TabsContent>
