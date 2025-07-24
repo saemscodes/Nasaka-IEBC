@@ -227,7 +227,7 @@ const handleCreatePetition = () => {
             </div>
 
             <div className="space-y-3">
-              <h4 className="font-semibold text-kenya-black">Ward Distribution</h4>
+              <h4 className="font-semibold text-kenya-black dark:text-kenya-green">Ward Distribution</h4>
               <div className="space-y-2">
                 {petitions.slice(0, 3).map(petition => {
                   const stats = petitionStats[petition.id];
@@ -246,7 +246,7 @@ const handleCreatePetition = () => {
             </div>
 
             <div className="space-y-3">
-              <h4 className="font-semibold text-kenya-black">Legal Deadlines</h4>
+              <h4 className="font-semibold text-kenya-black dark:text-kenya-green">Legal Deadlines</h4>
               <div className="space-y-2">
                 {petitions.slice(0, 3).map(petition => {
                   const daysLeft = Math.ceil((new Date(petition.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
