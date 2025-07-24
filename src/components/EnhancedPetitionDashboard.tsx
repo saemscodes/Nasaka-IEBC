@@ -433,21 +433,21 @@ const EnhancedPetitionDashboard = () => {
 
         <TabsContent value="create" className="mt-8">
           <div className="border-2 border-green-500/30 rounded-xl p-8 bg-green-900/10">
-            <h2 className="text-2xl font-bold text-green-200 flex items-center mb-6 justify-center">
-              <CheckCircle className="w-6 h-6 mr-3 text-green-400" />
+            <h2 className="text-2xl font-bold text-kenya-black flex items-center mb-6 justify-center">
+              <CheckCircle className="w-6 h-6 mr-3 text-green-900" />
               Start a New Recall Petition
             </h2>
-            <p className="text-green-300 mb-8 text-lg text-center">
+            <p className="text-kenya-black mb-8 text-lg text-center">
               Initiate a constitutionally compliant MP recall petition with full legal documentation
             </p>
             
             <div className="space-y-8 max-w-3xl mx-auto">
               <div className="border border-green-500/50 rounded-xl p-6 bg-green-900/20">
                 <div className="flex items-start">
-                  <AlertTriangle className="w-6 h-6 text-green-400 mr-4 mt-1" />
+                  <AlertTriangle className="w-6 h-6 text-green-900 mr-4 mt-1" />
                   <div>
-                    <h4 className="font-bold text-green-200 mb-3 text-lg">Legal Requirements</h4>
-                    <ul className="text-green-300 space-y-2 text-base">
+                    <h4 className="font-bold text-kenya-black mb-3 text-lg">Legal Requirements</h4>
+                    <ul className="text-kenya-black space-y-2 text-base">
                       <li className="flex items-start">
                         <span className="mr-2">•</span>
                         Must have substantial grounds (Chapter 6, funds misuse, or electoral crime)
