@@ -171,7 +171,8 @@ const PetitionCard = ({ petition, onJoinPetition }: PetitionCardProps) => {
               className="flex-1 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white"
             >
               <Users className="w-4 h-4 mr-2" />
-              Sign Petition
+              <span className="hidden sm:inline">Sign Petition</span>
+              <span className="sm:hidden">Sign</span>
             </Button>
           </div>
         </CardContent>
