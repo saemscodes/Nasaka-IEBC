@@ -137,8 +137,8 @@ const EnhancedPetitionDashboard = () => {
       label: "Live",
       customContent: (
         <div className="h-full w-full flex flex-col items-center justify-center p-4">
-          <div className="text-4xl font-bold dark:text-green-300 text-gray-800">{overallStats.totalPetitions}</div>
-          <div className="text-lg dark:text-green-200 text-gray-700 mt-2">Active Petitions</div>
+          <div className="text-4xl font-bold dark:text-green-300 text-green-300">{overallStats.totalPetitions}</div>
+          <div className="text-lg dark:text-green-200 text-green-200 mt-2">Active Petitions</div>
         </div>
       )
     },
@@ -150,8 +150,8 @@ const EnhancedPetitionDashboard = () => {
       label: "Support",
       customContent: (
         <div className="h-full w-full flex flex-col items-center justify-center p-4">
-          <div className="text-4xl font-bold dark:text-green-300 text-gray-800">{overallStats.totalSignatures.toLocaleString()}</div>
-          <div className="text-lg dark:text-green-200 text-gray-700 mt-2">Total Signatures</div>
+          <div className="text-4xl font-bold dark:text-green-300 text-green-300">{overallStats.totalSignatures.toLocaleString()}</div>
+          <div className="text-lg dark:text-green-200 text-green-200 mt-2">Total Signatures</div>
         </div>
       )
     },
@@ -164,9 +164,9 @@ const EnhancedPetitionDashboard = () => {
       customContent: (
         <div className="h-full w-full flex flex-col">
           <div className="card__header p-4">
-            <div className="card__label dark:text-green-300 text-gray-800">Urgent</div>
-            <h2 className="card__title text-xl dark:text-green-100 text-gray-800 mt-2">Deadlines</h2>
-            <p className="card__description dark:text-green-200 text-gray-700">Petitions nearing deadline</p>
+            <div className="card__label dark:text-green-300 text-green-300">Urgent</div>
+            <h2 className="card__title text-xl dark:text-green-100 text-green-100 mt-2">Deadlines</h2>
+            <p className="card__description dark:text-green-200 text-green-200">Petitions nearing deadline</p>
           </div>
           <div className="flex-1 overflow-y-auto custom-scrollbar p-4 pt-0">
             <div className="mt-4 space-y-4">
@@ -181,8 +181,8 @@ const EnhancedPetitionDashboard = () => {
                   return (
                     <div key={petition.id} className="flex items-center p-3 dark:bg-green-900/30 bg-gray-100 rounded-lg">
                       <div className="flex-1">
-                        <div className="text-base font-bold dark:text-green-100 text-gray-800">{petition.mp_name}</div>
-                        <div className="text-sm dark:text-green-200 text-gray-700">{daysLeft} days left</div>
+                        <div className="text-base font-bold dark:text-green-100 text-green-100">{petition.mp_name}</div>
+                        <div className="text-sm dark:text-green-200 text-green-200">{daysLeft} days left</div>
                       </div>
                       <Button 
                         className="text-sm px-4 py-2 bg-green-600 hover:bg-green-700 text-white"
@@ -207,9 +207,9 @@ const EnhancedPetitionDashboard = () => {
       customContent: (
         <div className="h-full w-full flex flex-col">
           <div className="card__header p-4">
-            <div className="card__label dark:text-green-300 text-gray-800">Dashboard</div>
-            <h2 className="card__title text-xl dark:text-green-100 text-gray-800 mt-2">Constitutional Compliance</h2>
-            <p className="card__description dark:text-green-200 text-gray-700">Real-time monitoring</p>
+            <div className="card__label dark:text-green-300 text-green-300">Dashboard</div>
+            <h2 className="card__title text-xl dark:text-green-100 text-green-100 mt-2">Constitutional Compliance</h2>
+            <p className="card__description dark:text-green-200 text-green-200">Real-time monitoring</p>
           </div>
           <div className="flex-1 overflow-y-auto custom-scrollbar p-4 pt-0">
             <div className="grid grid-cols-1 gap-4">
@@ -244,7 +244,7 @@ const EnhancedPetitionDashboard = () => {
                             </span>
                           </div>
                         </div>
-                        <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-green-800 dark:bg-green-800">
+                        <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-green-800 dark:bg-white">
                           <div 
                             style={{ width: `${signatureProgress}%` }}
                             className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500"
