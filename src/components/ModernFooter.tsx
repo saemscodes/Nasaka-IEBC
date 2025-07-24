@@ -1,101 +1,54 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Shield, Phone, CheckCircle, Scale } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+// Define logo animation variants
+const logoVariants = {
+  light: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.6
+    }
+  },
+  dark: {
+    opacity: 0,
+    scale: 0.95,
+    transition: {
+      duration: 0.6
+    }
+  }
+};
+
+const logoVariantsDark = {
+  light: {
+    opacity: 0,
+    scale: 0.95,
+    transition: {
+      duration: 0.6
+    }
+  },
+  dark: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.6
+    }
+  }
+};
 
 interface ModernFooterProps {
   darkMode?: boolean;
-  scrollToTab: (tabId: string) => void;
 }
 
-const ModernFooter: React.FC<ModernFooterProps> = ({ 
-  darkMode = false,
-  scrollToTab 
-}) => {
-  // Define logo animation variants
-  const logoVariants = {
-    light: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.6
-      }
-    },
-    dark: {
-      opacity: 0,
-      scale: 0.95,
-      transition: {
-        duration: 0.6
-      }
-    }
-  };
 
-  const logoVariantsDark = {
-    light: {
-      opacity: 0,
-      scale: 0.95,
-      transition: {
-        duration: 0.6
-      }
-    },
-    dark: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.6
-      }
-    }
-  };
-
-  // Define legal navigation items with their targets
-  const legalNavigationItems = [
-    { 
-      id: 'constitution', 
-      label: 'Constitution Article 104',
-      target: 'legal'  // All point to the Legal tab
-    },
-    { 
-      id: 'kica', 
-      label: 'KICA §83C (Digital Signatures)',
-      target: 'legal'
-    },
-    { 
-      id: 'elections', 
-      label: 'Elections Act 2011',
-      target: 'legal'
-    },
-    { 
-      id: 'katiba', 
-      label: 'Katiba Institute Ruling',
-      target: 'legal'
-    }
-  ];
-  
-  // Handle navigation for legal items
-  const handleLegalNavigation = (item: typeof legalNavigationItems[0]) => {
-    // First, switch to the legal tab
-    scrollToTab(item.target);
-    
-    // Then, after a delay, scroll to the specific section
-    setTimeout(() => {
-      const section = document.getElementById(item.id);
-      if (section) {
-        const header = document.querySelector('header');
-        const headerHeight = header?.clientHeight || 64;
-        const sectionTop = section.getBoundingClientRect().top + window.pageYOffset;
-        window.scrollTo({ 
-          top: sectionTop - headerHeight - 20, 
-          behavior: 'smooth' 
-        });
-      }
-    }, 300);
-  };
-
+const ModernFooter: React.FC<ModernFooterProps> = ({ darkMode = false }) => {
   return (
     <footer className="bg-gradient-to-br from-green-900 to-green-800 text-white">
       {/* Main Footer Content */}
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Brand Section */}
+          {/* Brand Section - Updated Logo */}
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 flex items-center justify-center relative">
@@ -137,19 +90,21 @@ const ModernFooter: React.FC<ModernFooterProps> = ({
               Legal Framework
             </h4>
             <div className="space-y-2 text-sm">
-              {legalNavigationItems.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => handleLegalNavigation(item)}
-                  className="block text-green-100 hover:text-white transition-colors cursor-pointer"
-                >
-                  {item.label}
-                </div>
-              ))}
+              <a href="#" className="block text-green-100 hover:text-white transition-colors">
+                Constitution Article 104
+              </a>
+              <a href="#legal" className="block text-green-100 hover:text-white transition-colors">
+                KICA §83C (Digital Signatures)
+              </a>
+              <a href="#legal" className="block text-green-100 hover:text-white transition-colors">
+                Elections Act 2011
+              </a>
+              <a href="#legal" className="block text-green-100 hover:text-white transition-colors">
+                Katiba Institute Ruling
+              </a>
             </div>
           </div>
 
-          {/* Access Methods */}
           <div className="space-y-4">
             <h4 className="text-lg font-semibold flex items-center">
               <Phone className="w-5 h-5 mr-2" />
@@ -167,7 +122,6 @@ const ModernFooter: React.FC<ModernFooterProps> = ({
             </div>
           </div>
 
-          {/* Compliance & Security */}
           <div className="space-y-4">
             <h4 className="text-lg font-semibold flex items-center">
               <CheckCircle className="w-5 h-5 mr-2" />
