@@ -1,7 +1,6 @@
 import React from 'react';
-import { Shield, Phone, CheckCircle, Scale } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Button } from "@/components/ui/button"; // Import Button component
+import { Shield, Phone, CheckCircle, Scale } from 'lucide-react';
 
 // Define logo animation variants
 const logoVariants = {
@@ -40,16 +39,14 @@ const logoVariantsDark = {
 
 interface ModernFooterProps {
   darkMode?: boolean;
-scrollToTab: (tabId: string) => void; // Add scrollToTab prop
+  scrollToTab: (tabId: string) => void;
 }
-
 
 const ModernFooter: React.FC<ModernFooterProps> = ({ 
   darkMode = false,
   scrollToTab 
 }) => {
-
-    // Define legal navigation items
+  // Define legal navigation items with their targets
   const legalNavigationItems = [
     { 
       id: 'constitution', 
@@ -72,7 +69,7 @@ const ModernFooter: React.FC<ModernFooterProps> = ({
       target: 'legal'
     }
   ];
-
+  
   // Handle navigation for legal items
   const handleLegalNavigation = (target: string) => {
     scrollToTab(target);
@@ -88,13 +85,13 @@ const ModernFooter: React.FC<ModernFooterProps> = ({
       }
     }, 300);
   };
-  
+
   return (
     <footer className="bg-gradient-to-br from-green-900 to-green-800 text-white">
       {/* Main Footer Content */}
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Brand Section - Updated Logo */}
+          {/* Brand Section */}
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 flex items-center justify-center relative">
@@ -129,7 +126,7 @@ const ModernFooter: React.FC<ModernFooterProps> = ({
             </p>
           </div>
 
-          {/* Legal Framework - Updated with navigation */}
+          {/* Legal Framework */}
           <div className="space-y-4">
             <h4 className="text-lg font-semibold flex items-center">
               <Scale className="w-5 h-5 mr-2" />
@@ -137,19 +134,13 @@ const ModernFooter: React.FC<ModernFooterProps> = ({
             </h4>
             <div className="space-y-2 text-sm">
               {legalNavigationItems.map((item) => (
-                <Button
+                <div
                   key={item.id}
-                  variant="ghost"
-                  size="sm"
                   onClick={() => handleLegalNavigation(item.target)}
-                  className={`w-full justify-start px-0 text-left transition-colors duration-300 ${
-                    darkMode 
-                      ? 'text-green-100 hover:text-white bg-transparent' 
-                      : 'text-green-100 hover:text-white bg-transparent'
-                  }`}
+                  className="block text-green-100 hover:text-white transition-colors cursor-pointer"
                 >
                   {item.label}
-                </Button>
+                </div>
               ))}
             </div>
           </div>
