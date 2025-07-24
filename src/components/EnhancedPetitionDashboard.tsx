@@ -256,7 +256,7 @@ const EnhancedPetitionDashboard = () => {
                     {/* Ward Distribution */}
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-sm dark:text-green-200 text-gray-700">Ward Coverage</span>
+                        <span className="text-sm dark:text-green-200 text-green-200">Ward Coverage</span>
                         <span className="text-sm font-bold dark:text-green-100 text-gray-800">
                           {stats?.wards_covered || 0}/{petition.ward_target}
                         </span>
