@@ -1,6 +1,7 @@
 import React from 'react';
 import { Shield, Phone, CheckCircle, Scale } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Button } from "@/components/ui/button"; // Import Button component
 
 // Define logo animation variants
 const logoVariants = {
@@ -39,10 +40,55 @@ const logoVariantsDark = {
 
 interface ModernFooterProps {
   darkMode?: boolean;
+scrollToTab: (tabId: string) => void; // Add scrollToTab prop
 }
 
 
-const ModernFooter: React.FC<ModernFooterProps> = ({ darkMode = false }) => {
+const ModernFooter: React.FC<ModernFooterProps> = ({ 
+  darkMode = false,
+  scrollToTab 
+}) => {
+
+    // Define legal navigation items
+  const legalNavigationItems = [
+    { 
+      id: 'constitution', 
+      label: 'Constitution Article 104',
+      target: 'legal'
+    },
+    { 
+      id: 'kica', 
+      label: 'KICA §83C (Digital Signatures)',
+      target: 'legal'
+    },
+    { 
+      id: 'elections', 
+      label: 'Elections Act 2011',
+      target: 'legal'
+    },
+    { 
+      id: 'katiba', 
+      label: 'Katiba Institute Ruling',
+      target: 'legal'
+    }
+  ];
+
+  // Handle navigation for legal items
+  const handleLegalNavigation = (target: string) => {
+    scrollToTab(target);
+    
+    // Scroll to top of section with header offset
+    setTimeout(() => {
+      const section = document.querySelector(`#${target}`);
+      if (section) {
+        const header = document.querySelector('header');
+        const headerHeight = header?.clientHeight || 64;
+        const sectionTop = section.getBoundingClientRect().top + window.pageYOffset;
+        window.scrollTo({ top: sectionTop - headerHeight - 20, behavior: 'smooth' });
+      }
+    }, 300);
+  };
+  
   return (
     <footer className="bg-gradient-to-br from-green-900 to-green-800 text-white">
       {/* Main Footer Content */}
@@ -83,28 +129,32 @@ const ModernFooter: React.FC<ModernFooterProps> = ({ darkMode = false }) => {
             </p>
           </div>
 
-          {/* Legal Framework */}
+          {/* Legal Framework - Updated with navigation */}
           <div className="space-y-4">
             <h4 className="text-lg font-semibold flex items-center">
               <Scale className="w-5 h-5 mr-2" />
               Legal Framework
             </h4>
             <div className="space-y-2 text-sm">
-              <a href="#" className="block text-green-100 hover:text-white transition-colors">
-                Constitution Article 104
-              </a>
-              <a href="#legal" className="block text-green-100 hover:text-white transition-colors">
-                KICA §83C (Digital Signatures)
-              </a>
-              <a href="#legal" className="block text-green-100 hover:text-white transition-colors">
-                Elections Act 2011
-              </a>
-              <a href="#legal" className="block text-green-100 hover:text-white transition-colors">
-                Katiba Institute Ruling
-              </a>
+              {legalNavigationItems.map((item) => (
+                <Button
+                  key={item.id}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleLegalNavigation(item.target)}
+                  className={`w-full justify-start px-0 text-left transition-colors duration-300 ${
+                    darkMode 
+                      ? 'text-green-100 hover:text-white bg-transparent' 
+                      : 'text-green-100 hover:text-white bg-transparent'
+                  }`}
+                >
+                  {item.label}
+                </Button>
+              ))}
             </div>
           </div>
 
+          {/* Access Methods */}
           <div className="space-y-4">
             <h4 className="text-lg font-semibold flex items-center">
               <Phone className="w-5 h-5 mr-2" />
@@ -122,6 +172,7 @@ const ModernFooter: React.FC<ModernFooterProps> = ({ darkMode = false }) => {
             </div>
           </div>
 
+          {/* Compliance & Security */}
           <div className="space-y-4">
             <h4 className="text-lg font-semibold flex items-center">
               <CheckCircle className="w-5 h-5 mr-2" />
