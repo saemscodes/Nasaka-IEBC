@@ -220,10 +220,10 @@ const EnhancedPetitionDashboard = () => {
                 const daysLeft = Math.ceil((new Date(petition.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                 
                 return (
-                  <div key={petition.id} className="space-y-4 p-4 dark:bg-green-900/20 bg-gray-50 rounded-xl">
+                  <div key={petition.id} className="space-y-4 p-4 dark:bg-green-900/20 bg-green-900/20 rounded-xl">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-base dark:text-green-100 text-gray-800">{petition.mp_name}</h3>
-                      <Badge variant="outline" className="dark:border-green-500 border-gray-300 dark:text-green-300 text-gray-700">
+                      <h3 className="font-semibold text-base dark:text-green-100 text-green-100">{petition.mp_name}</h3>
+                      <Badge variant="outline" className="dark:border-green-500 border-green-500 dark:text-green-300 text-green-300">
                         {petition.constituency}
                       </Badge>
                     </div>
@@ -231,20 +231,20 @@ const EnhancedPetitionDashboard = () => {
                     {/* Signature Progress */}
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-sm dark:text-green-200 text-gray-700">Signatures</span>
-                        <span className="text-sm font-bold dark:text-green-100 text-gray-800">
+                        <span className="text-sm dark:text-green-200 text-green-200">Signatures</span>
+                        <span className="text-sm font-bold dark:text-green-100 text-green-100">
                           {Math.round(signatureProgress)}%
                         </span>
                       </div>
                       <div className="relative pt-1">
                         <div className="flex items-center justify-between">
                           <div>
-                            <span className="text-xs font-semibold inline-block dark:text-green-200 text-gray-700">
+                            <span className="text-xs font-semibold inline-block dark:text-green-200 text-green-200">
                               {stats?.current_signatures || 0} / {petition.signature_target}
                             </span>
                           </div>
                         </div>
-                        <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200 dark:bg-green-800">
+                        <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-green-800 dark:bg-green-800">
                           <div 
                             style={{ width: `${signatureProgress}%` }}
                             className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500"
@@ -273,8 +273,8 @@ const EnhancedPetitionDashboard = () => {
                     
                     {/* Deadline */}
                     <div className="flex items-center space-x-2">
-                      <Clock className="w-4 h-4 dark:text-green-300 text-gray-700" />
-                      <span className="text-sm dark:text-green-200 text-gray-700">
+                      <Clock className="w-4 h-4 dark:text-green-300 text-green-300" />
+                      <span className="text-sm dark:text-green-200 text-green-200">
                         {daysLeft} days remaining
                       </span>
                     </div>
@@ -294,8 +294,8 @@ const EnhancedPetitionDashboard = () => {
       label: "Achievement",
       customContent: (
         <div className="h-full w-full flex flex-col items-center justify-center p-4">
-          <div className="text-4xl font-bold dark:text-green-300 text-gray-800">0%</div>
-          <div className="text-lg dark:text-green-200 text-gray-700 mt-2">Success Rate</div>
+          <div className="text-4xl font-bold dark:text-green-300 text-green-300">0%</div>
+          <div className="text-lg dark:text-green-200 text-green-200 mt-2">Success Rate</div>
         </div>
       )
     },
@@ -307,8 +307,8 @@ const EnhancedPetitionDashboard = () => {
       label: "Progress",
       customContent: (
         <div className="h-full w-full flex flex-col items-center justify-center p-4">
-          <div className="text-4xl font-bold dark:text-green-300 text-gray-800">{Math.round(overallStats.averageCompliance)}%</div>
-          <div className="text-lg dark:text-green-200 text-gray-700 mt-2">Avg. Compliance</div>
+          <div className="text-4xl font-bold dark:text-green-300 text-green-300">{Math.round(overallStats.averageCompliance)}%</div>
+          <div className="text-lg dark:text-green-200 text-green-200 mt-2">Avg. Compliance</div>
         </div>
       )
     }
