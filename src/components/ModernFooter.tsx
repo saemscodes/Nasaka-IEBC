@@ -1,17 +1,76 @@
 import React from 'react';
 import { Shield, Phone, CheckCircle, Scale } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-const ModernFooter = () => {
+// Define logo animation variants
+const logoVariants = {
+  light: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.6
+    }
+  },
+  dark: {
+    opacity: 0,
+    scale: 0.95,
+    transition: {
+      duration: 0.6
+    }
+  }
+};
+
+const logoVariantsDark = {
+  light: {
+    opacity: 0,
+    scale: 0.95,
+    transition: {
+      duration: 0.6
+    }
+  },
+  dark: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.6
+    }
+  }
+};
+
+interface ModernFooterProps {
+  darkMode?: boolean;
+}
+
+
+const ModernFooter: React.FC<ModernFooterProps> = ({ darkMode = false }) => {
   return (
     <footer className="bg-gradient-to-br from-green-900 to-green-800 text-white">
       {/* Main Footer Content */}
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Brand Section */}
+          {/* Brand Section - Updated Logo */}
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <Shield className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 flex items-center justify-center relative">
+                <link rel="preload" href="/logo_green.png" as="image" />
+                <link rel="preload" href="/logo_white.png" as="image" />
+                
+                <motion.img 
+                  src="/logo_green.png"
+                  alt="Recall254 Logo Light"
+                  className="w-10 h-10 object-cover rounded-full absolute"
+                  variants={logoVariants}
+                  initial="light"
+                  animate={darkMode ? "dark" : "light"}
+                />
+                <motion.img 
+                  src="/logo_white.png"
+                  alt="Recall254 Logo Dark"
+                  className="w-10 h-10 object-cover rounded-full absolute"
+                  variants={logoVariantsDark}
+                  initial="light"
+                  animate={darkMode ? "dark" : "light"}
+                />
               </div>
               <div>
                 <h3 className="text-xl font-bold">Recall254</h3>
@@ -46,7 +105,6 @@ const ModernFooter = () => {
             </div>
           </div>
 
-          {/* Access Methods */}
           <div className="space-y-4">
             <h4 className="text-lg font-semibold flex items-center">
               <Phone className="w-5 h-5 mr-2" />
@@ -64,7 +122,6 @@ const ModernFooter = () => {
             </div>
           </div>
 
-          {/* Compliance & Security */}
           <div className="space-y-4">
             <h4 className="text-lg font-semibold flex items-center">
               <CheckCircle className="w-5 h-5 mr-2" />
@@ -100,7 +157,6 @@ const ModernFooter = () => {
               &copy; 2024 Recall254 Platform. Constitutional democracy through digital innovation.
             </p>
             
-            {/* Improved link section */}
             <div className="flex items-center space-x-6">
               <a 
                 href="/privacy" 
