@@ -51,22 +51,22 @@ const ModernFooter: React.FC<ModernFooterProps> = ({
     { 
       id: 'constitution', 
       label: 'Constitution Article 104',
-      target: 'legal'
+      target: '#legal'
     },
     { 
       id: 'kica', 
       label: 'KICA §83C (Digital Signatures)',
-      target: 'legal'
+      target: '#legal'
     },
     { 
       id: 'elections', 
       label: 'Elections Act 2011',
-      target: 'legal'
+      target: '#legal'
     },
     { 
       id: 'katiba', 
       label: 'Katiba Institute Ruling',
-      target: 'legal'
+      target: '#legal'
     }
   ];
   
