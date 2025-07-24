@@ -42,7 +42,7 @@ const ConstitutionalFlowchart = () => {
 
   return (
     <div className="space-y-6">
-      <h3 className="text-xl font-semibold text-gray-900 dark:text-white text-center">Constitutional Recall Process</h3>
+      <h3 className="text-xl font-semibold text-green-900 dark:text-white text-center">Constitutional Recall Process</h3>
       
       {/* Desktop View */}
       <div className="hidden md:flex items-center justify-center">
