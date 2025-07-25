@@ -208,7 +208,7 @@ const EnhancedPetitionDashboard = () => {
         <div className="h-full w-full flex flex-col">
           <div className="card__header p-4">
             <div className="card__label dark:text-green-300 text-green-300">Dashboard</div>
-            <h2 className="card__title text-xl dark:text-green-100 text-green-100 mt-2">Constitutional Compliance</h2>
+            <h2 className="card__title text-xl dark:text-green-100 text-green-100 mt-2">Latest Petitions</h2>
             <p className="card__description dark:text-green-200 text-green-200">Real-time monitoring</p>
           </div>
           <div className="flex-1 overflow-y-auto custom-scrollbar p-4 pt-0">
