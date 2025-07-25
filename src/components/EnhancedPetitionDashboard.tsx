@@ -477,10 +477,10 @@ const EnhancedPetitionDashboard = () => {
         <TabsContent value="create" className="mt-8">
           <div className="border-2 border-green-500/30 rounded-xl p-8 bg-green-900/10">
             <h2 className="text-2xl font-bold text-green-900 dark:text-green-300 flex items-center mb-6 justify-center">
-              <CheckCircle className="w-6 h-6 mr-3 text-green-200" />
+              <CheckCircle className="w-6 h-6 mr-3 text-green-800 dark:text-green-200" />
               Start a New Recall Petition
             </h2>
-            <p className="text-green-200 mb-8 text-lg text-center">
+            <p className="text-green-700 dark:text-green-200 mb-8 text-lg text-center">
               Initiate a constitutionally compliant MP recall petition with full legal documentation
             </p>
             
