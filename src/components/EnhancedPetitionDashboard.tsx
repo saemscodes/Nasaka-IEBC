@@ -517,7 +517,8 @@ const EnhancedPetitionDashboard = () => {
                   onClick={handleCreatePetition}
                 >
                   <FileText className="w-5 h-5 mr-2" />
-                  Begin Petition Creation Wizard
+                  <span className="hidden sm:inline">Begin Petition Creation Wizard</span>
+                  <span className="sm:hidden">Start Petition</span>
                 </Button>
               </div>
             </div>
