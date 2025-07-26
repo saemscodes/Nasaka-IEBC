@@ -142,22 +142,22 @@ const PetitionDetailsModal: React.FC<PetitionDetailsModalProps> = ({ petition, i
   const renderDetailsView = () => (
     <div className="space-y-6">
       {/* Petition Header */}
-      <div className="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20 p-6 rounded-lg border border-red-200 dark:border-red-800">
+      <div className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 p-6 rounded-lg border border-green-200 dark:border-green-800">
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-red-900 dark:text-red-100 mb-2">
+            <h2 className="text-2xl font-bold text-green-900 dark:text-green-100 mb-2">
               Recall Petition Against {petition.mp_name}
             </h2>
-            <div className="flex items-center text-red-700 dark:text-red-300 mb-2">
+            <div className="flex items-center text-green-700 dark:text-green-300 mb-2">
               <MapPin className="w-4 h-4 mr-1" />
               {petition.constituency}, {petition.county}
             </div>
-            <div className="flex items-center text-red-600 dark:text-red-400">
+            <div className="flex items-center text-green-600 dark:text-green-400">
               <Calendar className="w-4 h-4 mr-1" />
               {daysRemaining} days remaining
             </div>
           </div>
-          <Badge className="bg-red-600 text-white">
+          <Badge className="bg-green-600 text-white">
             {petition.status.toUpperCase()}
           </Badge>
         </div>
