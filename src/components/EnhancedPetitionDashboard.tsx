@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, MapPin, Clock, FileText, AlertTriangle, CheckCircle, TrendingUp, BarChart3 } from 'lucide-react';
+import { Users, MapPin, Clock, FileText, AlertTriangle, CheckCircle } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import PetitionCard from './PetitionCard';
+import PetitionDetailsModal from './PetitionDetailsModal'; // Added import
 import { useToast } from "@/hooks/use-toast";
 import MagicBento from "@/components/MagicBento";
 
@@ -36,6 +37,7 @@ const EnhancedPetitionDashboard = () => {
   const [petitionStats, setPetitionStats] = useState<{ [key: string]: PetitionStats }>({});
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('active');
+  const [selectedPetition, setSelectedPetition] = useState<Petition | null>(null); // New state for modal
   const { toast } = useToast();
 
   useEffect(() => {
@@ -74,7 +76,9 @@ const EnhancedPetitionDashboard = () => {
       if (error) throw error;
 
       const stats: { [key: string]: PetitionStats } = {};
+      const wardSets: { [key: string]: Set<string> } = {};
       
+      // Initialize stats
       signatures?.forEach(sig => {
         if (!stats[sig.petition_id]) {
           stats[sig.petition_id] = {
@@ -83,17 +87,19 @@ const EnhancedPetitionDashboard = () => {
             compliance_score: 0,
             verification_rate: 0
           };
+          wardSets[sig.petition_id] = new Set();
         }
         stats[sig.petition_id].current_signatures++;
+        
+        // Add ward to set
+        if (sig.ward) {
+          wardSets[sig.petition_id].add(sig.ward);
+        }
       });
 
-      const wardSet = new Set();
-      signatures?.forEach(sig => {
-        signatures.filter(s => s.petition_id === sig.petition_id)
-          .forEach(s => wardSet.add(s.ward));
-        if (stats[sig.petition_id]) {
-          stats[sig.petition_id].wards_covered = wardSet.size;
-        }
+      // Calculate wards covered
+      Object.keys(wardSets).forEach(petitionId => {
+        stats[petitionId].wards_covered = wardSets[petitionId].size;
       });
 
       setPetitionStats(stats);
@@ -113,6 +119,16 @@ const EnhancedPetitionDashboard = () => {
 
   const handleJoinPetition = (petitionId: string) => {
     window.location.href = `/sign/${petitionId}`;
+  };
+
+  // New function to handle opening petition modal
+  const handleOpenPetitionModal = (petition: Petition) => {
+    setSelectedPetition(petition);
+  };
+
+  // New function to close modal
+  const handleClosePetitionModal = () => {
+    setSelectedPetition(null);
   };
 
   const calculateOverallStats = () => {
@@ -175,7 +191,7 @@ const EnhancedPetitionDashboard = () => {
                   const daysLeft = Math.ceil((new Date(p.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                   return daysLeft <= 7;
                 })
-                .slice(0, 3) // Show up to 3 petitions
+                .slice(0, 3)
                 .map(petition => {
                   const daysLeft = Math.ceil((new Date(petition.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                   return (
@@ -198,7 +214,7 @@ const EnhancedPetitionDashboard = () => {
         </div>
       )
     },
-    // Square 4: Dashboard (swapped to this position - larger square)
+    // Square 4: Dashboard (larger square)
     {
       color: "#001a00",
       label: "Dashboard",
@@ -213,14 +229,18 @@ const EnhancedPetitionDashboard = () => {
           </div>
           <div className="flex-1 overflow-y-auto custom-scrollbar p-4 pt-0">
             <div className="grid grid-cols-1 gap-4">
-              {petitions.slice(0, 3).map(petition => { // Show up to 3 petitions
+              {petitions.slice(0, 3).map(petition => {
                 const stats = petitionStats[petition.id];
                 const signatureProgress = stats ? (stats.current_signatures / petition.signature_target) * 100 : 0;
                 const wardProgress = stats ? (stats.wards_covered / petition.ward_target) * 100 : 0;
                 const daysLeft = Math.ceil((new Date(petition.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                 
                 return (
-                  <div key={petition.id} className="space-y-4 p-4 dark:bg-green-900/20 bg-green-900/20 rounded-xl">
+                  <div 
+                    key={petition.id} 
+                    className="space-y-4 p-4 dark:bg-green-900/20 bg-green-900/20 rounded-xl cursor-pointer hover:bg-green-900/30 dark:hover:bg-green-900/30 transition-colors"
+                    onClick={() => handleOpenPetitionModal(petition)} // Added click handler
+                  >
                     <div className="flex items-center justify-between">
                       <h3 className="font-semibold text-base dark:text-green-100 text-green-100">{petition.mp_name}</h3>
                       <Badge variant="outline" className="dark:border-green-500 border-green-500 dark:text-green-300 text-green-300">
@@ -286,7 +306,7 @@ const EnhancedPetitionDashboard = () => {
         </div>
       )
     },
-    // Square 5: Success Rate (swapped to this position)
+    // Square 5: Success Rate
     {
       color: "#001a00",
       title: "0%",
@@ -353,11 +373,24 @@ const EnhancedPetitionDashboard = () => {
         clickEffect={true}
         spotlightRadius={300}
         particleCount={12}
-        glowColor="0, 100, 0" // Darker green glow
-        borderColor="#003300" // Very dark green border
+        glowColor="0, 100, 0"
+        borderColor="#003300"
         borderWidth={2}
-        className="border-[#003300] dark:border-[#002200]" // Added border styling
+        className="border-[#003300] dark:border-[#002200]"
       />
+
+      {/* Petition Details Modal */}
+      {selectedPetition && (
+        <PetitionDetailsModal
+          petition={{
+            ...selectedPetition,
+            current_signatures: petitionStats[selectedPetition.id]?.current_signatures || 0,
+            wards_covered: petitionStats[selectedPetition.id]?.wards_covered || 0
+          }}
+          isOpen={true}
+          onClose={handleClosePetitionModal}
+        />
+      )}
 
       {/* Petition Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-12">
@@ -425,7 +458,10 @@ const EnhancedPetitionDashboard = () => {
                   </div>
                   <p className="text-green-300 mb-6 text-lg">{petition.description}</p>
                   <div className="flex justify-center">
-                    <Button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base">
+                    <Button 
+                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base"
+                      onClick={() => handleJoinPetition(petition.id)}
+                    >
                       Sign Now - Deadline Approaching
                     </Button>
                   </div>
@@ -464,7 +500,10 @@ const EnhancedPetitionDashboard = () => {
                       This petition is making excellent progress! Help push it over the constitutional threshold.
                     </p>
                     <div className="flex justify-center">
-                      <Button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base">
+                      <Button 
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base"
+                        onClick={() => handleJoinPetition(petition.id)}
+                      >
                         Join the Movement
                       </Button>
                     </div>
