@@ -202,7 +202,7 @@ const EnhancedPetitionDashboard = () => {
     {
       color: "#001a00",
       label: "Dashboard",
-      title: "Constitutional Compliance",
+      title: "Latest Petitions",
       description: "Real-time monitoring",
       customContent: (
         <div className="h-full w-full flex flex-col">
