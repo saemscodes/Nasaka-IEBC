@@ -214,7 +214,7 @@ const DonationWidget: React.FC<DonationWidgetProps> = ({ onTimedOut, isVisible: 
         </div>
       ) : (
         <div className="w-80 bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 rounded-2xl shadow-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-red-500/10 to-red-600/10 dark:from-red-400/10 dark:to-red-500/10 p-4 border-b border-white/10 dark:border-gray-700/10">
+          <div className="bg-gradient-to-r from-green-500/10 to-green-600/10 dark:from-green-400/10 dark:to-green-500/10 p-4 border-b border-white/10 dark:border-gray-700/10">
             <div className="flex justify-between items-center">
               <h3 className="font-bold text-lg flex items-center text-gray-900 dark:text-white">
                 <div className="relative mr-3">
