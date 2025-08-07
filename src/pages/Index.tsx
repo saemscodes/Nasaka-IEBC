@@ -16,6 +16,7 @@ import ConstitutionalFlowchart from '@/components/ConstitutionalFlowchart';
 import TabbedMapViewer from '@/components/TabbedMapViewer';
 import Aurora from '@/components/Aurora';
 import RotatingText from '@/components/RotatingText';
+import DonationWidget from '@/components/ui/DonationWidget';
 import { supabase } from "@/integrations/supabase/client";
 
 interface Constituency {
