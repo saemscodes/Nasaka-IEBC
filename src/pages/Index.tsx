@@ -177,6 +177,7 @@ const Index = () => {
         toggleDarkMode={toggleDarkMode} 
         scrollToTab={scrollToTab} 
       />
+      <DonationWidget />
 
       {/* Hero Section - Desktop and Tablet Only */}
       <section className="h-screen relative overflow-hidden hidden md:block">
