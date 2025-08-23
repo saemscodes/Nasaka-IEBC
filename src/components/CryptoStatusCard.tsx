@@ -77,7 +77,7 @@ const CryptoStatusCard: React.FC<{ onSign?: () => void }> = ({ onSign }) => {
   const handleGenerateKeys = async () => {
     setGenerating(true);
     try {
-      await generateKeyPair();
+      await generateKeyPair('default-passphrase');
       await checkKeyStatus();
       toast.success('Cryptographic keys generated successfully!');
     } catch (error) {

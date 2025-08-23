@@ -213,17 +213,18 @@ export const verifySignature = async (
 // Submit signature to Supabase
 export const submitSignature = async (signatureData: any) => {
   const { data, error } = await supabase
-    .rpc('submit_signature', {
+    .from('signatures')
+    .insert({
       petition_id: signatureData.payload.petitionId,
       voter_id: signatureData.payload.voterId,
       voter_name: signatureData.payload.voterName,
       constituency: signatureData.payload.constituency,
       ward: signatureData.payload.ward,
-      signature_payload: signatureData.payload,
       signature_value: signatureData.signature,
       public_key: signatureData.publicKeyJwk,
       key_version: signatureData.keyVersion,
-      device_id: signatureData.deviceId
+      device_id: signatureData.deviceId,
+      csp_provider: 'web-crypto'
     });
 
   if (error) throw error;

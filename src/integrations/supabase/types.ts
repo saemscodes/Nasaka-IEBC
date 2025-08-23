@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -103,6 +103,24 @@ export type Database = {
           },
         ]
       }
+      core_team: {
+        Row: {
+          added_at: string
+          is_admin: boolean
+          user_id: string
+        }
+        Insert: {
+          added_at?: string
+          is_admin?: boolean
+          user_id: string
+        }
+        Update: {
+          added_at?: string
+          is_admin?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       counties: {
         Row: {
           county_code: string | null
@@ -177,10 +195,65 @@ export type Database = {
           },
         ]
       }
+      index_usage_monitoring: {
+        Row: {
+          data: Json
+          id: string
+          recorded_at: string
+        }
+        Insert: {
+          data: Json
+          id?: string
+          recorded_at?: string
+        }
+        Update: {
+          data?: Json
+          id?: string
+          recorded_at?: string
+        }
+        Relationships: []
+      }
+      index_usage_monitoring_default: {
+        Row: {
+          data: Json
+          id: string
+          recorded_at: string
+        }
+        Insert: {
+          data: Json
+          id?: string
+          recorded_at?: string
+        }
+        Update: {
+          data?: Json
+          id?: string
+          recorded_at?: string
+        }
+        Relationships: []
+      }
+      index_usage_monitoring_y2023m07: {
+        Row: {
+          data: Json
+          id: string
+          recorded_at: string
+        }
+        Insert: {
+          data: Json
+          id?: string
+          recorded_at?: string
+        }
+        Update: {
+          data?: Json
+          id?: string
+          recorded_at?: string
+        }
+        Relationships: []
+      }
       petitions: {
         Row: {
-          constituency: string
+          constituency: string | null
           county: string
+          county_target: number | null
           created_at: string
           created_by: string | null
           deadline: string
@@ -195,8 +268,9 @@ export type Database = {
           ward_target: number
         }
         Insert: {
-          constituency: string
+          constituency?: string | null
           county: string
+          county_target?: number | null
           created_at?: string
           created_by?: string | null
           deadline: string
@@ -211,8 +285,9 @@ export type Database = {
           ward_target: number
         }
         Update: {
-          constituency?: string
+          constituency?: string | null
           county?: string
+          county_target?: number | null
           created_at?: string
           created_by?: string | null
           deadline?: string
@@ -235,11 +310,18 @@ export type Database = {
             referencedColumns: ["name"]
           },
           {
-            foreignKeyName: "petitions_created_by_fkey1"
-            columns: ["created_by"]
+            foreignKeyName: "petitions_county_fkey"
+            columns: ["county"]
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: "counties"
+            referencedColumns: ["name"]
+          },
+          {
+            foreignKeyName: "petitions_county_target_fkey"
+            columns: ["county_target"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["registration_target"]
           },
           {
             foreignKeyName: "petitions_signature_target_fkey"
@@ -296,12 +378,17 @@ export type Database = {
           created_at: string
           csp_provider: string
           device_fingerprint: Json | null
+          device_id: string | null
           geolocation: Json | null
           id: string
+          key_version: string | null
           petition_id: string
           polling_station: string | null
+          public_key: Json | null
           signature_certificate: string | null
+          signature_payload: Json | null
           signature_timestamp: string
+          signature_value: string | null
           verification_status: Json
           voter_id: string
           voter_name: string
@@ -313,12 +400,17 @@ export type Database = {
           created_at?: string
           csp_provider: string
           device_fingerprint?: Json | null
+          device_id?: string | null
           geolocation?: Json | null
           id?: string
+          key_version?: string | null
           petition_id: string
           polling_station?: string | null
+          public_key?: Json | null
           signature_certificate?: string | null
+          signature_payload?: Json | null
           signature_timestamp?: string
+          signature_value?: string | null
           verification_status?: Json
           voter_id: string
           voter_name: string
@@ -330,12 +422,17 @@ export type Database = {
           created_at?: string
           csp_provider?: string
           device_fingerprint?: Json | null
+          device_id?: string | null
           geolocation?: Json | null
           id?: string
+          key_version?: string | null
           petition_id?: string
           polling_station?: string | null
+          public_key?: Json | null
           signature_certificate?: string | null
+          signature_payload?: Json | null
           signature_timestamp?: string
+          signature_value?: string | null
           verification_status?: Json
           voter_id?: string
           voter_name?: string
@@ -397,6 +494,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      insert_index_usage_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      is_admin_user: {
+        Args: Record<PropertyKey, never> | { user_id: string }
+        Returns: boolean
+      }
       normalize_county_name: {
         Args: { name: string }
         Returns: string
@@ -404,6 +509,29 @@ export type Database = {
       normalize_text: {
         Args: { text_to_normalize: string }
         Returns: string
+      }
+      proper_case: {
+        Args: { name: string }
+        Returns: string
+      }
+      submit_signature: {
+        Args: {
+          constituency: string
+          device_id: string
+          key_version: string
+          petition_id: string
+          public_key: Json
+          signature_payload: Json
+          signature_value: string
+          voter_id: string
+          voter_name: string
+          ward: string
+        }
+        Returns: string
+      }
+      verify_signature: {
+        Args: { payload: Json; public_key: Json; signature: string }
+        Returns: boolean
       }
     }
     Enums: {

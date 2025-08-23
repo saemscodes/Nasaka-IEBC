@@ -265,10 +265,10 @@ const EnhancedPetitionDashboard = () => {
                           </div>
                         </div>
                         <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-green-800 dark:bg-white">
-                          <div 
-                            style={{ width: `${signatureProgress}%` }}
-                            className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500"
-                          ></div>
+                           <div 
+                             style={{ width: `${signatureProgress}%` }}
+                             className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500"
+                           ></div>
                         </div>
                       </div>
                     </div>
@@ -344,7 +344,7 @@ const EnhancedPetitionDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 px-4">
-      <style jsx>{`
+      <style>{`
         .custom-scrollbar {
           scrollbar-width: thin;
           scrollbar-color: #4ade80 transparent;
@@ -494,7 +494,7 @@ const EnhancedPetitionDashboard = () => {
                         <span>Progress</span>
                         <span>{stats?.current_signatures || 0}/{petition.signature_target} signatures</span>
                       </div>
-                      <Progress value={progress} className="h-3 bg-green-800" indicatorClassName="bg-green-500" />
+                      <Progress value={progress} className="h-3 bg-green-800" />
                     </div>
                     <p className="text-green-300 mb-6 text-lg">
                       This petition is making excellent progress! Help push it over the constitutional threshold.

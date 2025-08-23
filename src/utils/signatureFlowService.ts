@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { QRCodeService, QRReceiptData } from './qrCodeService';
 import { BlockchainService, BlockchainHashData } from './blockchainService';
-import { signPetitionData, verifySignatureLocally, getKeyInfo, generateKeyPair } from './cryptoService';
+import { signPetitionData, verifySignature, getKeyInfo, generateKeyPair } from './cryptoService';
 
 export interface SignatureFlowData {
   petitionId: string;
@@ -52,13 +52,16 @@ export class SignatureFlowService {
       console.log('🔐 Generating cryptographic signature...');
       const cryptoResult = await signPetitionData(
         { petitionId: data.petitionId, petitionTitle: petitionTitle || 'Petition' },
-        data,
-        'PETITION_SIGNATURE'
+        data
       );
 
       // Verify signature locally for immediate validation
-      const verification = await verifySignatureLocally(cryptoResult);
-      if (!verification.isValid) {
+      const verification = await verifySignature(
+        cryptoResult.payload,
+        cryptoResult.signature,
+        cryptoResult.publicKeyJwk
+      );
+      if (!verification) {
         throw new Error('Cryptographic signature verification failed');
       }
 
@@ -231,15 +234,12 @@ export class SignatureFlowService {
         try {
           const certData = JSON.parse(signature.signature_certificate);
           if (certData.cryptoSignature && certData.publicKey && certData.payload) {
-            const cryptoVerification = await verifySignatureLocally({
-              payload: certData.payload,
-              signature: certData.cryptoSignature,
-              publicKeyJwk: certData.publicKey,
-              keyVersion: certData.keyVersion,
-              deviceId: certData.deviceId,
-              timestamp: Date.now()
-            });
-            cryptoValid = cryptoVerification.isValid;
+            const cryptoVerification = await verifySignature(
+              certData.payload,
+              certData.cryptoSignature,
+              certData.publicKey
+            );
+            cryptoValid = cryptoVerification;
             console.log('🔐 Cryptographic verification:', cryptoValid ? '✅' : '❌');
           }
         } catch (cryptoError) {
