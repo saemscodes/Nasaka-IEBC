@@ -371,6 +371,44 @@ export type Database = {
         }
         Relationships: []
       }
+      signature_access_log: {
+        Row: {
+          access_method: string
+          access_timestamp: string
+          accessed_by: string | null
+          id: string
+          ip_address: unknown | null
+          signature_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          access_method: string
+          access_timestamp?: string
+          accessed_by?: string | null
+          id?: string
+          ip_address?: unknown | null
+          signature_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          access_method?: string
+          access_timestamp?: string
+          accessed_by?: string | null
+          id?: string
+          ip_address?: unknown | null
+          signature_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signature_access_log_signature_id_fkey"
+            columns: ["signature_id"]
+            isOneToOne: false
+            referencedRelation: "signatures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       signatures: {
         Row: {
           blockchain_hash: string | null
