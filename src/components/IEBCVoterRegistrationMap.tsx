@@ -139,29 +139,36 @@ const IEBCVoterRegistrationMap: React.FC<IEBCVoterRegistrationMapProps> = ({
       setLoading(true);
       
       const [recallResponse, officesResponse] = await Promise.all([
-        fetch(recallGeoJsonUrl),
-        fetch(officesGeoJsonUrl)
+        fetch(recallGeoJsonUrl).catch(() => null),
+        fetch(officesGeoJsonUrl).catch(() => null)
       ]);
       
-      if (!recallResponse.ok) {
-        throw new Error(`Failed to load constituency data: ${recallResponse.status}`);
+      if (!recallResponse || !recallResponse.ok) {
+        console.warn('Constituency data not available');
       }
       
-      if (!officesResponse.ok) {
-        throw new Error(`Failed to load IEBC offices data: ${officesResponse.status}`);
+      if (!officesResponse || !officesResponse.ok) {
+        console.warn('IEBC offices data not available - data may need to be uploaded');
+        setLoading(false);
+        return;
       }
       
-      const recallData = await recallResponse.json();
-      const officesData = await officesResponse.json();
+      const recallData = recallResponse ? await recallResponse.json() : null;
+      const officesData = officesResponse ? await officesResponse.json() : null;
       
-      setRecallGeoJson(recallData);
-      setOfficesGeoJson(officesData.features || []);
-      setFilteredOffices(officesData.features || []);
+      if (recallData) {
+        setRecallGeoJson(recallData);
+      }
       
-      toast({
-        title: "Data Loaded Successfully",
-        description: `Loaded ${officesData.features?.length || 0} IEBC offices and ${recallData.features?.length || 0} constituencies`,
-      });
+      if (officesData) {
+        setOfficesGeoJson(officesData.features || []);
+        setFilteredOffices(officesData.features || []);
+        
+        toast({
+          title: "Data Loaded Successfully",
+          description: `Loaded ${officesData.features?.length || 0} IEBC offices${recallData ? ` and ${recallData.features?.length || 0} constituencies` : ''}`,
+        });
+      }
       
     } catch (error) {
       console.error('Error loading GeoJSON data:', error);
@@ -196,20 +203,6 @@ const IEBCVoterRegistrationMap: React.FC<IEBCVoterRegistrationMapProps> = ({
       maxZoom: 19,
       minZoom: 6
     }).addTo(mapRef.current);
-
-    // Add layer control
-    const baseMaps = {
-      "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-      })
-    };
-
-    const overlayMaps = {
-      "Constituency Boundaries": constituenciesLayerRef.current,
-      "IEBC Offices": officesLayerRef.current
-    };
-
-    L.control.layers(baseMaps, overlayMaps).addTo(mapRef.current);
   }, []);
 
   // Add constituency boundaries layer
