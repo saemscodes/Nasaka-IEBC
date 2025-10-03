@@ -1,4 +1,4 @@
-
+import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,22 +13,42 @@ import TermsAndConditions from "./pages/TermsAndConditions";
 import VerifySignature from "./pages/VerifySignature";
 import VoterRegistrationPage from "@/pages/VoterRegistration";
 
-const queryClient = new QueryClient();
+// ✅ ENHANCED QUERY CLIENT FOR IEBC DATA
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes for IEBC office data
+      cacheTime: 10 * 60 * 1000, // 10 minutes cache
+      retry: 2,
+      refetchOnWindowFocus: false, // Better for map interactions
+    },
+  },
+});
 
 const AppContent = () => {
   // Initialize Lenis smooth scrolling
   const { lenis } = useLenis();
 
   return (
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/sign/:id" element={<SignPetition />} />
         <Route path="/verify" element={<VerifySignature />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsAndConditions />} />
+        
+        {/* ✅ IEBC VOTER REGISTRATION ROUTES */}
         <Route path="/voter-registration" element={<VoterRegistrationPage />} />
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="/iebc-offices" element={<VoterRegistrationPage />} />
+        <Route path="/register-to-vote" element={<VoterRegistrationPage />} />
+        
+        {/* ✅ ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
@@ -37,9 +57,20 @@ const AppContent = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
+    <TooltipProvider delayDuration={0}>
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          className: 'toast-group',
+        }}
+      />
+      <Sonner
+        position="top-right"
+        expand={false}
+        richColors
+        closeButton
+      />
       <AppContent />
     </TooltipProvider>
   </QueryClientProvider>
