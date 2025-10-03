@@ -8,14 +8,7 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "data:extract": "python scripts/extract_pdf.py",
-    "data:clean": "python scripts/clean_addresses.py",
-    "data:geocode": "python scripts/geocode_addresses.py",
-    "data:geojson": "python scripts/csv_to_geojson.py",
-    "data:ingest": "python scripts/supabase_ingest.py",
-    "data:pipeline": "npm run data:extract && npm run data:clean && npm run data:geocode && npm run data:geojson && npm run data:ingest",
-    "dev:with-data": "npm run data:pipeline && vite"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^4.2.0",
@@ -66,6 +59,7 @@
     "leaflet-defaulticon-compatibility": "^0.1.2",
     "lucide-react": "^0.462.0",
     "maplibre-gl": "^5.6.1",
+    "next-themes": "^0.3.0",
     "ogl": "^1.0.11",
     "ol": "^10.6.1",
     "qrcode": "^1.5.4",
