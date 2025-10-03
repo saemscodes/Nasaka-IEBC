@@ -469,14 +469,19 @@ const IEBCVoterRegistrationMap: React.FC<IEBCVoterRegistrationMapProps> = ({
 
           // Center map on user location
           mapRef.current.setView([latitude, longitude], 13);
+          
+          if (nearest && minDistance !== Infinity) {
+            toast({
+              title: "Location Found",
+              description: `Nearest IEBC office: ${nearest.properties.constituency_name} (${minDistance.toFixed(1)} km away)`,
+            });
+          } else {
+            toast({
+              title: "Location Found",
+              description: "Location found, but no IEBC offices nearby",
+            });
+          }
         }
-        
-        toast({
-          title: "Location Found",
-          description: nearestOffice ? 
-            `Nearest IEBC office: ${nearestOffice.properties.constituency_name} (${minDistance.toFixed(1)} km away)` :
-            "Location found, but no IEBC offices nearby",
-        });
       },
       (error) => {
         console.error('Geolocation error:', error);

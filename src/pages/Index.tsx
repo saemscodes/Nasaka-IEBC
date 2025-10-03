@@ -14,6 +14,8 @@ import PetitionWizard from '@/components/PetitionWizard';
 import CountyStatistics from '@/components/CountyStatistics';
 import ConstitutionalFlowchart from '@/components/ConstitutionalFlowchart';
 import TabbedMapViewer from '@/components/TabbedMapViewer';
+import IEBCVoterRegistrationMap from '@/components/IEBCVoterRegistrationMap';
+import PythonScriptExecutor from '@/components/PythonScriptExecutor';
 import Aurora from '@/components/Aurora';
 import RotatingText from '@/components/RotatingText';
 import DonationWidget from '@/components/ui/DonationWidget';
@@ -164,6 +166,7 @@ const Index = () => {
     { id: 'search', label: 'Search Wards', icon: MapPin },
     { id: 'wizard', label: 'Create Petition', icon: FileText },
     { id: 'map', label: 'Electoral Map', icon: MapPin },
+    { id: 'voter', label: 'Voter Registration', icon: UserCheck },
     { id: 'legal', label: 'Legal Framework', icon: Shield }
   ];
 
@@ -690,6 +693,18 @@ const Index = () => {
           {activeTab === 'wizard' && (
             <div ref={el => sectionsRef.current.wizard = el}>
               <PetitionWizard prefilledData={selectedConstituency} />
+            </div>
+          )}
+          {activeTab === 'voter' && (
+            <div ref={el => sectionsRef.current.voter = el}>
+              <div className="space-y-6">
+                <Card className="border-0 shadow-lg">
+                  <CardContent className="p-0">
+                    <IEBCVoterRegistrationMap showVoterRegistrationInfo={true} />
+                  </CardContent>
+                </Card>
+                <PythonScriptExecutor />
+              </div>
             </div>
           )}
         </div>

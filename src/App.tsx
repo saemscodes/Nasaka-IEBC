@@ -17,10 +17,10 @@ import VoterRegistrationPage from "@/pages/VoterRegistration";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes for IEBC office data
-      cacheTime: 10 * 60 * 1000, // 10 minutes cache
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
       retry: 2,
-      refetchOnWindowFocus: false, // Better for map interactions
+      refetchOnWindowFocus: false,
     },
   },
 });
@@ -58,13 +58,7 @@ const AppContent = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider delayDuration={0}>
-      <Toaster 
-        position="top-right"
-        toastOptions={{
-          duration: 4000,
-          className: 'toast-group',
-        }}
-      />
+      <Toaster />
       <Sonner
         position="top-right"
         expand={false}
