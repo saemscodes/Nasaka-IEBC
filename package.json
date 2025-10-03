@@ -8,14 +8,16 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview",
+     "preview": "vite preview",
     "data:extract": "python scripts/extract_pdf.py",
     "data:clean": "python scripts/clean_addresses.py",
     "data:geocode": "python scripts/geocode_addresses_nominatim.py",
     "data:geojson": "python scripts/csv_to_geojson.py",
     "data:ingest": "python scripts/supabase_ingest.py",
-    "data:pipeline": "npm run data:extract && npm run data:clean && npm run data:geocode && npm run data:geojson && npm run data:ingest",
-    "dev:with-data": "npm run data:pipeline && vite"
+    "data:upload": "python scripts/upload_geojson_to_supabase.py",
+    "data:pipeline": "npm run data:extract && npm run data:clean && npm run data:geocode && npm run data:geojson && npm run data:ingest && npm run data:upload",
+    "dev:with-data": "npm run data:pipeline && vite",
+    "deploy:full": "npm run data:pipeline && npm run build:production"
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^4.2.0",
