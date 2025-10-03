@@ -11,7 +11,7 @@ import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import VerifySignature from "./pages/VerifySignature";
-import VoterRegistrationPage from "@/components/VoterRegistration";
+import VoterRegistrationPage from "@/pages/VoterRegistration";
 
 const queryClient = new QueryClient();
 
