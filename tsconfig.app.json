@@ -21,10 +21,22 @@
     "noImplicitAny": false,
     "noFallthroughCasesInSwitch": false,
 
+    /* Path mapping */
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+
+    /* Additional IEBC-specific options */
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "strictNullChecks": false,
+    "noImplicitReturns": false,
+    "noImplicitThis": false
   },
-  "include": ["src"]
+  "include": ["src/**/*", "src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts", "src/**/*.json"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx"]
 }
