@@ -11,7 +11,7 @@ import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import VerifySignature from "./pages/VerifySignature";
-import IEBCVoterRegistrationMap from "@/components/IEBCVoterRegistrationMap";
+import VoterRegistration from "@/components/VoterRegistrationPage";
 
 const queryClient = new QueryClient();
 
