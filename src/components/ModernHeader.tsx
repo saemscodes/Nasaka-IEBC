@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Menu, X, FileText, Users, Scale, MapPin, Search, Moon, Sun } from 'lucide-react';
+import { Shield, Menu, X, FileText, Users, Scale, MapPin, Search, Moon, Sun, CheckSquare } from 'lucide-react';
 
 interface ModernHeaderProps {
   darkMode?: boolean;
@@ -22,7 +22,8 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
     { id: 'dashboard', label: 'Petitions', icon: FileText },
     { id: 'legal', label: 'Legal', icon: Scale },
     { id: 'map', label: 'Map', icon: MapPin },
-    { id: 'search', label: 'Search', icon: Search }
+    { id: 'search', label: 'Search', icon: Search },
+    { id: 'voter', label: 'Voter', icon: CheckSquare }
   ];
   
   const handleNavigation = (item: typeof navigationItems[0]) => {
