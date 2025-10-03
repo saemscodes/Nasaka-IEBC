@@ -7,11 +7,22 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
-    // ✅ THIS LINE IS CRUCIAL
+    // ✅ CRITICAL FOR CLIENT-SIDE ROUTING
     historyApiFallback: true
   },
   build: {
-    outDir: 'dist', // or whatever you deploy
+    outDir: 'dist',
+    sourcemap: mode === 'development',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ["react", "react-dom"],
+          leaflet: ["leaflet", "react-leaflet"],
+          ui: ["@radix-ui/react-select", "@radix-ui/react-dialog", "@radix-ui/react-tabs"],
+          utils: ["lucide-react", "clsx", "tailwind-merge"]
+        },
+      },
+    },
   },
   plugins: [
     react(),
@@ -22,4 +33,20 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // ✅ ENVIRONMENT VARIABLES FOR IEBC MAP
+  define: {
+    'process.env': process.env
+  },
+  optimizeDeps: {
+    include: ['leaflet', 'react-leaflet'],
+    exclude: ['lovable-tagger']
+  },
+  // ✅ PUBLIC PATH FOR ASSETS
+  base: './',
+  // ✅ CSS CONFIGURATION
+  css: {
+    modules: {
+      localsConvention: 'camelCase'
+    }
+  }
 }));
