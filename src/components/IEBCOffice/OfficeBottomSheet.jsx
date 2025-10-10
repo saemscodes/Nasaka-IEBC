@@ -172,6 +172,35 @@ const OfficeBottomSheet = ({ office, userLocation, onOfficeSelect }) => {
           </motion.div>
         )}
 
+        {currentRoute && currentRoute.length > 0 && (
+      <motion.div
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: 'auto' }}
+        className="bg-ios-blue/10 rounded-2xl p-4 border border-ios-blue/20 mt-4"
+        >
+        <h3 className="font-semibold text-ios-gray-900 mb-2 text-sm">Route Information</h3>
+        <div className="space-y-2">
+          {currentRoute.slice(0, 3).map((route, index) => (
+          <div key={index} className="flex items-center justify-between text-sm">
+            <div className="flex items-center space-x-2">
+              <div 
+                className={`w-3 h-3 rounded-full ${
+                  index === 0 ? 'bg-ios-green' : 'bg-ios-gray-400'
+                }`}
+                />
+              <span className={index === 0 ? 'font-medium text-ios-gray-900' : 'text-ios-gray-600'}>
+                Route {index + 1}
+              </span>
+            </div>
+            <div className="text-ios-gray-600">
+              {(route.summary.totalDistance / 1000).toFixed(1)} km • {Math.round(route.summary.totalTime / 60)} min
+            </div>
+          </div>
+        ))}
+        </div>
+      </motion.div>
+    )}
+
         {/* Navigation Button */}
         <motion.div
           className={`mt-6 ${sheetState === 'collapsed' ? 'pt-4 border-t border-ios-gray-100' : ''}`}
