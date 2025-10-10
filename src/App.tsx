@@ -13,14 +13,14 @@ import TermsAndConditions from "./pages/TermsAndConditions";
 import VerifySignature from "./pages/VerifySignature";
 import VoterRegistrationPage from "@/pages/VoterRegistration";
 import { IEBCOfficeSplash, IEBCOfficeMap } from './pages/IEBCOffice';
-import './styles/iebc-office.css'
+import './styles/iebc-office.css';
 
 // ✅ ENHANCED QUERY CLIENT FOR IEBC DATA
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,
-      gcTime: 10 * 60 * 1000,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
       retry: 2,
       refetchOnWindowFocus: false,
     },
@@ -50,6 +50,7 @@ const AppContent = () => {
         <Route path="/iebc-offices" element={<VoterRegistrationPage />} />
         <Route path="/register-to-vote" element={<VoterRegistrationPage />} />
 
+        {/* ✅ IEBC OFFICE FINDER ROUTES */}
         <Route path="/iebc-office" element={<IEBCOfficeSplash />} />
         <Route path="/iebc-office/map" element={<IEBCOfficeMap />} />
         
