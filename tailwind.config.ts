@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -63,12 +62,33 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
+
 				// Kenyan flag colors
 				kenya: {
 					green: '#006600',
 					red: '#CC0000',
 					white: '#FFFFFF',
 					black: '#000000'
+				},
+
+				// iOS-inspired palette
+				ios: {
+					bg: '#F2F2F7',
+					surface: '#FFFFFF',
+					blue: '#007AFF',
+					green: '#34C759',
+					red: '#FF3B30',
+					gray: {
+						100: '#E5E5EA',
+						200: '#D1D1D6',
+						300: '#C7C7CC',
+						400: '#AEAEB2',
+						500: '#8E8E93',
+						600: '#636366',
+						700: '#48484A',
+						800: '#3A3A3C',
+						900: '#1C1C1E'
+					}
 				}
 			},
 			borderRadius: {
@@ -78,30 +98,16 @@ export default {
 			},
 			keyframes: {
 				'accordion-down': {
-					from: {
-						height: '0'
-					},
-					to: {
-						height: 'var(--radix-accordion-content-height)'
-					}
+					from: { height: '0' },
+					to: { height: 'var(--radix-accordion-content-height)' }
 				},
 				'accordion-up': {
-					from: {
-						height: 'var(--radix-accordion-content-height)'
-					},
-					to: {
-						height: '0'
-					}
+					from: { height: 'var(--radix-accordion-content-height)' },
+					to: { height: '0' }
 				},
 				'fade-in': {
-					'0%': {
-						opacity: '0',
-						transform: 'translateY(10px)'
-					},
-					'100%': {
-						opacity: '1',
-						transform: 'translateY(0)'
-					}
+					'0%': { opacity: '0', transform: 'translateY(10px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
 				},
 				'pulse-green': {
 					'0%, 100%': {
@@ -118,7 +124,8 @@ export default {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.3s ease-out',
-				'pulse-green': 'pulse-green 2s ease-in-out infinite'
+				'pulse-green': 'pulse-green 2s ease-in-out infinite',
+				'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
 			}
 		}
 	},
