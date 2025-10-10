@@ -52,6 +52,7 @@ const AppContent = () => {
 
         {/* ✅ IEBC OFFICE FINDER ROUTES */}
         <Route path="/iebc-office" element={<IEBCOfficeSplash />} />
+        <Route path="/nasaka-iebc" element={<IEBCOfficeSplash />} />
         <Route path="/iebc-office/map" element={<IEBCOfficeMap />} />
         
         {/* ✅ ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
