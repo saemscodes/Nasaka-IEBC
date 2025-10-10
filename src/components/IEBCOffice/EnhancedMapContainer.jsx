@@ -13,7 +13,7 @@ L.Icon.Default.mergeOptions({
 });
 
 // Map controller component
-const MapController = forwardRef(({ center, zoom, onMapReady }, ref) => {
+const MapController = forwardRef(({ center, zoom, onMapReady, onClick }, ref) => {
   const map = useMap();
 
   useImperativeHandle(ref, () => ({
@@ -40,6 +40,15 @@ const MapController = forwardRef(({ center, zoom, onMapReady }, ref) => {
     }
   }, [map, onMapReady]);
 
+  useEffect(() => {
+    if (map && onClick) {
+      map.on('click', onClick);
+      return () => {
+        map.off('click', onClick);
+      };
+    }
+  }, [map, onClick]);
+
   return null;
 });
 
@@ -50,6 +59,7 @@ const EnhancedMapContainer = forwardRef(({
   className, 
   onMapReady,
   showLayerControl = true,
+  onClick,
   ...props 
 }, ref) => {
   const defaultCenter = [-1.286389, 36.817223]; // Nairobi
@@ -87,7 +97,7 @@ const EnhancedMapContainer = forwardRef(({
         </LayersControl>
       )}
       
-      <MapController ref={ref} center={center} zoom={zoom} onMapReady={onMapReady} />
+      <MapController ref={ref} center={center} zoom={zoom} onMapReady={onMapReady} onClick={onClick} />
       {children}
     </LeafletMap>
   );
