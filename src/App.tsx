@@ -51,8 +51,8 @@ const AppContent = () => {
         <Route path="/register-to-vote" element={<VoterRegistrationPage />} />
 
         {/* ✅ IEBC OFFICE FINDER ROUTES */}
-        <Route path="/iebc-office" element={<IEBCOfficeSplash />} />
-        <Route path="/iebc-office/map" element={<IEBCOfficeMap />} />
+        <Route path="/nasaka-iebc" element={<IEBCOfficeSplash />} />
+        <Route path="/nasaka-iebc/map" element={<IEBCOfficeMap />} />
         
         {/* ✅ ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
