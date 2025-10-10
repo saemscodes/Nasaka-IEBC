@@ -1,8 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Menu, X, FileText, Users, Scale, MapPin, Search, Moon, Sun, CheckSquare } from 'lucide-react';
+import { 
+  Shield, 
+  Menu, 
+  X, 
+  FileText, 
+  Users, 
+  Scale, 
+  MapPin, 
+  Search, 
+  Moon, 
+  Sun, 
+  CheckSquare,
+  Building,
+  Navigation
+} from 'lucide-react';
 
 interface ModernHeaderProps {
   darkMode?: boolean;
@@ -17,17 +32,28 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [shouldRenderDropdown, setShouldRenderDropdown] = useState(false);
+  const navigate = useNavigate();
 
   const navigationItems = [
     { id: 'dashboard', label: 'Petitions', icon: FileText },
     { id: 'legal', label: 'Legal', icon: Scale },
     { id: 'map', label: 'Map', icon: MapPin },
     { id: 'search', label: 'Search', icon: Search },
-    { id: 'voter', label: 'Voter', icon: CheckSquare }
+    { id: 'voter', label: 'Voter', icon: CheckSquare },
+    { id: 'nasaka-iebc', label: 'IEBC Offices', icon: Building, isExternal: false }
   ];
   
   const handleNavigation = (item: typeof navigationItems[0]) => {
-    scrollToTab(item.id);
+    if (item.isExternal && item.externalUrl) {
+      // Handle external URLs
+      window.open(item.externalUrl, '_blank');
+    } else if (item.id === 'nasaka-iebc') {
+      // Navigate to IEBC Office Finder splash page
+      navigate('/nasaka-iebc');
+    } else {
+      // Handle internal tab navigation
+      scrollToTab(item.id);
+    }
     setIsMobileMenuOpen(false);
     
     // Additional logic for petitions section
@@ -45,7 +71,12 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
   };
 
   const goToHomepage = () => {
-    window.location.href = "/";
+    navigate('/');
+  };
+
+  const handleIEBCNavigation = () => {
+    navigate('/nasaka-iebc');
+    setIsMobileMenuOpen(false);
   };
 
   useEffect(() => {
@@ -212,6 +243,23 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
     }
   };
 
+  // IEBC Office Finder badge with special styling
+  const IEBCBadge = () => (
+    <Badge 
+      className={`
+        hidden sm:flex items-center space-x-1 transition-all duration-300 
+        bg-gradient-to-r from-ios-blue to-blue-600 hover:from-blue-600 hover:to-ios-blue
+        text-white border-0 shadow-lg shadow-blue-500/25
+        px-3 py-1 rounded-full font-semibold text-xs
+        cursor-pointer transform hover:scale-105
+      `}
+      onClick={handleIEBCNavigation}
+    >
+      <Navigation className="w-3 h-3" />
+      <span>IEBC Offices</span>
+    </Badge>
+  );
+
   return (
     <header className={`sticky top-0 z-50 transition-all duration-300 ${
       darkMode 
@@ -222,7 +270,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
         <div className="flex items-center justify-between h-16 bg-transparent">
           {/* Logo */}
           <div 
-            className="flex items-center space-x-3 cursor-pointer"
+            className="flex items-center space-x-3 cursor-pointer group"
             onClick={goToHomepage}
             aria-label="Go to homepage"
           >
@@ -233,7 +281,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
               <motion.img 
                 src="/logo_green.png"
                 alt="Recall254 Logo Light"
-                className="w-10 h-10 object-cover rounded-full absolute"
+                className="w-10 h-10 object-cover rounded-full absolute group-hover:scale-110 transition-transform duration-300"
                 variants={logoVariants}
                 initial="light"
                 animate={darkMode ? "dark" : "light"}
@@ -241,13 +289,13 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
               <motion.img 
                 src="/logo_white.png"
                 alt="Recall254 Logo Dark"
-                className="w-10 h-10 object-cover rounded-full absolute"
+                className="w-10 h-10 object-cover rounded-full absolute group-hover:scale-110 transition-transform duration-300"
                 variants={logoVariantsDark}
                 initial="light"
                 animate={darkMode ? "dark" : "light"}
               />
             </div>
-            <div>
+            <div className="group-hover:transform group-hover:translate-x-1 transition-transform duration-300">
               <h1 className={`text-lg font-bold transition-colors duration-300 ${
                 darkMode ? 'text-white' : 'text-green-900'
               }`}>
@@ -269,20 +317,36 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => handleNavigation(item)}
-                className={`flex items-center space-x-2 transition-colors duration-300 ${
+                className={`flex items-center space-x-2 transition-all duration-300 ${
                   darkMode 
                     ? 'text-gray-300 hover:text-white hover:bg-gray-700/50' 
                     : 'text-green-700 hover:text-green-900 hover:bg-green-50/50'
+                } ${
+                  item.id === 'nasaka-iebc' 
+                    ? 'bg-ios-blue/10 text-ios-blue hover:bg-ios-blue/20 hover:text-ios-blue border border-ios-blue/20' 
+                    : ''
                 }`}
               >
                 <item.icon className="w-4 h-4" />
                 <span className="text-sm">{item.label}</span>
+                {item.id === 'nasaka-iebc' && (
+                  <motion.div
+                    className="w-2 h-2 bg-ios-blue rounded-full"
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                )}
               </Button>
             ))}
           </nav>
 
-          {/* Right Side: Status Badge + Dark Mode Toggle + Mobile Menu */}
+          {/* Right Side: IEBC Badge + Dark Mode Toggle + Mobile Menu */}
           <div className="flex items-center space-x-3">
+            {/* IEBC Office Finder Badge - Desktop */}
+            <div className="hidden md:block">
+              <IEBCBadge />
+            </div>
+
             <Badge 
               variant="outline" 
               className={`hidden sm:flex transition-colors duration-300 ${
@@ -380,19 +444,44 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
                       variant="ghost"
                       size="sm"
                       onClick={() => handleNavigation(item)}
-                      className={`w-full flex items-center space-x-3 justify-start px-4 py-3 transition-colors duration-300 ${
+                      className={`w-full flex items-center space-x-3 justify-start px-4 py-3 transition-all duration-300 ${
                         darkMode 
                           ? 'text-gray-300 hover:text-white hover:bg-gray-700/50' 
                           : 'text-green-700 hover:text-green-900 hover:bg-green-50/50'
+                      } ${
+                        item.id === 'nasaka-iebc' 
+                          ? 'bg-ios-blue/10 text-ios-blue hover:bg-ios-blue/20 hover:text-ios-blue border border-ios-blue/20' 
+                          : ''
                       }`}
                     >
                       <item.icon className="w-4 h-4" />
                       <span>{item.label}</span>
+                      {item.id === 'nasaka-iebc' && (
+                        <motion.div
+                          className="w-2 h-2 bg-ios-blue rounded-full"
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        />
+                      )}
                     </Button>
                   </motion.div>
                 ))}
+                
+                {/* IEBC Office Finder Mobile Badge */}
                 <motion.div 
-                  className="pt-2 mt-2 border-t border-gray-200/50 dark:border-gray-700/50"
+                  className="pt-2 mt-2 border-t border-gray-200/50 dark:border-gray-700/50 flex justify-center"
+                  variants={dropdownItemVariants}
+                >
+                  <div 
+                    className="cursor-pointer transform hover:scale-105 transition-transform duration-300"
+                    onClick={handleIEBCNavigation}
+                  >
+                    <IEBCBadge />
+                  </div>
+                </motion.div>
+
+                <motion.div 
+                  className="pt-2 border-t border-gray-200/50 dark:border-gray-700/50 flex justify-center"
                   variants={dropdownItemVariants}
                 >
                   <Badge 
