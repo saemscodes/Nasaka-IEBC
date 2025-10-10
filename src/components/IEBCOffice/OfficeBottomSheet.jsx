@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, PanInfo } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { estimateTravelTime, formatDistance } from '../../utils/geoUtils';
 import { openNavigation } from '../../utils/navigationUtils';
 import NavigateButton from './NavigateButton';
@@ -25,7 +25,7 @@ const OfficeBottomSheet = ({ office, userLocation, onOfficeSelect }) => {
 
   const travelTime = office.distance ? estimateTravelTime(office.distance) : null;
 
-  const handleDragEnd = (event, info: PanInfo) => {
+  const handleDragEnd = (event, info) => {
     if (info.offset.y > 50) {
       setSheetState('collapsed');
     } else if (info.offset.y < -50) {

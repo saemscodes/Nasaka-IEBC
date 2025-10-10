@@ -265,7 +265,7 @@ const deriveEncryptionKey = async (keyMaterial: CryptoKey, salt: Uint8Array) => 
   return crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt,
+      salt: salt as BufferSource,
       iterations: 310000,
       hash: 'SHA-256',
     },
@@ -279,7 +279,7 @@ const deriveEncryptionKey = async (keyMaterial: CryptoKey, salt: Uint8Array) => 
 const encryptData = async (data: string, key: CryptoKey, iv: Uint8Array) => {
   const encoder = new TextEncoder();
   return crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
+    { name: 'AES-GCM', iv: iv as BufferSource },
     key,
     encoder.encode(data)
   );
@@ -288,7 +288,7 @@ const encryptData = async (data: string, key: CryptoKey, iv: Uint8Array) => {
 const decryptData = async (encryptedData: ArrayBuffer, key: CryptoKey, iv: Uint8Array) => {
   try {
     const decrypted = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
+      { name: 'AES-GCM', iv: iv as BufferSource },
       key,
       encryptedData
     );
