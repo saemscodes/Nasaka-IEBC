@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useCallback, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Circle } from 'react-leaflet';
 import EnhancedMapContainer from '../../components/IEBCOffice/EnhancedMapContainer';
 import UserLocationMarker from '../../components/IEBCOffice/UserLocationMarker';
 import GeoJSONLayerManager from '../../components/IEBCOffice/GeoJSONLayerManager';
@@ -14,7 +13,6 @@ import LoadingSpinner from '../../components/IEBCOffice/LoadingSpinner';
 import { useIEBCOffices } from '../../hooks/useIEBCOffices';
 import { useMapControls } from '../../hooks/useMapControls';
 import { findNearestOffice, findNearestOffices } from '../../utils/geoUtils';
-import '../../styles/iebc-office.css';
 
 const EnhancedIEBCOfficeMap = () => {
   const navigate = useNavigate();
@@ -42,8 +40,6 @@ const EnhancedIEBCOfficeMap = () => {
   const [activeLayers, setActiveLayers] = useState(['iebc-offices']);
   const [isLayerPanelOpen, setIsLayerPanelOpen] = useState(false);
   const [currentRoute, setCurrentRoute] = useState(null);
-  const [lastTapTime, setLastTapTime] = useState(0);
-  const [searchRadius, setSearchRadius] = useState(null);
 
   // Set initial map center based on user location or default
   useEffect(() => {
@@ -135,37 +131,6 @@ const EnhancedIEBCOfficeMap = () => {
     setIsLayerPanelOpen(false);
   };
 
-  // Handle double-tap on map to search area
-  const handleMapClick = useCallback((e) => {
-    const currentTime = new Date().getTime();
-    const tapGap = currentTime - lastTapTime;
-    
-    if (tapGap < 300 && tapGap > 0) {
-      // Double tap detected
-      const { lat, lng } = e.latlng;
-      
-      // Search for offices within 5km radius
-      const nearbyOffices = findNearestOffices(lat, lng, offices, 10);
-      
-      if (nearbyOffices.length > 0) {
-        // Show search radius circle
-        setSearchRadius({ lat, lng, radius: 5000 });
-        
-        // Open list panel with results
-        setSearchQuery(`Around ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
-        openListPanel();
-        
-        // Fly to the tapped location
-        flyToLocation(lat, lng, 13);
-        
-        // Clear search radius after 3 seconds
-        setTimeout(() => setSearchRadius(null), 3000);
-      }
-    }
-    
-    setLastTapTime(currentTime);
-  }, [lastTapTime, offices, flyToLocation, openListPanel, setSearchQuery]);
-
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-ios-bg">
@@ -199,16 +164,14 @@ const EnhancedIEBCOfficeMap = () => {
 
   return (
     <div className="relative h-screen w-full bg-ios-bg overflow-hidden">
-      {/* Enhanced Map Container - Base layer */}
-      <div className="absolute inset-0 z-0">
-        <EnhancedMapContainer
-          ref={mapRef}
-          center={mapCenter}
-          zoom={mapZoom}
-          className="h-full w-full"
-          showLayerControl={true}
-          onClick={handleMapClick}
-        >
+      {/* Enhanced Map Container */}
+      <EnhancedMapContainer
+        ref={mapRef}
+        center={mapCenter}
+        zoom={mapZoom}
+        className="h-full w-full"
+        showLayerControl={true}
+      >
         {/* User Location Marker */}
         {userLocation && (
           <UserLocationMarker
@@ -234,33 +197,16 @@ const EnhancedIEBCOfficeMap = () => {
             showAlternatives={true}
           />
         )}
+      </EnhancedMapContainer>
 
-        {/* Search Radius Visualization */}
-        {searchRadius && (
-          <Circle
-            center={[searchRadius.lat, searchRadius.lng]}
-            radius={searchRadius.radius}
-            pathOptions={{
-              color: '#007AFF',
-              fillColor: '#007AFF',
-              fillOpacity: 0.1,
-              weight: 2,
-              dashArray: '5, 10'
-            }}
-          />
-        )}
-        </EnhancedMapContainer>
-      </div>
-
-      {/* Top Bar - Fixed with high z-index */}
+      {/* Top Bar */}
       <motion.div
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="fixed top-0 left-0 right-0 p-4 z-[1000]"
-        style={{ pointerEvents: 'none' }}
+        className="absolute top-0 left-0 right-0 p-4 pointer-events-none"
       >
-        <div className="glass-morphism rounded-2xl p-2 flex items-center space-x-2 elevation-low shadow-xl bg-white/95 backdrop-blur-xl" style={{ pointerEvents: 'auto' }}>
+        <div className="glass-morphism rounded-2xl p-2 flex items-center space-x-2 pointer-events-auto elevation-low">
           <button
             onClick={handleBack}
             className="p-2 rounded-xl hover:bg-ios-gray-100 transition-colors"
@@ -316,7 +262,7 @@ const EnhancedIEBCOfficeMap = () => {
         </div>
       </motion.div>
 
-      {/* Layer Control Panel - High z-index */}
+      {/* Layer Control Panel */}
       <LayerControlPanel
         layers={activeLayers}
         onToggleLayer={toggleLayer}
@@ -333,7 +279,7 @@ const EnhancedIEBCOfficeMap = () => {
         currentRoute={currentRoute}
       />
 
-      {/* Office List Panel - Highest z-index */}
+      {/* Office List Panel */}
       <AnimatePresence>
         {isListPanelOpen && (
           <OfficeListPanel

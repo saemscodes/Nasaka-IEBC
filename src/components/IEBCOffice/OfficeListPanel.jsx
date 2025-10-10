@@ -42,14 +42,14 @@ const OfficeListPanel = ({
 
   return (
     <motion.div
-      className="fixed inset-0 bg-black/50 z-[1200]"
+      className="absolute inset-0 bg-black/50 z-50"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
     >
       <motion.div
-        className="fixed top-0 right-0 bottom-0 w-full max-w-md bg-white shadow-xl"
+        className="absolute top-0 right-0 bottom-0 w-full max-w-md bg-white shadow-xl"
         variants={panelVariants}
         initial="hidden"
         animate="visible"

@@ -40,11 +40,14 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
     { id: 'map', label: 'Map', icon: MapPin },
     { id: 'search', label: 'Search', icon: Search },
     { id: 'voter', label: 'Voter', icon: CheckSquare },
-    { id: 'nasaka-iebc', label: 'IEBC Offices', icon: Building }
+    { id: 'nasaka-iebc', label: 'IEBC Offices', icon: Building, isExternal: false }
   ];
   
   const handleNavigation = (item: typeof navigationItems[0]) => {
-    if (item.id === 'nasaka-iebc') {
+    if (item.isExternal && item.externalUrl) {
+      // Handle external URLs
+      window.open(item.externalUrl, '_blank');
+    } else if (item.id === 'nasaka-iebc') {
       // Navigate to IEBC Office Finder splash page
       navigate('/nasaka-iebc');
     } else {
