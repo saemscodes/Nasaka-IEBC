@@ -52,14 +52,14 @@ const LayerControlPanel = ({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="absolute inset-0 bg-black/50 z-50"
+          className="fixed inset-0 bg-black/50 z-[1100]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
         >
           <motion.div
-            className="absolute top-0 right-0 bottom-0 w-full max-w-sm bg-white shadow-xl"
+            className="fixed top-0 right-0 bottom-0 w-full max-w-sm bg-white shadow-xl"
             variants={panelVariants}
             initial="closed"
             animate="open"

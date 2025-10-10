@@ -199,15 +199,16 @@ const EnhancedIEBCOfficeMap = () => {
 
   return (
     <div className="relative h-screen w-full bg-ios-bg overflow-hidden">
-      {/* Enhanced Map Container */}
-      <EnhancedMapContainer
-        ref={mapRef}
-        center={mapCenter}
-        zoom={mapZoom}
-        className="h-full w-full"
-        showLayerControl={true}
-        onClick={handleMapClick}
-      >
+      {/* Enhanced Map Container - Base layer */}
+      <div className="absolute inset-0 z-0">
+        <EnhancedMapContainer
+          ref={mapRef}
+          center={mapCenter}
+          zoom={mapZoom}
+          className="h-full w-full"
+          showLayerControl={true}
+          onClick={handleMapClick}
+        >
         {/* User Location Marker */}
         {userLocation && (
           <UserLocationMarker
@@ -248,16 +249,18 @@ const EnhancedIEBCOfficeMap = () => {
             }}
           />
         )}
-      </EnhancedMapContainer>
+        </EnhancedMapContainer>
+      </div>
 
       {/* Top Bar - Fixed with high z-index */}
       <motion.div
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="absolute top-0 left-0 right-0 p-4 pointer-events-none z-[1000]"
+        className="fixed top-0 left-0 right-0 p-4 z-[1000]"
+        style={{ pointerEvents: 'none' }}
       >
-        <div className="glass-morphism rounded-2xl p-2 flex items-center space-x-2 pointer-events-auto elevation-low shadow-xl bg-white/95 backdrop-blur-xl">
+        <div className="glass-morphism rounded-2xl p-2 flex items-center space-x-2 elevation-low shadow-xl bg-white/95 backdrop-blur-xl" style={{ pointerEvents: 'auto' }}>
           <button
             onClick={handleBack}
             className="p-2 rounded-xl hover:bg-ios-gray-100 transition-colors"
@@ -314,15 +317,13 @@ const EnhancedIEBCOfficeMap = () => {
       </motion.div>
 
       {/* Layer Control Panel - High z-index */}
-      <div className="z-[1100]">
-        <LayerControlPanel
-          layers={activeLayers}
-          onToggleLayer={toggleLayer}
-          isOpen={isLayerPanelOpen}
-          onClose={closeLayerPanel}
-          userLocation={userLocation}
-        />
-      </div>
+      <LayerControlPanel
+        layers={activeLayers}
+        onToggleLayer={toggleLayer}
+        isOpen={isLayerPanelOpen}
+        onClose={closeLayerPanel}
+        userLocation={userLocation}
+      />
 
       {/* Bottom Sheet */}
       <OfficeBottomSheet
@@ -335,15 +336,13 @@ const EnhancedIEBCOfficeMap = () => {
       {/* Office List Panel - Highest z-index */}
       <AnimatePresence>
         {isListPanelOpen && (
-          <div className="z-[1200]">
-            <OfficeListPanel
-              offices={searchQuery ? filteredOffices : nearbyOffices}
-              onSelectOffice={handleOfficeSelect}
-              onClose={closeListPanel}
-              searchQuery={searchQuery}
-              userLocation={userLocation}
-            />
-          </div>
+          <OfficeListPanel
+            offices={searchQuery ? filteredOffices : nearbyOffices}
+            onSelectOffice={handleOfficeSelect}
+            onClose={closeListPanel}
+            searchQuery={searchQuery}
+            userLocation={userLocation}
+          />
         )}
       </AnimatePresence>
 
