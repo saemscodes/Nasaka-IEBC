@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useGeolocation } from '../../hooks/useGeolocation';
+import { useGeolocation } from '../../hooks/useGeolocation.jsx';
 import LoadingSpinner from '../../components/IEBCOffice/LoadingSpinner';
 
 const IEBCOfficeSplash = () => {
