@@ -216,7 +216,24 @@ const GeoJSONLayerManager = ({
             if (!error) office = data;
           }
           
-          // Fallback to feature properties if Supabase fetch fails
+          // Fallback: Try to get from GeoJSON geometry coordinates
+          if (!office && feature.geometry && feature.geometry.coordinates) {
+            const [lng, lat] = feature.geometry.coordinates;
+            office = {
+              id: feature.properties.id,
+              constituency_name: feature.properties.constituency_name,
+              office_location: feature.properties.office_location,
+              county: feature.properties.county,
+              constituency: feature.properties.constituency,
+              constituency_code: feature.properties.constituency_code,
+              latitude: lat,
+              longitude: lng,
+              landmark: feature.properties.landmark,
+              verified: feature.properties.verified
+            };
+          }
+          
+          // Final fallback to feature properties
           if (!office && feature.properties) {
             office = {
               id: feature.properties.id,
@@ -225,8 +242,8 @@ const GeoJSONLayerManager = ({
               county: feature.properties.county,
               constituency: feature.properties.constituency,
               constituency_code: feature.properties.constituency_code,
-              latitude: feature.properties.latitude,
-              longitude: feature.properties.longitude,
+              latitude: feature.properties.latitude || (feature.geometry?.coordinates ? feature.geometry.coordinates[1] : null),
+              longitude: feature.properties.longitude || (feature.geometry?.coordinates ? feature.geometry.coordinates[0] : null),
               landmark: feature.properties.landmark,
               verified: feature.properties.verified
             };
@@ -237,12 +254,12 @@ const GeoJSONLayerManager = ({
           }
 
           // Create enhanced popup content
-          const popupContent = createPopupContent(office || feature.properties);
-          layer.bindPopup(popupContent).openPopup();
+          const popupContent = createPopupContent(office || feature.properties, feature.geometry?.coordinates);
+          layer.bindPopup(popupContent, { maxWidth: 320 }).openPopup();
         } catch (error) {
           console.error('Error fetching office details:', error);
-          const popupContent = createPopupContent(feature.properties);
-          layer.bindPopup(popupContent).openPopup();
+          const popupContent = createPopupContent(feature.properties, feature.geometry?.coordinates);
+          layer.bindPopup(popupContent, { maxWidth: 320 }).openPopup();
         }
       });
 
@@ -276,30 +293,37 @@ const GeoJSONLayerManager = ({
     });
   }, [activeLayers, fetchLayerData, layerConfigs]);
 
-  // Helper function to create popup content
-  const createPopupContent = (properties) => {
+  // Helper function to create popup content with transport mode selection
+  const createPopupContent = (properties, geometryCoords = null) => {
+    // Extract latitude and longitude from multiple possible sources
+    const lat = properties.latitude || (geometryCoords ? geometryCoords[1] : null);
+    const lng = properties.longitude || (geometryCoords ? geometryCoords[0] : null);
+    
+    // Check if coordinates are valid
+    const hasValidCoords = lat && lng && !isNaN(lat) && !isNaN(lng);
+    
     return `
       <div class="min-w-[280px] p-3">
         <div class="flex items-start justify-between mb-2">
-          <h3 class="font-semibold text-ios-gray-900 text-base">
+          <h3 class="font-semibold text-gray-900 text-base">
             ${properties.constituency_name || 'IEBC Office'}
           </h3>
           ${properties.verified ? `
-            <span class="bg-ios-green/20 text-ios-green text-xs px-2 py-1 rounded-full font-medium">
+            <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">
               Verified
             </span>
           ` : ''}
         </div>
         
         <div class="space-y-2 text-sm">
-          <div class="flex items-center space-x-2 text-ios-gray-600">
+          <div class="flex items-center space-x-2 text-gray-600">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             </svg>
             <span>${properties.office_location || 'IEBC Office'}</span>
           </div>
           
-          <div class="flex items-center space-x-2 text-ios-gray-600">
+          <div class="flex items-center space-x-2 text-gray-600">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
@@ -307,36 +331,90 @@ const GeoJSONLayerManager = ({
           </div>
 
           ${properties.landmark ? `
-            <div class="flex items-center space-x-2 text-ios-gray-500 text-xs">
+            <div class="flex items-center space-x-2 text-gray-500 text-xs">
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
               </svg>
               <span>Near ${properties.landmark}</span>
             </div>
           ` : ''}
+          
+          ${hasValidCoords ? `
+            <div class="text-xs text-gray-400 font-mono">
+              ${lat.toFixed(6)}, ${lng.toFixed(6)}
+            </div>
+          ` : `
+            <div class="text-xs text-red-500">
+              ⚠️ Coordinates unavailable
+            </div>
+          `}
         </div>
 
-        <div class="mt-4 flex space-x-2">
-          <button 
-            onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${properties.latitude},${properties.longitude}&travelmode=driving', '_blank')"
-            class="flex-1 bg-ios-blue text-white py-2 px-4 rounded-xl text-sm font-medium hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-            </svg>
-            <span>Navigate</span>
-          </button>
-          
-          <button 
-            onclick="navigator.clipboard.writeText('${properties.latitude},${properties.longitude}')"
-            class="bg-ios-gray-200 text-ios-gray-700 py-2 px-3 rounded-xl text-sm font-medium hover:bg-gray-300 transition-colors"
-            title="Copy coordinates"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-          </button>
-        </div>
+        ${hasValidCoords ? `
+          <div class="mt-4 space-y-2">
+            <div class="text-xs font-medium text-gray-700 mb-2">Navigate via:</div>
+            <div class="grid grid-cols-2 gap-2">
+              <button 
+                onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving', '_blank')"
+                class="flex items-center justify-center space-x-1 bg-blue-500 text-white py-2 px-3 rounded-lg text-xs font-medium hover:bg-blue-600 transition-colors"
+                title="Navigate by car"
+              >
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+                <span>Car</span>
+              </button>
+              
+              <button 
+                onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=walking', '_blank')"
+                class="flex items-center justify-center space-x-1 bg-green-500 text-white py-2 px-3 rounded-lg text-xs font-medium hover:bg-green-600 transition-colors"
+                title="Navigate on foot"
+              >
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span>Walk</span>
+              </button>
+              
+              <button 
+                onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=transit', '_blank')"
+                class="flex items-center justify-center space-x-1 bg-purple-500 text-white py-2 px-3 rounded-lg text-xs font-medium hover:bg-purple-600 transition-colors"
+                title="Navigate via public transport"
+              >
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                </svg>
+                <span>Transit</span>
+              </button>
+              
+              <button 
+                onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=bicycling', '_blank')"
+                class="flex items-center justify-center space-x-1 bg-orange-500 text-white py-2 px-3 rounded-lg text-xs font-medium hover:bg-orange-600 transition-colors"
+                title="Navigate by bicycle"
+              >
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12a9 9 0 0118 0 9 9 0 01-18 0z" />
+                </svg>
+                <span>Bike</span>
+              </button>
+            </div>
+            
+            <button 
+              onclick="navigator.clipboard.writeText('${lat},${lng}').then(() => alert('Coordinates copied!'))"
+              class="w-full mt-2 bg-gray-100 text-gray-700 py-2 px-3 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors flex items-center justify-center space-x-1"
+              title="Copy coordinates"
+            >
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <span>Copy Coordinates</span>
+            </button>
+          </div>
+        ` : `
+          <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
+            Location coordinates are not available for this office.
+          </div>
+        `}
       </div>
     `;
   };

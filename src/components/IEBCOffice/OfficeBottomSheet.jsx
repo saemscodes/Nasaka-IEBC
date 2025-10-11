@@ -39,9 +39,25 @@ const OfficeBottomSheet = ({ office, userLocation, onOfficeSelect, currentRoute 
     }
   };
 
+  const handleNavigateWithMode = (mode) => {
+    if (!office?.latitude || !office?.longitude) {
+      alert('Location coordinates are not available for this office.');
+      return;
+    }
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${office.latitude},${office.longitude}&travelmode=${mode}`;
+    window.open(url, '_blank');
+  };
+
   const toggleSheet = () => {
     setSheetState(prev => prev === 'expanded' ? 'collapsed' : 'expanded');
   };
+
+  const transportModes = [
+    { id: 'driving', label: 'Car', icon: '🚗', mode: 'driving', color: 'blue' },
+    { id: 'walking', label: 'Walk', icon: '🚶', mode: 'walking', color: 'green' },
+    { id: 'transit', label: 'Transit', icon: '🚌', mode: 'transit', color: 'purple' },
+    { id: 'bicycling', label: 'Bike', icon: '🚴', mode: 'bicycling', color: 'orange' }
+  ];
 
   return (
     <motion.div
@@ -201,9 +217,51 @@ const OfficeBottomSheet = ({ office, userLocation, onOfficeSelect, currentRoute 
       </motion.div>
     )}
 
+        {/* Transport Mode Selection */}
+        {sheetState === 'expanded' && office.latitude && office.longitude && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="space-y-3 mt-4"
+          >
+            <div className="text-sm font-semibold text-ios-gray-900">Choose your transport mode:</div>
+            <div className="grid grid-cols-4 gap-2">
+              {transportModes.map((transport) => (
+                <button
+                  key={transport.id}
+                  onClick={() => handleNavigateWithMode(transport.mode)}
+                  className="flex flex-col items-center justify-center p-3 bg-ios-gray-50 hover:bg-ios-gray-100 rounded-xl transition-all hover:scale-105 active:scale-95 border border-ios-gray-200"
+                >
+                  <span className="text-2xl mb-1">{transport.icon}</span>
+                  <span className="text-xs font-medium text-ios-gray-700">{transport.label}</span>
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Copy Coordinates Button */}
+        {office.latitude && office.longitude && (
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(`${office.latitude},${office.longitude}`);
+              alert('Coordinates copied to clipboard!');
+            }}
+            className="w-full mt-3 py-2 px-4 bg-ios-gray-100 hover:bg-ios-gray-200 rounded-xl text-sm font-medium text-ios-gray-700 transition-colors flex items-center justify-center space-x-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <span>Copy Coordinates</span>
+            <span className="text-xs text-ios-gray-500 font-mono">
+              ({office.latitude.toFixed(4)}, {office.longitude.toFixed(4)})
+            </span>
+          </button>
+        )}
+
         {/* Navigation Button */}
         <motion.div
-          className={`mt-6 ${sheetState === 'collapsed' ? 'pt-4 border-t border-ios-gray-100' : ''}`}
+          className={`mt-4 ${sheetState === 'collapsed' ? 'pt-4 border-t border-ios-gray-100' : ''}`}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
