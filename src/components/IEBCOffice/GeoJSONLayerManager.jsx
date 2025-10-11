@@ -162,17 +162,39 @@ const GeoJSONLayerManager = ({
     }
   }, [layerData, layerConfigs]);
 
-  // Safe style setter function
+  // Safe style setter function that handles both vector layers and markers
   const safeSetStyle = useCallback((layer, style) => {
-    // Only call setStyle if the layer supports it (vector layers, not markers)
+    // Check if the layer is a vector layer that supports setStyle
     if (layer && typeof layer.setStyle === 'function') {
       layer.setStyle(style);
     }
-    // For markers, we can implement alternative visual feedback if needed
+    // If it's a marker, apply visual feedback using CSS classes
     else if (layer && layer instanceof L.Marker) {
-      // You can add marker-specific visual feedback here
-      // For example, change the marker icon or add a highlight effect
-      console.log('Marker layer does not support setStyle method');
+      const element = layer.getElement();
+      if (element) {
+        // Apply a CSS class for hover effects
+        element.classList.add('marker-hover');
+        // You can also directly manipulate styles for opacity, etc.
+        if (style.opacity) {
+          element.style.opacity = style.opacity;
+        }
+      }
+    }
+  }, []);
+
+  // Safe style reset function for mouseout
+  const safeResetStyle = useCallback((layer, originalStyle) => {
+    // For vector layers, reset to original style
+    if (layer && typeof layer.setStyle === 'function') {
+      layer.setStyle(originalStyle);
+    }
+    // For markers, remove hover effects
+    else if (layer && layer instanceof L.Marker) {
+      const element = layer.getElement();
+      if (element) {
+        element.classList.remove('marker-hover');
+        element.style.opacity = '1'; // Reset to default
+      }
     }
   }, []);
 
@@ -224,33 +246,26 @@ const GeoJSONLayerManager = ({
         }
       });
 
-      // FIXED: Use safeSetStyle to prevent errors with marker layers
+      // Store the original layer ID for this feature
+      const layerId = activeLayers.find(l => layerData[l]?.features?.includes(feature));
+      const originalStyle = layerId && layerConfigs[layerId] ? layerConfigs[layerId].style : null;
+
+      // Mouseover event - use safeSetStyle
       layer.on('mouseover', function () {
         safeSetStyle(layer, {
           weight: 3,
           opacity: 1
         });
-        
-        // Add additional visual feedback for all layer types
-        if (layer instanceof L.Marker) {
-          // You can add marker-specific hover effects here
-          layer.getElement()?.classList?.add('marker-hover');
-        }
       });
 
+      // Mouseout event - use safeResetStyle (SINGLE handler - removed duplicate)
       layer.on('mouseout', function () {
-        const layerId = activeLayers.find(l => layerData[l]?.features?.includes(feature));
-        if (layerId && layerConfigs[layerId]) {
-          safeSetStyle(layer, layerConfigs[layerId].style);
-        }
-        
-        // Remove marker hover effects
-        if (layer instanceof L.Marker) {
-          layer.getElement()?.classList?.remove('marker-hover');
+        if (originalStyle) {
+          safeResetStyle(layer, originalStyle);
         }
       });
     }
-  }, [onOfficeSelect, activeLayers, layerData, layerConfigs, safeSetStyle]);
+  }, [onOfficeSelect, activeLayers, layerData, layerConfigs, safeSetStyle, safeResetStyle]);
 
   // Load data for active layers
   useEffect(() => {
