@@ -162,6 +162,20 @@ const GeoJSONLayerManager = ({
     }
   }, [layerData, layerConfigs]);
 
+  // Safe style setter function
+  const safeSetStyle = useCallback((layer, style) => {
+    // Only call setStyle if the layer supports it (vector layers, not markers)
+    if (layer && typeof layer.setStyle === 'function') {
+      layer.setStyle(style);
+    }
+    // For markers, we can implement alternative visual feedback if needed
+    else if (layer && layer instanceof L.Marker) {
+      // You can add marker-specific visual feedback here
+      // For example, change the marker icon or add a highlight effect
+      console.log('Marker layer does not support setStyle method');
+    }
+  }, []);
+
   // Enhanced popup content with Supabase data - FIXED EVENT HANDLERS
   const onEachFeature = useCallback((feature, layer) => {
     if (feature.properties && (feature.properties.id || feature.properties.constituency_code)) {
@@ -210,22 +224,33 @@ const GeoJSONLayerManager = ({
         }
       });
 
-      // FIXED: Use the layer parameter directly instead of 'this'
+      // FIXED: Use safeSetStyle to prevent errors with marker layers
       layer.on('mouseover', function () {
-        layer.setStyle({
+        safeSetStyle(layer, {
           weight: 3,
           opacity: 1
         });
+        
+        // Add additional visual feedback for all layer types
+        if (layer instanceof L.Marker) {
+          // You can add marker-specific hover effects here
+          layer.getElement()?.classList?.add('marker-hover');
+        }
       });
 
       layer.on('mouseout', function () {
         const layerId = activeLayers.find(l => layerData[l]?.features?.includes(feature));
         if (layerId && layerConfigs[layerId]) {
-          layer.setStyle(layerConfigs[layerId].style);
+          safeSetStyle(layer, layerConfigs[layerId].style);
+        }
+        
+        // Remove marker hover effects
+        if (layer instanceof L.Marker) {
+          layer.getElement()?.classList?.remove('marker-hover');
         }
       });
     }
-  }, [onOfficeSelect, activeLayers, layerData, layerConfigs]);
+  }, [onOfficeSelect, activeLayers, layerData, layerConfigs, safeSetStyle]);
 
   // Load data for active layers
   useEffect(() => {
@@ -325,4 +350,3 @@ const GeoJSONLayerManager = ({
 
 export default GeoJSONLayerManager;
 export { searchNearbyOffices, calculateDistance };
-
