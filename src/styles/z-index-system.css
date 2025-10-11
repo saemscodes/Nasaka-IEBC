@@ -1,0 +1,81 @@
+/* Z-Index Hierarchy System for IEBC Office Finder */
+:root {
+  /* Base map layers */
+  --z-index-map-base: 0;
+  --z-index-map-tiles: 1;
+  --z-index-map-markers: 10;
+  --z-index-map-popups: 20;
+  --z-index-map-routes: 15;
+  
+  /* UI Controls - ABOVE map */
+  --z-index-search-bar: 1000;
+  --z-index-control-buttons: 1001;
+  --z-index-layer-control: 1002;
+  
+  /* Interactive Overlays */
+  --z-index-bottom-sheet: 2000;
+  --z-index-list-panel: 2001;
+  --z-index-layer-panel: 2002;
+  
+  /* System Overlays */
+  --z-index-loading-overlay: 3000;
+  --z-index-error-overlay: 3001;
+  --z-index-toast-notifications: 3002;
+  
+  /* Maximum system z-index */
+  --z-index-max: 9999;
+}
+
+/* Apply z-index to components */
+.search-bar-container {
+  z-index: var(--z-index-search-bar) !important;
+}
+
+.map-controls-container {
+  z-index: var(--z-index-control-buttons) !important;
+}
+
+.layer-control-button {
+  z-index: var(--z-index-layer-control) !important;
+}
+
+.office-bottom-sheet {
+  z-index: var(--z-index-bottom-sheet) !important;
+}
+
+.office-list-panel {
+  z-index: var(--z-index-list-panel) !important;
+}
+
+.layer-control-panel {
+  z-index: var(--z-index-layer-panel) !important;
+}
+
+.loading-overlay {
+  z-index: var(--z-index-loading-overlay) !important;
+}
+
+.error-overlay {
+  z-index: var(--z-index-error-overlay) !important;
+}
+
+/* Ensure Leaflet elements respect our z-index hierarchy */
+.leaflet-map-container {
+  z-index: var(--z-index-map-base) !important;
+}
+
+.leaflet-tile-pane {
+  z-index: var(--z-index-map-tiles) !important;
+}
+
+.leaflet-marker-pane {
+  z-index: var(--z-index-map-markers) !important;
+}
+
+.leaflet-popup-pane {
+  z-index: var(--z-index-map-popups) !important;
+}
+
+.leaflet-overlay-pane {
+  z-index: var(--z-index-map-routes) !important;
+}
