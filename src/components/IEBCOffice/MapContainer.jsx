@@ -137,6 +137,6 @@ const MapContainer = forwardRef(({
   );
 });
 
-EnhancedMapContainer.displayName = 'EnhancedMapContainer';
+MapContainer.displayName = 'MapContainer';
 
 export default MapContainer;
