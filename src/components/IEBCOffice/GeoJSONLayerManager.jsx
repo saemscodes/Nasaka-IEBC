@@ -19,24 +19,24 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 // Search nearby offices using Supabase PostGIS
 const searchNearbyOffices = async (lat, lng, radius = 5000, onNearbyOfficesFound = null) => {
   try {
-    // Use PostGIS distance query for precise spatial search
+    // ✅ Use .not() instead of invalid .filter() syntax
     const { data: offices, error } = await supabase
       .from('iebc_offices')
       .select('*')
       .eq('verified', true)
-      .filter('geom', 'not.is', null)
-      .filter('latitude', 'not.is', null)
-      .filter('longitude', 'not.is', null);
+      .not('geom', 'is', null)
+      .not('latitude', 'is', null)
+      .not('longitude', 'is', null);
 
     if (error) throw error;
 
-    // Calculate distances and filter
+    // Calculate distances and filter by radius
     const officesWithDistance = offices
       .map(office => {
         const distance = calculateDistance(lat, lng, office.latitude, office.longitude);
         return { ...office, distance };
       })
-      .filter(office => office.distance <= (radius / 1000)) // Convert to km
+      .filter(office => office.distance <= (radius / 1000)) // Convert meters to km
       .sort((a, b) => a.distance - b.distance);
 
     if (onNearbyOfficesFound) {
