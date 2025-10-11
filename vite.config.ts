@@ -1,52 +1,67 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
-import path from "path";
-import { componentTagger } from "lovable-tagger";
+import { defineConfig } from "vite"
+import react from "@vitejs/plugin-react-swc"
+import path from "path"
+import { componentTagger } from "lovable-tagger"
 
 export default defineConfig(({ mode }) => ({
-  server: {
-    host: "::",
-    port: 8080,
-    // ✅ CRITICAL FOR CLIENT-SIDE ROUTING
-    historyApiFallback: true
-  },
-  build: {
-    outDir: 'dist',
-    sourcemap: mode === 'development',
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ["react", "react-dom"],
-          leaflet: ["leaflet", "react-leaflet"],
-          ui: ["@radix-ui/react-select", "@radix-ui/react-dialog", "@radix-ui/react-tabs"],
-          utils: ["lucide-react", "clsx", "tailwind-merge"]
-        },
-      },
-    },
-  },
   plugins: [
     react(),
-    mode === 'development' && componentTagger(),
+    mode === "development" && componentTagger(),
   ].filter(Boolean),
+
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  // ✅ ENVIRONMENT VARIABLES FOR IEBC MAP
+
+  server: {
+    host: "::",
+    port: 8080,
+    // ✅ Enables client-side routing in dev mode
+    historyApiFallback: true,
+  },
+
+  build: {
+    outDir: "dist",
+    sourcemap: mode === "development",
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ["react", "react-dom"],
+          leaflet: ["leaflet", "react-leaflet"],
+          ui: [
+            "@radix-ui/react-select",
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-tabs",
+          ],
+          utils: ["lucide-react", "clsx", "tailwind-merge"],
+        },
+      },
+    },
+  },
+
   define: {
-    'process.env': process.env
+    "process.env": process.env,
   },
+
   optimizeDeps: {
-    include: ['leaflet', 'react-leaflet'],
-    exclude: ['lovable-tagger']
+    include: ["leaflet", "react-leaflet"],
+    exclude: ["lovable-tagger"],
   },
-  // ✅ PUBLIC PATH FOR ASSETS
-  base: './',
-  // ✅ CSS CONFIGURATION
+
   css: {
     modules: {
-      localsConvention: 'camelCase'
-    }
-  }
-}));
+      localsConvention: "camelCase",
+    },
+  },
+
+  // ✅ Critical fix: correct asset base for production builds
+  // When deployed at root (Vercel, custom domain, etc.)
+  base: "/",
+
+  // ✅ Ensures correct MIME headers on built assets
+  esbuild: {
+    loader: "tsx",
+  },
+}))
