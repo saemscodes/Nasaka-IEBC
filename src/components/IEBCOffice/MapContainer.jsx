@@ -1,9 +1,10 @@
-import React, { forwardRef, useEffect, useImperativeHandle } from 'react';
-import { MapContainer as LeafletMap, TileLayer, useMap } from 'react-leaflet';
+import React, { forwardRef, useEffect, useImperativeHandle, useState, useCallback } from 'react';
+import { MapContainer as LeafletMap, TileLayer, useMap, LayersControl, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import L from 'leaflet';
 
-// Fix for default markers in react-leaflet
+// Fix for default markers
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -11,8 +12,31 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Map controller component for imperative handle
-const MapController = forwardRef(({ center, zoom }, ref) => {
+// Double-tap detection component
+const DoubleTapHandler = ({ onDoubleTap, doubleTapDelay = 300 }) => {
+  const [lastTap, setLastTap] = useState(0);
+  const map = useMap();
+
+  useMapEvents({
+    click: (e) => {
+      const currentTime = new Date().getTime();
+      const tapLength = currentTime - lastTap;
+      
+      if (tapLength < doubleTapDelay && tapLength > 0) {
+        // Double-tap detected
+        onDoubleTap(e.latlng);
+        setLastTap(0);
+      } else {
+        setLastTap(currentTime);
+      }
+    },
+  });
+
+  return null;
+};
+
+// Map controller component
+const MapController = forwardRef(({ center, zoom, onMapReady, onDoubleTap }, ref) => {
   const map = useMap();
 
   useImperativeHandle(ref, () => ({
@@ -23,7 +47,9 @@ const MapController = forwardRef(({ center, zoom }, ref) => {
       map.setView(latLng, zoomLevel);
     },
     getCenter: () => map.getCenter(),
-    getZoom: () => map.getZoom()
+    getZoom: () => map.getZoom(),
+    getMap: () => map,
+    getBounds: () => map.getBounds()
   }), [map]);
 
   useEffect(() => {
@@ -32,32 +58,85 @@ const MapController = forwardRef(({ center, zoom }, ref) => {
     }
   }, [center, zoom, map]);
 
-  return null;
-});
-
-const MapContainer = forwardRef(({ center, zoom, children, className, ...props }, ref) => {
-  const defaultCenter = [-1.286389, 36.817223]; // Nairobi center
-  const defaultZoom = 10;
+  useEffect(() => {
+    if (map && onMapReady) {
+      onMapReady(map);
+    }
+  }, [map, onMapReady]);
 
   return (
-    <LeafletMap
-      center={center || defaultCenter}
-      zoom={zoom || defaultZoom}
-      className={className}
-      style={{ height: '100%', width: '100%' }}
-      zoomControl={false}
-      {...props}
-    >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      />
-      <MapController ref={ref} center={center} zoom={zoom} />
-      {children}
-    </LeafletMap>
+    <>
+      <DoubleTapHandler onDoubleTap={onDoubleTap} />
+    </>
   );
 });
 
-MapContainer.displayName = 'MapContainer';
+const EnhancedMapContainer = forwardRef(({ 
+  center, 
+  zoom, 
+  children, 
+  className, 
+  onMapReady,
+  onDoubleTap,
+  showLayerControl = true,
+  ...props 
+}, ref) => {
+  const defaultCenter = [-1.286389, 36.817223]; // Nairobi
+  const defaultZoom = 10;
+
+  const handleDoubleTap = useCallback((latlng) => {
+    if (onDoubleTap) {
+      onDoubleTap(latlng);
+    }
+  }, [onDoubleTap]);
+
+  return (
+    <div className="relative w-full h-full">
+      <LeafletMap
+        center={center || defaultCenter}
+        zoom={zoom || defaultZoom}
+        className={`w-full h-full ${className}`}
+        style={{ position: 'relative', zIndex: 'var(--z-index-map-base)' }}
+        zoomControl={true}
+        doubleClickZoom={false} // Disable default double-click zoom for custom double-tap
+        {...props}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
+        
+        {/* Optional Satellite Layer */}
+        {showLayerControl && (
+          <LayersControl position="topright">
+            <LayersControl.BaseLayer checked name="Standard">
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              />
+            </LayersControl.BaseLayer>
+            <LayersControl.BaseLayer name="Satellite">
+              <TileLayer
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
+              />
+            </LayersControl.BaseLayer>
+          </LayersControl>
+        )}
+        
+        <MapController 
+          ref={ref} 
+          center={center} 
+          zoom={zoom} 
+          onMapReady={onMapReady}
+          onDoubleTap={handleDoubleTap}
+        />
+        {children}
+      </LeafletMap>
+    </div>
+  );
+});
+
+EnhancedMapContainer.displayName = 'EnhancedMapContainer';
 
 export default MapContainer;
