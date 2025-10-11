@@ -4,7 +4,7 @@ import { estimateTravelTime, formatDistance } from '../../utils/geoUtils';
 import { openNavigation } from '../../utils/navigationUtils';
 import NavigateButton from './NavigateButton';
 
-const OfficeBottomSheet = ({ office, userLocation, onOfficeSelect }) => {
+const OfficeBottomSheet = ({ office, userLocation, onOfficeSelect, currentRoute }) => {
   const [sheetState, setSheetState] = useState('expanded'); // 'collapsed' | 'expanded'
 
   if (!office) {
@@ -45,7 +45,7 @@ const OfficeBottomSheet = ({ office, userLocation, onOfficeSelect }) => {
 
   return (
     <motion.div
-      className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-lg border-t border-ios-gray-200 max-h-[80vh] overflow-hidden"
+      className="pointer-events-auto absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-lg border-t border-ios-gray-200 max-h-[80vh] overflow-hidden"
       initial={{ y: 300 }}
       animate={{ y: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}

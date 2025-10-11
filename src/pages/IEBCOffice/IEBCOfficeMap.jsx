@@ -230,7 +230,7 @@ const IEBCOfficeMap = () => {
           {/* UI Controls rendered into custom Leaflet pane */}
           <MapControlPortal zIndex={650} className="map-ui-overlay">
             {/* Enhanced Sticky Search Bar */}
-            <div className="search-container">
+            <div className="fixed top-4 left-4 right-4 z-[1000]">
               <SearchBar
                 value={searchQuery}
                 onChange={setSearchQuery}
@@ -246,7 +246,7 @@ const IEBCOfficeMap = () => {
               initial={{ y: -100 }}
               animate={{ y: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="control-group"
+              className="fixed top-20 right-4 z-[1000] flex flex-col space-y-2"
             >
               {/* Layer Control Button */}
               <button
@@ -358,20 +358,22 @@ const IEBCOfficeMap = () => {
       </div>
 
       {/* External UI Components */}
-      <LayerControlPanel
-        layers={activeLayers}
-        onToggleLayer={toggleLayer}
-        isOpen={isLayerPanelOpen}
-        onClose={closeLayerPanel}
-        userLocation={userLocation}
-      />
+      <div className="fixed inset-0 pointer-events-none z-[900]">
+        <LayerControlPanel
+          layers={activeLayers}
+          onToggleLayer={toggleLayer}
+          isOpen={isLayerPanelOpen}
+          onClose={closeLayerPanel}
+          userLocation={userLocation}
+        />
 
-      <OfficeBottomSheet
-        office={selectedOffice || nearestOffice}
-        userLocation={userLocation}
-        onOfficeSelect={handleOfficeSelect}
-        currentRoute={currentRoute}
-      />
+        <OfficeBottomSheet
+          office={selectedOffice || nearestOffice}
+          userLocation={userLocation}
+          onOfficeSelect={handleOfficeSelect}
+          currentRoute={currentRoute}
+        />
+      </div>
 
       <AnimatePresence>
         {isListPanelOpen && (
