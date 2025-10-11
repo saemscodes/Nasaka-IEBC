@@ -3,6 +3,53 @@ import { GeoJSON, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { supabase } from '@/integrations/supabase/client';
 
+// Calculate distance between two coordinates (Haversine formula)
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+};
+
+// Search nearby offices using Supabase PostGIS
+const searchNearbyOffices = async (lat, lng, radius = 5000, onNearbyOfficesFound = null) => {
+  try {
+    // Use PostGIS distance query for precise spatial search
+    const { data: offices, error } = await supabase
+      .from('iebc_offices')
+      .select('*')
+      .eq('verified', true)
+      .filter('geom', 'not.is', null)
+      .filter('latitude', 'not.is', null)
+      .filter('longitude', 'not.is', null);
+
+    if (error) throw error;
+
+    // Calculate distances and filter
+    const officesWithDistance = offices
+      .map(office => {
+        const distance = calculateDistance(lat, lng, office.latitude, office.longitude);
+        return { ...office, distance };
+      })
+      .filter(office => office.distance <= (radius / 1000)) // Convert to km
+      .sort((a, b) => a.distance - b.distance);
+
+    if (onNearbyOfficesFound) {
+      onNearbyOfficesFound(officesWithDistance, { lat, lng, radius });
+    }
+
+    return officesWithDistance;
+  } catch (error) {
+    console.error('Error searching nearby offices:', error);
+    return [];
+  }
+};
+
 const GeoJSONLayerManager = ({ 
   activeLayers = [],
   onOfficeSelect,
@@ -114,40 +161,6 @@ const GeoJSONLayerManager = ({
       setLoading(prev => ({ ...prev, [layerId]: false }));
     }
   }, [layerData, layerConfigs]);
-
-  // Search nearby offices using Supabase PostGIS
-  const searchNearbyOffices = useCallback(async (lat, lng, radius = searchRadius) => {
-    try {
-      // Use PostGIS distance query for precise spatial search
-      const { data: offices, error } = await supabase
-        .from('iebc_offices')
-        .select('*')
-        .eq('verified', true)
-        .filter('geom', 'not.is', null)
-        .filter('latitude', 'not.is', null)
-        .filter('longitude', 'not.is', null);
-
-      if (error) throw error;
-
-      // Calculate distances and filter
-      const officesWithDistance = offices
-        .map(office => {
-          const distance = calculateDistance(lat, lng, office.latitude, office.longitude);
-          return { ...office, distance };
-        })
-        .filter(office => office.distance <= (radius / 1000)) // Convert to km
-        .sort((a, b) => a.distance - b.distance);
-
-      if (onNearbyOfficesFound) {
-        onNearbyOfficesFound(officesWithDistance, { lat, lng, radius });
-      }
-
-      return officesWithDistance;
-    } catch (error) {
-      console.error('Error searching nearby offices:', error);
-      return [];
-    }
-  }, [searchRadius, onNearbyOfficesFound]);
 
   // Enhanced popup content with Supabase data
   const onEachFeature = useCallback((feature, layer) => {
@@ -288,19 +301,6 @@ const GeoJSONLayerManager = ({
     `;
   };
 
-  // Calculate distance between two coordinates (Haversine formula)
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // Earth's radius in kilometers
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-  };
-
   return (
     <>
       {activeLayers.map(layerId => {
@@ -323,4 +323,4 @@ const GeoJSONLayerManager = ({
   );
 };
 
-export { GeoJSONLayerManager, searchNearbyOffices };
+export { GeoJSONLayerManager, searchNearbyOffices, calculateDistance };
