@@ -162,7 +162,7 @@ const GeoJSONLayerManager = ({
     }
   }, [layerData, layerConfigs]);
 
-  // Enhanced popup content with Supabase data
+  // Enhanced popup content with Supabase data - FIXED EVENT HANDLERS
   const onEachFeature = useCallback((feature, layer) => {
     if (feature.properties && (feature.properties.id || feature.properties.constituency_code)) {
       layer.on('click', async (e) => {
@@ -210,9 +210,9 @@ const GeoJSONLayerManager = ({
         }
       });
 
-      // Add hover effects
+      // FIXED: Use the layer parameter directly instead of 'this'
       layer.on('mouseover', function () {
-        this.setStyle({
+        layer.setStyle({
           weight: 3,
           opacity: 1
         });
@@ -221,7 +221,7 @@ const GeoJSONLayerManager = ({
       layer.on('mouseout', function () {
         const layerId = activeLayers.find(l => layerData[l]?.features?.includes(feature));
         if (layerId && layerConfigs[layerId]) {
-          this.setStyle(layerConfigs[layerId].style);
+          layer.setStyle(layerConfigs[layerId].style);
         }
       });
     }
