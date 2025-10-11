@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, MapPin, Filter } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
-const StickySearchBar = ({ 
+const SearchBar = ({ 
   value, 
   onChange, 
   onFocus, 
