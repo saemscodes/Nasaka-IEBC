@@ -1,5 +1,7 @@
-/* IEBC Office Finder Custom Styles */
+/* Import Leaflet CSS for OpenStreetMap */
 @import 'leaflet/dist/leaflet.css';
+
+/* IEBC Office Finder Custom Styles */
 
 /* Glass morphism effect */
 .glass-morphism {
