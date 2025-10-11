@@ -323,4 +323,6 @@ const GeoJSONLayerManager = ({
   );
 };
 
-export { GeoJSONLayerManager, searchNearbyOffices, calculateDistance };
+export default GeoJSONLayerManager;
+export { searchNearbyOffices, calculateDistance };
+
