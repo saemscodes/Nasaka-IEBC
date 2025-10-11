@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 
 export const useMapControls = (initialCenter = [-1.286389, 36.817223]) => {
   const [mapCenter, setMapCenter] = useState(initialCenter);
