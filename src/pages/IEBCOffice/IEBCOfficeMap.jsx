@@ -1,10 +1,11 @@
+// src/pages/IEBCOffice/IEBCOfficeMap.jsx
 import React, { useEffect, useMemo, useCallback, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import MapContainer from '@/components/IEBCOffice/MapContainer';
 import SearchBar from '@/components/IEBCOffice/SearchBar';
 import GeoJSONLayerManager, { searchNearbyOffices } from '@/components/IEBCOffice/GeoJSONLayerManager';
-import MapControlPortal from '@/components/IEBCOffice/MapControlPortal'; // Fixed typo
+import MapControlPortal from '@/components/IEBCOffice/MapControlPortal';
 import UserLocationMarker from '@/components/IEBCOffice/UserLocationMarker';
 import RoutingSystem from '@/components/IEBCOffice/RoutingSystem';
 import LayerControlPanel from '@/components/IEBCOffice/LayerControlPanel';
@@ -45,6 +46,7 @@ const IEBCOfficeMap = () => {
   const [nearbyOffices, setNearbyOffices] = useState([]);
   const [isSearchingNearby, setIsSearchingNearby] = useState(false);
   const [lastTapLocation, setLastTapLocation] = useState(null);
+  const [routingError, setRoutingError] = useState(null);
   const mapInstanceRef = useRef(null);
 
   // Initialize map reference
@@ -82,6 +84,7 @@ const IEBCOfficeMap = () => {
     setSelectedOffice(enhancedOffice);
     flyToOffice(enhancedOffice);
     closeListPanel();
+    setRoutingError(null); // Clear previous routing errors
   }, [setSelectedOffice, flyToOffice, closeListPanel]);
 
   // Enhanced search with Supabase integration
@@ -125,6 +128,25 @@ const IEBCOfficeMap = () => {
     }
   }, [openListPanel]);
 
+  // Handle route found event
+  const handleRouteFound = useCallback((routes) => {
+    setCurrentRoute(routes);
+    setRoutingError(null);
+    console.log('Route calculation successful:', routes?.length, 'routes found');
+  }, []);
+
+  // Handle route error
+  const handleRouteError = useCallback((error) => {
+    console.error('Routing error:', error);
+    setRoutingError(error?.message || 'Failed to calculate route');
+    setCurrentRoute(null);
+    
+    // Show user-friendly error message
+    if (error && selectedOffice) {
+      console.warn('Routing failed, user can use Google Maps fallback');
+    }
+  }, [selectedOffice]);
+
   // Find nearest office
   const nearestOffice = useMemo(() => {
     if (userLocation?.latitude && userLocation?.longitude && offices.length > 0) {
@@ -156,17 +178,6 @@ const IEBCOfficeMap = () => {
     return offices.slice(0, 20);
   }, [userLocation, offices]);
 
-  // Handle route found event
-  const handleRouteFound = useCallback((routes) => {
-    setCurrentRoute(routes);
-  }, []);
-
-  // Handle route error
-  const handleRouteError = useCallback((error) => {
-    console.error('Routing error:', error);
-    setCurrentRoute(null);
-  }, []);
-
   // Toggle layer visibility
   const toggleLayer = useCallback((layerId) => {
     setActiveLayers(prev => 
@@ -182,6 +193,16 @@ const IEBCOfficeMap = () => {
   const handleRetryLocation = () => navigate('/nasaka-iebc', { replace: true });
   const openLayerPanel = () => setIsLayerPanelOpen(true);
   const closeLayerPanel = () => setIsLayerPanelOpen(false);
+
+  // Clear routing error after delay
+  useEffect(() => {
+    if (routingError) {
+      const timer = setTimeout(() => {
+        setRoutingError(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [routingError]);
 
   if (loading) {
     return (
@@ -230,7 +251,7 @@ const IEBCOfficeMap = () => {
           {/* UI Controls rendered into custom Leaflet pane */}
           <MapControlPortal zIndex={650} className="map-ui-overlay">
             {/* Enhanced Sticky Search Bar */}
-            <div className="fixed top-4 left-4 right-4 z-[1000]">
+            <div className="search-container">
               <SearchBar
                 value={searchQuery}
                 onChange={setSearchQuery}
@@ -246,7 +267,7 @@ const IEBCOfficeMap = () => {
               initial={{ y: -100 }}
               animate={{ y: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed top-20 right-4 z-[1000] flex flex-col space-y-2"
+              className="control-group"
             >
               {/* Layer Control Button */}
               <button
@@ -322,6 +343,26 @@ const IEBCOfficeMap = () => {
                 )}
               </motion.div>
             )}
+
+            {/* Routing Error Notification */}
+            {routingError && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="error-notification"
+              >
+                <div className="bg-ios-red/90 text-white px-4 py-3 rounded-2xl shadow-lg max-w-sm">
+                  <div className="flex items-center space-x-2">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    <span className="text-sm font-medium">Routing unavailable</span>
+                  </div>
+                  <p className="text-xs mt-1 opacity-90">Using demo routing service. Tap office for Google Maps directions.</p>
+                </div>
+              </motion.div>
+            )}
           </MapControlPortal>
 
           {/* Map Layers */}
@@ -345,35 +386,35 @@ const IEBCOfficeMap = () => {
             />
           )}
 
+          {/* Enhanced Routing System */}
           {userLocation && selectedOffice && (
             <RoutingSystem
               userLocation={userLocation}
               destination={selectedOffice}
               onRouteFound={handleRouteFound}
               onRouteError={handleRouteError}
-              showAlternatives={true}
+              showAlternatives={false}
             />
           )}
         </MapContainer>
       </div>
 
       {/* External UI Components */}
-      <div className="fixed inset-0 pointer-events-none z-[900]">
-        <LayerControlPanel
-          layers={activeLayers}
-          onToggleLayer={toggleLayer}
-          isOpen={isLayerPanelOpen}
-          onClose={closeLayerPanel}
-          userLocation={userLocation}
-        />
+      <LayerControlPanel
+        layers={activeLayers}
+        onToggleLayer={toggleLayer}
+        isOpen={isLayerPanelOpen}
+        onClose={closeLayerPanel}
+        userLocation={userLocation}
+      />
 
-        <OfficeBottomSheet
-          office={selectedOffice || nearestOffice}
-          userLocation={userLocation}
-          onOfficeSelect={handleOfficeSelect}
-          currentRoute={currentRoute}
-        />
-      </div>
+      <OfficeBottomSheet
+        office={selectedOffice || nearestOffice}
+        userLocation={userLocation}
+        onOfficeSelect={handleOfficeSelect}
+        currentRoute={currentRoute}
+        routingError={routingError}
+      />
 
       <AnimatePresence>
         {isListPanelOpen && (
