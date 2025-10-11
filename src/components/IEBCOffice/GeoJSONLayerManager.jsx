@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { GeoJSON, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { supabase } from '../../../integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 
 const GeoJSONLayerManager = ({ 
   activeLayers = [],
