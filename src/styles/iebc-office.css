@@ -44,10 +44,18 @@
   border: none !important;
 }
 
-/* Marker hover effects for layers that don't support setStyle */
+/* Marker hover effects */
 .marker-hover {
-  filter: brightness(1.2) drop-shadow(0 0 4px rgba(0, 122, 255, 0.6));
-  transition: filter 0.2s ease-in-out;
+  filter: brightness(1.3) drop-shadow(0 0 6px rgba(0, 122, 255, 0.8));
+  transform: scale(1.1);
+  transition: all 0.2s ease-in-out;
+}
+
+/* Ensure marker containers are visible */
+.geojson-office-marker,
+.geojson-office-marker-detailed {
+  background: transparent !important;
+  border: none !important;
 }
 
 /* Pulse animation for markers */
