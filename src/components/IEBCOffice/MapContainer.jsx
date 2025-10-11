@@ -71,7 +71,7 @@ const MapController = forwardRef(({ center, zoom, onMapReady, onDoubleTap }, ref
   );
 });
 
-const EnhancedMapContainer = forwardRef(({ 
+const MapContainer = forwardRef(({ 
   center, 
   zoom, 
   children, 
