@@ -1,7 +1,120 @@
 /* Import Leaflet CSS for OpenStreetMap */
 @import 'leaflet/dist/leaflet.css';
 
-/* IEBC Office Finder Custom Styles */
+/* iOS Map Container Styles */
+.ios-map-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  background: #fff;
+  /* iOS-style smooth corners */
+  border-radius: 24px;
+  overflow: hidden;
+  /* Subtle shadow for depth */
+  box-shadow: 
+    0 4px 24px rgba(0, 0, 0, 0.08),
+    0 1px 4px rgba(0, 0, 0, 0.04);
+  margin: 0 auto;
+}
+
+.map-wrapper {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+
+/* Map UI Overlay Container */
+.map-ui-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1000;
+  border-radius: inherit;
+}
+
+.map-ui-overlay > * {
+  pointer-events: auto;
+}
+
+/* Search Container */
+.search-container {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  border: 0.5px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  padding: 8px;
+}
+
+/* Control Group */
+.control-group {
+  position: absolute;
+  top: 96px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 1001;
+}
+
+/* iOS-style control buttons */
+.ios-control-btn {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  border: 0.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.ios-control-btn:hover {
+  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.15),
+    0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.ios-control-btn:active {
+  transform: scale(0.95);
+}
+
+/* Search Indicator */
+.search-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1002;
+}
+
+/* Route Badge */
+.route-badge {
+  position: absolute;
+  top: 140px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 12px;
+  border: 0.5px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  z-index: 1001;
+}
+
+/* Existing styles below remain the same */
 
 /* Glass morphism effect */
 .glass-morphism {
@@ -124,6 +237,10 @@
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
+  .ios-map-container {
+    background: #000;
+  }
+  
   .glass-morphism {
     background: rgba(0, 0, 0, 0.7);
     border: 0.5px solid rgba(255, 255, 255, 0.1);
@@ -136,6 +253,14 @@
   
   .leaflet-popup-tip {
     background: #1c1c1e;
+  }
+  
+  .search-container,
+  .ios-control-btn,
+  .route-badge {
+    background: rgba(28, 28, 30, 0.92);
+    border: 0.5px solid rgba(255, 255, 255, 0.1);
+    color: white;
   }
 }
 
