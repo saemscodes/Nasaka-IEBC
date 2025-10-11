@@ -79,35 +79,35 @@ const IEBCOfficeSplash = () => {
       <div className="text-center max-w-md w-full">
         {/* Animated Icon */}
         <motion.div
-          className="relative w-32 h-32 mx-auto mb-8"
+          className="relative flex items-center justify-center w-32 h-32 mx-auto mb-8"
           variants={iconVariants}
           initial="initial"
           animate="animate"
-        >
+          >
           <div className="absolute inset-0 bg-ios-blue/20 rounded-full animate-ping" />
           <div className="absolute inset-4 bg-ios-blue rounded-full flex items-center justify-center shadow-lg">
             <svg 
-              className="w-16 h-16 text-white" 
+              className="w-16 h-16 text-white mx-auto my-auto block" 
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
-            >
+              >
               <path 
                 strokeLinecap="round" 
                 strokeLinejoin="round" 
                 strokeWidth={1.5} 
                 d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" 
-              />
+                />
               <path 
                 strokeLinecap="round" 
                 strokeLinejoin="round" 
                 strokeWidth={1.5} 
                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" 
-              />
+                />
             </svg>
           </div>
         </motion.div>
-
+        
         {/* Title */}
         <motion.h1
           className="text-3xl font-semibold text-ios-gray-900 mb-3"
