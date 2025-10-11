@@ -192,3 +192,134 @@
 .animate-scale-in {
   animation: scale-in 0.3s ease-out;
 }
+
+/* ===== BACKGROUND LAYERS FOR IEBC SPLASH SCREEN ===== */
+
+/* Background image that "peeks" with a center opacity peak */
+.bg-peek {
+  background-image: url("/assets/bg-peek.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center center;
+  opacity: 1;
+  will-change: transform, opacity;
+  transform-origin: center center;
+
+  /* mask to fade image edges to transparent; center alpha ~0.45 */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.45) 48%,
+    rgba(0, 0, 0, 0.45) 52%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.45) 48%,
+    rgba(0, 0, 0, 0.45) 52%,
+    rgba(0, 0, 0, 0) 100%
+  );
+
+  /* subtle pan animation (smooth, slow) */
+  animation: bg-pan 20s cubic-bezier(0.25,0.46,0.45,0.94) infinite;
+  will-change: transform;
+}
+
+/* Pattern overlay: faint streaks across entire background */
+.bg-pattern {
+  background-image: repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.02) 0px,
+      rgba(255, 255, 255, 0.02) 2px,
+      rgba(255, 255, 255, 0) 2px,
+      rgba(255, 255, 255, 0) 24px
+    ),
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.01) 0px,
+      rgba(255, 255, 255, 0.01) 1px,
+      rgba(255, 255, 255, 0) 1px,
+      rgba(255, 255, 255, 0) 36px
+    );
+  opacity: 0.06;
+  mix-blend-mode: normal;
+  transform-origin: center center;
+  animation: pattern-scroll 18s linear infinite;
+  will-change: background-position, transform;
+  background-size: auto;
+}
+
+/* Light vignette to keep edges white and maintain "cloudy" feel */
+.bg-vignette {
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 0.98) 12%,
+    rgba(255, 255, 255, 0.95) 25%,
+    rgba(255, 255, 255, 0.85) 45%,
+    rgba(255, 255, 255, 0.95) 75%,
+    rgba(255, 255, 255, 1) 100%
+  );
+  pointer-events: none;
+}
+
+/* Small responsive tweak: reduce amount of translation on mobile */
+@media (max-width: 640px) {
+  .bg-peek {
+    animation-duration: 28s;
+    -webkit-mask-image: linear-gradient(
+      to right,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.5) 50%,
+      rgba(0, 0, 0, 0) 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.5) 50%,
+      rgba(0, 0, 0, 0) 100%
+    );
+  }
+  .bg-pattern {
+    opacity: 0.04;
+  }
+}
+
+/* Animations for background layers */
+@keyframes bg-pan {
+  0% {
+    transform: translate3d(-4%, 0, 0) scale(1.02);
+  }
+  50% {
+    transform: translate3d(4%, 0, 0) scale(1.02);
+  }
+  100% {
+    transform: translate3d(-4%, 0, 0) scale(1.02);
+  }
+}
+
+@keyframes pattern-scroll {
+  0% {
+    background-position: 0 0, 0 0;
+  }
+  100% {
+    background-position: 300px 300px, -300px -300px;
+  }
+}
+
+/* Marker hover effects */
+.marker-hover {
+  filter: brightness(1.08) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.12));
+  transition: filter 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* accessibility: respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .bg-peek,
+  .bg-pattern {
+    animation: none !important;
+    transition: none !important;
+  }
+}
