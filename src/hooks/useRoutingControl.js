@@ -1,141 +1,183 @@
 // src/hooks/useRoutingControl.js
-import { useRef, useCallback } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet-routing-machine';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 
-export const useRoutingControl = (map) => {
+export default function useRoutingControl(map, opts = {}) {
   const routingControlRef = useRef(null);
   const routerRef = useRef(null);
 
-  // Initialize the OSRM router - IMPORTANT: Use your own server in production
-  const initializeRouter = useCallback(() => {
-    if (!routerRef.current) {
-      routerRef.current = L.Routing.osrmv1({
-        serviceUrl: 'https://router.project-osrm.org/route/v1/',
-        // Add timeout to handle demo server limitations
-        timeout: 10000
-      });
-    }
-    return routerRef.current;
+  useEffect(() => {
+    return () => {
+      // Clean up on unmount
+      if (routingControlRef.current) {
+        try {
+          routingControlRef.current.remove();
+        } catch (e) {
+          console.warn('Error removing routing control:', e);
+        }
+        routingControlRef.current = null;
+      }
+      routerRef.current = null;
+    };
   }, []);
 
-  // Create or update routing control
-  const createOrUpdateRoute = useCallback((startLatLng, destLatLng) => {
+  const ensureRouter = useCallback((serviceUrl) => {
+    if (routerRef.current) return routerRef.current;
+    
+    // Guard: ensure plugin exists
+    if (!L.Routing || typeof L.Routing.osrmv1 !== 'function') {
+      console.error('Routing plugin unavailable:', L.Routing);
+      return null;
+    }
+
+    try {
+      routerRef.current = L.Routing.osrmv1({
+        serviceUrl: serviceUrl || opts.serviceUrl || 'https://router.project-osrm.org/route/v1'
+      });
+      return routerRef.current;
+    } catch (err) {
+      console.error('Failed creating router:', err);
+      return null;
+    }
+  }, [opts.serviceUrl]);
+
+  const createOrUpdateRoute = useCallback((startLatLng, destLatLng, { serviceUrl, onRouteFound, onRouteError } = {}) => {
     if (!map) {
-      console.warn('Map not available for routing');
+      console.warn('Map not ready — cannot create route');
       return null;
     }
 
-    // Safely check if routing plugin is available
+    // Ensure plugin exists
     if (!L.Routing || typeof L.Routing.control !== 'function') {
-      console.error('Leaflet Routing Machine plugin not properly loaded');
+      console.error('Routing plugin missing at call time', L.Routing);
+      if (onRouteError) onRouteError(new Error('Routing plugin not available'));
       return null;
     }
 
-    const router = initializeRouter();
+    const router = ensureRouter(serviceUrl);
+    if (!router) {
+      console.warn('Router not available');
+      if (onRouteError) onRouteError(new Error('Routing service unavailable'));
+      return null;
+    }
 
-    // Clear existing route if any
+    // If control already exists, simply update waypoints
     if (routingControlRef.current) {
       try {
-        map.removeControl(routingControlRef.current);
-      } catch (error) {
-        console.warn('Error removing existing routing control:', error);
+        routingControlRef.current.setWaypoints([startLatLng, destLatLng]);
+        return routingControlRef.current;
+      } catch (err) {
+        console.error('Failed to set waypoints on existing routing control:', err);
+        // Attempt to remove and recreate
+        try {
+          routingControlRef.current.remove();
+        } catch (e) {}
+        routingControlRef.current = null;
       }
-      routingControlRef.current = null;
     }
 
-    try {
-      // Create new routing control with EXPLICIT options to avoid undefined errors
-      const control = L.Routing.control({
-        waypoints: [
-          L.latLng(startLatLng.lat, startLatLng.lng),
-          L.latLng(destLatLng.lat, destLatLng.lng)
-        ],
-        router: router,
-        // Explicitly define all options to prevent "undefined" errors
-        routeWhileDragging: false,
-        showAlternatives: false,
-        fitSelectedRoutes: true,
-        show: false, // Hide the default itinerary
-        lineOptions: {
-          styles: [
-            { 
-              color: '#007AFF', 
-              opacity: 0.8, 
-              weight: 6,
-              className: 'route-line'
-            }
-          ],
-          extendToWaypoints: true,
-          missingRouteTolerance: 1
-        },
-        createMarker: (i, waypoint) => {
-          // Return null to use our custom markers instead
-          return null;
-        },
-        addWaypoints: false,
-        draggableWaypoints: false,
-        // Alternative route styling
-        altLineOptions: {
-          styles: [
-            { color: '#8E8E93', opacity: 0.6, weight: 4 }
-          ]
+    // Create deterministic options object
+    const options = {
+      waypoints: [startLatLng, destLatLng],
+      router,
+      routeWhileDragging: false, // Explicit boolean to avoid undefined error
+      fitSelectedRoutes: true,
+      showAlternatives: false,
+      addWaypoints: false,
+      draggableWaypoints: false,
+      createMarker: (i, wp) => {
+        const markerOptions = { draggable: false };
+        if (i === 0) {
+          // Start marker (user location)
+          return L.marker(wp.latLng, {
+            ...markerOptions,
+            icon: L.divIcon({
+              className: 'user-route-marker',
+              html: `<div class="relative">
+                      <div class="absolute inset-0 bg-ios-blue rounded-full animate-ping opacity-75"></div>
+                      <div class="relative w-6 h-6 bg-ios-blue rounded-full border-2 border-white shadow-lg flex items-center justify-center">
+                        <div class="w-2 h-2 bg-white rounded-full"></div>
+                      </div>
+                    </div>`,
+              iconSize: [24, 24],
+              iconAnchor: [12, 12]
+            })
+          });
+        } else {
+          // Destination marker (IEBC office)
+          return L.marker(wp.latLng, {
+            ...markerOptions,
+            icon: L.divIcon({
+              className: 'destination-route-marker',
+              html: `<div class="relative">
+                      <div class="w-6 h-6 bg-ios-red rounded-full border-2 border-white shadow-lg flex items-center justify-center">
+                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        </svg>
+                      </div>
+                    </div>`,
+              iconSize: [24, 24],
+              iconAnchor: [12, 12]
+            })
+          });
         }
-      });
+      },
+      lineOptions: {
+        styles: [
+          { color: 'black', opacity: 0.15, weight: 9 },
+          { color: 'white', opacity: 0.8, weight: 6 },
+          { color: '#007AFF', opacity: 1, weight: 4 }
+        ]
+      },
+      altLineOptions: {
+        styles: [
+          { color: 'black', opacity: 0.15, weight: 9 },
+          { color: 'white', opacity: 0.8, weight: 6 },
+          { color: '#007AFF', opacity: 0.5, weight: 2 }
+        ]
+      }
+    };
 
-      // Add to map and store reference
+    try {
+      const control = L.Routing.control(options);
+      
+      // Add event listeners
+      if (onRouteFound) {
+        control.on('routesfound', function(e) {
+          onRouteFound(e.routes);
+        });
+      }
+      
+      if (onRouteError) {
+        control.on('routingerror', function(e) {
+          onRouteError(e.error);
+        });
+      }
+
       control.addTo(map);
+      control.hide(); // Hide the default control panel
+      
       routingControlRef.current = control;
-
-      // Set up error handling for the routing control
-      control.on('routingerror', (error) => {
-        console.warn('Routing error:', error.error);
-        // Fallback to Google Maps
-        openGoogleMapsFallback(startLatLng, destLatLng);
-      });
-
-      control.on('routesfound', (e) => {
-        console.log('Route found with', e.routes.length, 'alternatives');
-      });
-
       return control;
-
-    } catch (error) {
-      console.error('Failed to create routing control:', error);
-      // Fallback to Google Maps
-      openGoogleMapsFallback(startLatLng, destLatLng);
+    } catch (err) {
+      console.error('Failed to create routing control:', err);
+      if (onRouteError) onRouteError(err);
       return null;
     }
-  }, [map, initializeRouter]);
+  }, [map, ensureRouter]);
 
-  // Clear route from map
   const clearRoute = useCallback(() => {
-    if (routingControlRef.current && map) {
+    if (routingControlRef.current) {
       try {
-        map.removeControl(routingControlRef.current);
-      } catch (error) {
-        console.warn('Error clearing route:', error);
+        routingControlRef.current.remove();
+      } catch (e) {
+        console.warn('Error removing routing control:', e);
       }
       routingControlRef.current = null;
-    }
-  }, [map]);
-
-  // Fallback to Google Maps
-  const openGoogleMapsFallback = useCallback((start, dest) => {
-    try {
-      const origin = `${start.lat},${start.lng}`;
-      const destination = `${dest.lat},${dest.lng}`;
-      const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } catch (error) {
-      console.error('Failed to open Google Maps fallback:', error);
     }
   }, []);
 
-  return {
-    createOrUpdateRoute,
-    clearRoute,
-    openGoogleMapsFallback
-  };
-};
+  return { createOrUpdateRoute, clearRoute, routingControlRef };
+}
