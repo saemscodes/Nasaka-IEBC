@@ -44,6 +44,12 @@
   border: none !important;
 }
 
+/* Marker hover effects for layers that don't support setStyle */
+.marker-hover {
+  filter: brightness(1.2) drop-shadow(0 0 4px rgba(0, 122, 255, 0.6));
+  transition: filter 0.2s ease-in-out;
+}
+
 /* Pulse animation for markers */
 @keyframes marker-pulse {
   0% {
