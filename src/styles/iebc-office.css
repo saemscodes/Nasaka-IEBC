@@ -223,18 +223,124 @@
   pointer-events: auto;
 }
 
+/* base shared glass styling (keep your existing look) */
 .route-badge {
-  position: fixed; /* keeps it anchored as you scroll */
-  top: 4.5rem;     /* moves it lower on the screen */
-  right: 1.5rem;   /* keeps it aligned to the right */
-  background: rgba(255, 255, 255, 0.95);
+  position: fixed;
+  top: 4.5rem;               /* desktop default — tweak as needed */
+  right: 1.5rem;
+  z-index: 9999;
+
+  display: flex;
+  flex-direction: column;    /* default: stacked title + summary */
+  align-items: flex-start;
+  gap: 6px;
+
+  min-width: 180px;
+  max-width: 320px;
+  box-sizing: border-box;
+
+  background: rgba(255,255,255,0.95);
   backdrop-filter: blur(20px) saturate(180%);
   border-radius: 16px;
   padding: 12px 16px;
-  border: 0.5px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  margin-bottom: 12px;
-  max-width: 300px;
+  border: 0.5px solid rgba(0,0,0,0.06);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+/* horizontal row for the top line */
+.route-badge .badge-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+/* green dot */
+.route-badge .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #16a34a; /* emerald-500 */
+  box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.06);
+  flex-shrink: 0;
+}
+
+/* primary text (title) */
+.route-badge .title {
+  font-size: 0.95rem;         /* ~15px */
+  line-height: 1;
+  font-weight: 600;
+  color: #0f172a;             /* near-black */
+  white-space: nowrap;        /* keep "1 route found" on one line */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* secondary summary line */
+.route-badge .summary {
+  font-size: 0.82rem;         /* ~13px */
+  color: #475569;             /* gray-600 */
+  margin-top: 2px;
+  line-height: 1;
+  word-break: normal;
+}
+
+/* condensed small-read summary used on narrow screens */
+.route-badge .summary--condensed {
+  display: inline-block;
+}
+
+/* Tablet — keep horizontal layout, increase min-width */
+@media (min-width: 601px) and (max-width: 1024px) {
+  .route-badge {
+    top: 5.25rem;
+    right: 1rem;
+    min-width: 220px;
+    max-width: 360px;
+    flex-direction: row;       /* title + summary side by side */
+    align-items: center;
+    gap: 12px;
+  }
+
+  .route-badge .summary {
+    margin-top: 0;
+    font-size: 0.9rem;
+  }
+}
+
+/* Mobile — move to bottom center and use compact horizontal pill */
+@media (max-width: 600px) {
+  .route-badge {
+    top: auto;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 1rem;
+    min-width: calc(100% - 32px);
+    max-width: calc(100% - 32px);
+    padding: 10px 14px;
+    border-radius: 12px;
+
+    flex-direction: row;       /* more compact row */
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .route-badge .title {
+    font-size: 0.95rem;
+    white-space: nowrap;
+  }
+
+  .route-badge .summary {
+    font-size: 0.85rem;
+    margin-left: 6px;
+  }
+
+  /* hide long summary text in favor of compact one if necessary */
+  .route-badge .summary--condensed {
+    display: inline;
+  }
 }
 
 .search-indicator,
