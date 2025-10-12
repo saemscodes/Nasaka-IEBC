@@ -1,6 +1,7 @@
 // src/components/IEBCOffice/SearchBar.jsx
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Search, X, MapPin, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import Fuse from 'fuse.js';
 
@@ -8,13 +9,14 @@ const SearchBar = ({
   value, 
   onChange, 
   onFocus, 
-  onSearch, 
+  onSearch,
   onLocationSearch,
-  placeholder = "Search IEBC offices..." 
+  placeholder = "Search IEBC offices by county, constituency, or location...",
+  className = ""
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
   const [allOffices, setAllOffices] = useState([]);
   const [fuse, setFuse] = useState(null);
   const inputRef = useRef(null);
@@ -62,84 +64,129 @@ const SearchBar = ({
     }
   };
 
-  const handleInputChange = useCallback((e) => {
-    const newValue = e.target.value;
-    onChange(newValue);
+  const performSearch = useCallback(async (searchTerm) => {
+    if (!searchTerm.trim() || !fuse) {
+      setSuggestions([]);
+      return;
+    }
 
-    // Clear previous timeout
+    setIsLoading(true);
+    try {
+      const results = fuse.search(searchTerm).slice(0, 8);
+      const formattedResults = results.map(result => ({
+        ...result.item,
+        matches: result.matches,
+        score: result.score
+      }));
+
+      setSuggestions(formattedResults);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSuggestions([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fuse]);
+
+  // Debounced search
+  useEffect(() => {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
 
-    if (newValue.trim().length >= 2) {
-      setIsLoading(true);
-      setShowSuggestions(true);
-      
+    if (value.trim() && fuse) {
       searchTimeoutRef.current = setTimeout(() => {
-        performSearch(newValue);
+        performSearch(value);
       }, 300);
     } else {
       setSuggestions([]);
-      setShowSuggestions(false);
-      setIsLoading(false);
-    }
-  }, [onChange]);
-
-  const performSearch = (query) => {
-    if (!fuse) {
-      setIsLoading(false);
-      return;
     }
 
-    const results = fuse.search(query).slice(0, 8);
-    const formattedResults = results.map(result => ({
-      ...result.item,
-      matches: result.matches,
-      score: result.score
-    }));
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [value, performSearch, fuse]);
 
-    setSuggestions(formattedResults);
-    setIsLoading(false);
-  };
-
-  const handleSuggestionSelect = (office) => {
-    onChange(office.constituency_name || office.county || 'IEBC Office');
-    setShowSuggestions(false);
-    setSuggestions([]);
-    onSearch(office);
+  const handleInputChange = (e) => {
+    const newValue = e.target.value;
+    onChange(newValue);
+    
+    if (newValue.trim()) {
+      setIsExpanded(true);
+    } else {
+      setIsExpanded(false);
+      setSuggestions([]);
+    }
   };
 
   const handleInputFocus = () => {
-    setShowSuggestions(true);
-    onFocus?.();
+    setIsExpanded(true);
+    if (value.trim() && fuse) {
+      performSearch(value);
+    }
+    if (onFocus) onFocus();
   };
 
   const handleInputBlur = () => {
     // Delay hiding suggestions to allow for clicks
     setTimeout(() => {
-      setShowSuggestions(false);
+      setIsExpanded(false);
     }, 200);
+  };
+
+  const handleSuggestionSelect = (office) => {
+    onChange(office.constituency_name || office.county || 'IEBC Office');
+    setIsExpanded(false);
+    setSuggestions([]);
+    if (onSearch) {
+      onSearch(office);
+    }
+    if (inputRef.current) {
+      inputRef.current.blur();
+    }
   };
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      setShowSuggestions(false);
+      setIsExpanded(false);
       
-      if (value.trim()) {
+      if (value.trim() && onSearch) {
         // Perform search with current input
-        const searchResults = fuse?.search(value.trim()).slice(0, 20) || [];
-        const formattedResults = searchResults.map(result => result.item);
-        
-        if (formattedResults.length > 0) {
-          // If we have results, trigger search with first result
-          onSearch(formattedResults[0]);
+        if (fuse) {
+          const searchResults = fuse.search(value.trim()).slice(0, 20) || [];
+          const formattedResults = searchResults.map(result => result.item);
+          
+          if (formattedResults.length > 0) {
+            // If we have results, trigger search with first result
+            onSearch(formattedResults[0]);
+          } else {
+            // If no results, trigger search with query
+            onSearch({ searchQuery: value.trim() });
+          }
         } else {
-          // If no results, trigger search with query
           onSearch({ searchQuery: value.trim() });
         }
       }
     }
+  };
+
+  const handleClear = () => {
+    onChange('');
+    setSuggestions([]);
+    setIsExpanded(false);
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
+  const handleUseCurrentLocation = () => {
+    if (onLocationSearch) {
+      onLocationSearch();
+    }
+    setIsExpanded(false);
   };
 
   const highlightMatches = (text, matches) => {
@@ -198,99 +245,114 @@ const SearchBar = ({
   };
 
   return (
-    <div className="relative">
+    <div className={`relative ${className}`}>
       <div className="search-container">
         <div className="flex items-center space-x-3">
           {/* Search Icon */}
-          <svg className="w-5 h-5 text-muted-foreground flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+          <div className="pl-2">
+            <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+          </div>
           
           {/* Search Input */}
-          <input
-            ref={inputRef}
-            type="text"
-            value={value}
-            onChange={handleInputChange}
-            onFocus={handleInputFocus}
-            onBlur={handleInputBlur}
-            onKeyPress={handleKeyPress}
-            placeholder={placeholder}
-            className="flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground text-base"
-          />
-          
-          {/* Loading Indicator */}
-          {isLoading && (
-            <div className="flex-shrink-0">
-              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-            </div>
-          )}
-          
+          <div className="flex-1 relative">
+            <input
+              ref={inputRef}
+              type="text"
+              value={value}
+              onChange={handleInputChange}
+              onFocus={handleInputFocus}
+              onBlur={handleInputBlur}
+              onKeyPress={handleKeyPress}
+              placeholder={placeholder}
+              className="w-full bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground text-base py-2 px-1"
+            />
+            
+            {/* Clear Button */}
+            {value && (
+              <motion.button
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                onClick={handleClear}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-muted transition-colors"
+              >
+                <X className="w-4 h-4 text-muted-foreground" />
+              </motion.button>
+            )}
+          </div>
+
           {/* Location Button */}
-          <button
-            onClick={onLocationSearch}
-            className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-muted hover:bg-accent transition-colors"
-            aria-label="Use my location"
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={handleUseCurrentLocation}
+            className="p-2 rounded-xl hover:bg-muted transition-colors"
+            title="Use current location"
           >
-            <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </button>
+            <MapPin className="w-5 h-5 text-primary" />
+          </motion.button>
         </div>
       </div>
 
-      {/* Search Suggestions */}
+      {/* Search Suggestions - Fixed positioning below search bar */}
       <AnimatePresence>
-        {showSuggestions && (suggestions.length > 0 || isLoading) && (
+        {isExpanded && (suggestions.length > 0 || isLoading) && (
           <motion.div
+            className="search-suggestions-container"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="search-suggestions"
+            transition={{ duration: 0.2 }}
           >
-            {isLoading ? (
-              <div className="p-4 text-center text-muted-foreground">
-                <div className="flex items-center justify-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                  <span>Searching...</span>
-                </div>
-              </div>
-            ) : (
-              <>
-                {suggestions.map((office, index) => {
-                  const display = getSuggestionDisplay(office);
-                  return (
-                    <div
-                      key={`${office.id}-${index}`}
-                      className="search-suggestion-item"
-                      onClick={() => handleSuggestionSelect(office)}
-                    >
-                      <div className="space-y-1">
-                        <div className="font-medium text-foreground">
-                          {display.primary}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {display.secondary}
-                        </div>
-                        {display.tertiary && (
-                          <div className="text-xs text-muted-foreground truncate">
-                            {display.tertiary}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-                
-                {/* Search hint */}
-                <div className="p-3 border-t border-border">
-                  <div className="text-xs text-muted-foreground text-center">
-                    Press <kbd className="px-1 py-0.5 bg-muted rounded text-xs">Enter</kbd> to see all results
+            <div className="search-suggestions">
+              {isLoading ? (
+                <div className="p-4 text-center text-muted-foreground">
+                  <div className="flex items-center justify-center space-x-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Searching...</span>
                   </div>
                 </div>
-              </>
-            )}
+              ) : (
+                <>
+                  {suggestions.map((office, index) => {
+                    const display = getSuggestionDisplay(office);
+                    return (
+                      <motion.div
+                        key={office.id || index}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                      >
+                        <button
+                          onClick={() => handleSuggestionSelect(office)}
+                          className="search-suggestion-item w-full text-left"
+                        >
+                          <div className="space-y-1">
+                            <div className="font-medium text-foreground text-sm">
+                              {display.primary}
+                            </div>
+                            <div className="text-muted-foreground text-xs">
+                              {display.secondary}
+                            </div>
+                            {display.tertiary && (
+                              <div className="text-muted-foreground text-xs truncate">
+                                {display.tertiary}
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      </motion.div>
+                    );
+                  })}
+                  
+                  {/* Search hint */}
+                  <div className="p-3 border-t border-border">
+                    <div className="text-xs text-muted-foreground text-center">
+                      Press <kbd className="px-1 py-0.5 bg-muted rounded text-xs">Enter</kbd> to see all results
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
