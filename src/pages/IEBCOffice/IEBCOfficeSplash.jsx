@@ -4,6 +4,27 @@ import { useNavigate } from 'react-router-dom';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import LoadingSpinner from '../../components/IEBCOffice/LoadingSpinner';
 
+const BackgroundLayers = ({ className = "" }) => {
+  return (
+    <div
+      aria-hidden="true"
+      className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`}
+    >
+      <div className="absolute inset-0 will-change-transform">
+        <div className="bg-peek absolute inset-0" />
+      </div>
+
+      <div className="absolute inset-0">
+        <div className="bg-pattern absolute inset-0" />
+      </div>
+
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="bg-vignette absolute inset-0" />
+      </div>
+    </div>
+  );
+};
+
 const IEBCOfficeSplash = () => {
   const navigate = useNavigate();
   const { location, error, loading, requestLocation } = useGeolocation();
@@ -70,20 +91,21 @@ const IEBCOfficeSplash = () => {
 
   return (
     <motion.div
-      className="flex flex-col items-center justify-center min-h-screen bg-ios-bg px-6"
+      className="relative flex flex-col items-center justify-center min-h-screen bg-white px-6 overflow-hidden"
       variants={splashVariants}
       initial="initial"
       animate="animate"
       exit="exit"
     >
-      <div className="text-center max-w-md w-full">
-        {/* Animated Icon */}
+      <BackgroundLayers />
+      
+      <div className="relative z-10 text-center max-w-md w-full">
         <motion.div
           className="relative flex items-center justify-center w-32 h-32 mx-auto mb-8"
           variants={iconVariants}
           initial="initial"
           animate="animate"
-          >
+        >
           <div className="absolute inset-0 bg-ios-blue/20 rounded-full animate-ping" />
           <div className="absolute inset-4 bg-ios-blue rounded-full flex items-center justify-center shadow-lg">
             <svg 
@@ -91,24 +113,23 @@ const IEBCOfficeSplash = () => {
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
-              >
+            >
               <path 
                 strokeLinecap="round" 
                 strokeLinejoin="round" 
                 strokeWidth={1.5} 
                 d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" 
-                />
+              />
               <path 
                 strokeLinecap="round" 
                 strokeLinejoin="round" 
                 strokeWidth={1.5} 
                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" 
-                />
+              />
             </svg>
           </div>
         </motion.div>
         
-        {/* Title */}
         <motion.h1
           className="text-3xl font-semibold text-ios-gray-900 mb-3"
           initial={{ opacity: 0, y: 10 }}
@@ -118,7 +139,6 @@ const IEBCOfficeSplash = () => {
           Find Your Nearest IEBC Office
         </motion.h1>
 
-        {/* Description */}
         <motion.p
           className="text-ios-gray-600 mb-8 text-base"
           initial={{ opacity: 0, y: 10 }}
@@ -128,7 +148,6 @@ const IEBCOfficeSplash = () => {
           Allow location access to find the closest IEBC registration center and get turn-by-turn navigation.
         </motion.p>
 
-        {/* Error Message */}
         <AnimatePresence>
           {showError && (
             <motion.div
@@ -149,7 +168,6 @@ const IEBCOfficeSplash = () => {
           )}
         </AnimatePresence>
 
-        {/* Action Buttons */}
         <motion.div
           className="flex flex-col space-y-3"
           initial={{ opacity: 0, y: 10 }}
@@ -186,7 +204,6 @@ const IEBCOfficeSplash = () => {
           </motion.button>
         </motion.div>
 
-        {/* Footer Note */}
         <motion.p
           className="text-ios-gray-500 text-xs mt-8"
           initial={{ opacity: 0 }}
