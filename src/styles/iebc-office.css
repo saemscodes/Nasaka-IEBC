@@ -1,226 +1,527 @@
-/* Import Leaflet CSS for OpenStreetMap */
-@import 'leaflet/dist/leaflet.css';
+/* src/styles/iebc-office.css */
+/* ============================================
+   IEBC OFFICE FINDER - MASTER Z-INDEX SYSTEM
+   ============================================ */
 
-/* iOS Map Container Styles */
+/* Import Leaflet CSS */
+@import 'leaflet/dist/leaflet.css';
+@import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
+
+/* ============================================
+   1. CSS VARIABLES - SINGLE SOURCE OF TRUTH
+   ============================================ */
+:root {
+  /* Z-Index Hierarchy */
+  --z-map-base: 0;
+  --z-map-tiles: 1;
+  --z-map-markers: 400;
+  --z-map-popups: 600;
+  --z-map-routes: 500;
+  
+  /* Fixed UI Controls - Above Everything */
+  --z-fixed-search: 1000;
+  --z-fixed-controls: 1001;
+  --z-fixed-badges: 1002;
+  
+  /* Panels & Sheets */
+  --z-bottom-sheet-peek: 1100;
+  --z-bottom-sheet-expanded: 1200;
+  --z-list-panel: 1300;
+  --z-layer-panel: 1400;
+  
+  /* System Overlays */
+  --z-loading: 2000;
+  --z-error: 2001;
+  --z-modal: 3000;
+  
+  /* iOS-inspired spacing */
+  --spacing-safe-top: env(safe-area-inset-top, 0px);
+  --spacing-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --spacing-safe-left: env(safe-area-inset-left, 0px);
+  --spacing-safe-right: env(safe-area-inset-right, 0px);
+}
+
+/* ============================================
+   2. RESET LEAFLET Z-INDEX CONFLICTS
+   ============================================ */
+
+/* Force Leaflet to respect our z-index system */
+.leaflet-container {
+  z-index: var(--z-map-base) !important;
+}
+
+.leaflet-tile-pane {
+  z-index: var(--z-map-tiles) !important;
+}
+
+.leaflet-overlay-pane {
+  z-index: var(--z-map-routes) !important;
+}
+
+.leaflet-shadow-pane {
+  z-index: 395 !important;
+}
+
+.leaflet-marker-pane {
+  z-index: var(--z-map-markers) !important;
+}
+
+.leaflet-tooltip-pane {
+  z-index: 550 !important;
+}
+
+.leaflet-popup-pane {
+  z-index: var(--z-map-popups) !important;
+}
+
+/* Remove Leaflet's built-in controls - we have custom ones */
+.leaflet-control-layers {
+  display: none !important;
+}
+
+.leaflet-control-zoom {
+  z-index: var(--z-fixed-controls) !important;
+  top: auto !important;
+  bottom: 120px !important;
+  right: 16px !important;
+}
+
+/* Remove routing control UI completely */
+.leaflet-routing-container {
+  display: none !important;
+}
+
+.leaflet-routing-alternatives-container {
+  display: none !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* ============================================
+   3. MAP CONTAINER - ISOLATION CONTEXT
+   ============================================ */
+
 .ios-map-container {
   position: relative;
   width: 100%;
   height: 100vh;
   background: #fff;
-  /* iOS-style smooth corners */
-  border-radius: 24px;
   overflow: hidden;
-  /* Subtle shadow for depth */
-  box-shadow:
-    0 4px 24px rgba(0, 0, 0, 0.08),
-    0 1px 4px rgba(0, 0, 0, 0.04);
-  margin: 0 auto;
+  /* Create new stacking context */
+  isolation: isolate;
+  /* Hardware acceleration */
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .map-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  border-radius: inherit;
+  z-index: var(--z-map-base);
+  /* Ensure map stays behind fixed elements */
+  contain: layout style paint;
 }
 
-/* Map UI Overlay Container */
-.map-ui-overlay {
-  position: absolute;
-  inset: 0;
+/* ============================================
+   4. FIXED VIEWPORT CONTROLS
+   ============================================ */
+
+/* Search Bar - Fixed to viewport top */
+.fixed-search-container {
+  position: fixed;
+  top: calc(16px + var(--spacing-safe-top));
+  left: 16px;
+  right: 16px;
+  z-index: var(--z-fixed-search);
+  /* Prevent interference with map */
   pointer-events: none;
-  z-index: 1000;
-  border-radius: inherit;
+  /* GPU acceleration */
+  transform: translateZ(0);
+  will-change: transform;
 }
 
-.map-ui-overlay > * {
+.fixed-search-container > * {
   pointer-events: auto;
 }
 
-/* Search Container */
 .search-container {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  right: 16px;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px) saturate(180%);
   border-radius: 16px;
-  border: 0.5px solid rgba(255, 255, 255, 0.2);
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   padding: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Control Group */
-.control-group {
-  position: absolute;
-  top: 96px;
-  right: 16px;
+.search-container:focus-within {
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.18),
+              0 0 0 4px rgba(0, 122, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Control Buttons - Fixed to viewport */
+.fixed-controls-container {
+  position: fixed;
+  top: calc(96px + var(--spacing-safe-top));
+  right: calc(16px + var(--spacing-safe-right));
+  z-index: var(--z-fixed-controls);
   display: flex;
   flex-direction: column;
   gap: 12px;
-  z-index: 1001;
+  pointer-events: none;
+  transform: translateZ(0);
 }
 
-/* iOS-style control buttons */
+.fixed-controls-container > * {
+  pointer-events: auto;
+}
+
 .ios-control-btn {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px);
-  border: 0.5px solid rgba(255, 255, 255, 0.2);
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
   border-radius: 14px;
-  width: 44px;
-  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.1),
-    0 1px 3px rgba(0, 0, 0, 0.08);
-  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Ensure visibility */
+  position: relative;
+  z-index: 1;
 }
 
 .ios-control-btn:hover {
   transform: scale(1.05);
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow:
-    0 6px 20px rgba(0, 0, 0, 0.15),
-    0 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 1);
 }
 
 .ios-control-btn:active {
   transform: scale(0.95);
 }
 
-/* Search Indicator */
-.search-indicator {
-  position: absolute;
+/* Status Badges - Fixed positioning */
+.fixed-badge-container {
+  position: fixed;
+  top: calc(180px + var(--spacing-safe-top));
+  right: calc(16px + var(--spacing-safe-right));
+  z-index: var(--z-fixed-badges);
+  pointer-events: none;
+  transform: translateZ(0);
+}
+
+.fixed-badge-container > * {
+  pointer-events: auto;
+}
+
+.route-badge,
+.search-indicator,
+.error-notification {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 16px;
+  padding: 12px 16px;
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  margin-bottom: 12px;
+  max-width: 300px;
+}
+
+.error-notification {
+  background: rgba(255, 59, 48, 0.95);
+  color: white;
+  font-weight: 600;
+  border: 0.5px solid rgba(255, 59, 48, 0.3);
+}
+
+/* ============================================
+   5. BOTTOM SHEET - PEEK DECK STYLE
+   ============================================ */
+
+.office-bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-bottom-sheet-peek);
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(40px) saturate(180%);
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
+  transform: translateY(0);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              z-index 0s;
+  /* Hardware acceleration */
+  will-change: transform;
+  contain: layout style paint;
+  /* Safe area for iOS */
+  padding-bottom: var(--spacing-safe-bottom);
+}
+
+/* Peek state - shows small preview */
+.office-bottom-sheet.peek {
+  transform: translateY(calc(100% - 80px));
+  z-index: var(--z-bottom-sheet-peek);
+}
+
+/* Expanded state - shows full details */
+.office-bottom-sheet.expanded {
+  transform: translateY(0);
+  z-index: var(--z-bottom-sheet-expanded);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* Hidden state */
+.office-bottom-sheet.hidden {
+  transform: translateY(100%);
+  pointer-events: none;
+}
+
+/* Drag handle for bottom sheet */
+.bottom-sheet-handle {
+  width: 36px;
+  height: 5px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+  margin: 12px auto 8px;
+  cursor: grab;
+  transition: background 0.2s ease;
+}
+
+.bottom-sheet-handle:active {
+  cursor: grabbing;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Bottom sheet content */
+.bottom-sheet-content {
+  padding: 0 20px 20px;
+  overflow-y: auto;
+  max-height: calc(70vh - 80px);
+}
+
+/* ============================================
+   6. SIDE PANELS
+   ============================================ */
+
+/* List Panel - Slides from left */
+.office-list-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: min(400px, 90vw);
+  height: 100vh;
+  z-index: var(--z-list-panel);
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.12);
+  transform: translateX(-100%);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+  /* Safe areas */
+  padding-top: var(--spacing-safe-top);
+  padding-left: var(--spacing-safe-left);
+  contain: layout style paint;
+}
+
+.office-list-panel.open {
+  transform: translateX(0);
+}
+
+/* Layer Panel - Slides from right */
+.layer-control-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(360px, 85vw);
+  height: 100vh;
+  z-index: var(--z-layer-panel);
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: -4px 0 32px rgba(0, 0, 0, 0.12);
+  transform: translateX(100%);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+  /* Safe areas */
+  padding-top: var(--spacing-safe-top);
+  padding-right: var(--spacing-safe-right);
+  contain: layout style paint;
+}
+
+.layer-control-panel.open {
+  transform: translateX(0);
+}
+
+/* Panel overlay backdrop */
+.panel-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: calc(var(--z-list-panel) - 1);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+
+.panel-backdrop.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ============================================
+   7. LOADING & ERROR OVERLAYS
+   ============================================ */
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: var(--z-loading);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.error-overlay {
+  position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 1002;
-}
-
-/* Route Badge */
-.route-badge {
-  position: absolute;
-  top: 140px;
-  right: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 16px;
-  padding: 12px;
-  border: 0.5px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  z-index: 1001;
-}
-
-/* Error Notification Styles (ADDED) */
-.error-notification {
-  position: absolute;
-  top: 180px;
-  right: 16px;
-  z-index: 1002;
-  max-width: 300px;
+  z-index: var(--z-error);
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(40px);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  max-width: 90vw;
   pointer-events: auto;
-  background: rgba(255, 59, 48, 0.95);
-  color: white;
-  padding: 10px 14px;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-  font-weight: 600;
 }
 
-/* Glass morphism effect */
-.glass-morphism {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px) saturate(180%);
-  border: 0.5px solid rgba(255, 255, 255, 0.18);
-}
+/* ============================================
+   8. MAP MARKERS & POPUPS
+   ============================================ */
 
-/* Elevation shadows */
-.elevation-low {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
-}
-
-.elevation-medium {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 1px 5px rgba(0, 0, 0, 0.06);
-}
-
-.elevation-high {
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.08);
-}
-
-/* Custom Leaflet marker styles */
-.leaflet-popup-content-wrapper {
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  border: 0.5px solid rgba(0, 0, 0, 0.08);
-}
-
-.leaflet-popup-tip {
-  box-shadow: none;
-}
-
-.office-marker {
-  background: transparent !important;
-  border: none !important;
-}
-
-.user-location-marker {
-  background: transparent !important;
-  border: none !important;
-}
-
-/* Marker hover effects */
-.marker-hover {
-  filter: brightness(1.3) drop-shadow(0 0 6px rgba(0, 122, 255, 0.8));
-  transform: scale(1.1);
-  transition: all 0.2s ease-in-out;
-}
-
-/* Ensure marker containers are visible */
+/* Custom marker styles */
+.office-marker,
+.user-location-marker,
 .geojson-office-marker,
 .geojson-office-marker-detailed {
   background: transparent !important;
   border: none !important;
+  z-index: var(--z-map-markers) !important;
 }
 
-/* Pulse animation for markers */
-@keyframes marker-pulse {
-  0% {
-    transform: scale(1);
-    opacity: 1;
+.marker-hover {
+  filter: brightness(1.08) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.12));
+  transform: scale(1.05);
+  transition: all 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: calc(var(--z-map-markers) + 10) !important;
+}
+
+/* Enhanced popup styles */
+.leaflet-popup-content-wrapper {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  padding: 16px;
+}
+
+.leaflet-popup-content {
+  margin: 0;
+  line-height: 1.4;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.leaflet-popup-tip {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: none;
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================
+   9. RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 640px) {
+  .fixed-search-container {
+    left: 12px;
+    right: 12px;
   }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.8;
+  
+  .fixed-controls-container {
+    right: 12px;
   }
-  100% {
-    transform: scale(1);
-    opacity: 1;
+  
+  .ios-control-btn {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .office-list-panel {
+    width: 100vw;
+  }
+  
+  .layer-control-panel {
+    width: 100vw;
+  }
+  
+  .office-bottom-sheet.expanded {
+    max-height: 85vh;
   }
 }
 
-.marker-pulse {
-  animation: marker-pulse 2s ease-in-out infinite;
+@media (min-width: 768px) {
+  .office-bottom-sheet {
+    left: 50%;
+    transform: translateX(-50%) translateY(calc(100% - 80px));
+    max-width: 600px;
+    border-radius: 24px;
+    margin-bottom: 20px;
+  }
+  
+  .office-bottom-sheet.peek {
+    transform: translateX(-50%) translateY(calc(100% - 80px));
+  }
+  
+  .office-bottom-sheet.expanded {
+    transform: translateX(-50%) translateY(0);
+  }
+  
+  .office-bottom-sheet.hidden {
+    transform: translateX(-50%) translateY(100%);
+  }
 }
 
-/* Custom scrollbar for webkit browsers */
-.overflow-y-auto::-webkit-scrollbar {
-  width: 4px;
-}
+/* ============================================
+   10. ACCESSIBILITY & PERFORMANCE
+   ============================================ */
 
-.overflow-y-auto::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 2px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.2);
+/* Focus visible for keyboard navigation */
+.focus-visible {
+  outline: 3px solid rgba(0, 122, 255, 0.6);
+  outline-offset: 2px;
 }
 
 /* Reduced motion support */
@@ -234,18 +535,17 @@
   }
 }
 
-/* iOS-style focus rings */
-.focus-visible {
-  outline: 2px solid #007AFF;
-  outline-offset: 2px;
-}
-
-/* High contrast mode support */
+/* High contrast mode */
 @media (prefers-contrast: high) {
-  .glass-morphism {
+  .search-container,
+  .ios-control-btn,
+  .route-badge,
+  .office-bottom-sheet,
+  .office-list-panel,
+  .layer-control-panel {
     background: white;
     backdrop-filter: none;
-    border: 1px solid black;
+    border: 2px solid black;
   }
 }
 
@@ -254,123 +554,103 @@
   .ios-map-container {
     background: #000;
   }
-
-  .glass-morphism {
-    background: rgba(0, 0, 0, 0.7);
-    border: 0.5px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .leaflet-popup-content-wrapper {
-    background: #1c1c1e;
-    color: white;
-  }
-
-  .leaflet-popup-tip {
-    background: #1c1c1e;
-  }
-
+  
   .search-container,
   .ios-control-btn,
-  .route-badge {
-    background: rgba(28, 28, 30, 0.92);
-    border: 0.5px solid rgba(255, 255, 255, 0.1);
+  .route-badge,
+  .office-bottom-sheet,
+  .office-list-panel,
+  .layer-control-panel {
+    background: rgba(28, 28, 30, 0.95);
+    border-color: rgba(255, 255, 255, 0.1);
     color: white;
+  }
+  
+  .leaflet-popup-content-wrapper {
+    background: rgba(28, 28, 30, 0.98);
+    color: white;
+  }
+  
+  .leaflet-popup-tip {
+    background: rgba(28, 28, 30, 0.98);
+  }
+  
+  .bottom-sheet-handle {
+    background: rgba(255, 255, 255, 0.3);
   }
 }
 
-/* Routing control and alternatives: authoritative rules */
-/* Hide the default routing control panel entirely */
-.leaflet-routing-container {
-  display: none !important;
+/* ============================================
+   11. CUSTOM SCROLLBARS
+   ============================================ */
+
+.green-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-/* Fully collapse alternatives container so plugin cannot expand it */
-.leaflet-routing-alternatives-container {
-  max-height: 0 !important;
-  overflow: hidden !important;
+.green-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
 }
 
-/* Custom route line styles */
-.leaflet-routing-alt {
-  background: rgba(255, 255, 255, 0.95) !important;
-  backdrop-filter: blur(20px) !important;
-  border-radius: 12px !important;
-  border: 0.5px solid rgba(0, 0, 0, 0.1) !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+.green-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #059669, #047857);
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-/* Custom marker styles for routing */
-.user-route-marker,
-.destination-route-marker {
-  background: transparent !important;
-  border: none !important;
+.green-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #047857, #065f46);
 }
 
-/* Route alternative styles */
-.leaflet-routing-alt h2 {
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  color: #1C1C1E !important;
-  margin-bottom: 8px !important;
+/* Firefox scrollbar */
+.green-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #059669 rgba(0, 0, 0, 0.05);
 }
 
-.leaflet-routing-alt table {
-  width: 100% !important;
-  font-size: 12px !important;
+/* ============================================
+   12. ANIMATIONS
+   ============================================ */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.leaflet-routing-alt tr:hover {
-  background: #F2F2F7 !important;
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
-/* Enhanced popup styles */
-.leaflet-popup-content-wrapper {
-  border-radius: 16px !important;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2) !important;
-  border: 0.5px solid rgba(0, 0, 0, 0.08) !important;
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
-.leaflet-popup-content {
-  margin: 0 !important;
-  line-height: 1.4 !important;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+.animate-fade-in {
+  animation: fade-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.leaflet-popup-tip {
-  box-shadow: none !important;
-  border: 0.5px solid rgba(0, 0, 0, 0.08) !important;
+.animate-scale-in {
+  animation: scale-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Layer control enhancements */
-.leaflet-control-layers {
-  border-radius: 12px !important;
-  border: 0.5px solid rgba(0, 0, 0, 0.1) !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
-  backdrop-filter: blur(20px) !important;
-  background: rgba(255, 255, 255, 0.9) !important;
-}
-
-.leaflet-control-layers-toggle {
-  background-color: white !important;
-  border-radius: 10px !important;
-  border: 0.5px solid rgba(0, 0, 0, 0.1) !important;
-}
-
-.leaflet-control-layers-expanded {
-  background: transparent !important;
-  border: none !important;
-  padding: 12px !important;
-}
-
-.leaflet-control-layers label {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-  font-size: 14px !important;
-  margin-bottom: 8px !important;
-}
-
-.leaflet-control-layers select {
-  border-radius: 8px !important;
-  border: 0.5px solid rgba(0, 0, 0, 0.1) !important;
-  padding: 6px 8px !important;
-  font-size: 14px !important;
+.animate-slide-up {
+  animation: slide-up 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
