@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import MapContainer from '@/components/IEBCOffice/MapContainer';
 import SearchBar from '@/components/IEBCOffice/SearchBar';
 import GeoJSONLayerManager, { searchNearbyOffices } from '@/components/IEBCOffice/GeoJSONLayerManager';
-import MapControlPortal from '@/components/IEBCOffice/MapControlPortal';
 import UserLocationMarker from '@/components/IEBCOffice/UserLocationMarker';
 import RoutingSystem from '@/components/IEBCOffice/RoutingSystem';
 import LayerControlPanel from '@/components/IEBCOffice/LayerControlPanel';
@@ -47,6 +46,9 @@ const IEBCOfficeMap = () => {
   const [isSearchingNearby, setIsSearchingNearby] = useState(false);
   const [lastTapLocation, setLastTapLocation] = useState(null);
   const [routingError, setRoutingError] = useState(null);
+  const [bottomSheetState, setBottomSheetState] = useState('peek'); // 'hidden', 'peek', 'expanded'
+  const [isPanelBackdropVisible, setIsPanelBackdropVisible] = useState(false);
+
   const mapInstanceRef = useRef(null);
 
   // Initialize map reference
@@ -72,7 +74,7 @@ const IEBCOfficeMap = () => {
           .select('*')
           .eq('id', office.id)
           .single();
-
+        
         if (!error && fullOffice) {
           enhancedOffice = fullOffice;
         }
@@ -80,11 +82,12 @@ const IEBCOfficeMap = () => {
         console.error('Error fetching full office details:', err);
       }
     }
-
+    
     setSelectedOffice(enhancedOffice);
     flyToOffice(enhancedOffice);
     closeListPanel();
-    setRoutingError(null); // Clear previous routing errors
+    setBottomSheetState('peek');
+    setRoutingError(null);
   }, [setSelectedOffice, flyToOffice, closeListPanel]);
 
   // Enhanced search with Supabase integration
@@ -93,6 +96,7 @@ const IEBCOfficeMap = () => {
       const filtered = searchOffices(result.searchQuery);
       setNearbyOffices(filtered);
       openListPanel();
+      setIsPanelBackdropVisible(true);
     } else if (result.latitude && result.longitude) {
       handleOfficeSelect(result);
     } else {
@@ -116,11 +120,11 @@ const IEBCOfficeMap = () => {
       }
       
       openListPanel();
+      setIsPanelBackdropVisible(true);
       
       setTimeout(() => {
         setLastTapLocation(null);
       }, 3000);
-      
     } catch (error) {
       console.error('Error searching nearby offices:', error);
     } finally {
@@ -140,12 +144,7 @@ const IEBCOfficeMap = () => {
     console.error('Routing error:', error);
     setRoutingError(error?.message || 'Failed to calculate route');
     setCurrentRoute(null);
-    
-    // Show user-friendly error message
-    if (error && selectedOffice) {
-      console.warn('Routing failed, user can use Google Maps fallback');
-    }
-  }, [selectedOffice]);
+  }, []);
 
   // Find nearest office
   const nearestOffice = useMemo(() => {
@@ -159,6 +158,7 @@ const IEBCOfficeMap = () => {
   useEffect(() => {
     if (nearestOffice && !selectedOffice && !manualEntry) {
       setSelectedOffice(nearestOffice);
+      setBottomSheetState('peek');
     }
   }, [nearestOffice, selectedOffice, manualEntry, setSelectedOffice]);
 
@@ -173,15 +173,20 @@ const IEBCOfficeMap = () => {
   // Get nearby offices for the list panel
   const defaultNearbyOffices = useMemo(() => {
     if (userLocation?.latitude && userLocation?.longitude) {
-      return findNearestOffices(userLocation.latitude, userLocation.longitude, offices, 20);
+      return findNearestOffices(
+        userLocation.latitude,
+        userLocation.longitude,
+        offices,
+        20
+      );
     }
     return offices.slice(0, 20);
   }, [userLocation, offices]);
 
   // Toggle layer visibility
   const toggleLayer = useCallback((layerId) => {
-    setActiveLayers(prev => 
-      prev.includes(layerId) 
+    setActiveLayers(prev =>
+      prev.includes(layerId)
         ? prev.filter(id => id !== layerId)
         : [...prev, layerId]
     );
@@ -189,10 +194,46 @@ const IEBCOfficeMap = () => {
 
   // Navigation handlers
   const handleBack = () => navigate(-1);
-  const handleSearchFocus = () => openListPanel();
+  const handleSearchFocus = () => {
+    openListPanel();
+    setIsPanelBackdropVisible(true);
+  };
   const handleRetryLocation = () => navigate('/nasaka-iebc', { replace: true });
-  const openLayerPanel = () => setIsLayerPanelOpen(true);
-  const closeLayerPanel = () => setIsLayerPanelOpen(false);
+
+  const openLayerPanel = () => {
+    setIsLayerPanelOpen(true);
+    setIsPanelBackdropVisible(true);
+  };
+  
+  const closeLayerPanel = () => {
+    setIsLayerPanelOpen(false);
+    setIsPanelBackdropVisible(false);
+  };
+
+  const handleCloseListPanel = () => {
+    closeListPanel();
+    setIsPanelBackdropVisible(false);
+  };
+
+  const handleBackdropClick = () => {
+    closeListPanel();
+    closeLayerPanel();
+    setIsPanelBackdropVisible(false);
+  };
+
+  // Bottom sheet handlers
+  const handleBottomSheetExpand = () => {
+    setBottomSheetState('expanded');
+  };
+
+  const handleBottomSheetCollapse = () => {
+    setBottomSheetState('peek');
+  };
+
+  const handleBottomSheetClose = () => {
+    setBottomSheetState('hidden');
+    setSelectedOffice(null);
+  };
 
   // Clear routing error after delay
   useEffect(() => {
@@ -203,6 +244,13 @@ const IEBCOfficeMap = () => {
       return () => clearTimeout(timer);
     }
   }, [routingError]);
+
+  // Handle panel backdrop visibility
+  useEffect(() => {
+    if (!isListPanelOpen && !isLayerPanelOpen) {
+      setIsPanelBackdropVisible(false);
+    }
+  }, [isListPanelOpen, isLayerPanelOpen]);
 
   if (loading) {
     return (
@@ -237,86 +285,91 @@ const IEBCOfficeMap = () => {
 
   return (
     <div className="ios-map-container relative">
-      {/* FIXED UI Controls - Outside map, fixed to viewport */}
-      <div className="fixed top-0 left-0 right-0 z-[1000] pointer-events-none">
-        <div className="pointer-events-auto">
-          {/* Enhanced Sticky Search Bar */}
-          <div className="p-4">
-            <SearchBar
-              value={searchQuery}
-              onChange={setSearchQuery}
-              onFocus={handleSearchFocus}
-              onSearch={handleSearch}
-              onLocationSearch={handleRetryLocation}
-              placeholder="Search IEBC offices by county, constituency, or location..."
-            />
-          </div>
+      {/* FIXED UI Controls - Outside map container */}
+      
+      {/* Fixed Search Bar */}
+      <div className="fixed-search-container">
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          onFocus={handleSearchFocus}
+          onSearch={handleSearch}
+          onLocationSearch={handleRetryLocation}
+          placeholder="Search IEBC offices by county, constituency, or location..."
+        />
+      </div>
 
-          {/* Control Buttons - iOS Style - FIXED to screen */}
-          <motion.div
-            initial={{ y: -100 }}
-            animate={{ y: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="absolute top-20 right-4 flex flex-col space-y-2"
+      {/* Fixed Control Buttons */}
+      <div className="fixed-controls-container">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          className="flex flex-col space-y-3"
+        >
+          {/* Layer Control Button */}
+          <button
+            onClick={openLayerPanel}
+            className="ios-control-btn"
+            aria-label="Map layers"
           >
-            {/* Layer Control Button */}
+            <svg className="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+            </svg>
+          </button>
+
+          {/* Location Button */}
+          {!userLocation && (
             <button
-              onClick={openLayerPanel}
-              className="w-12 h-12 bg-white/95 backdrop-blur-md rounded-full shadow-lg flex items-center justify-center hover:bg-white transition-all"
-              aria-label="Map layers"
+              onClick={handleRetryLocation}
+              className="ios-control-btn"
+              aria-label="Use my location"
             >
-              <svg className="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+              <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </button>
+          )}
 
-            {/* Location Button */}
-            {!userLocation && (
-              <button
-                onClick={handleRetryLocation}
-                className="w-12 h-12 bg-white/95 backdrop-blur-md rounded-full shadow-lg flex items-center justify-center hover:bg-white transition-all"
-                aria-label="Use my location"
-              >
-                <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </button>
-            )}
+          {/* List Panel Button */}
+          <button
+            onClick={handleSearchFocus}
+            className="ios-control-btn"
+            aria-label="Show all offices"
+          >
+            <svg className="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </motion.div>
+      </div>
 
-            {/* List Panel Button */}
-            <button
-              onClick={openListPanel}
-              className="w-12 h-12 bg-white/95 backdrop-blur-md rounded-full shadow-lg flex items-center justify-center hover:bg-white transition-all"
-              aria-label="Show all offices"
-            >
-              <svg className="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </motion.div>
-
-          {/* Status Indicators - Also fixed */}
+      {/* Fixed Status Badges */}
+      <div className="fixed-badge-container">
+        <AnimatePresence>
+          {/* Searching Nearby Indicator */}
           {isSearchingNearby && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="absolute top-4 left-1/2 transform -translate-x-1/2"
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="search-indicator"
             >
-              <div className="bg-blue-500/90 text-white px-4 py-2 rounded-2xl shadow-lg">
-                <div className="flex items-center space-x-2">
-                  <LoadingSpinner size="small" />
-                  <span className="text-sm font-medium">Searching nearby offices...</span>
-                </div>
+              <div className="flex items-center space-x-2">
+                <LoadingSpinner size="small" />
+                <span className="text-sm font-medium text-gray-900">Searching nearby offices...</span>
               </div>
             </motion.div>
           )}
 
+          {/* Route Success Badge */}
           {currentRoute && currentRoute.length > 0 && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="absolute bottom-32 left-4 bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl shadow-lg"
+              exit={{ opacity: 0, y: -20 }}
+              className="route-badge"
             >
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -326,80 +379,90 @@ const IEBCOfficeMap = () => {
               </div>
               {currentRoute[0] && (
                 <div className="text-gray-600 text-xs mt-1">
-                  Best: {(currentRoute[0].summary.totalDistance / 1000).toFixed(1)} km, 
-                  {Math.round(currentRoute[0].summary.totalTime / 60)} min
+                  Best: {(currentRoute[0].summary.totalDistance / 1000).toFixed(1)} km, {Math.round(currentRoute[0].summary.totalTime / 60)} min
                 </div>
               )}
             </motion.div>
           )}
 
+          {/* Routing Error */}
           {routingError && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="absolute bottom-32 left-4 max-w-sm"
+              exit={{ opacity: 0, y: -20 }}
+              className="error-notification"
             >
-              <div className="bg-red-500/90 text-white px-4 py-3 rounded-2xl shadow-lg">
-                <div className="flex items-center space-x-2">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
-                  <span className="text-sm font-medium">Routing unavailable</span>
-                </div>
-                <p className="text-xs mt-1 opacity-90">Tap office for Google Maps directions.</p>
+              <div className="flex items-center space-x-2">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <span className="text-sm font-medium">Routing unavailable</span>
               </div>
+              <p className="text-xs mt-1 opacity-90">Tap office for Google Maps directions.</p>
             </motion.div>
           )}
-        </div>
+        </AnimatePresence>
       </div>
 
-      {/* Enhanced Map Container */}
-      <div className="map-wrapper">
-        <MapContainer
-          ref={mapRef}
-          center={mapCenter}
-          zoom={mapZoom}
-          className="h-full w-full"
-          onMapReady={handleMapReady}
-          onDoubleTap={handleDoubleTap}
-          showLayerControl={true}
-        >
-          {/* Map Layers */}
+      {/* Map Container - Isolated */}
+      <MapContainer
+        ref={mapRef}
+        center={mapCenter}
+        zoom={mapZoom}
+        className="h-full w-full"
+        onMapReady={handleMapReady}
+        onDoubleTap={handleDoubleTap}
+      >
+        {/* User Location Marker */}
+        <UserLocationMarker
+          position={userLocation ? [userLocation.latitude, userLocation.longitude] : null}
+          accuracy={userLocation?.accuracy}
+        />
+
+        {/* GeoJSON Layer Manager */}
+        <GeoJSONLayerManager
+          activeLayers={activeLayers}
+          onOfficeSelect={handleOfficeSelect}
+          selectedOffice={selectedOffice}
+          onNearbyOfficesFound={setNearbyOffices}
+        />
+
+        {/* Last Tap Location Indicator */}
+        {lastTapLocation && (
           <UserLocationMarker
-            position={userLocation ? [userLocation.latitude, userLocation.longitude] : null}
-            accuracy={userLocation?.accuracy}
+            position={[lastTapLocation.lat, lastTapLocation.lng]}
+            accuracy={100}
+            color="#FF9500"
           />
+        )}
 
-          <GeoJSONLayerManager
-            activeLayers={activeLayers}
-            onOfficeSelect={handleOfficeSelect}
-            selectedOffice={selectedOffice}
-            onNearbyOfficesFound={setNearbyOffices}
+        {/* Routing System */}
+        {userLocation && selectedOffice && (
+          <RoutingSystem
+            userLocation={userLocation}
+            destination={selectedOffice}
+            onRouteFound={handleRouteFound}
+            onRouteError={handleRouteError}
+            showAlternatives={false}
           />
+        )}
+      </MapContainer>
 
-          {lastTapLocation && (
-            <UserLocationMarker
-              position={[lastTapLocation.lat, lastTapLocation.lng]}
-              accuracy={100}
-              color="#FF9500"
-            />
-          )}
+      {/* Panel Backdrop */}
+      <AnimatePresence>
+        {isPanelBackdropVisible && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={handleBackdropClick}
+            className="panel-backdrop visible"
+          />
+        )}
+      </AnimatePresence>
 
-          {/* Enhanced Routing System */}
-          {userLocation && selectedOffice && (
-            <RoutingSystem
-              userLocation={userLocation}
-              destination={selectedOffice}
-              onRouteFound={handleRouteFound}
-              onRouteError={handleRouteError}
-              showAlternatives={false}
-            />
-          )}
-        </MapContainer>
-      </div>
-
-      {/* External UI Components */}
+      {/* Layer Control Panel */}
       <LayerControlPanel
         layers={activeLayers}
         onToggleLayer={toggleLayer}
@@ -408,26 +471,32 @@ const IEBCOfficeMap = () => {
         userLocation={userLocation}
       />
 
-      <OfficeBottomSheet
-        office={selectedOffice || nearestOffice}
-        userLocation={userLocation}
-        onOfficeSelect={handleOfficeSelect}
-        currentRoute={currentRoute}
-        routingError={routingError}
-      />
-
+      {/* Office List Panel */}
       <AnimatePresence>
         {isListPanelOpen && (
           <OfficeListPanel
             offices={nearbyOffices.length > 0 ? nearbyOffices : (searchQuery ? filteredOffices : defaultNearbyOffices)}
             onSelectOffice={handleOfficeSelect}
-            onClose={closeListPanel}
+            onClose={handleCloseListPanel}
             searchQuery={searchQuery}
             userLocation={userLocation}
             isSearching={isSearchingNearby}
           />
         )}
       </AnimatePresence>
+
+      {/* Office Bottom Sheet - Peek Deck */}
+      <OfficeBottomSheet
+        office={selectedOffice || nearestOffice}
+        userLocation={userLocation}
+        onOfficeSelect={handleOfficeSelect}
+        currentRoute={currentRoute}
+        routingError={routingError}
+        state={bottomSheetState}
+        onExpand={handleBottomSheetExpand}
+        onCollapse={handleBottomSheetCollapse}
+        onClose={handleBottomSheetClose}
+      />
     </div>
   );
 };
