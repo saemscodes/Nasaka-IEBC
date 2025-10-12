@@ -51,7 +51,6 @@ const IEBCOfficeMap = () => {
   const [isPanelBackdropVisible, setIsPanelBackdropVisible] = useState(false);
   const [baseMap, setBaseMap] = useState('standard');
   const [searchResults, setSearchResults] = useState([]);
-  const [markersLoaded, setMarkersLoaded] = useState(false);
 
   const mapInstanceRef = useRef(null);
   const tileLayersRef = useRef({});
@@ -60,7 +59,6 @@ const IEBCOfficeMap = () => {
   const handleMapReady = useCallback((map) => {
     mapInstanceRef.current = map;
     initializeTileLayers(map);
-    setMarkersLoaded(true);
   }, []);
 
   // Initialize tile layers
@@ -340,7 +338,7 @@ const IEBCOfficeMap = () => {
 
   return (
     <div className="ios-map-container relative">
-      {/* FIXED UI Controls */}
+      {/* FIXED UI Controls - ALWAYS ON TOP */}
       <div className="fixed-search-container">
         <SearchBar
           value={searchQuery}
@@ -450,7 +448,7 @@ const IEBCOfficeMap = () => {
         </AnimatePresence>
       </div>
 
-      {/* Map Container */}
+      {/* Map Container - Isolated */}
       <MapContainer
         ref={mapRef}
         center={mapCenter}
@@ -459,22 +457,22 @@ const IEBCOfficeMap = () => {
         onMapReady={handleMapReady}
         onDoubleTap={handleDoubleTap}
       >
+        {/* User Location Marker */}
         <UserLocationMarker
           position={userLocation ? [userLocation.latitude, userLocation.longitude] : null}
           accuracy={userLocation?.accuracy}
         />
 
-        {/* GeoJSON Layer Manager - Only render when markers are loaded */}
-        {markersLoaded && (
-          <GeoJSONLayerManager
-            activeLayers={activeLayers}
-            onOfficeSelect={handleOfficeSelect}
-            selectedOffice={selectedOffice}
-            onNearbyOfficesFound={setNearbyOffices}
-            baseMap={baseMap}
-          />
-        )}
+        {/* GeoJSON Layer Manager - FIXED MARKER DISPLAY */}
+        <GeoJSONLayerManager
+          activeLayers={activeLayers}
+          onOfficeSelect={handleOfficeSelect}
+          selectedOffice={selectedOffice}
+          onNearbyOfficesFound={setNearbyOffices}
+          baseMap={baseMap}
+        />
 
+        {/* Last Tap Location Indicator */}
         {lastTapLocation && (
           <UserLocationMarker
             position={[lastTapLocation.lat, lastTapLocation.lng]}
@@ -483,6 +481,7 @@ const IEBCOfficeMap = () => {
           />
         )}
 
+        {/* Routing System */}
         {userLocation && selectedOffice && (
           <RoutingSystem
             userLocation={userLocation}
@@ -494,7 +493,7 @@ const IEBCOfficeMap = () => {
         )}
       </MapContainer>
 
-      {/* Panel Backdrop - Only for side panels, not search suggestions */}
+      {/* PANEL BACKDROP - CRITICAL FIX: BELOW CONTROLS, ABOVE MAP */}
       <AnimatePresence>
         {isPanelBackdropVisible && (
           <motion.div
