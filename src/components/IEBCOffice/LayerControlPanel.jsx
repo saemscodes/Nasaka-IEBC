@@ -1,383 +1,302 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { MapContainer, TileLayer, GeoJSON, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import React from 'react';
+import { motion } from 'framer-motion';
 
-// Layer data URLs
-const LAYER_URLS = {
-  'counties': 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/FULL%20CORRECTED%20-%20Kenya%20Counties%20Voters\'%20Data.geojson',
-  'constituencies': 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/constituencies.geojson',
-  'iebc-offices': 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/iebc-offices.geojson'
-};
-
-// Custom user location icon
-const createUserLocationIcon = () => {
-  return L.divIcon({
-    className: 'custom-user-marker',
-    html: `
-      <div style="position: relative;">
-        <div style="
-          width: 20px;
-          height: 20px;
-          background: #3b82f6;
-          border: 3px solid white;
-          border-radius: 50%;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        "></div>
-        <div style="
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 40px;
-          height: 40px;
-          background: rgba(59, 130, 246, 0.2);
-          border: 2px solid rgba(59, 130, 246, 0.4);
-          border-radius: 50%;
-          animation: pulse 2s infinite;
-        "></div>
-      </div>
-      <style>
-        @keyframes pulse {
-          0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-          100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
-        }
-      </style>
-    `,
-    iconSize: [20, 20],
-    iconAnchor: [10, 10]
-  });
-};
-
-// Layer Cache Manager
-class LayerCache {
-  constructor() {
-    this.cache = {};
-    this.loading = {};
-  }
-
-  async get(layerId) {
-    if (this.cache[layerId]) {
-      return this.cache[layerId];
-    }
-
-    if (this.loading[layerId]) {
-      return this.loading[layerId];
-    }
-
-    this.loading[layerId] = this.fetch(layerId);
-    const data = await this.loading[layerId];
-    delete this.loading[layerId];
-    
-    return data;
-  }
-
-  async fetch(layerId) {
-    try {
-      const url = LAYER_URLS[layerId];
-      if (!url) return null;
-
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`Failed to fetch ${layerId}`);
-      
-      const data = await response.json();
-      this.cache[layerId] = data;
-      return data;
-    } catch (error) {
-      console.error(`Error loading layer ${layerId}:`, error);
-      return null;
-    }
-  }
-
-  has(layerId) {
-    return !!this.cache[layerId];
-  }
-
-  clear(layerId) {
-    if (layerId) {
-      delete this.cache[layerId];
-    } else {
-      this.cache = {};
-    }
-  }
-}
-
-const layerCache = new LayerCache();
-
-// Dynamic Layer Loader Component
-const DynamicLayerLoader = ({ layerId, isVisible, onLoad, onError }) => {
-  const [geoJsonData, setGeoJsonData] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const map = useMap();
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadLayerData = async () => {
-      if (!isVisible) {
-        setGeoJsonData(null);
-        return;
-      }
-
-      setIsLoading(true);
-      
-      try {
-        const data = await layerCache.get(layerId);
-        
-        if (isMounted && data) {
-          setGeoJsonData(data);
-          onLoad?.(layerId);
-        }
-      } catch (error) {
-        console.error(`Failed to load ${layerId}:`, error);
-        onError?.(layerId, error);
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    loadLayerData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [layerId, isVisible, onLoad, onError]);
-
-  if (!isVisible || !geoJsonData) return null;
-
-  const getLayerStyle = (feature) => {
-    switch (layerId) {
-      case 'counties':
-        return {
-          fillColor: '#22c55e',
-          fillOpacity: 0.15,
-          color: '#16a34a',
-          weight: 2,
-          opacity: 0.8
-        };
-      case 'constituencies':
-        return {
-          fillColor: '#8b5cf6',
-          fillOpacity: 0.1,
-          color: '#7c3aed',
-          weight: 1.5,
-          opacity: 0.7
-        };
-      default:
-        return {
-          fillColor: '#3b82f6',
-          fillOpacity: 0.2,
-          color: '#2563eb',
-          weight: 2,
-          opacity: 0.8
-        };
-    }
-  };
-
-  const onEachFeature = (feature, layer) => {
-    if (feature.properties) {
-      const props = feature.properties;
-      let popupContent = '<div style="padding: 8px;">';
-      
-      if (layerId === 'counties') {
-        popupContent += `<h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600;">${props.NAME || props.COUNTY || 'Unknown County'}</h3>`;
-        if (props.POPULATION) popupContent += `<p style="margin: 4px 0;"><strong>Population:</strong> ${props.POPULATION.toLocaleString()}</p>`;
-        if (props.REGISTERED_VOTERS) popupContent += `<p style="margin: 4px 0;"><strong>Registered Voters:</strong> ${props.REGISTERED_VOTERS.toLocaleString()}</p>`;
-      } else if (layerId === 'constituencies') {
-        popupContent += `<h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600;">${props.CONSTITUEN || props.NAME || 'Unknown Constituency'}</h3>`;
-        if (props.COUNTY) popupContent += `<p style="margin: 4px 0;"><strong>County:</strong> ${props.COUNTY}</p>`;
-      }
-      
-      popupContent += '</div>';
-      layer.bindPopup(popupContent);
-    }
-
-    layer.on({
-      mouseover: (e) => {
-        const layer = e.target;
-        layer.setStyle({
-          fillOpacity: 0.4,
-          weight: 3
-        });
-      },
-      mouseout: (e) => {
-        const layer = e.target;
-        layer.setStyle(getLayerStyle(feature));
-      }
-    });
-  };
-
-  return (
-    <GeoJSON
-      key={`${layerId}-${Date.now()}`}
-      data={geoJsonData}
-      style={getLayerStyle}
-      onEachFeature={onEachFeature}
-    />
-  );
-};
-
-// User Location Marker Component
-const UserLocationMarker = ({ position }) => {
-  const map = useMap();
-
-  useEffect(() => {
-    if (position) {
-      map.flyTo(position, 13, {
-        duration: 1.5
-      });
-    }
-  }, [position, map]);
-
-  if (!position) return null;
-
-  return (
-    <Marker position={position} icon={createUserLocationIcon()}>
-      <Popup>
-        <div style={{ padding: '8px' }}>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '600' }}>Your Location</h3>
-          <p style={{ margin: '4px 0', fontSize: '14px' }}>
-            Lat: {position[0].toFixed(6)}<br />
-            Lng: {position[1].toFixed(6)}
-          </p>
-        </div>
-      </Popup>
-    </Marker>
-  );
-};
-
-// Base Map Controller
-const BaseMapController = ({ baseMap }) => {
-  const map = useMap();
-
-  const tileLayerUrl = useMemo(() => {
-    switch (baseMap) {
-      case 'satellite':
-        return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-      case 'standard':
-      default:
-        return 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-    }
-  }, [baseMap]);
-
-  const attribution = useMemo(() => {
-    switch (baseMap) {
-      case 'satellite':
-        return '&copy; <a href="https://www.esri.com/">Esri</a>';
-      case 'standard':
-      default:
-        return '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
-    }
-  }, [baseMap]);
-
-  return <TileLayer url={tileLayerUrl} attribution={attribution} />;
-};
-
-// Main Map Component
-const IEBCMap = ({ 
-  activeLayers = ['iebc-offices'], 
-  userLocation = null,
+const LayerControlPanel = ({
+  layers,
+  onToggleLayer,
+  isOpen,
+  onClose,
+  userLocation,
   baseMap = 'standard',
-  onLayerLoad,
-  onLayerError
+  onBaseMapChange
 }) => {
-  const [loadingLayers, setLoadingLayers] = useState(new Set());
+  const availableLayers = [
+    {
+      id: 'iebc-offices',
+      name: 'IEBC Offices',
+      description: 'All IEBC office locations across Kenya',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+      ),
+      color: 'primary'
+    },
+    {
+      id: 'constituencies',
+      name: 'Constituencies',
+      description: 'Electoral constituency boundaries',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+        </svg>
+      ),
+      color: 'green'
+    },
+    {
+      id: 'counties',
+      name: 'Counties',
+      description: 'Kenya county boundaries',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+        </svg>
+      ),
+      color: 'purple'
+    },
+    {
+      id: 'user-location',
+      name: 'My Location',
+      description: 'Show your current location on the map',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      ),
+      color: 'red',
+      disabled: !userLocation
+    }
+  ];
 
-  const handleLayerLoad = (layerId) => {
-    setLoadingLayers(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(layerId);
-      return newSet;
-    });
-    onLayerLoad?.(layerId);
+  const baseMapOptions = [
+    {
+      id: 'standard',
+      name: 'Standard',
+      description: 'Default street map view',
+      preview: 'M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3'
+    },
+    {
+      id: 'satellite',
+      name: 'Satellite',
+      description: 'Aerial imagery view',
+      preview: 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+    }
+  ];
+
+  const handleLayerToggle = (layerId) => {
+    if (availableLayers.find(l => l.id === layerId)?.disabled) {
+      return;
+    }
+    onToggleLayer(layerId);
   };
 
-  const handleLayerError = (layerId, error) => {
-    setLoadingLayers(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(layerId);
-      return newSet;
-    });
-    onLayerError?.(layerId, error);
+  const handleBaseMapChange = (mapId) => {
+    onBaseMapChange(mapId);
   };
 
-  useEffect(() => {
-    const newLoading = new Set();
-    activeLayers.forEach(layerId => {
-      if (!layerCache.has(layerId)) {
-        newLoading.add(layerId);
-      }
-    });
-    setLoadingLayers(newLoading);
-  }, [activeLayers]);
-
-  const kenyaCenter = [-0.0236, 37.9062];
+  if (!isOpen) return null;
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <MapContainer
-        center={kenyaCenter}
-        zoom={6}
-        style={{ width: '100%', height: '100%' }}
-        zoomControl={true}
-        scrollWheelZoom={true}
-      >
-        <BaseMapController baseMap={baseMap} />
-
-        {activeLayers.map(layerId => (
-          layerId !== 'user-location' && (
-            <DynamicLayerLoader
-              key={layerId}
-              layerId={layerId}
-              isVisible={activeLayers.includes(layerId)}
-              onLoad={handleLayerLoad}
-              onError={handleLayerError}
-            />
-          )
-        ))}
-
-        {activeLayers.includes('user-location') && userLocation && (
-          <UserLocationMarker position={userLocation} />
-        )}
-      </MapContainer>
-
-      {loadingLayers.size > 0 && (
-        <div style={{
-          position: 'absolute',
-          top: '16px',
-          right: '16px',
-          background: 'rgba(255, 255, 255, 0.95)',
-          padding: '12px 16px',
-          borderRadius: '8px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          zIndex: 1000,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          <div style={{
-            width: '16px',
-            height: '16px',
-            border: '2px solid #3b82f6',
-            borderTopColor: 'transparent',
-            borderRadius: '50%',
-            animation: 'spin 0.8s linear infinite'
-          }} />
-          <span style={{ fontSize: '14px', fontWeight: '500', color: '#1f2937' }}>
-            Loading layers...
-          </span>
+    <motion.div
+      initial={{ x: '100%' }}
+      animate={{ x: 0 }}
+      exit={{ x: '100%' }}
+      transition={{ type: 'spring', stiffness: 400, damping: 40 }}
+      className="layer-control-panel open"
+    >
+      <div className="sticky top-0 bg-card/95 backdrop-blur-xl border-b border-border z-10 px-5 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-foreground">Map Layers</h2>
+            <p className="text-sm text-muted-foreground mt-1">Customize your map view</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-muted hover:bg-accent transition-colors"
+            aria-label="Close panel"
+          >
+            <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-      )}
+      </div>
 
-      <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
-    </div>
+      <div className="overflow-y-auto h-full green-scrollbar px-5 py-6">
+        <div className="mb-8">
+          <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
+            Base Map
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            {baseMapOptions.map((option) => (
+              <button
+                key={option.id}
+                onClick={() => handleBaseMapChange(option.id)}
+                className={`relative p-4 rounded-xl border-2 transition-all ${
+                  baseMap === option.id
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border bg-background hover:border-muted-foreground'
+                }`}
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-2 ${
+                    baseMap === option.id ? 'bg-primary/20' : 'bg-muted'
+                  }`}>
+                    <svg className={`w-6 h-6 ${
+                      baseMap === option.id ? 'text-primary' : 'text-muted-foreground'
+                    }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={option.preview} />
+                    </svg>
+                  </div>
+                  <span className={`text-sm font-medium ${
+                    baseMap === option.id ? 'text-primary' : 'text-foreground'
+                  }`}>
+                    {option.name}
+                  </span>
+                  <span className="text-xs text-muted-foreground mt-1">
+                    {option.description}
+                  </span>
+                </div>
+                {baseMap === option.id && (
+                  <div className="absolute top-2 right-2">
+                    <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                      <svg className="w-3 h-3 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
+            Data Layers
+          </h3>
+          <div className="space-y-3">
+            {availableLayers.map((layer) => {
+              const isActive = layers.includes(layer.id);
+              const isDisabled = layer.disabled;
+
+              return (
+                <button
+                  key={layer.id}
+                  onClick={() => handleLayerToggle(layer.id)}
+                  disabled={isDisabled}
+                  className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+                    isDisabled
+                      ? 'border-muted bg-muted opacity-50 cursor-not-allowed'
+                      : isActive
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border bg-background hover:border-muted-foreground'
+                  }`}
+                >
+                  <div className="flex items-start">
+                    <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center ${
+                      isDisabled
+                        ? 'bg-muted'
+                        : isActive
+                        ? 'bg-primary/20'
+                        : 'bg-muted'
+                    }`}>
+                      <div className={`${
+                        isDisabled
+                          ? 'text-muted-foreground'
+                          : isActive
+                          ? 'text-primary'
+                          : 'text-muted-foreground'
+                      }`}>
+                        {layer.icon}
+                      </div>
+                    </div>
+
+                    <div className="ml-4 flex-1">
+                      <div className="flex items-center justify-between">
+                        <h4 className={`text-base font-semibold ${
+                          isDisabled ? 'text-muted-foreground' : 'text-foreground'
+                        }`}>
+                          {layer.name}
+                        </h4>
+                        <motion.div 
+                          className={`relative inline-flex w-12 h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${
+                            isDisabled
+                              ? 'bg-muted/50'
+                              : isActive
+                              ? 'bg-primary'
+                              : 'bg-muted'
+                          }`}
+                          style={{
+                            boxShadow: isActive && !isDisabled 
+                              ? '0 0 0 2px rgba(var(--primary-rgb, 34, 197, 94), 0.2)' 
+                              : 'none'
+                          }}
+                          whileTap={!isDisabled ? { scale: 0.95 } : {}}
+                        >
+                          <motion.span
+                            className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md"
+                            initial={false}
+                            animate={{
+                              x: isActive ? 24 : 0,
+                              scale: isActive ? 1.05 : 1
+                            }}
+                            transition={{
+                              type: 'spring',
+                              stiffness: 500,
+                              damping: 35,
+                              mass: 0.8
+                            }}
+                            style={{
+                              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                            }}
+                          />
+                          {isActive && !isDisabled && (
+                            <motion.div
+                              className="absolute inset-0 rounded-full"
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: [0, 0.3, 0], scale: [0.8, 1.2, 1] }}
+                              transition={{
+                                duration: 0.4,
+                                ease: 'easeOut'
+                              }}
+                              style={{
+                                background: 'radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 70%)'
+                              }}
+                            />
+                          )}
+                        </motion.div>
+                      </div>
+                      <p className={`text-sm mt-1 ${
+                        isDisabled ? 'text-muted-foreground' : 'text-muted-foreground'
+                      }`}>
+                        {layer.description}
+                      </p>
+                      {isDisabled && layer.id === 'user-location' && (
+                        <p className="text-xs text-destructive mt-2 flex items-center">
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                          </svg>
+                          Location permission required
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="mt-8 p-4 bg-primary/10 rounded-xl border border-primary/20">
+          <div className="flex items-start">
+            <svg className="w-5 h-5 text-primary mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h4 className="text-sm font-semibold text-primary mb-1">About Layers</h4>
+              <p className="text-xs text-primary">
+                Toggle layers on and off to customize your map view. You can combine multiple data layers with different base maps for the best experience.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="h-20" />
+      </div>
+    </motion.div>
   );
 };
 
-export default IEBCMap;
+export default LayerControlPanel;
