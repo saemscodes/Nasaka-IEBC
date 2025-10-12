@@ -264,20 +264,21 @@ const SearchBar = ({
               className="w-full bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground text-base py-2 px-1"
             />
             
-            {/* Clear Button */}
+          <div className="relative"> {/* parent must be relative */}
+          {/* Clear Button */}
             {value && (
-              <motion.button
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0 }}
-                onClick={handleClear}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-accent transition-colors"
-              >
-                <X className="w-4 h-4 text-muted-foreground" />
-              </motion.button>
-            )}
+      <motion.button
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0, opacity: 0 }}
+        onClick={handleClear}
+        className="absolute right-2 inset-y-0 flex items-center justify-center p-1 rounded-full hover:bg-accent transition-colors"
+        >
+        <X className="w-4 h-4 text-muted-foreground block" />
+      </motion.button>
+    )}
           </div>
-
+          
           {/* Location Button */}
           <motion.button
             whileTap={{ scale: 0.9 }}
