@@ -1,5 +1,5 @@
 // src/components/IEBCOffice/LayerControlPanel.jsx
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 
 const LayerControlPanel = ({
@@ -7,11 +7,10 @@ const LayerControlPanel = ({
   onToggleLayer,
   isOpen,
   onClose,
-  userLocation
+  userLocation,
+  baseMap = 'standard',
+  onBaseMapChange
 }) => {
-  const [selectedBaseMap, setSelectedBaseMap] = useState('standard');
-
-  // Available layer definitions
   const availableLayers = [
     {
       id: 'iebc-offices',
@@ -22,7 +21,7 @@ const LayerControlPanel = ({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
       ),
-      color: 'blue'
+      color: 'primary'
     },
     {
       id: 'constituencies',
@@ -61,7 +60,6 @@ const LayerControlPanel = ({
     }
   ];
 
-  // Base map options
   const baseMapOptions = [
     {
       id: 'standard',
@@ -85,9 +83,7 @@ const LayerControlPanel = ({
   };
 
   const handleBaseMapChange = (mapId) => {
-    setSelectedBaseMap(mapId);
-    // Emit event to change base map
-    window.dispatchEvent(new CustomEvent('changeBaseMap', { detail: mapId }));
+    onBaseMapChange(mapId);
   };
 
   if (!isOpen) return null;
@@ -100,30 +96,27 @@ const LayerControlPanel = ({
       transition={{ type: 'spring', stiffness: 400, damping: 40 }}
       className="layer-control-panel open"
     >
-      {/* Header */}
-      <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-gray-200 z-10 px-5 py-4">
+      <div className="sticky top-0 bg-card/95 backdrop-blur-xl border-b border-border z-10 px-5 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Map Layers</h2>
-            <p className="text-sm text-gray-600 mt-1">Customize your map view</p>
+            <h2 className="text-xl font-bold text-foreground">Map Layers</h2>
+            <p className="text-sm text-muted-foreground mt-1">Customize your map view</p>
           </div>
           <button
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-muted hover:bg-accent transition-colors"
             aria-label="Close panel"
           >
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
       </div>
 
-      {/* Content */}
       <div className="overflow-y-auto h-full green-scrollbar px-5 py-6">
-        {/* Base Map Section */}
         <div className="mb-8">
-          <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
+          <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
             Base Map
           </h3>
           <div className="grid grid-cols-2 gap-3">
@@ -132,34 +125,34 @@ const LayerControlPanel = ({
                 key={option.id}
                 onClick={() => handleBaseMapChange(option.id)}
                 className={`relative p-4 rounded-xl border-2 transition-all ${
-                  selectedBaseMap === option.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
+                  baseMap === option.id
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border bg-background hover:border-muted-foreground'
                 }`}
               >
                 <div className="flex flex-col items-center text-center">
                   <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-2 ${
-                    selectedBaseMap === option.id ? 'bg-blue-100' : 'bg-gray-100'
+                    baseMap === option.id ? 'bg-primary/20' : 'bg-muted'
                   }`}>
                     <svg className={`w-6 h-6 ${
-                      selectedBaseMap === option.id ? 'text-blue-600' : 'text-gray-600'
+                      baseMap === option.id ? 'text-primary' : 'text-muted-foreground'
                     }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={option.preview} />
                     </svg>
                   </div>
                   <span className={`text-sm font-medium ${
-                    selectedBaseMap === option.id ? 'text-blue-900' : 'text-gray-900'
+                    baseMap === option.id ? 'text-primary' : 'text-foreground'
                   }`}>
                     {option.name}
                   </span>
-                  <span className="text-xs text-gray-500 mt-1">
+                  <span className="text-xs text-muted-foreground mt-1">
                     {option.description}
                   </span>
                 </div>
-                {selectedBaseMap === option.id && (
+                {baseMap === option.id && (
                   <div className="absolute top-2 right-2">
-                    <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                      <svg className="w-3 h-3 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
@@ -170,9 +163,8 @@ const LayerControlPanel = ({
           </div>
         </div>
 
-        {/* Data Layers Section */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
+          <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
             Data Layers
           </h3>
           <div className="space-y-3">
@@ -187,26 +179,26 @@ const LayerControlPanel = ({
                   disabled={isDisabled}
                   className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
                     isDisabled
-                      ? 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
+                      ? 'border-muted bg-muted opacity-50 cursor-not-allowed'
                       : isActive
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border bg-background hover:border-muted-foreground'
                   }`}
                 >
                   <div className="flex items-start">
                     <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center ${
                       isDisabled
-                        ? 'bg-gray-200'
+                        ? 'bg-muted'
                         : isActive
-                        ? `bg-${layer.color}-100`
-                        : 'bg-gray-100'
+                        ? 'bg-primary/20'
+                        : 'bg-muted'
                     }`}>
                       <div className={`${
                         isDisabled
-                          ? 'text-gray-400'
+                          ? 'text-muted-foreground'
                           : isActive
-                          ? `text-${layer.color}-600`
-                          : 'text-gray-600'
+                          ? 'text-primary'
+                          : 'text-muted-foreground'
                       }`}>
                         {layer.icon}
                       </div>
@@ -215,31 +207,31 @@ const LayerControlPanel = ({
                     <div className="ml-4 flex-1">
                       <div className="flex items-center justify-between">
                         <h4 className={`text-base font-semibold ${
-                          isDisabled ? 'text-gray-400' : 'text-gray-900'
+                          isDisabled ? 'text-muted-foreground' : 'text-foreground'
                         }`}>
                           {layer.name}
                         </h4>
                         <div className={`relative inline-block w-12 h-6 transition-colors rounded-full ${
                           isDisabled
-                            ? 'bg-gray-300'
+                            ? 'bg-muted'
                             : isActive
-                            ? 'bg-blue-500'
-                            : 'bg-gray-300'
+                            ? 'bg-primary'
+                            : 'bg-muted'
                         }`}>
                           <span
-                            className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                            className={`absolute left-1 top-1 w-4 h-4 bg-background rounded-full transition-transform ${
                               isActive ? 'transform translate-x-6' : ''
                             }`}
                           />
                         </div>
                       </div>
                       <p className={`text-sm mt-1 ${
-                        isDisabled ? 'text-gray-400' : 'text-gray-600'
+                        isDisabled ? 'text-muted-foreground' : 'text-muted-foreground'
                       }`}>
                         {layer.description}
                       </p>
                       {isDisabled && layer.id === 'user-location' && (
-                        <p className="text-xs text-amber-600 mt-2 flex items-center">
+                        <p className="text-xs text-destructive mt-2 flex items-center">
                           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                           </svg>
@@ -254,22 +246,20 @@ const LayerControlPanel = ({
           </div>
         </div>
 
-        {/* Info Section */}
-        <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-100">
+        <div className="mt-8 p-4 bg-primary/10 rounded-xl border border-primary/20">
           <div className="flex items-start">
-            <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-primary mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div>
-              <h4 className="text-sm font-semibold text-blue-900 mb-1">About Layers</h4>
-              <p className="text-xs text-blue-800">
+              <h4 className="text-sm font-semibold text-primary mb-1">About Layers</h4>
+              <p className="text-xs text-primary">
                 Toggle layers on and off to customize your map view. You can combine multiple data layers with different base maps for the best experience.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Bottom Padding for safe area */}
         <div className="h-20" />
       </div>
     </motion.div>
