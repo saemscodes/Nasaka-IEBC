@@ -11,12 +11,15 @@
    1. CSS VARIABLES - SINGLE SOURCE OF TRUTH
    ============================================ */
 :root {
-  /* Z-Index Hierarchy */
+  /* Z-Index Hierarchy - FIXED ORDER */
   --z-map-base: 0;
   --z-map-tiles: 1;
   --z-map-markers: 400;
   --z-map-popups: 600;
   --z-map-routes: 500;
+  
+  /* Panel Backdrop - ABOVE MAP, BELOW CONTROLS */
+  --z-panel-backdrop: 999;
   
   /* Fixed UI Controls - Above Everything */
   --z-fixed-search: 1000;
@@ -126,7 +129,7 @@
 }
 
 /* ============================================
-   4. FIXED VIEWPORT CONTROLS
+   4. FIXED VIEWPORT CONTROLS - ALWAYS ON TOP
    ============================================ */
 
 /* Search Bar - Fixed to viewport top */
@@ -155,7 +158,6 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   padding: 8px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  color: hsl(var(--card-foreground));
 }
 
 .search-container:focus-within {
@@ -194,10 +196,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Ensure visibility */
-  position: relative;
-  z-index: 1;
-  color: hsl(var(--card-foreground));
+  color: hsl(var(--foreground));
 }
 
 .ios-control-btn:hover {
@@ -235,7 +234,7 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   margin-bottom: 12px;
   max-width: 300px;
-  color: hsl(var(--card-foreground));
+  color: hsl(var(--foreground));
 }
 
 .error-notification {
@@ -246,7 +245,87 @@
 }
 
 /* ============================================
-   5. BOTTOM SHEET - PEEK DECK STYLE
+   5. PANEL BACKDROP - CRITICAL FIX
+   ============================================ */
+
+/* Panel Backdrop - ABOVE MAP, BELOW ALL CONTROLS */
+.panel-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: var(--z-panel-backdrop); /* BELOW fixed controls (1000+) */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  backdrop-filter: blur(4px);
+  /* Ensure it doesn't interfere with fixed controls */
+  pointer-events: none;
+}
+
+.panel-backdrop.visible {
+  opacity: 1;
+  pointer-events: auto; /* Only allow clicks when visible */
+}
+
+/* ============================================
+   6. SIDE PANELS - ABOVE BACKDROP, BELOW CONTROLS
+   ============================================ */
+
+/* List Panel - Slides from left */
+.office-list-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: min(400px, 90vw);
+  height: 100vh;
+  z-index: var(--z-list-panel); /* 1300 - ABOVE backdrop (999) */
+  background: hsl(var(--card));
+  backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.12);
+  transform: translateX(-100%);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+  /* Safe areas */
+  padding-top: var(--spacing-safe-top);
+  padding-left: var(--spacing-safe-left);
+  contain: layout style paint;
+  color: hsl(var(--foreground));
+}
+
+.office-list-panel.open {
+  transform: translateX(0);
+}
+
+/* Layer Panel - Slides from right */
+.layer-control-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(360px, 85vw);
+  height: 100vh;
+  z-index: var(--z-layer-panel); /* 1400 - ABOVE backdrop (999) */
+  background: hsl(var(--card));
+  backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: -4px 0 32px rgba(0, 0, 0, 0.12);
+  transform: translateX(100%);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+  /* Safe areas */
+  padding-top: var(--spacing-safe-top);
+  padding-right: var(--spacing-safe-right);
+  contain: layout style paint;
+  color: hsl(var(--foreground));
+}
+
+.layer-control-panel.open {
+  transform: translateX(0);
+}
+
+/* ============================================
+   7. BOTTOM SHEET - PEEK DECK STYLE
    ============================================ */
 
 .office-bottom-sheet {
@@ -268,7 +347,7 @@
   contain: layout style paint;
   /* Safe area for iOS */
   padding-bottom: var(--spacing-safe-bottom);
-  color: hsl(var(--card-foreground));
+  color: hsl(var(--foreground));
 }
 
 /* Peek state - shows small preview */
@@ -315,101 +394,23 @@
 }
 
 /* ============================================
-   6. SIDE PANELS
+   8. SEARCH SUGGESTIONS - FIXED Z-INDEX
    ============================================ */
 
-/* List Panel - Slides from left */
-.office-list-panel {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: min(400px, 90vw);
-  height: 100vh;
-  z-index: var(--z-list-panel);
-  background: hsl(var(--card));
-  backdrop-filter: blur(40px) saturate(180%);
-  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.12);
-  transform: translateX(-100%);
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow-y: auto;
-  /* Safe areas */
-  padding-top: var(--spacing-safe-top);
-  padding-left: var(--spacing-safe-left);
-  contain: layout style paint;
-  color: hsl(var(--card-foreground));
-}
-
-.office-list-panel.open {
-  transform: translateX(0);
-}
-
-/* Layer Panel - Slides from right */
-.layer-control-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: min(360px, 85vw);
-  height: 100vh;
-  z-index: var(--z-layer-panel);
-  background: hsl(var(--card));
-  backdrop-filter: blur(40px) saturate(180%);
-  box-shadow: -4px 0 32px rgba(0, 0, 0, 0.12);
-  transform: translateX(100%);
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow-y: auto;
-  /* Safe areas */
-  padding-top: var(--spacing-safe-top);
-  padding-right: var(--spacing-safe-right);
-  contain: layout style paint;
-  color: hsl(var(--card-foreground));
-}
-
-.layer-control-panel.open {
-  transform: translateX(0);
-}
-
-/* Panel overlay backdrop - FIXED: Only appears behind panels, not search */
-.panel-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: calc(var(--z-list-panel) - 1); /* Behind panels but above map */
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-  backdrop-filter: blur(4px);
-}
-
-.panel-backdrop.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* ============================================
-   7. SEARCH SUGGESTIONS - FIXED POSITIONING
-   ============================================ */
-
-.search-suggestions-container {
+.search-suggestions {
   position: absolute;
   top: 100%;
   left: 0;
   right: 0;
-  z-index: calc(var(--z-fixed-search) - 1); /* Below search bar but above map */
-  margin-top: 8px;
-}
-
-.search-suggestions {
   background: hsl(var(--card));
   backdrop-filter: blur(20px) saturate(180%);
   border-radius: calc(var(--radius) - 2px);
   border: 1px solid hsl(var(--border));
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  margin-top: 8px;
   max-height: 300px;
   overflow-y: auto;
-  color: hsl(var(--card-foreground));
+  z-index: var(--z-fixed-search); /* SAME as search bar - 1000 */
 }
 
 .search-suggestion-item {
@@ -417,7 +418,7 @@
   cursor: pointer;
   border-bottom: 1px solid hsl(var(--border) / 0.1);
   transition: background-color 0.2s ease;
-  color: hsl(var(--card-foreground));
+  color: hsl(var(--foreground));
 }
 
 .search-suggestion-item:hover {
@@ -430,7 +431,56 @@
 }
 
 /* ============================================
-   8. LOADING & ERROR OVERLAYS
+   9. MAP MARKERS & POPUPS - FIX MARKER DISPLAY
+   ============================================ */
+
+/* Custom marker styles */
+.office-marker,
+.user-location-marker,
+.geojson-office-marker,
+.geojson-office-marker-detailed {
+  background: transparent !important;
+  border: none !important;
+  z-index: var(--z-map-markers) !important;
+}
+
+/* FIX: Ensure markers are visible */
+.leaflet-marker-icon {
+  z-index: var(--z-map-markers) !important;
+}
+
+.marker-hover {
+  filter: brightness(1.08) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.12));
+  transform: scale(1.05);
+  transition: all 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: calc(var(--z-map-markers) + 10) !important;
+}
+
+/* Enhanced popup styles */
+.leaflet-popup-content-wrapper {
+  background: hsl(var(--card));
+  backdrop-filter: blur(20px) saturate(180%);
+  border-radius: calc(var(--radius) - 2px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  border: 1px solid hsl(var(--border));
+  padding: 16px;
+}
+
+.leaflet-popup-content {
+  margin: 0;
+  line-height: 1.4;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: hsl(var(--foreground));
+}
+
+.leaflet-popup-tip {
+  background: hsl(var(--card));
+  box-shadow: none;
+  border: 1px solid hsl(var(--border));
+}
+
+/* ============================================
+   10. LOADING & ERROR OVERLAYS
    ============================================ */
 
 .loading-overlay {
@@ -462,66 +512,10 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   max-width: 90vw;
   pointer-events: auto;
-  color: hsl(var(--card-foreground));
 }
 
 /* ============================================
-   9. MAP MARKERS & POPUPS - FIXED MARKER STYLES
-   ============================================ */
-
-/* Custom marker styles */
-.office-marker,
-.user-location-marker,
-.geojson-office-marker,
-.geojson-office-marker-detailed {
-  background: transparent !important;
-  border: none !important;
-  z-index: var(--z-map-markers) !important;
-}
-
-.marker-hover {
-  filter: brightness(1.08) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.12));
-  transform: scale(1.05);
-  transition: all 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
-  z-index: calc(var(--z-map-markers) + 10) !important;
-}
-
-/* Enhanced popup styles */
-.leaflet-popup-content-wrapper {
-  background: hsl(var(--card));
-  backdrop-filter: blur(20px) saturate(180%);
-  border-radius: calc(var(--radius) - 2px);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-  border: 1px solid hsl(var(--border));
-  padding: 16px;
-  color: hsl(var(--card-foreground));
-}
-
-.leaflet-popup-content {
-  margin: 0;
-  line-height: 1.4;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: hsl(var(--card-foreground));
-}
-
-.leaflet-popup-tip {
-  background: hsl(var(--card));
-  box-shadow: none;
-  border: 1px solid hsl(var(--border));
-}
-
-/* Custom office marker styles */
-.geojson-office-marker {
-  background: transparent !important;
-  border: none !important;
-}
-
-.geojson-office-marker.selected .relative {
-  animation: pulse 2s infinite;
-}
-
-/* ============================================
-   10. RESPONSIVE DESIGN
+   11. RESPONSIVE DESIGN
    ============================================ */
 
 @media (max-width: 640px) {
@@ -575,7 +569,7 @@
 }
 
 /* ============================================
-   11. ACCESSIBILITY & PERFORMANCE
+   12. ACCESSIBILITY & PERFORMANCE
    ============================================ */
 
 /* Focus visible for keyboard navigation */
@@ -605,12 +599,16 @@
   .layer-control-panel {
     background: hsl(var(--background));
     backdrop-filter: none;
-    border: 2px solid hsl(var(--foreground));
+    border: 2px solid hsl(var(--border));
   }
 }
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
+  .ios-map-container {
+    background: hsl(var(--background));
+  }
+  
   .search-container,
   .ios-control-btn,
   .route-badge,
@@ -620,7 +618,7 @@
   .leaflet-popup-content-wrapper {
     background: hsl(var(--card));
     border-color: hsl(var(--border));
-    color: hsl(var(--card-foreground));
+    color: hsl(var(--foreground));
   }
   
   .bottom-sheet-handle {
@@ -629,7 +627,7 @@
 }
 
 /* ============================================
-   12. CUSTOM SCROLLBARS
+   13. CUSTOM SCROLLBARS
    ============================================ */
 
 .green-scrollbar::-webkit-scrollbar {
@@ -659,7 +657,7 @@
 }
 
 /* ============================================
-   13. ANIMATIONS
+   14. ANIMATIONS
    ============================================ */
 
 @keyframes fade-in {
@@ -701,15 +699,4 @@
 
 .animate-slide-up {
   animation: slide-up 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.05);
-    opacity: 0.8;
-  }
 }
