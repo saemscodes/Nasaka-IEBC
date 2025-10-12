@@ -248,11 +248,9 @@ const IEBCOfficeMap = () => {
   // Navigation handlers
   const handleBack = () => navigate(-1);
   const handleSearchFocus = () => {
-    // Only open list panel if we have search results or want to show all offices
-    if (searchQuery.trim() || offices.length > 0) {
-      openListPanel();
-      setIsPanelBackdropVisible(true);
-    }
+    // This now only opens panel when called from search (on Enter)
+    openListPanel();
+    setIsPanelBackdropVisible(true);
   };
   
   const handleRetryLocation = () => navigate('/nasaka-iebc', { replace: true });

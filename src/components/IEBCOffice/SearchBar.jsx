@@ -131,8 +131,9 @@ const SearchBar = ({
   };
 
   const handleInputFocus = () => {
+    // Don't trigger panel immediately, just focus the input
     setIsExpanded(true);
-    if (onFocus) onFocus();
+    // Don't call onFocus here - let Enter trigger the full search
   };
 
   const handleSuggestionSelect = (suggestion) => {
@@ -168,11 +169,13 @@ const SearchBar = ({
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      setIsExpanded(false);
       
       if (value.trim() && onSearch) {
+        // Trigger full search and open panel on Enter
         onSearch({ searchQuery: value.trim() });
+        if (onFocus) onFocus(); // Now trigger the panel
       }
+      setIsExpanded(false);
     }
   };
 
@@ -241,7 +244,7 @@ const SearchBar = ({
 
   return (
     <div className={`relative ${className}`}>
-      <div className="search-container">
+      <div className="search-container bg-background/95 dark:bg-card/95">
         <div className="flex items-center space-x-3">
           {/* Search Icon */}
           <div className="pl-2">
@@ -268,7 +271,7 @@ const SearchBar = ({
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0, opacity: 0 }}
                 onClick={handleClear}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-muted transition-colors"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-accent transition-colors"
               >
                 <X className="w-4 h-4 text-muted-foreground" />
               </motion.button>
@@ -279,18 +282,19 @@ const SearchBar = ({
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={handleUseCurrentLocation}
-            className="p-2 rounded-xl hover:bg-muted transition-colors"
+            className="p-2 rounded-xl hover:bg-accent transition-colors"
             title="Use current location"
           >
             <MapPin className="w-5 h-5 text-primary" />
           </motion.button>
         </div>
 
-        {/* Search Suggestions */}
+        {/* Search Suggestions - Fixed z-index to match search bar */}
         <AnimatePresence>
           {isExpanded && (suggestions.length > 0 || isLoading) && (
             <motion.div
-              className="search-suggestions"
+              className="absolute top-full left-0 right-0 mt-2 bg-background/98 dark:bg-card/98 backdrop-blur-xl border border-border rounded-2xl shadow-lg overflow-hidden max-h-96 overflow-y-auto"
+              style={{ zIndex: 1001 }}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
@@ -315,13 +319,13 @@ const SearchBar = ({
                       >
                         <button
                           onClick={() => handleSuggestionSelect(suggestion)}
-                          className="w-full text-left p-4 hover:bg-accent transition-colors search-suggestion-item"
+                          className="w-full text-left p-4 hover:bg-accent transition-colors"
                         >
                           <div className="flex items-start space-x-3">
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                               suggestion.type === 'office' 
-                                ? 'bg-primary/20 text-primary' 
-                                : 'bg-green-500/20 text-green-600'
+                                ? 'bg-primary/20 text-primary dark:bg-primary/30' 
+                                : 'bg-green-500/20 text-green-600 dark:bg-green-500/30 dark:text-green-400'
                             }`}>
                               {suggestion.type === 'office' ? (
                                 <MapPin className="w-4 h-4" />
@@ -349,9 +353,9 @@ const SearchBar = ({
                   })}
                   
                   {/* Search hint */}
-                  <div className="p-3 border-t border-border">
+                  <div className="p-3 border-t border-border bg-muted/30">
                     <div className="text-xs text-muted-foreground text-center">
-                      Press <kbd className="px-1 py-0.5 bg-muted rounded text-xs">Enter</kbd> to see all results
+                      Press <kbd className="px-1 py-0.5 bg-background/80 dark:bg-card/80 border border-border rounded text-xs">Enter</kbd> to see all results
                     </div>
                   </div>
                 </>

@@ -107,10 +107,10 @@ const OfficeBottomSheet = ({
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <h3 className="font-semibold text-lg text-gray-900 line-clamp-1">
+                <h3 className="font-semibold text-lg text-foreground line-clamp-1">
                   {office.office_name || office.constituency_name || 'IEBC Office'}
                 </h3>
-                <p className="text-sm text-gray-600 mt-1 line-clamp-1">
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
                   {office.constituency_name && office.county 
                     ? `${office.constituency_name}, ${office.county}`
                     : office.county || office.constituency_name || 'Location'}
@@ -119,11 +119,11 @@ const OfficeBottomSheet = ({
               
               {distanceToOffice && (
                 <div className="ml-4 text-right">
-                  <span className="text-sm font-medium text-blue-600">
+                  <span className="text-sm font-medium text-primary">
                     {distanceToOffice.toFixed(1)} km
                   </span>
                   {currentRoute && currentRoute[0] && (
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       ~{Math.round(currentRoute[0].summary.totalTime / 60)} min
                     </p>
                   )}
@@ -144,12 +144,12 @@ const OfficeBottomSheet = ({
               {/* Office Details */}
               <div className="space-y-4">
                 {/* Header */}
-                <div className="border-b border-gray-200 pb-4">
-                  <h2 className="text-2xl font-bold text-gray-900">
+                <div className="border-b border-border pb-4">
+                  <h2 className="text-2xl font-bold text-foreground">
                     {office.office_name || office.constituency_name || 'IEBC Office'}
                   </h2>
                   {office.office_type && (
-                    <span className="inline-block mt-2 px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                    <span className="inline-block mt-2 px-3 py-1 bg-primary/20 text-primary dark:bg-primary/30 text-xs font-medium rounded-full">
                       {office.office_type}
                     </span>
                   )}
@@ -225,18 +225,18 @@ const OfficeBottomSheet = ({
 
                 {/* Distance & Route Info */}
                 {distanceToOffice && (
-                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                  <div className="bg-primary/10 dark:bg-primary/20 rounded-xl p-4 border border-primary/20 dark:border-primary/30">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-blue-900">Distance from you</p>
-                        <p className="text-2xl font-bold text-blue-600 mt-1">
+                        <p className="text-sm font-medium text-foreground">Distance from you</p>
+                        <p className="text-2xl font-bold text-primary mt-1">
                           {distanceToOffice.toFixed(1)} km
                         </p>
                       </div>
                       {currentRoute && currentRoute[0] && (
                         <div className="text-right">
-                          <p className="text-sm font-medium text-blue-900">Estimated time</p>
-                          <p className="text-2xl font-bold text-blue-600 mt-1">
+                          <p className="text-sm font-medium text-foreground">Estimated time</p>
+                          <p className="text-2xl font-bold text-primary mt-1">
                             {Math.round(currentRoute[0].summary.totalTime / 60)} min
                           </p>
                         </div>
@@ -247,14 +247,14 @@ const OfficeBottomSheet = ({
 
                 {/* Routing Error */}
                 {routingError && (
-                  <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
+                  <div className="bg-destructive/10 dark:bg-destructive/20 rounded-xl p-4 border border-destructive/20 dark:border-destructive/30">
                     <div className="flex items-start">
-                      <svg className="w-5 h-5 text-amber-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-destructive mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                       </svg>
                       <div>
-                        <p className="text-sm font-medium text-amber-900">Route unavailable</p>
-                        <p className="text-xs text-amber-700 mt-1">Use Google Maps for directions instead.</p>
+                        <p className="text-sm font-medium text-foreground">Route unavailable</p>
+                        <p className="text-xs text-muted-foreground mt-1">Use Google Maps for directions instead.</p>
                       </div>
                     </div>
                   </div>
@@ -264,7 +264,7 @@ const OfficeBottomSheet = ({
                 <div className="space-y-3 pt-2">
                   <button
                     onClick={openGoogleMaps}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-2xl flex items-center justify-center space-x-2 transition-all active:scale-95 shadow-lg shadow-blue-600/30"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-4 px-6 rounded-2xl flex items-center justify-center space-x-2 transition-all active:scale-95 shadow-lg"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
@@ -279,7 +279,7 @@ const OfficeBottomSheet = ({
                         navigator.clipboard.writeText(coords);
                         alert('Coordinates copied to clipboard!');
                       }}
-                      className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-3 px-6 rounded-2xl flex items-center justify-center space-x-2 transition-all active:scale-95"
+                      className="w-full bg-secondary hover:bg-secondary/80 text-secondary-foreground font-medium py-3 px-6 rounded-2xl flex items-center justify-center space-x-2 transition-all active:scale-95"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -291,32 +291,32 @@ const OfficeBottomSheet = ({
 
                 {/* Additional Information */}
                 {office.operating_hours && (
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <h4 className="text-sm font-semibold text-gray-900 mb-2">Operating Hours</h4>
-                    <p className="text-sm text-gray-700">{office.operating_hours}</p>
+                  <div className="bg-muted/50 dark:bg-muted/30 rounded-xl p-4 border border-border">
+                    <h4 className="text-sm font-semibold text-foreground mb-2">Operating Hours</h4>
+                    <p className="text-sm text-muted-foreground">{office.operating_hours}</p>
                   </div>
                 )}
 
                 {office.services && (
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <h4 className="text-sm font-semibold text-gray-900 mb-2">Services Offered</h4>
-                    <p className="text-sm text-gray-700">{office.services}</p>
+                  <div className="bg-muted/50 dark:bg-muted/30 rounded-xl p-4 border border-border">
+                    <h4 className="text-sm font-semibold text-foreground mb-2">Services Offered</h4>
+                    <p className="text-sm text-muted-foreground">{office.services}</p>
                   </div>
                 )}
 
                 {office.notes && (
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <h4 className="text-sm font-semibold text-gray-900 mb-2">Additional Notes</h4>
-                    <p className="text-sm text-gray-700">{office.notes}</p>
+                  <div className="bg-muted/50 dark:bg-muted/30 rounded-xl p-4 border border-border">
+                    <h4 className="text-sm font-semibold text-foreground mb-2">Additional Notes</h4>
+                    <p className="text-sm text-muted-foreground">{office.notes}</p>
                   </div>
                 )}
               </div>
 
               {/* Close Button at Bottom */}
-              <div className="sticky bottom-0 bg-white pt-4 pb-2 mt-6 border-t border-gray-200">
+              <div className="sticky bottom-0 bg-background dark:bg-card pt-4 pb-2 mt-6 border-t border-border">
                 <button
                   onClick={onClose}
-                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-3 px-6 rounded-2xl transition-all active:scale-95"
+                  className="w-full bg-secondary hover:bg-secondary/80 text-secondary-foreground font-medium py-3 px-6 rounded-2xl transition-all active:scale-95"
                 >
                   Close
                 </button>

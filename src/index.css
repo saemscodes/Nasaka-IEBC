@@ -851,41 +851,74 @@
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .ios-map-container {
-    background: #000;
-  }
-  
-  .search-container,
-  .ios-control-btn,
-  .route-badge,
-  .office-bottom-sheet,
-  .office-list-panel,
-  .layer-control-panel {
-    background: rgba(28, 28, 30, 0.95);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: white;
-  }
-  
-  .leaflet-popup-content-wrapper {
-    background: rgba(28, 28, 30, 0.98);
-    color: white;
-  }
-  
-  .leaflet-popup-tip {
-    background: rgba(28, 28, 30, 0.98);
-  }
-  
-  .bottom-sheet-handle {
-    background: rgba(255, 255, 255, 0.3);
-  }
-  
-  .county-tooltip,
-  .constituency-tooltip {
-    background: rgba(28, 28, 30, 0.95);
-    color: white;
-    border-color: rgba(255, 255, 255, 0.1);
-  }
+.dark .ios-map-container {
+  background: hsl(var(--background));
+}
+
+.dark .search-container {
+  background: hsl(var(--card) / 0.95);
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark .ios-control-btn {
+  background: hsl(var(--card) / 0.95);
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark .ios-control-btn:hover {
+  background: hsl(var(--card));
+}
+
+.dark .route-badge,
+.dark .search-indicator {
+  background: hsl(var(--card) / 0.95);
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark .office-bottom-sheet {
+  background: hsl(var(--card) / 0.98);
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark .office-list-panel,
+.dark .layer-control-panel {
+  background: hsl(var(--card) / 0.98);
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark .leaflet-popup-content-wrapper {
+  background: hsl(var(--popover) / 0.98);
+  color: hsl(var(--popover-foreground));
+  border-color: hsl(var(--border));
+}
+
+.dark .leaflet-popup-tip {
+  background: hsl(var(--popover) / 0.98);
+  border-color: hsl(var(--border));
+}
+
+.dark .bottom-sheet-handle {
+  background: hsl(var(--muted-foreground) / 0.3);
+}
+
+.dark .bottom-sheet-handle:active {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+.dark .county-tooltip,
+.dark .constituency-tooltip {
+  background: hsl(var(--popover) / 0.95);
+  color: hsl(var(--popover-foreground));
+  border-color: hsl(var(--border));
+}
+
+.dark .panel-backdrop {
+  background: hsl(var(--background) / 0.6);
 }
 
 /* ===== OVERLAY SYSTEM FOR MAP CONTROLS ===== */
