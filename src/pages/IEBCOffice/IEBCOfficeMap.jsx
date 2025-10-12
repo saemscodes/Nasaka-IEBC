@@ -473,7 +473,7 @@ const IEBCOfficeMap = () => {
               </svg>
             </button>
 
-            {/* Location Button - Always show refresh location button */}
+            {/* Location Button - ALWAYS SHOW FOR REFRESH */}
             <button
               onClick={handleRetryLocation}
               className="w-12 h-12 bg-white/95 backdrop-blur-md rounded-full shadow-lg flex items-center justify-center hover:bg-white transition-all"
