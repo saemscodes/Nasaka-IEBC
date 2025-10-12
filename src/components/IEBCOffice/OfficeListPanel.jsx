@@ -122,7 +122,7 @@ const OfficeListPanel = ({
                 <div className="flex-1 min-w-0 pr-4">
                   {/* Office Name */}
                   <h3 className="text-base font-semibold text-gray-900 truncate">
-                    {office.county || office.constituency_name || 'IEBC Office'}
+                    {office.formatted_address || office.constituency_name || 'IEBC Office'}
                   </h3>
 
                   {/* Location Info */}
@@ -134,7 +134,7 @@ const OfficeListPanel = ({
                     <span className="truncate">
                       {office.constituency_name && office.county
                         ? `${office.constituency_name}, ${office.county}`
-                        : office.county_name || office.constituency_name || 'Location not available'}
+                        : office.county || office.constituency_name || 'Location not available'}
                     </span>
                   </div>
 
