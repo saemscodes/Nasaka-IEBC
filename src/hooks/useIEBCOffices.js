@@ -17,7 +17,9 @@ export const useIEBCOffices = () => {
       const { data, error: supabaseError } = await supabase
         .from('iebc_offices')
         .select('*')
-        .eq('verified', true)
+        .not('latitude', 'is', null)
+        .not('longitude', 'is', null)
+        .order('county')
         .order('constituency_name');
 
       if (supabaseError) throw supabaseError;
@@ -55,6 +57,7 @@ export const useIEBCOffices = () => {
       };
       
       setFuse(new Fuse(validOffices, fuseOptions));
+
     } catch (err) {
       console.error('Error fetching IEBC offices:', err);
       setError(err.message || 'Failed to load IEBC offices');
@@ -66,8 +69,7 @@ export const useIEBCOffices = () => {
   const searchOffices = useCallback((query) => {
     if (!query.trim() || !fuse) return offices;
     
-    const searchTerm = query.toLowerCase().trim();
-    const results = fuse.search(searchTerm);
+    const results = fuse.search(query.trim());
     return results.map(result => result.item);
   }, [offices, fuse]);
 
@@ -88,7 +90,6 @@ export const useIEBCOffices = () => {
     error, 
     refetch: fetchOffices,
     searchOffices,
-    getOfficesByCounty,
-    fuse
+    getOfficesByCounty
   };
 };
