@@ -1,278 +1,331 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { estimateTravelTime, formatDistance } from '../../utils/geoUtils';
-import { openNavigation } from '../../utils/navigationUtils';
-import NavigateButton from './NavigateButton';
+// src/components/IEBCOffice/OfficeBottomSheet.jsx
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useDragControls } from 'framer-motion';
+import { calculateDistance } from '@/utils/geoUtils';
 
-const OfficeBottomSheet = ({ office, userLocation, onOfficeSelect, currentRoute }) => {
-  const [sheetState, setSheetState] = useState('expanded'); // 'collapsed' | 'expanded'
+const OfficeBottomSheet = ({
+  office,
+  userLocation,
+  currentRoute,
+  routingError,
+  state = 'peek',
+  onExpand,
+  onCollapse,
+  onClose
+}) => {
+  const [dragY, setDragY] = useState(0);
+  const dragControls = useDragControls();
+  const sheetRef = useRef(null);
 
-  if (!office) {
-    return (
-      <motion.div
-        className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-lg border-t border-ios-gray-200"
-        initial={{ y: 300 }}
-        animate={{ y: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      >
-        <div className="p-6 text-center">
-          <div className="w-12 h-1 bg-ios-gray-300 rounded-full mx-auto mb-4" />
-          <p className="text-ios-gray-600">Select an IEBC office to view details</p>
-        </div>
-      </motion.div>
+  // Calculate distance to office
+  const distanceToOffice = React.useMemo(() => {
+    if (!office || !userLocation?.latitude || !userLocation?.longitude) {
+      return null;
+    }
+    return calculateDistance(
+      userLocation.latitude,
+      userLocation.longitude,
+      office.latitude,
+      office.longitude
     );
-  }
+  }, [office, userLocation]);
 
-  const travelTime = office.distance ? estimateTravelTime(office.distance) : null;
-
+  // Handle drag end
   const handleDragEnd = (event, info) => {
-    if (info.offset.y > 50) {
-      setSheetState('collapsed');
-    } else if (info.offset.y < -50) {
-      setSheetState('expanded');
+    const threshold = 100;
+    
+    if (info.offset.y > threshold) {
+      if (state === 'expanded') {
+        onCollapse();
+      } else {
+        onClose();
+      }
+    } else if (info.offset.y < -threshold && state === 'peek') {
+      onExpand();
     }
+    
+    setDragY(0);
   };
 
-  const handleNavigate = () => {
-    if (office.latitude && office.longitude) {
-      openNavigation(office.latitude, office.longitude);
-    }
-  };
-
-  const handleNavigateWithMode = (mode) => {
-    if (!office?.latitude || !office?.longitude) {
-      alert('Location coordinates are not available for this office.');
-      return;
-    }
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${office.latitude},${office.longitude}&travelmode=${mode}`;
+  // Open Google Maps for directions
+  const openGoogleMaps = () => {
+    if (!office) return;
+    
+    const destination = `${office.latitude},${office.longitude}`;
+    const origin = userLocation 
+      ? `${userLocation.latitude},${userLocation.longitude}`
+      : '';
+    
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${destination}${origin ? `&origin=${origin}` : ''}&travelmode=driving`;
     window.open(url, '_blank');
   };
 
-  const toggleSheet = () => {
-    setSheetState(prev => prev === 'expanded' ? 'collapsed' : 'expanded');
+  // Handle tap on peek area to expand
+  const handlePeekTap = () => {
+    if (state === 'peek') {
+      onExpand();
+    }
   };
 
-  const transportModes = [
-    { id: 'driving', label: 'Car', icon: '🚗', mode: 'driving', color: 'blue' },
-    { id: 'walking', label: 'Walk', icon: '🚶', mode: 'walking', color: 'green' },
-    { id: 'transit', label: 'Transit', icon: '🚌', mode: 'transit', color: 'purple' },
-    { id: 'bicycling', label: 'Bike', icon: '🚴', mode: 'bicycling', color: 'orange' }
-  ];
+  if (!office && state === 'hidden') {
+    return null;
+  }
 
   return (
-    <motion.div
-      className="pointer-events-auto absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-lg border-t border-ios-gray-200 max-h-[80vh] overflow-hidden"
-      initial={{ y: 300 }}
-      animate={{ y: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      drag="y"
-      dragConstraints={{ top: 0, bottom: 0 }}
-      dragElastic={0.1}
-      onDragEnd={handleDragEnd}
-    >
-      {/* Drag handle */}
-      <div className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing">
-        <div className="w-12 h-1 bg-ios-gray-300 rounded-full" />
-      </div>
+    <AnimatePresence>
+      {office && state !== 'hidden' && (
+        <motion.div
+          ref={sheetRef}
+          drag="y"
+          dragControls={dragControls}
+          dragConstraints={{ top: 0, bottom: 0 }}
+          dragElastic={0.2}
+          onDragEnd={handleDragEnd}
+          initial={{ y: '100%' }}
+          animate={{
+            y: state === 'peek' ? 'calc(100% - 80px)' : 0
+          }}
+          exit={{ y: '100%' }}
+          transition={{
+            type: 'spring',
+            stiffness: 400,
+            damping: 40
+          }}
+          className={`office-bottom-sheet ${state}`}
+          style={{ y: dragY }}
+        >
+          {/* Drag Handle */}
+          <div
+            className="bottom-sheet-handle"
+            onPointerDown={(e) => dragControls.start(e)}
+          />
 
-      {/* Content */}
-      <div className="px-6 pb-6 max-h-[70vh] overflow-y-auto">
-        {/* Header */}
-        <div className="mb-4">
-          <div className="flex items-start justify-between mb-2">
-            <h2 className="text-xl font-semibold text-ios-gray-900 pr-4">
-              {office.constituency_name}
-            </h2>
-            {office.verified && (
-              <span className="bg-ios-green/20 text-ios-green text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap">
-                Verified
-              </span>
-            )}
-          </div>
-          
-          <p className="text-ios-gray-600 text-base mb-3">
-            {office.office_location}
-          </p>
-
-          {office.distance && (
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-1">
-                <svg className="w-4 h-4 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                </svg>
-                <span className="text-ios-gray-900 font-medium text-sm">
-                  {formatDistance(office.distance)}
-                </span>
+          {/* Peek Preview - Always visible */}
+          <div
+            className="px-5 py-3 cursor-pointer"
+            onClick={handlePeekTap}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg text-gray-900 line-clamp-1">
+                  {office.office_name || office.constituency_name || 'IEBC Office'}
+                </h3>
+                <p className="text-sm text-gray-600 mt-1 line-clamp-1">
+                  {office.constituency_name && office.county 
+                    ? `${office.constituency_name}, ${office.county}`
+                    : office.county || office.constituency_name || 'Location'}
+                </p>
               </div>
               
-              {travelTime && (
-                <>
-                  <div className="flex items-center space-x-1">
-                    <svg className="w-4 h-4 text-ios-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="text-ios-gray-600 text-sm">
-                      {travelTime.drivingFormatted}
-                    </span>
-                  </div>
-                </>
+              {distanceToOffice && (
+                <div className="ml-4 text-right">
+                  <span className="text-sm font-medium text-blue-600">
+                    {distanceToOffice.toFixed(1)} km
+                  </span>
+                  {currentRoute && currentRoute[0] && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      ~{Math.round(currentRoute[0].summary.totalTime / 60)} min
+                    </p>
+                  )}
+                </div>
               )}
             </div>
-          )}
-        </div>
-
-        {/* Expanded content */}
-        {sheetState === 'expanded' && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="space-y-4"
-          >
-            {/* Office Details */}
-            <div className="bg-ios-gray-50 rounded-2xl p-4">
-              <h3 className="font-semibold text-ios-gray-900 mb-2 text-sm">Office Details</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-ios-gray-600">County:</span>
-                  <span className="text-ios-gray-900 font-medium">{office.county}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-ios-gray-600">Constituency:</span>
-                  <span className="text-ios-gray-900 font-medium">{office.constituency}</span>
-                </div>
-                {office.constituency_code && (
-                  <div className="flex justify-between">
-                    <span className="text-ios-gray-600">Code:</span>
-                    <span className="text-ios-gray-900 font-medium">{office.constituency_code}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Location Details */}
-            {(office.landmark || office.formatted_address) && (
-              <div className="bg-ios-gray-50 rounded-2xl p-4">
-                <h3 className="font-semibold text-ios-gray-900 mb-2 text-sm">Location</h3>
-                <p className="text-ios-gray-600 text-sm">
-                  {office.formatted_address || office.landmark}
-                </p>
-                {office.distance_from_landmark && (
-                  <p className="text-ios-gray-500 text-xs mt-1">
-                    {office.distance_from_landmark} from {office.landmark}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Additional Information */}
-            <div className="bg-ios-gray-50 rounded-2xl p-4">
-              <h3 className="font-semibold text-ios-gray-900 mb-2 text-sm">Information</h3>
-              <div className="space-y-2 text-sm">
-                {office.geocode_confidence && (
-                  <div className="flex justify-between">
-                    <span className="text-ios-gray-600">Location Accuracy:</span>
-                    <span className="text-ios-gray-900 font-medium">
-                      {(office.geocode_confidence * 100).toFixed(0)}%
-                    </span>
-                  </div>
-                )}
-                {office.source && (
-                  <div className="flex justify-between">
-                    <span className="text-ios-gray-600">Source:</span>
-                    <span className="text-ios-gray-900 font-medium">{office.source}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {currentRoute && currentRoute.length > 0 && (
-      <motion.div
-        initial={{ opacity: 0, height: 0 }}
-        animate={{ opacity: 1, height: 'auto' }}
-        className="bg-ios-blue/10 rounded-2xl p-4 border border-ios-blue/20 mt-4"
-        >
-        <h3 className="font-semibold text-ios-gray-900 mb-2 text-sm">Route Information</h3>
-        <div className="space-y-2">
-          {currentRoute.slice(0, 3).map((route, index) => (
-          <div key={index} className="flex items-center justify-between text-sm">
-            <div className="flex items-center space-x-2">
-              <div 
-                className={`w-3 h-3 rounded-full ${
-                  index === 0 ? 'bg-ios-green' : 'bg-ios-gray-400'
-                }`}
-                />
-              <span className={index === 0 ? 'font-medium text-ios-gray-900' : 'text-ios-gray-600'}>
-                Route {index + 1}
-              </span>
-            </div>
-            <div className="text-ios-gray-600">
-              {(route.summary.totalDistance / 1000).toFixed(1)} km • {Math.round(route.summary.totalTime / 60)} min
-            </div>
           </div>
-        ))}
-        </div>
-      </motion.div>
-    )}
 
-        {/* Transport Mode Selection */}
-        {sheetState === 'expanded' && office.latitude && office.longitude && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            className="space-y-3 mt-4"
-          >
-            <div className="text-sm font-semibold text-ios-gray-900">Choose your transport mode:</div>
-            <div className="grid grid-cols-4 gap-2">
-              {transportModes.map((transport) => (
+          {/* Expanded Content - Only visible when expanded */}
+          {state === 'expanded' && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bottom-sheet-content green-scrollbar"
+            >
+              {/* Office Details */}
+              <div className="space-y-4">
+                {/* Header */}
+                <div className="border-b border-gray-200 pb-4">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {office.office_name || office.constituency_name || 'IEBC Office'}
+                  </h2>
+                  {office.office_type && (
+                    <span className="inline-block mt-2 px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                      {office.office_type}
+                    </span>
+                  )}
+                </div>
+
+                {/* Location Information */}
+                <div className="space-y-3">
+                  {office.constituency_name && (
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-gray-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Constituency</p>
+                        <p className="text-sm text-gray-600">{office.constituency_name}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {office.county && (
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-gray-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">County</p>
+                        <p className="text-sm text-gray-600">{office.county}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {office.address && (
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-gray-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Address</p>
+                        <p className="text-sm text-gray-600">{office.address}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {office.phone && (
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-gray-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Phone</p>
+                        <a href={`tel:${office.phone}`} className="text-sm text-blue-600 hover:underline">
+                          {office.phone}
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {office.email && (
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-gray-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Email</p>
+                        <a href={`mailto:${office.email}`} className="text-sm text-blue-600 hover:underline">
+                          {office.email}
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Distance & Route Info */}
+                {distanceToOffice && (
+                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-blue-900">Distance from you</p>
+                        <p className="text-2xl font-bold text-blue-600 mt-1">
+                          {distanceToOffice.toFixed(1)} km
+                        </p>
+                      </div>
+                      {currentRoute && currentRoute[0] && (
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-blue-900">Estimated time</p>
+                          <p className="text-2xl font-bold text-blue-600 mt-1">
+                            {Math.round(currentRoute[0].summary.totalTime / 60)} min
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Routing Error */}
+                {routingError && (
+                  <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-amber-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-medium text-amber-900">Route unavailable</p>
+                        <p className="text-xs text-amber-700 mt-1">Use Google Maps for directions instead.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="space-y-3 pt-2">
+                  <button
+                    onClick={openGoogleMaps}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-2xl flex items-center justify-center space-x-2 transition-all active:scale-95 shadow-lg shadow-blue-600/30"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                    <span>Get Directions (Google Maps)</span>
+                  </button>
+
+                  {office.latitude && office.longitude && (
+                    <button
+                      onClick={() => {
+                        const coords = `${office.latitude},${office.longitude}`;
+                        navigator.clipboard.writeText(coords);
+                        alert('Coordinates copied to clipboard!');
+                      }}
+                      className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-3 px-6 rounded-2xl flex items-center justify-center space-x-2 transition-all active:scale-95"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      <span>Copy Coordinates</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Additional Information */}
+                {office.operating_hours && (
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-2">Operating Hours</h4>
+                    <p className="text-sm text-gray-700">{office.operating_hours}</p>
+                  </div>
+                )}
+
+                {office.services && (
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-2">Services Offered</h4>
+                    <p className="text-sm text-gray-700">{office.services}</p>
+                  </div>
+                )}
+
+                {office.notes && (
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-2">Additional Notes</h4>
+                    <p className="text-sm text-gray-700">{office.notes}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Close Button at Bottom */}
+              <div className="sticky bottom-0 bg-white pt-4 pb-2 mt-6 border-t border-gray-200">
                 <button
-                  key={transport.id}
-                  onClick={() => handleNavigateWithMode(transport.mode)}
-                  className="flex flex-col items-center justify-center p-3 bg-ios-gray-50 hover:bg-ios-gray-100 rounded-xl transition-all hover:scale-105 active:scale-95 border border-ios-gray-200"
+                  onClick={onClose}
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-3 px-6 rounded-2xl transition-all active:scale-95"
                 >
-                  <span className="text-2xl mb-1">{transport.icon}</span>
-                  <span className="text-xs font-medium text-ios-gray-700">{transport.label}</span>
+                  Close
                 </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Copy Coordinates Button */}
-        {office.latitude && office.longitude && (
-          <button
-            onClick={() => {
-              navigator.clipboard.writeText(`${office.latitude},${office.longitude}`);
-              alert('Coordinates copied to clipboard!');
-            }}
-            className="w-full mt-3 py-2 px-4 bg-ios-gray-100 hover:bg-ios-gray-200 rounded-xl text-sm font-medium text-ios-gray-700 transition-colors flex items-center justify-center space-x-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-            <span>Copy Coordinates</span>
-            <span className="text-xs text-ios-gray-500 font-mono">
-              ({office.latitude.toFixed(4)}, {office.longitude.toFixed(4)})
-            </span>
-          </button>
-        )}
-
-        {/* Navigation Button */}
-        <motion.div
-          className={`mt-4 ${sheetState === 'collapsed' ? 'pt-4 border-t border-ios-gray-100' : ''}`}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <NavigateButton
-            onClick={handleNavigate}
-            disabled={!office.latitude || !office.longitude}
-          />
+              </div>
+            </motion.div>
+          )}
         </motion.div>
-      </div>
-    </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
