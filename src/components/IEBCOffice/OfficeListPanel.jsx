@@ -1,172 +1,190 @@
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { formatDistance, estimateTravelTime } from '../../utils/geoUtils';
-import LoadingSpinner from './LoadingSpinner';
+// src/components/IEBCOffice/OfficeListPanel.jsx
+import React, { useMemo } from 'react';
+import { motion } from 'framer-motion';
+import { calculateDistance } from '@/utils/geoUtils';
+import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
 
-const OfficeListPanel = ({ 
-  offices, 
-  onSelectOffice, 
-  onClose, 
+const OfficeListPanel = ({
+  offices,
+  onSelectOffice,
+  onClose,
   searchQuery,
-  userLocation 
+  userLocation,
+  isSearching = false
 }) => {
-  const panelVariants = {
-    hidden: { x: '100%' },
-    visible: { 
-      x: 0,
-      transition: { 
-        type: "spring", 
-        stiffness: 300, 
-        damping: 30 
-      }
-    },
-    exit: { 
-      x: '100%',
-      transition: { 
-        duration: 0.2 
-      }
+  // Sort offices by distance if user location is available
+  const sortedOffices = useMemo(() => {
+    if (!userLocation?.latitude || !userLocation?.longitude) {
+      return offices;
     }
-  };
 
-  const itemVariants = {
-    hidden: { opacity: 0, x: 20 },
-    visible: (i) => ({
-      opacity: 1,
-      x: 0,
-      transition: {
-        delay: i * 0.05,
-        duration: 0.3
-      }
-    })
-  };
+    return [...offices].sort((a, b) => {
+      const distanceA = calculateDistance(
+        userLocation.latitude,
+        userLocation.longitude,
+        a.latitude,
+        a.longitude
+      );
+      const distanceB = calculateDistance(
+        userLocation.latitude,
+        userLocation.longitude,
+        b.latitude,
+        b.longitude
+      );
+      return distanceA - distanceB;
+    });
+  }, [offices, userLocation]);
+
+  // Calculate distance for each office
+  const officesWithDistance = useMemo(() => {
+    if (!userLocation?.latitude || !userLocation?.longitude) {
+      return sortedOffices.map(office => ({ ...office, distance: null }));
+    }
+
+    return sortedOffices.map(office => ({
+      ...office,
+      distance: calculateDistance(
+        userLocation.latitude,
+        userLocation.longitude,
+        office.latitude,
+        office.longitude
+      )
+    }));
+  }, [sortedOffices, userLocation]);
 
   return (
     <motion.div
-      className="absolute inset-0 bg-black/50 z-50"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={onClose}
+      initial={{ x: '-100%' }}
+      animate={{ x: 0 }}
+      exit={{ x: '-100%' }}
+      transition={{ type: 'spring', stiffness: 400, damping: 40 }}
+      className="office-list-panel open"
     >
-      <motion.div
-        className="absolute top-0 right-0 bottom-0 w-full max-w-md bg-white shadow-xl"
-        variants={panelVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="glass-morphism border-b border-ios-gray-200 p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-ios-gray-900">
+      {/* Header */}
+      <div className="sticky top-0 bg-white/95 backdrop-blur-xl border-b border-gray-200 z-10 px-5 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">
               {searchQuery ? 'Search Results' : 'Nearby Offices'}
             </h2>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-xl hover:bg-ios-gray-100 transition-colors"
-              aria-label="Close"
-            >
-              <svg className="w-6 h-6 text-ios-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <p className="text-sm text-gray-600 mt-1">
+              {isSearching ? (
+                <span className="flex items-center">
+                  <LoadingSpinner size="small" />
+                  <span className="ml-2">Searching...</span>
+                </span>
+              ) : (
+                `${officesWithDistance.length} office${officesWithDistance.length !== 1 ? 's' : ''} found`
+              )}
+            </p>
           </div>
-          
-          <div className="flex items-center space-x-2 text-ios-gray-600 text-sm">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+          <button
+            onClick={onClose}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+            aria-label="Close panel"
+          >
+            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
-            <span>
-              {userLocation 
-                ? 'Sorted by distance from you' 
-                : 'Showing all IEBC offices'
-              }
-            </span>
-          </div>
+          </button>
         </div>
+      </div>
 
-        {/* Office List */}
-        <div className="h-full overflow-y-auto pb-20">
-          <AnimatePresence>
-            {offices.length === 0 ? (
-              <motion.div
-                className="flex flex-col items-center justify-center py-16 px-6 text-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <div className="w-16 h-16 bg-ios-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <svg className="w-8 h-8 text-ios-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      {/* Office List */}
+      <div className="overflow-y-auto h-full green-scrollbar">
+        {officesWithDistance.length === 0 && !isSearching && (
+          <div className="flex flex-col items-center justify-center py-16 px-6">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No offices found</h3>
+            <p className="text-sm text-gray-600 text-center">
+              {searchQuery 
+                ? `No offices match "${searchQuery}". Try a different search.`
+                : 'No IEBC offices found in your area.'}
+            </p>
+          </div>
+        )}
+
+        <div className="divide-y divide-gray-100">
+          {officesWithDistance.map((office, index) => (
+            <motion.button
+              key={office.id || index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              onClick={() => onSelectOffice(office)}
+              className="w-full text-left px-5 py-4 hover:bg-gray-50 transition-colors active:bg-gray-100"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0 pr-4">
+                  {/* Office Name */}
+                  <h3 className="text-base font-semibold text-gray-900 truncate">
+                    {office.office_name || office.constituency_name || 'IEBC Office'}
+                  </h3>
+
+                  {/* Location Info */}
+                  <div className="flex items-center mt-1 space-x-1 text-sm text-gray-600">
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span className="truncate">
+                      {office.constituency_name && office.county
+                        ? `${office.constituency_name}, ${office.county}`
+                        : office.county || office.constituency_name || 'Location not available'}
+                    </span>
+                  </div>
+
+                  {/* Office Type Badge */}
+                  {office.office_type && (
+                    <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                      {office.office_type}
+                    </span>
+                  )}
+
+                  {/* Address (if available) */}
+                  {office.address && (
+                    <p className="text-xs text-gray-500 mt-2 line-clamp-1">
+                      {office.address}
+                    </p>
+                  )}
+                </div>
+
+                {/* Distance Badge */}
+                <div className="flex-shrink-0 text-right">
+                  {office.distance !== null && (
+                    <div className="flex flex-col items-end">
+                      <span className="text-base font-semibold text-blue-600">
+                        {office.distance.toFixed(1)} km
+                      </span>
+                      <span className="text-xs text-gray-500 mt-1">
+                        {office.distance < 1 
+                          ? 'Very close'
+                          : office.distance < 5
+                          ? 'Nearby'
+                          : office.distance < 20
+                          ? 'Drive away'
+                          : 'Far'}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Chevron */}
+                  <svg className="w-5 h-5 text-gray-400 mt-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-ios-gray-900 mb-2">
-                  No offices found
-                </h3>
-                <p className="text-ios-gray-600 text-sm">
-                  {searchQuery 
-                    ? `No IEBC offices found for "${searchQuery}"`
-                    : 'No IEBC offices available in your area'
-                  }
-                </p>
-              </motion.div>
-            ) : (
-              <div className="p-4 space-y-3">
-                {offices.map((office, index) => (
-                  <motion.div
-                    key={office.id}
-                    custom={index}
-                    variants={itemVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="bg-white rounded-2xl p-4 border border-ios-gray-100 hover:border-ios-gray-300 transition-colors cursor-pointer elevation-low"
-                    onClick={() => onSelectOffice(office)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-ios-gray-900 text-base pr-2">
-                        {office.constituency_name}
-                      </h3>
-                      {office.verified && (
-                        <span className="bg-ios-green/20 text-ios-green text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap shrink-0">
-                          Verified
-                        </span>
-                      )}
-                    </div>
-                    
-                    <p className="text-ios-gray-600 text-sm mb-3 line-clamp-2">
-                      {office.office_location}
-                    </p>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4 text-xs">
-                        <span className="text-ios-gray-500">{office.county}</span>
-                        {office.distance && (
-                          <div className="flex items-center space-x-1">
-                            <svg className="w-3 h-3 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            </svg>
-                            <span className="text-ios-gray-900 font-medium">
-                              {formatDistance(office.distance)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {office.distance && (
-                        <div className="text-ios-gray-500 text-xs">
-                          {estimateTravelTime(office.distance).drivingFormatted}
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                ))}
               </div>
-            )}
-          </AnimatePresence>
+            </motion.button>
+          ))}
         </div>
-      </motion.div>
+
+        {/* Bottom Padding for safe area */}
+        <div className="h-20" />
+      </div>
     </motion.div>
   );
 };
