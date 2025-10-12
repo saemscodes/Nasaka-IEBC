@@ -1,4 +1,3 @@
-// src/components/IEBCOffice/LayerControlPanel.jsx
 import React from 'react';
 import { motion } from 'framer-motion';
 
@@ -11,7 +10,6 @@ const LayerControlPanel = ({
   baseMap = 'standard',
   onBaseMapChange
 }) => {
-  // Available layer definitions
   const availableLayers = [
     {
       id: 'iebc-offices',
@@ -61,7 +59,6 @@ const LayerControlPanel = ({
     }
   ];
 
-  // Base map options
   const baseMapOptions = [
     {
       id: 'standard',
@@ -98,7 +95,6 @@ const LayerControlPanel = ({
       transition={{ type: 'spring', stiffness: 400, damping: 40 }}
       className="layer-control-panel open"
     >
-      {/* Header */}
       <div className="sticky top-0 bg-card/95 backdrop-blur-xl border-b border-border z-10 px-5 py-4">
         <div className="flex items-center justify-between">
           <div>
@@ -117,9 +113,7 @@ const LayerControlPanel = ({
         </div>
       </div>
 
-      {/* Content */}
       <div className="overflow-y-auto h-full green-scrollbar px-5 py-6">
-        {/* Base Map Section */}
         <div className="mb-8">
           <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
             Base Map
@@ -168,7 +162,6 @@ const LayerControlPanel = ({
           </div>
         </div>
 
-        {/* Data Layers Section */}
         <div>
           <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
             Data Layers
@@ -217,19 +210,53 @@ const LayerControlPanel = ({
                         }`}>
                           {layer.name}
                         </h4>
-                        <div className={`relative inline-block w-12 h-6 transition-colors rounded-full ${
-                          isDisabled
-                            ? 'bg-muted'
-                            : isActive
-                            ? 'bg-primary'
-                            : 'bg-muted'
-                        }`}>
-                          <span
-                            className={`absolute left-1 top-1 w-4 h-4 bg-background rounded-full transition-transform ${
-                              isActive ? 'transform translate-x-6' : ''
-                            }`}
+                        <motion.div 
+                          className={`relative inline-flex w-12 h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${
+                            isDisabled
+                              ? 'bg-muted/50'
+                              : isActive
+                              ? 'bg-primary'
+                              : 'bg-muted'
+                          }`}
+                          style={{
+                            boxShadow: isActive && !isDisabled 
+                              ? '0 0 0 2px rgba(var(--primary-rgb, 34, 197, 94), 0.2)' 
+                              : 'none'
+                          }}
+                          whileTap={!isDisabled ? { scale: 0.95 } : {}}
+                        >
+                          <motion.span
+                            className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md"
+                            initial={false}
+                            animate={{
+                              x: isActive ? 24 : 0,
+                              scale: isActive ? 1.05 : 1
+                            }}
+                            transition={{
+                              type: 'spring',
+                              stiffness: 500,
+                              damping: 35,
+                              mass: 0.8
+                            }}
+                            style={{
+                              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                            }}
                           />
-                        </div>
+                          {isActive && !isDisabled && (
+                            <motion.div
+                              className="absolute inset-0 rounded-full"
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: [0, 0.3, 0], scale: [0.8, 1.2, 1] }}
+                              transition={{
+                                duration: 0.4,
+                                ease: 'easeOut'
+                              }}
+                              style={{
+                                background: 'radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 70%)'
+                              }}
+                            />
+                          )}
+                        </motion.div>
                       </div>
                       <p className={`text-sm mt-1 ${
                         isDisabled ? 'text-muted-foreground' : 'text-muted-foreground'
@@ -252,7 +279,6 @@ const LayerControlPanel = ({
           </div>
         </div>
 
-        {/* Info Section */}
         <div className="mt-8 p-4 bg-primary/10 rounded-xl border border-primary/20">
           <div className="flex items-start">
             <svg className="w-5 h-5 text-primary mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,7 +293,6 @@ const LayerControlPanel = ({
           </div>
         </div>
 
-        {/* Bottom Padding for safe area */}
         <div className="h-20" />
       </div>
     </motion.div>
