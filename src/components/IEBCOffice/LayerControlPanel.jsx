@@ -21,7 +21,7 @@ const LayerControlPanel = ({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
       ),
-      color: 'primary'
+      color: 'blue'
     },
     {
       id: 'constituencies',
@@ -96,6 +96,7 @@ const LayerControlPanel = ({
       transition={{ type: 'spring', stiffness: 400, damping: 40 }}
       className="layer-control-panel open"
     >
+      {/* Header */}
       <div className="sticky top-0 bg-card/95 backdrop-blur-xl border-b border-border z-10 px-5 py-4">
         <div className="flex items-center justify-between">
           <div>
@@ -114,7 +115,9 @@ const LayerControlPanel = ({
         </div>
       </div>
 
+      {/* Content */}
       <div className="overflow-y-auto h-full green-scrollbar px-5 py-6">
+        {/* Base Map Section */}
         <div className="mb-8">
           <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
             Base Map
@@ -163,6 +166,7 @@ const LayerControlPanel = ({
           </div>
         </div>
 
+        {/* Data Layers Section */}
         <div>
           <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
             Data Layers
@@ -246,6 +250,7 @@ const LayerControlPanel = ({
           </div>
         </div>
 
+        {/* Info Section */}
         <div className="mt-8 p-4 bg-primary/10 rounded-xl border border-primary/20">
           <div className="flex items-start">
             <svg className="w-5 h-5 text-primary mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -260,6 +265,7 @@ const LayerControlPanel = ({
           </div>
         </div>
 
+        {/* Bottom Padding for safe area */}
         <div className="h-20" />
       </div>
     </motion.div>
