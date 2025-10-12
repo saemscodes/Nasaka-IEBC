@@ -263,30 +263,33 @@ const SearchBar = ({
               placeholder={placeholder}
               className="w-full bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground text-base py-2 px-1"
             />
-            
-            {/* Clear Button */}
-            {value && (
-              <motion.button
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0 }}
-                onClick={handleClear}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-accent transition-colors"
-              >
-                <X className="w-4 h-4 text-muted-foreground" />
-              </motion.button>
-            )}
-          </div>
 
-          {/* Location Button */}
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={handleUseCurrentLocation}
-            className="p-2 rounded-xl hover:bg-accent transition-colors"
-            title="Use current location"
-          >
-            <MapPin className="w-5 h-5 text-primary" />
-          </motion.button>
+            {/* right-side controls container (clear + location) */}
+            <div className="absolute inset-y-0 right-2 flex items-center space-x-2">
+              {/* Clear Button */}
+              {value && (
+                <motion.button
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  onClick={handleClear}
+                  className="flex items-center justify-center p-1 rounded-full hover:bg-accent transition-colors"
+                >
+                  <X className="w-4 h-4 text-muted-foreground block" />
+                </motion.button>
+              )}
+
+              {/* Location Button */}
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={handleUseCurrentLocation}
+                className="p-2 rounded-xl hover:bg-accent transition-colors"
+                title="Use current location"
+              >
+                <MapPin className="w-5 h-5 text-primary" />
+              </motion.button>
+            </div>
+          </div>
         </div>
 
         {/* Search Suggestions - Fixed z-index to match search bar */}
