@@ -122,7 +122,7 @@ const OfficeListPanel = ({
                 <div className="flex-1 min-w-0 pr-4">
                   {/* Office Name */}
                   <h3 className="text-base font-semibold text-gray-900 truncate">
-                    {office.office_name || office.constituency_name || 'IEBC Office'}
+                    {office.office_name || office.formatted_address || 'IEBC Office'}
                   </h3>
 
                   {/* Location Info */}
