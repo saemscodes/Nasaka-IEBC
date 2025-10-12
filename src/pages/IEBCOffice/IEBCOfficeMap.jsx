@@ -51,6 +51,7 @@ const IEBCOfficeMap = () => {
   const [isPanelBackdropVisible, setIsPanelBackdropVisible] = useState(false);
   const [baseMap, setBaseMap] = useState('standard');
   const [searchResults, setSearchResults] = useState([]);
+  const [markersLoaded, setMarkersLoaded] = useState(false);
 
   const mapInstanceRef = useRef(null);
   const tileLayersRef = useRef({});
@@ -59,6 +60,7 @@ const IEBCOfficeMap = () => {
   const handleMapReady = useCallback((map) => {
     mapInstanceRef.current = map;
     initializeTileLayers(map);
+    setMarkersLoaded(true);
   }, []);
 
   // Initialize tile layers
@@ -462,13 +464,16 @@ const IEBCOfficeMap = () => {
           accuracy={userLocation?.accuracy}
         />
 
-        <GeoJSONLayerManager
-          activeLayers={activeLayers}
-          onOfficeSelect={handleOfficeSelect}
-          selectedOffice={selectedOffice}
-          onNearbyOfficesFound={setNearbyOffices}
-          baseMap={baseMap}
-        />
+        {/* GeoJSON Layer Manager - Only render when markers are loaded */}
+        {markersLoaded && (
+          <GeoJSONLayerManager
+            activeLayers={activeLayers}
+            onOfficeSelect={handleOfficeSelect}
+            selectedOffice={selectedOffice}
+            onNearbyOfficesFound={setNearbyOffices}
+            baseMap={baseMap}
+          />
+        )}
 
         {lastTapLocation && (
           <UserLocationMarker
@@ -489,7 +494,7 @@ const IEBCOfficeMap = () => {
         )}
       </MapContainer>
 
-      {/* Panel Backdrop */}
+      {/* Panel Backdrop - Only for side panels, not search suggestions */}
       <AnimatePresence>
         {isPanelBackdropVisible && (
           <motion.div
