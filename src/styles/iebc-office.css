@@ -1,15 +1,7 @@
 /* src/styles/iebc-office.css */
-/* ============================================
-   IEBC OFFICE FINDER - MASTER Z-INDEX SYSTEM
-   ============================================ */
-
-/* Import Leaflet CSS */
 @import 'leaflet/dist/leaflet.css';
 @import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 
-/* ============================================
-   1. CSS VARIABLES - SINGLE SOURCE OF TRUTH
-   ============================================ */
 :root {
   /* Z-Index Hierarchy */
   --z-map-base: 0;
@@ -17,19 +9,13 @@
   --z-map-markers: 400;
   --z-map-popups: 600;
   --z-map-routes: 500;
-  
-  /* Fixed UI Controls - Above Everything */
   --z-fixed-search: 1000;
   --z-fixed-controls: 1001;
   --z-fixed-badges: 1002;
-  
-  /* Panels & Sheets */
   --z-bottom-sheet-peek: 1100;
   --z-bottom-sheet-expanded: 1200;
   --z-list-panel: 1300;
   --z-layer-panel: 1400;
-  
-  /* System Overlays */
   --z-loading: 2000;
   --z-error: 2001;
   --z-modal: 3000;
@@ -41,43 +27,17 @@
   --spacing-safe-right: env(safe-area-inset-right, 0px);
 }
 
-/* ============================================
-   2. RESET LEAFLET Z-INDEX CONFLICTS
-   ============================================ */
-
-/* Force Leaflet to respect our z-index system */
+/* Reset Leaflet Z-Index Conflicts */
 .leaflet-container {
   z-index: var(--z-map-base) !important;
 }
 
-.leaflet-tile-pane {
-  z-index: var(--z-map-tiles) !important;
-}
+.leaflet-tile-pane { z-index: var(--z-map-tiles) !important; }
+.leaflet-overlay-pane { z-index: var(--z-map-routes) !important; }
+.leaflet-marker-pane { z-index: var(--z-map-markers) !important; }
+.leaflet-popup-pane { z-index: var(--z-map-popups) !important; }
 
-.leaflet-overlay-pane {
-  z-index: var(--z-map-routes) !important;
-}
-
-.leaflet-shadow-pane {
-  z-index: 395 !important;
-}
-
-.leaflet-marker-pane {
-  z-index: var(--z-map-markers) !important;
-}
-
-.leaflet-tooltip-pane {
-  z-index: 550 !important;
-}
-
-.leaflet-popup-pane {
-  z-index: var(--z-map-popups) !important;
-}
-
-/* Remove Leaflet's built-in controls - we have custom ones */
-.leaflet-control-layers {
-  display: none !important;
-}
+.leaflet-control-layers { display: none !important; }
 
 .leaflet-control-zoom {
   z-index: var(--z-fixed-controls) !important;
@@ -86,30 +46,15 @@
   right: 16px !important;
 }
 
-/* Remove routing control UI completely */
-.leaflet-routing-container {
-  display: none !important;
-}
-
-.leaflet-routing-alternatives-container {
-  display: none !important;
-  max-height: 0 !important;
-  overflow: hidden !important;
-}
-
-/* ============================================
-   3. MAP CONTAINER - ISOLATION CONTEXT
-   ============================================ */
+.leaflet-routing-container { display: none !important; }
 
 .ios-map-container {
   position: relative;
   width: 100%;
   height: 100vh;
-  background: #fff;
+  background: hsl(var(--background));
   overflow: hidden;
-  /* Create new stacking context */
   isolation: isolate;
-  /* Hardware acceleration */
   transform: translateZ(0);
   will-change: transform;
 }
@@ -121,37 +66,28 @@
   width: 100%;
   height: 100%;
   z-index: var(--z-map-base);
-  /* Ensure map stays behind fixed elements */
   contain: layout style paint;
 }
 
-/* ============================================
-   4. FIXED VIEWPORT CONTROLS
-   ============================================ */
-
-/* Search Bar - Fixed to viewport top */
+/* Fixed Viewport Controls */
 .fixed-search-container {
   position: fixed;
   top: calc(16px + var(--spacing-safe-top));
   left: 16px;
   right: 16px;
   z-index: var(--z-fixed-search);
-  /* Prevent interference with map */
   pointer-events: none;
-  /* GPU acceleration */
   transform: translateZ(0);
   will-change: transform;
 }
 
-.fixed-search-container > * {
-  pointer-events: auto;
-}
+.fixed-search-container > * { pointer-events: auto; }
 
 .search-container {
-  background: rgba(255, 255, 255, 0.95);
+  background: hsl(var(--card));
   backdrop-filter: blur(20px) saturate(180%);
-  border-radius: 16px;
-  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid hsl(var(--border));
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   padding: 8px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -159,11 +95,10 @@
 
 .search-container:focus-within {
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.18),
-              0 0 0 4px rgba(0, 122, 255, 0.1);
+              0 0 0 4px hsl(var(--ring) / 0.1);
   transform: translateY(-2px);
 }
 
-/* Control Buttons - Fixed to viewport */
 .fixed-controls-container {
   position: fixed;
   top: calc(96px + var(--spacing-safe-top));
@@ -176,39 +111,32 @@
   transform: translateZ(0);
 }
 
-.fixed-controls-container > * {
-  pointer-events: auto;
-}
+.fixed-controls-container > * { pointer-events: auto; }
 
 .ios-control-btn {
   width: 48px;
   height: 48px;
-  background: rgba(255, 255, 255, 0.95);
+  background: hsl(var(--card));
   backdrop-filter: blur(20px) saturate(180%);
-  border: 0.5px solid rgba(0, 0, 0, 0.1);
-  border-radius: 14px;
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) - 4px);
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Ensure visibility */
-  position: relative;
-  z-index: 1;
+  color: hsl(var(--foreground));
 }
 
 .ios-control-btn:hover {
   transform: scale(1.05);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-  background: rgba(255, 255, 255, 1);
+  background: hsl(var(--card));
 }
 
-.ios-control-btn:active {
-  transform: scale(0.95);
-}
+.ios-control-btn:active { transform: scale(0.95); }
 
-/* Status Badges - Fixed positioning */
 .fixed-badge-container {
   position: fixed;
   top: calc(180px + var(--spacing-safe-top));
@@ -218,41 +146,37 @@
   transform: translateZ(0);
 }
 
-.fixed-badge-container > * {
-  pointer-events: auto;
-}
+.fixed-badge-container > * { pointer-events: auto; }
 
 .route-badge,
 .search-indicator,
 .error-notification {
-  background: rgba(255, 255, 255, 0.95);
+  background: hsl(var(--card));
   backdrop-filter: blur(20px) saturate(180%);
-  border-radius: 16px;
+  border-radius: calc(var(--radius) - 2px);
   padding: 12px 16px;
-  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid hsl(var(--border));
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   margin-bottom: 12px;
   max-width: 300px;
+  color: hsl(var(--foreground));
 }
 
 .error-notification {
-  background: rgba(255, 59, 48, 0.95);
-  color: white;
+  background: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
   font-weight: 600;
-  border: 0.5px solid rgba(255, 59, 48, 0.3);
+  border: 1px solid hsl(var(--destructive) / 0.3);
 }
 
-/* ============================================
-   5. BOTTOM SHEET - PEEK DECK STYLE
-   ============================================ */
-
+/* Bottom Sheet */
 .office-bottom-sheet {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: var(--z-bottom-sheet-peek);
-  background: rgba(255, 255, 255, 0.98);
+  background: hsl(var(--card));
   backdrop-filter: blur(40px) saturate(180%);
   border-top-left-radius: 24px;
   border-top-right-radius: 24px;
@@ -260,38 +184,20 @@
   transform: translateY(0);
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
               z-index 0s;
-  /* Hardware acceleration */
   will-change: transform;
   contain: layout style paint;
-  /* Safe area for iOS */
   padding-bottom: var(--spacing-safe-bottom);
+  color: hsl(var(--foreground));
 }
 
-/* Peek state - shows small preview */
-.office-bottom-sheet.peek {
-  transform: translateY(calc(100% - 80px));
-  z-index: var(--z-bottom-sheet-peek);
-}
+.office-bottom-sheet.peek { transform: translateY(calc(100% - 80px)); }
+.office-bottom-sheet.expanded { transform: translateY(0); z-index: var(--z-bottom-sheet-expanded); max-height: 70vh; overflow-y: auto; }
+.office-bottom-sheet.hidden { transform: translateY(100%); pointer-events: none; }
 
-/* Expanded state - shows full details */
-.office-bottom-sheet.expanded {
-  transform: translateY(0);
-  z-index: var(--z-bottom-sheet-expanded);
-  max-height: 70vh;
-  overflow-y: auto;
-}
-
-/* Hidden state */
-.office-bottom-sheet.hidden {
-  transform: translateY(100%);
-  pointer-events: none;
-}
-
-/* Drag handle for bottom sheet */
 .bottom-sheet-handle {
   width: 36px;
   height: 5px;
-  background: rgba(0, 0, 0, 0.15);
+  background: hsl(var(--muted-foreground) / 0.4);
   border-radius: 3px;
   margin: 12px auto 8px;
   cursor: grab;
@@ -300,69 +206,42 @@
 
 .bottom-sheet-handle:active {
   cursor: grabbing;
-  background: rgba(0, 0, 0, 0.3);
+  background: hsl(var(--muted-foreground) / 0.6);
 }
 
-/* Bottom sheet content */
-.bottom-sheet-content {
-  padding: 0 20px 20px;
-  overflow-y: auto;
-  max-height: calc(70vh - 80px);
-}
+.bottom-sheet-content { padding: 0 20px 20px; overflow-y: auto; max-height: calc(70vh - 80px); }
 
-/* ============================================
-   6. SIDE PANELS
-   ============================================ */
-
-/* List Panel - Slides from left */
-.office-list-panel {
+/* Side Panels */
+.office-list-panel,
+.layer-control-panel {
   position: fixed;
   top: 0;
-  left: 0;
   width: min(400px, 90vw);
   height: 100vh;
-  z-index: var(--z-list-panel);
-  background: rgba(255, 255, 255, 0.98);
+  background: hsl(var(--card));
   backdrop-filter: blur(40px) saturate(180%);
   box-shadow: 4px 0 32px rgba(0, 0, 0, 0.12);
   transform: translateX(-100%);
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-y: auto;
-  /* Safe areas */
   padding-top: var(--spacing-safe-top);
   padding-left: var(--spacing-safe-left);
   contain: layout style paint;
+  color: hsl(var(--foreground));
 }
 
-.office-list-panel.open {
-  transform: translateX(0);
-}
+.office-list-panel.open { transform: translateX(0); }
 
-/* Layer Panel - Slides from right */
 .layer-control-panel {
-  position: fixed;
-  top: 0;
+  left: auto;
   right: 0;
-  width: min(360px, 85vw);
-  height: 100vh;
-  z-index: var(--z-layer-panel);
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(40px) saturate(180%);
-  box-shadow: -4px 0 32px rgba(0, 0, 0, 0.12);
   transform: translateX(100%);
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow-y: auto;
-  /* Safe areas */
-  padding-top: var(--spacing-safe-top);
+  padding-left: 0;
   padding-right: var(--spacing-safe-right);
-  contain: layout style paint;
 }
 
-.layer-control-panel.open {
-  transform: translateX(0);
-}
+.layer-control-panel.open { transform: translateX(0); }
 
-/* Panel overlay backdrop */
 .panel-backdrop {
   position: fixed;
   top: 0;
@@ -377,74 +256,47 @@
   backdrop-filter: blur(4px);
 }
 
-.panel-backdrop.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
+.panel-backdrop.visible { opacity: 1; pointer-events: auto; }
 
-/* ============================================
-   7. LOADING & ERROR OVERLAYS
-   ============================================ */
-
-.loading-overlay {
-  position: fixed;
-  top: 0;
+/* Search Suggestions */
+.search-suggestions {
+  position: absolute;
+  top: 100%;
   left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: var(--z-loading);
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  pointer-events: auto;
-}
-
-.error-overlay {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: var(--z-error);
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(40px);
-  border-radius: 24px;
-  padding: 32px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-  max-width: 90vw;
-  pointer-events: auto;
-}
-
-/* ============================================
-   8. MAP MARKERS & POPUPS
-   ============================================ */
-
-/* Custom marker styles */
-.office-marker,
-.user-location-marker,
-.geojson-office-marker,
-.geojson-office-marker-detailed {
-  background: transparent !important;
-  border: none !important;
-  z-index: var(--z-map-markers) !important;
-}
-
-.marker-hover {
-  filter: brightness(1.08) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.12));
-  transform: scale(1.05);
-  transition: all 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
-  z-index: calc(var(--z-map-markers) + 10) !important;
-}
-
-/* Enhanced popup styles */
-.leaflet-popup-content-wrapper {
-  background: rgba(255, 255, 255, 0.98);
+  right: 0;
+  background: hsl(var(--card));
   backdrop-filter: blur(20px) saturate(180%);
-  border-radius: 16px;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  margin-top: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: var(--z-fixed-search);
+}
+
+.search-suggestion-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid hsl(var(--border) / 0.1);
+  transition: background-color 0.2s ease;
+  color: hsl(var(--foreground));
+}
+
+.search-suggestion-item:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.search-suggestion-item:last-child { border-bottom: none; }
+
+/* Enhanced Popup Styles */
+.leaflet-popup-content-wrapper {
+  background: hsl(var(--card));
+  backdrop-filter: blur(20px) saturate(180%);
+  border-radius: calc(var(--radius) - 2px);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid hsl(var(--border));
   padding: 16px;
 }
 
@@ -452,44 +304,22 @@
   margin: 0;
   line-height: 1.4;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: hsl(var(--foreground));
 }
 
 .leaflet-popup-tip {
-  background: rgba(255, 255, 255, 0.98);
+  background: hsl(var(--card));
   box-shadow: none;
-  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid hsl(var(--border));
 }
 
-/* ============================================
-   9. RESPONSIVE DESIGN
-   ============================================ */
-
+/* Responsive Design */
 @media (max-width: 640px) {
-  .fixed-search-container {
-    left: 12px;
-    right: 12px;
-  }
-  
-  .fixed-controls-container {
-    right: 12px;
-  }
-  
-  .ios-control-btn {
-    width: 44px;
-    height: 44px;
-  }
-  
-  .office-list-panel {
-    width: 100vw;
-  }
-  
-  .layer-control-panel {
-    width: 100vw;
-  }
-  
-  .office-bottom-sheet.expanded {
-    max-height: 85vh;
-  }
+  .fixed-search-container { left: 12px; right: 12px; }
+  .fixed-controls-container { right: 12px; }
+  .ios-control-btn { width: 44px; height: 44px; }
+  .office-list-panel, .layer-control-panel { width: 100vw; }
+  .office-bottom-sheet.expanded { max-height: 85vh; }
 }
 
 @media (min-width: 768px) {
@@ -500,157 +330,31 @@
     border-radius: 24px;
     margin-bottom: 20px;
   }
-  
-  .office-bottom-sheet.peek {
-    transform: translateX(-50%) translateY(calc(100% - 80px));
-  }
-  
-  .office-bottom-sheet.expanded {
-    transform: translateX(-50%) translateY(0);
-  }
-  
-  .office-bottom-sheet.hidden {
-    transform: translateX(-50%) translateY(100%);
-  }
+  .office-bottom-sheet.peek { transform: translateX(-50%) translateY(calc(100% - 80px)); }
+  .office-bottom-sheet.expanded { transform: translateX(-50%) translateY(0); }
+  .office-bottom-sheet.hidden { transform: translateX(-50%) translateY(100%); }
 }
 
-/* ============================================
-   10. ACCESSIBILITY & PERFORMANCE
-   ============================================ */
-
-/* Focus visible for keyboard navigation */
-.focus-visible {
-  outline: 3px solid rgba(0, 122, 255, 0.6);
-  outline-offset: 2px;
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* High contrast mode */
-@media (prefers-contrast: high) {
-  .search-container,
-  .ios-control-btn,
-  .route-badge,
-  .office-bottom-sheet,
-  .office-list-panel,
-  .layer-control-panel {
-    background: white;
-    backdrop-filter: none;
-    border: 2px solid black;
-  }
-}
+/* Custom Scrollbars */
+.green-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.green-scrollbar::-webkit-scrollbar-track { background: hsl(var(--muted)); border-radius: 3px; }
+.green-scrollbar::-webkit-scrollbar-thumb { background: hsl(var(--primary)); border-radius: 3px; border: 1px solid hsl(var(--border)); }
+.green-scrollbar::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary) / 0.8); }
+.green-scrollbar { scrollbar-width: thin; scrollbar-color: hsl(var(--primary)) hsl(var(--muted)); }
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
-  .ios-map-container {
-    background: #000;
-  }
-  
   .search-container,
   .ios-control-btn,
   .route-badge,
   .office-bottom-sheet,
   .office-list-panel,
-  .layer-control-panel {
-    background: rgba(28, 28, 30, 0.95);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: white;
-  }
-  
+  .layer-control-panel,
   .leaflet-popup-content-wrapper {
-    background: rgba(28, 28, 30, 0.98);
-    color: white;
+    background: hsl(var(--card));
+    border-color: hsl(var(--border));
+    color: hsl(var(--foreground));
   }
   
-  .leaflet-popup-tip {
-    background: rgba(28, 28, 30, 0.98);
-  }
-  
-  .bottom-sheet-handle {
-    background: rgba(255, 255, 255, 0.3);
-  }
-}
-
-/* ============================================
-   11. CUSTOM SCROLLBARS
-   ============================================ */
-
-.green-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-.green-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 3px;
-}
-
-.green-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #059669, #047857);
-  border-radius: 3px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.green-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #047857, #065f46);
-}
-
-/* Firefox scrollbar */
-.green-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: #059669 rgba(0, 0, 0, 0.05);
-}
-
-/* ============================================
-   12. ANIMATIONS
-   ============================================ */
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes slide-up {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.animate-scale-in {
-  animation: scale-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.animate-slide-up {
-  animation: slide-up 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  .bottom-sheet-handle { background: hsl(var(--muted-foreground) / 0.4); }
 }
