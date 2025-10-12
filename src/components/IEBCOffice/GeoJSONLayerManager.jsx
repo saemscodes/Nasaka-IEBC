@@ -1,6 +1,6 @@
 // src/components/IEBCOffice/GeoJSONLayerManager.jsx
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { GeoJSON, useMap, LayersControl } from 'react-leaflet';
+import { GeoJSON, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -25,7 +25,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
-// Search nearby offices using Supabase PostGIS
+// Search nearby offices using Supabase
 const searchNearbyOffices = async (lat, lng, radius = 5000, onNearbyOfficesFound = null) => {
   try {
     const { data: offices, error } = await supabase
@@ -58,25 +58,6 @@ const searchNearbyOffices = async (lat, lng, radius = 5000, onNearbyOfficesFound
   }
 };
 
-// Custom office marker icons
-const createOfficeIcon = (isSelected = false) => {
-  return L.divIcon({
-    html: `
-      <div class="relative">
-        <div class="w-6 h-6 bg-blue-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center ${
-          isSelected ? 'scale-125 ring-2 ring-blue-500 ring-opacity-50' : ''
-        }">
-          <div class="w-2 h-2 bg-white rounded-full"></div>
-        </div>
-        ${isSelected ? '<div class="absolute inset-0 rounded-full bg-blue-500 animate-ping opacity-20"></div>' : ''}
-      </div>
-    `,
-    className: `geojson-office-marker ${isSelected ? 'selected' : ''}`,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12]
-  });
-};
-
 const GeoJSONLayerManager = ({ 
   activeLayers = [],
   onOfficeSelect,
@@ -88,8 +69,26 @@ const GeoJSONLayerManager = ({
   const map = useMap();
   const [layerData, setLayerData] = useState({});
   const [loading, setLoading] = useState({});
-  const [officeMarkers, setOfficeMarkers] = useState([]);
-  const markersLayerRef = useRef(L.layerGroup());
+  const geoJsonLayersRef = useRef({});
+
+  // Custom office marker icons - FIXED MARKER DISPLAY
+  const createOfficeIcon = (isSelected = false) => {
+    return L.divIcon({
+      html: `
+        <div class="relative">
+          <div class="w-6 h-6 bg-primary rounded-full border-2 border-background shadow-lg flex items-center justify-center ${
+            isSelected ? 'scale-125 ring-2 ring-primary ring-opacity-50' : ''
+          }">
+            <div class="w-2 h-2 bg-background rounded-full"></div>
+          </div>
+          ${isSelected ? '<div class="absolute inset-0 rounded-full bg-primary animate-ping opacity-20"></div>' : ''}
+        </div>
+      `,
+      className: `office-marker ${isSelected ? 'selected' : ''}`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
+    });
+  };
 
   // GeoJSON layer configurations with public URLs
   const layerConfigs = useMemo(() => ({
@@ -112,8 +111,44 @@ const GeoJSONLayerManager = ({
         });
       }
     },
+    'iebc-offices-rows': {
+      name: 'IEBC Offices (Detailed)',
+      url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/iebc_offices_rows.geojson',
+      type: 'geojson',
+      style: {
+        color: '#34C759',
+        weight: 2,
+        opacity: 0.8,
+        fillColor: '#34C759',
+        fillOpacity: 0.4
+      },
+      pointToLayer: (feature, latlng) => {
+        return L.marker(latlng, {
+          icon: L.divIcon({
+            className: 'geojson-office-marker-detailed',
+            html: `
+              <div class="w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-md"></div>
+            `,
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+          })
+        });
+      }
+    },
+    'kenya-counties': {
+      name: 'Kenya Counties Voters Data',
+      url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/FULL%20CORRECTED%20-%20Kenya%20Counties%20Voters%27%20Data.geojson',
+      type: 'geojson',
+      style: {
+        color: '#8E8E93',
+        weight: 1,
+        opacity: 0.6,
+        fillColor: '#8E8E93',
+        fillOpacity: 0.1
+      }
+    },
     'constituencies': {
-      name: 'Constituencies',
+      name: 'Constituency Boundaries',
       url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/constituencies.geojson',
       type: 'geojson',
       style: {
@@ -125,7 +160,7 @@ const GeoJSONLayerManager = ({
       }
     },
     'counties': {
-      name: 'Counties',
+      name: 'County Boundaries',
       url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/counties.geojson',
       type: 'geojson',
       style: {
@@ -137,15 +172,6 @@ const GeoJSONLayerManager = ({
       }
     }
   }), [selectedOffice]);
-
-  // Initialize markers layer
-  useEffect(() => {
-    markersLayerRef.current.addTo(map);
-    
-    return () => {
-      markersLayerRef.current.clearLayers();
-    };
-  }, [map]);
 
   // Fetch GeoJSON data
   const fetchLayerData = useCallback(async (layerId) => {
@@ -237,8 +263,7 @@ const GeoJSONLayerManager = ({
       });
 
       // Store the original layer ID for this feature
-      const layerId = activeLayers.find(l => layerData[l]?.features?.includes(feature));
-      const originalStyle = layerId && layerConfigs[layerId] ? layerConfigs[layerId].style : null;
+      const originalStyle = layerConfigs[activeLayers[0]]?.style;
 
       // Mouseover event
       layer.on('mouseover', function () {
@@ -252,86 +277,29 @@ const GeoJSONLayerManager = ({
 
       // Mouseout event
       layer.on('mouseout', function () {
-        if (originalStyle && layer.setStyle) {
+        if (layer.setStyle && originalStyle) {
           layer.setStyle(originalStyle);
         }
       });
     }
-  }, [onOfficeSelect, activeLayers, layerData, layerConfigs]);
+  }, [onOfficeSelect, activeLayers, layerConfigs]);
 
-  // Load data for active layers
+  // Load data for active layers and manage layer visibility
   useEffect(() => {
     activeLayers.forEach(layerId => {
       if (layerConfigs[layerId]) {
         fetchLayerData(layerId);
       }
     });
-  }, [activeLayers, fetchLayerData, layerConfigs]);
 
-  // Load office markers directly from Supabase for better performance
-  useEffect(() => {
-    if (!activeLayers.includes('iebc-offices')) {
-      markersLayerRef.current.clearLayers();
-      setOfficeMarkers([]);
-      return;
-    }
-
-    loadOfficeMarkers();
-  }, [activeLayers, selectedOffice]);
-
-  const loadOfficeMarkers = async () => {
-    try {
-      const { data: offices, error } = await supabase
-        .from('iebc_offices')
-        .select('*')
-        .not('latitude', 'is', null)
-        .not('longitude', 'is', null)
-        .eq('verified', true);
-
-      if (error) throw error;
-
-      markersLayerRef.current.clearLayers();
-
-      const markers = offices.map(office => {
-        const isSelected = selectedOffice && selectedOffice.id === office.id;
-        const marker = L.marker([office.latitude, office.longitude], {
-          icon: createOfficeIcon(isSelected)
-        });
-
-        marker.bindPopup(`
-          <div class="p-2 min-w-[200px]">
-            <h3 class="font-semibold text-foreground">${office.constituency_name || 'IEBC Office'}</h3>
-            <p class="text-sm text-muted-foreground mt-1">${office.county}</p>
-            ${office.office_location ? `<p class="text-xs text-muted-foreground mt-1">${office.office_location}</p>` : ''}
-            <button 
-              onclick="window.selectOffice && window.selectOffice(${office.id})"
-              class="w-full mt-2 px-3 py-1 bg-primary text-primary-foreground text-sm rounded-md hover:bg-primary/90 transition-colors"
-            >
-              View Details
-            </button>
-          </div>
-        `);
-
-        marker.on('click', () => {
-          onOfficeSelect(office);
-        });
-
-        return marker;
-      });
-
-      markers.forEach(marker => markersLayerRef.current.addLayer(marker));
-      setOfficeMarkers(markers);
-
-      // Expose function for popup buttons
-      window.selectOffice = (officeId) => {
-        const office = offices.find(o => o.id === officeId);
-        if (office) onOfficeSelect(office);
-      };
-
-    } catch (error) {
-      console.error('Error loading office markers:', error);
-    }
-  };
+    // Remove layers that are no longer active
+    Object.keys(geoJsonLayersRef.current).forEach(layerId => {
+      if (!activeLayers.includes(layerId) && geoJsonLayersRef.current[layerId]) {
+        map.removeLayer(geoJsonLayersRef.current[layerId]);
+        delete geoJsonLayersRef.current[layerId];
+      }
+    });
+  }, [activeLayers, fetchLayerData, layerConfigs, map]);
 
   // Helper function to create popup content with transport mode selection
   const createPopupContent = (properties, geometryCoords = null) => {
@@ -345,7 +313,7 @@ const GeoJSONLayerManager = ({
     return `
       <div class="min-w-[280px] p-3">
         <div class="flex items-start justify-between mb-2">
-          <h3 class="font-semibold text-foreground text-base">
+          <h3 class="font-semibold text-gray-900 text-base">
             ${properties.constituency_name || 'IEBC Office'}
           </h3>
           ${properties.verified ? `
@@ -356,14 +324,14 @@ const GeoJSONLayerManager = ({
         </div>
         
         <div class="space-y-2 text-sm">
-          <div class="flex items-center space-x-2 text-muted-foreground">
+          <div class="flex items-center space-x-2 text-gray-600">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             </svg>
             <span>${properties.office_location || 'IEBC Office'}</span>
           </div>
           
-          <div class="flex items-center space-x-2 text-muted-foreground">
+          <div class="flex items-center space-x-2 text-gray-600">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
@@ -371,7 +339,7 @@ const GeoJSONLayerManager = ({
           </div>
 
           ${properties.landmark ? `
-            <div class="flex items-center space-x-2 text-muted-foreground text-xs">
+            <div class="flex items-center space-x-2 text-gray-500 text-xs">
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
               </svg>
@@ -380,11 +348,11 @@ const GeoJSONLayerManager = ({
           ` : ''}
           
           ${hasValidCoords ? `
-            <div class="text-xs text-muted-foreground font-mono">
+            <div class="text-xs text-gray-400 font-mono">
               ${lat.toFixed(6)}, ${lng.toFixed(6)}
             </div>
           ` : `
-            <div class="text-xs text-destructive">
+            <div class="text-xs text-red-500">
               ⚠️ Coordinates unavailable
             </div>
           `}
@@ -392,7 +360,7 @@ const GeoJSONLayerManager = ({
 
         ${hasValidCoords ? `
           <div class="mt-4 space-y-2">
-            <div class="text-xs font-medium text-foreground mb-2">Navigate via:</div>
+            <div class="text-xs font-medium text-gray-700 mb-2">Navigate via:</div>
             <div class="grid grid-cols-2 gap-2">
               <button 
                 onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving', '_blank')"
@@ -441,7 +409,7 @@ const GeoJSONLayerManager = ({
             
             <button 
               onclick="navigator.clipboard.writeText('${lat},${lng}').then(() => alert('Coordinates copied!'))"
-              class="w-full mt-2 bg-muted text-foreground py-2 px-3 rounded-lg text-xs font-medium hover:bg-muted/80 transition-colors flex items-center justify-center space-x-1"
+              class="w-full mt-2 bg-gray-100 text-gray-700 py-2 px-3 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors flex items-center justify-center space-x-1"
               title="Copy coordinates"
             >
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -451,7 +419,7 @@ const GeoJSONLayerManager = ({
             </button>
           </div>
         ` : `
-          <div class="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-xs text-destructive">
+          <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
             Location coordinates are not available for this office.
           </div>
         `}
@@ -465,7 +433,7 @@ const GeoJSONLayerManager = ({
         const config = layerConfigs[layerId];
         const data = layerData[layerId];
         
-        if (!data || !config || layerId === 'iebc-offices') return null;
+        if (!data || !config) return null;
 
         return (
           <GeoJSON
