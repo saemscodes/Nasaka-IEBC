@@ -45,15 +45,12 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
   
   const handleNavigation = (item: typeof navigationItems[0]) => {
     if (item.id === 'nasaka-iebc') {
-      // Navigate to IEBC Office Finder splash page
       navigate('/nasaka-iebc');
     } else {
-      // Handle internal tab navigation
       scrollToTab(item.id);
     }
     setIsMobileMenuOpen(false);
     
-    // Additional logic for petitions section
     if (item.id === 'dashboard') {
       setTimeout(() => {
         const petitionsSection = document.querySelector('.grid.grid-cols-1.lg\\:grid-cols-2.gap-6');
@@ -240,21 +237,118 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
     }
   };
 
-  // IEBC Office Finder badge with special styling
-  const IEBCBadge = () => (
-    <Badge 
+  const DesktopIEBCButton = () => (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={handleIEBCNavigation}
       className={`
-        hidden sm:flex items-center space-x-1 transition-all duration-300 
+        hidden lg:flex items-center space-x-2 transition-all duration-300 
         bg-gradient-to-r from-ios-blue to-blue-600 hover:from-blue-600 hover:to-ios-blue
         text-white border-0 shadow-lg shadow-blue-500/25
-        px-3 py-1 rounded-full font-semibold text-xs
+        px-4 py-2 rounded-2xl font-semibold text-sm
+        transform hover:scale-105
+      `}
+    >
+      <Navigation className="w-4 h-4" />
+      <span>IEBC Offices</span>
+      <motion.div
+        className="w-2 h-2 bg-white/80 rounded-full"
+        animate={{ scale: [1, 1.3, 1] }}
+        transition={{ duration: 2, repeat: Infinity }}
+      />
+    </Button>
+  );
+
+  const TabletIEBCBadge = () => (
+    <Badge 
+      className={`
+        hidden md:flex lg:hidden items-center space-x-1 transition-all duration-300 
+        bg-gradient-to-r from-ios-blue to-blue-600 hover:from-blue-600 hover:to-ios-blue
+        text-white border-0 shadow-lg shadow-blue-500/25
+        px-3 py-2 rounded-xl font-semibold text-xs
         cursor-pointer transform hover:scale-105
       `}
       onClick={handleIEBCNavigation}
     >
       <Navigation className="w-3 h-3" />
-      <span>IEBC Offices</span>
+      <span>IEBC</span>
     </Badge>
+  );
+
+  const MobileIEBCButton = () => (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={handleIEBCNavigation}
+      className={`
+        md:hidden flex items-center space-x-2 transition-all duration-300 
+        bg-gradient-to-r from-ios-blue to-blue-600 hover:from-blue-600 hover:to-ios-blue
+        text-white border-0 shadow-lg shadow-blue-500/25
+        px-3 py-2 rounded-xl font-medium text-xs
+        transform hover:scale-105
+      `}
+    >
+      <Navigation className="w-3 h-3" />
+      <span>IEBC Offices</span>
+    </Button>
+  );
+
+  const DesktopNavigationItem = ({ item }: { item: typeof navigationItems[0] }) => (
+    <Button
+      key={item.id}
+      variant="ghost"
+      size="sm"
+      onClick={() => handleNavigation(item)}
+      className={`flex items-center space-x-2 transition-all duration-300 ${
+        darkMode 
+          ? 'text-gray-300 hover:text-white hover:bg-gray-700/50' 
+          : 'text-green-700 hover:text-green-900 hover:bg-green-50/50'
+      } ${
+        item.id === 'nasaka-iebc' 
+          ? 'bg-ios-blue/10 text-ios-blue hover:bg-ios-blue/20 hover:text-ios-blue border border-ios-blue/20' 
+          : ''
+      }`}
+    >
+      <item.icon className="w-4 h-4" />
+      <span className="text-sm">{item.label}</span>
+      {item.id === 'nasaka-iebc' && (
+        <motion.div
+          className="w-2 h-2 bg-ios-blue rounded-full"
+          animate={{ scale: [1, 1.2, 1] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        />
+      )}
+    </Button>
+  );
+
+  const MobileNavigationItem = ({ item }: { item: typeof navigationItems[0] }) => (
+    <motion.div variants={dropdownItemVariants}>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => handleNavigation(item)}
+        className={`w-full flex items-center space-x-3 justify-start px-4 py-3 transition-all duration-300 ${
+          darkMode 
+            ? 'text-gray-300 hover:text-white hover:bg-gray-700/50' 
+            : 'text-green-700 hover:text-green-900 hover:bg-green-50/50'
+        } ${
+          item.id === 'nasaka-iebc' 
+            ? 'bg-ios-blue/10 text-ios-blue hover:bg-ios-blue/20 hover:text-ios-blue border border-ios-blue/20' 
+            : ''
+        }`}
+      >
+        <item.icon className="w-4 h-4" />
+        <span>{item.label}</span>
+        {item.id === 'nasaka-iebc' && (
+          <motion.div
+            className="w-2 h-2 bg-ios-blue rounded-full"
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+        )}
+      </Button>
+    </motion.div>
   );
 
   return (
@@ -265,7 +359,6 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
     } border-b`}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 bg-transparent">
-          {/* Logo */}
           <div 
             className="flex items-center space-x-3 cursor-pointer group"
             onClick={goToHomepage}
@@ -306,43 +399,16 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
             </div>
           </div>
           
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
-            {navigationItems.map((item) => (
-              <Button
-                key={item.id}
-                variant="ghost"
-                size="sm"
-                onClick={() => handleNavigation(item)}
-                className={`flex items-center space-x-2 transition-all duration-300 ${
-                  darkMode 
-                    ? 'text-gray-300 hover:text-white hover:bg-gray-700/50' 
-                    : 'text-green-700 hover:text-green-900 hover:bg-green-50/50'
-                } ${
-                  item.id === 'nasaka-iebc' 
-                    ? 'bg-ios-blue/10 text-ios-blue hover:bg-ios-blue/20 hover:text-ios-blue border border-ios-blue/20' 
-                    : ''
-                }`}
-              >
-                <item.icon className="w-4 h-4" />
-                <span className="text-sm">{item.label}</span>
-                {item.id === 'nasaka-iebc' && (
-                  <motion.div
-                    className="w-2 h-2 bg-ios-blue rounded-full"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                )}
-              </Button>
+            {navigationItems.filter(item => item.id !== 'nasaka-iebc').map((item) => (
+              <DesktopNavigationItem key={item.id} item={item} />
             ))}
           </nav>
 
-          {/* Right Side: IEBC Badge + Dark Mode Toggle + Mobile Menu */}
           <div className="flex items-center space-x-3">
-            {/* IEBC Office Finder Badge - Desktop */}
-            <div className="hidden md:block">
-              <IEBCBadge />
-            </div>
+            <DesktopIEBCButton />
+            
+            <TabletIEBCBadge />
 
             <Badge 
               variant="outline" 
@@ -355,7 +421,6 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
               Beta
             </Badge>
 
-            {/* Dark Mode Toggle */}
             <Button
               variant="ghost"
               size="sm"
@@ -386,7 +451,6 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
               </div>
             </Button>
 
-            {/* Mobile Menu Button */}
             <Button
               variant="ghost"
               size="sm"
@@ -419,7 +483,6 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
           </div>
         </div>
 
-        {/* Mobile Navigation */}
         {shouldRenderDropdown && (
           <motion.div
             className={`md:hidden border-t transition-colors duration-300 ${
@@ -433,48 +496,14 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
             <nav className="py-4">
               <div className="flex flex-col space-y-2">
                 {navigationItems.map((item) => (
-                  <motion.div
-                    key={item.id}
-                    variants={dropdownItemVariants}
-                  >
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleNavigation(item)}
-                      className={`w-full flex items-center space-x-3 justify-start px-4 py-3 transition-all duration-300 ${
-                        darkMode 
-                          ? 'text-gray-300 hover:text-white hover:bg-gray-700/50' 
-                          : 'text-green-700 hover:text-green-900 hover:bg-green-50/50'
-                      } ${
-                        item.id === 'nasaka-iebc' 
-                          ? 'bg-ios-blue/10 text-ios-blue hover:bg-ios-blue/20 hover:text-ios-blue border border-ios-blue/20' 
-                          : ''
-                      }`}
-                    >
-                      <item.icon className="w-4 h-4" />
-                      <span>{item.label}</span>
-                      {item.id === 'nasaka-iebc' && (
-                        <motion.div
-                          className="w-2 h-2 bg-ios-blue rounded-full"
-                          animate={{ scale: [1, 1.2, 1] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        />
-                      )}
-                    </Button>
-                  </motion.div>
+                  <MobileNavigationItem key={item.id} item={item} />
                 ))}
                 
-                {/* IEBC Office Finder Mobile Badge */}
                 <motion.div 
                   className="pt-2 mt-2 border-t border-gray-200/50 dark:border-gray-700/50 flex justify-center"
                   variants={dropdownItemVariants}
                 >
-                  <div 
-                    className="cursor-pointer transform hover:scale-105 transition-transform duration-300"
-                    onClick={handleIEBCNavigation}
-                  >
-                    <IEBCBadge />
-                  </div>
+                  <MobileIEBCButton />
                 </motion.div>
 
                 <motion.div 
