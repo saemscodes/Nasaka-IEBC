@@ -382,7 +382,6 @@ export const useContributeLocation = () => {
           verified,
           tags,
           centroid,
-          ST_AsGeoJSON(centroid)::json as centroid_geojson
           `)
           .eq('verified', true)
           .limit(25);
