@@ -5,6 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useLenis } from "./hooks/useLenis";
+import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import Index from "./pages/Index";
 import SignPetition from "./pages/SignPetition";
 import NotFound from "./pages/NotFound";
@@ -15,14 +17,15 @@ import VoterRegistrationPage from "@/pages/VoterRegistration";
 import { IEBCOfficeSplash, IEBCOfficeMap } from './pages/IEBCOffice';
 import ContributionModeration from './pages/Admin/ContributionModeration';
 import AdminDashboard from './pages/Admin/AdminDashboard';
+import AdminLogin from './pages/Admin/AdminLogin';
+import Unauthorized from './pages/Unauthorized';
 import './styles/iebc-office.css';
 
-// ✅ ENHANCED QUERY CLIENT FOR IEBC DATA
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
       retry: 2,
       refetchOnWindowFocus: false,
     },
@@ -30,33 +33,51 @@ const queryClient = new QueryClient({
 });
 
 const AppContent = () => {
-  // Initialize Lenis smooth scrolling
   const { lenis } = useLenis();
 
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<Index />} />
         <Route path="/sign/:id" element={<SignPetition />} />
         <Route path="/verify" element={<VerifySignature />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsAndConditions />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
         
-        {/* ✅ IEBC VOTER REGISTRATION ROUTES */}
+        {/* IEBC Voter Registration Routes */}
         <Route path="/voter-registration" element={<VoterRegistrationPage />} />
         <Route path="/iebc-offices" element={<VoterRegistrationPage />} />
         <Route path="/register-to-vote" element={<VoterRegistrationPage />} />
 
-        {/* ✅ IEBC OFFICE FINDER ROUTES */}
+        {/* IEBC Office Finder Routes */}
         <Route path="/iebc-office" element={<IEBCOfficeSplash />} />
         <Route path="/nasaka-iebc" element={<IEBCOfficeSplash />} />
         <Route path="/iebc-office/map" element={<IEBCOfficeMap />} />
         
-        {/* ✅ ADMIN PROTECTED ROUTES */}
-        <Route path="/admin/contributions" element={<ContributionModeration />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        {/* Admin Authentication */}
+        <Route path="/admin/login" element={<AdminLogin />} />
         
-        {/* ✅ ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        {/* Protected Admin Routes */}
+        <Route 
+          path="/admin/dashboard" 
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin/contributions" 
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <ContributionModeration />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Catch-all Route */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
@@ -66,14 +87,11 @@ const AppContent = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider delayDuration={0}>
-      <Toaster />
-      <Sonner
-        position="top-right"
-        expand={false}
-        richColors
-        closeButton
-      />
-      <AppContent />
+      <AuthProvider>
+        <Toaster />
+        <Sonner position="top-right" expand={false} richColors closeButton />
+        <AppContent />
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
