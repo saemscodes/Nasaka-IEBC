@@ -144,6 +144,13 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
 
   const captureLocation = useCallback(async () => {
     setLocationError(null);
+
+    console.log({
+      getCurrentPosition: typeof getCurrentPosition,
+      findNearbyLandmarks: typeof findNearbyLandmarks,
+      calculateWeightedPosition: typeof calculateWeightedPosition
+    });
+    
     try {
       const pos = await getCurrentPosition();
       const capturedPosition = { lat: pos.latitude, lng: pos.longitude };
