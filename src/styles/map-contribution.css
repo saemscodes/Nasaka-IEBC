@@ -1,0 +1,126 @@
+/* src/styles/map-contribution.css */
+.contribution-marker {
+  animation: pulse-marker 2s infinite;
+}
+
+@keyframes pulse-marker {
+  0% {
+    box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(52, 199, 89, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 199, 89, 0);
+  }
+}
+
+.accuracy-circle {
+  stroke-dasharray: 10, 10;
+  animation: dash-rotate 20s linear infinite;
+}
+
+@keyframes dash-rotate {
+  to {
+    stroke-dashoffset: -1000;
+  }
+}
+
+.contribution-popup .leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.contribution-popup .leaflet-popup-content {
+  margin: 12px 16px;
+  font-size: 14px;
+}
+
+.contribution-popup .leaflet-popup-tip {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading states */
+.contribution-loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.contribution-loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: loading-shimmer 1.5s infinite;
+}
+
+@keyframes loading-shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Success animation */
+.contribution-success {
+  animation: success-bounce 0.6s ease-out;
+}
+
+@keyframes success-bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%, 43% {
+    transform: translate3d(0, -8px, 0);
+  }
+  70% {
+    transform: translate3d(0, -4px, 0);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .contribution-modal {
+    margin: 0;
+    border-radius: 0;
+    max-height: 100vh;
+  }
+  
+  .contribution-map {
+    height: 50vh !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .contribution-marker {
+    border: 2px solid #000;
+  }
+  
+  .accuracy-circle {
+    stroke-width: 3px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .contribution-marker,
+  .accuracy-circle,
+  .contribution-loading::after,
+  .contribution-success {
+    animation: none;
+  }
+}
