@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
@@ -8,6 +9,7 @@ const ContributionModeration = () => {
   const [loading, setLoading] = useState(true);
   const [selectedContribution, setSelectedContribution] = useState(null);
   const [reviewNotes, setReviewNotes] = useState('');
+  const [actionLoading, setActionLoading] = useState(null);
   const { logout } = useAdminAuth();
 
   useEffect(() => {
@@ -31,35 +33,35 @@ const ContributionModeration = () => {
   };
 
   const updateContributionStatus = async (id, status, notes = '') => {
+    setActionLoading(id);
     try {
       const { error } = await supabase
         .from('iebc_office_contributions')
         .update({
           status,
           review_notes: notes,
-          reviewed_at: new Date().toISOString()
+          reviewed_at: new Date().toISOString(),
+          reviewer_id: 'admin'
         })
         .eq('id', id);
 
       if (error) throw error;
       
-      // Refresh the list
-      fetchContributions();
+      await fetchContributions();
       setSelectedContribution(null);
       setReviewNotes('');
     } catch (error) {
       console.error('Error updating contribution:', error);
+    } finally {
+      setActionLoading(null);
     }
   };
 
   const approveContribution = async (contribution) => {
     try {
-      // First, update the contribution status
       await updateContributionStatus(contribution.id, 'approved', reviewNotes);
       
-      // Then, update or create the office record
       if (contribution.original_office_id) {
-        // Update existing office
         const { error: updateError } = await supabase
           .from('iebc_offices')
           .update({
@@ -75,7 +77,6 @@ const ContributionModeration = () => {
 
         if (updateError) throw updateError;
       } else {
-        // Create new office record
         const { error: insertError } = await supabase
           .from('iebc_offices')
           .insert({
@@ -129,7 +130,6 @@ const ContributionModeration = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -138,15 +138,15 @@ const ContributionModeration = () => {
                 <h1 className="text-xl font-bold text-gray-900">Contribution Moderation</h1>
               </div>
               <nav className="ml-6 flex space-x-4">
-                <a href="/admin" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                <Link to="/admin" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
                   Dashboard
-                </a>
-                <a href="/admin/contributions" className="text-gray-900 px-3 py-2 rounded-md text-sm font-medium bg-gray-100">
+                </Link>
+                <Link to="/admin/contributions" className="text-gray-900 px-3 py-2 rounded-md text-sm font-medium bg-gray-100">
                   Contributions
-                </a>
-                <a href="/admin/analytics" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                </Link>
+                <Link to="/admin/analytics" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
                   Analytics
-                </a>
+                </Link>
               </nav>
             </div>
             <button
@@ -258,15 +258,24 @@ const ContributionModeration = () => {
                               </button>
                               <button
                                 onClick={() => approveContribution(contribution)}
-                                className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                                disabled={actionLoading === contribution.id}
+                                className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
                               >
-                                Approve
+                                {actionLoading === contribution.id ? (
+                                  <>
+                                    <LoadingSpinner size="small" className="mr-2" />
+                                    Approving...
+                                  </>
+                                ) : (
+                                  'Approve'
+                                )}
                               </button>
                               <button
                                 onClick={() => rejectContribution(contribution)}
-                                className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+                                disabled={actionLoading === contribution.id}
+                                className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                               >
-                                Reject
+                                {actionLoading === contribution.id ? 'Rejecting...' : 'Reject'}
                               </button>
                             </>
                           )}
@@ -295,7 +304,7 @@ const ContributionModeration = () => {
                 <h3 className="text-lg font-semibold text-gray-900">Review Contribution</h3>
                 <button
                   onClick={() => setSelectedContribution(null)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -314,8 +323,8 @@ const ContributionModeration = () => {
                     value={reviewNotes}
                     onChange={(e) => setReviewNotes(e.target.value)}
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Add notes about this contribution..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="Add notes about this contribution (optional)..."
                   />
                 </div>
 
@@ -323,20 +332,27 @@ const ContributionModeration = () => {
                   <button
                     onClick={() => {
                       approveContribution(selectedContribution);
-                      setSelectedContribution(null);
                     }}
-                    className="flex-1 bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors"
+                    disabled={actionLoading === selectedContribution.id}
+                    className="flex-1 bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                   >
-                    Approve Contribution
+                    {actionLoading === selectedContribution.id ? (
+                      <>
+                        <LoadingSpinner size="small" className="mr-2" />
+                        Approving...
+                      </>
+                    ) : (
+                      'Approve Contribution'
+                    )}
                   </button>
                   <button
                     onClick={() => {
                       rejectContribution(selectedContribution);
-                      setSelectedContribution(null);
                     }}
-                    className="flex-1 bg-red-600 text-white py-3 rounded-lg font-medium hover:bg-red-700 transition-colors"
+                    disabled={actionLoading === selectedContribution.id}
+                    className="flex-1 bg-red-600 text-white py-3 rounded-lg font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    Reject Contribution
+                    {actionLoading === selectedContribution.id ? 'Rejecting...' : 'Reject Contribution'}
                   </button>
                 </div>
               </div>
