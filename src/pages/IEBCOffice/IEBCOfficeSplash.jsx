@@ -89,6 +89,25 @@ const IEBCOfficeSplash = () => {
     }
   };
 
+  const headlineVariants = {
+    initial: { 
+      opacity: 0, 
+      y: -50,
+      scale: 0.8
+    },
+    animate: { 
+      opacity: 1, 
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 120,
+        damping: 15,
+        delay: 0.1
+      }
+    }
+  };
+
   return (
     <motion.div
       className="relative flex flex-col items-center justify-center min-h-screen bg-white px-6 overflow-hidden"
@@ -101,7 +120,7 @@ const IEBCOfficeSplash = () => {
       
       <div className="relative z-10 text-center max-w-md w-full">
         <motion.div
-          className="relative flex items-center justify-center w-32 h-32 mx-auto mb-8"
+          className="relative flex items-center justify-center w-32 h-32 mx-auto mb-2"
           variants={iconVariants}
           initial="initial"
           animate="animate"
@@ -130,14 +149,23 @@ const IEBCOfficeSplash = () => {
           </div>
         </motion.div>
         
-        <motion.h1
-          className="text-3xl font-semibold text-ios-gray-900 mb-3"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+        <motion.div
+          className="mb-8"
+          variants={headlineVariants}
+          initial="initial"
+          animate="animate"
         >
-          Find Your Nearest IEBC Office
-        </motion.h1>
+          <h1 className="text-6xl font-black text-ios-gray-900 mb-2 tracking-tight leading-none">
+            NASAKA
+          </h1>
+          <div className="flex items-center justify-center space-x-2">
+            <div className="h-px w-8 bg-ios-blue/40"></div>
+            <h2 className="text-xl font-semibold text-ios-blue tracking-wide">
+              IEBC
+            </h2>
+            <div className="h-px w-8 bg-ios-blue/40"></div>
+          </div>
+        </motion.div>
 
         <motion.p
           className="text-ios-gray-600 mb-8 text-base"
