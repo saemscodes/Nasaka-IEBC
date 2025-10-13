@@ -5,181 +5,49 @@ export const useContributeLocation = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  // Get current position with high accuracy
-  const getCurrentPosition = useCallback((options = {}) => {
-    const defaultOptions = {
-      enableHighAccuracy: true,
-      maximumAge: 0,
-      timeout: 15000
-    };
-
-    return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        reject(new Error('Geolocation is not supported by this browser'));
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          resolve({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy: position.coords.accuracy,
-            altitude: position.coords.altitude,
-            altitudeAccuracy: position.coords.altitudeAccuracy,
-            heading: position.coords.heading,
-            speed: position.coords.speed,
-            timestamp: position.timestamp
-          });
-        },
-        (error) => {
-          let errorMessage = 'Unable to retrieve your location';
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              errorMessage = 'Location access denied. Please enable location permissions.';
-              break;
-            case error.POSITION_UNAVAILABLE:
-              errorMessage = 'Location information unavailable.';
-              break;
-            case error.TIMEOUT:
-              errorMessage = 'Location request timed out.';
-              break;
-          }
-          reject(new Error(errorMessage));
-        },
-        { ...defaultOptions, ...options }
-      );
-    });
-  }, []);
-
-  // Convert image to WebP format
-  const convertImageToWebP = useCallback(async (file, maxWidth = 1600, quality = 0.8) => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-
-      img.onload = () => {
-        // Calculate new dimensions maintaining aspect ratio
-        let { width, height } = img;
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-          width = maxWidth;
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        // Draw image on canvas (this strips EXIF data)
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // Convert to WebP
-        canvas.toBlob((blob) => {
-          if (!blob) {
-            reject(new Error('Image conversion failed'));
-            return;
-          }
-          const webpFile = new File([blob], `${crypto.randomUUID()}.webp`, {
-            type: 'image/webp'
-          });
-          resolve(webpFile);
-        }, 'image/webp', quality);
-      };
-
-      img.onerror = () => reject(new Error('Failed to load image'));
-      img.src = URL.createObjectURL(file);
-    });
-  }, []);
-
-  // Find nearby landmarks/offices for triangulation
-  const findNearbyLandmarks = useCallback(async (latitude, longitude, radiusMeters = 500) => {
-    try {
-      const { data: nearbyOffices, error } = await supabase
-        .rpc('find_nearby_offices', {
-          lat: latitude,
-          lon: longitude,
-          radius: radiusMeters
-        });
-
-      if (error) throw error;
-
-      return nearbyOffices?.map(office => ({
-        id: office.id,
-        name: office.office_location,
-        latitude: office.latitude,
-        longitude: office.longitude,
-        distance_m: office.distance,
-        type: 'office'
-      })) || [];
-    } catch (error) {
-      console.error('Error finding nearby landmarks:', error);
-      return [];
-    }
-  }, []);
-
-  // Calculate weighted average position for triangulation
-  const calculateWeightedPosition = useCallback((points) => {
-    if (!points || points.length === 0) return null;
-
-    let totalWeight = 0;
-    let weightedLat = 0;
-    let weightedLng = 0;
-
-    points.forEach(point => {
-      // Higher accuracy (lower value) = higher weight
-      const weight = point.accuracy && point.accuracy > 0 ? 
-        1 / (point.accuracy * point.accuracy) : 1;
-      
-      totalWeight += weight;
-      weightedLat += point.latitude * weight;
-      weightedLng += point.longitude * weight;
-    });
-
-    return {
-      latitude: weightedLat / totalWeight,
-      longitude: weightedLng / totalWeight,
-      totalWeight,
-      pointsUsed: points.length
-    };
-  }, []);
-
-  // Upload image to Supabase storage
-  const uploadImageToStorage = useCallback(async (file) => {
-    const fileExt = 'webp';
-    const fileName = `${crypto.randomUUID()}.${fileExt}`;
-    const filePath = `map-data/${fileName}`;
-
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('map-data')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
-
-    if (uploadError) throw uploadError;
-
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('map-data')
-      .getPublicUrl(filePath);
-
-    return {
-      path: uploadData.path,
-      publicUrl
-    };
-  }, []);
-
-  // Submit contribution
   const submitContribution = useCallback(async (contributionData) => {
     setIsSubmitting(true);
     setError(null);
 
     try {
+      console.log('Starting contribution submission:', contributionData);
+
+      // Validate required data
+      if (!contributionData.latitude || !contributionData.longitude) {
+        throw new Error('Latitude and longitude are required');
+      }
+
       let imageUploadResult = null;
 
       // Upload image if provided
       if (contributionData.imageFile) {
-        imageUploadResult = await uploadImageToStorage(contributionData.imageFile);
+        console.log('Uploading image...');
+        const fileExt = 'webp';
+        const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+        const filePath = `map-data/${fileName}`;
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('map-data')
+          .upload(filePath, contributionData.imageFile, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (uploadError) {
+          console.error('Image upload error:', uploadError);
+          throw new Error(`Image upload failed: ${uploadError.message}`);
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('map-data')
+          .getPublicUrl(filePath);
+
+        imageUploadResult = {
+          path: uploadData.path,
+          publicUrl
+        };
+        console.log('Image uploaded successfully:', imageUploadResult);
       }
 
       // Prepare device metadata (without PII)
@@ -191,24 +59,27 @@ export const useContributeLocation = () => {
         speed: contributionData.speed,
         timestamp: contributionData.timestamp,
         userAgent: navigator.userAgent,
-        platform: navigator.platform
+        platform: navigator.platform,
+        screenResolution: `${window.screen.width}x${window.screen.height}`,
+        language: navigator.language
       };
 
       // Insert contribution record
+      console.log('Inserting contribution into database...');
       const { data, error: insertError } = await supabase
         .from('iebc_office_contributions')
         .insert([{
-          original_office_id: contributionData.officeId,
-          submitted_county: contributionData.county,
-          submitted_constituency_code: contributionData.constituencyCode,
-          submitted_constituency: contributionData.constituency,
-          submitted_office_location: contributionData.officeLocation,
-          submitted_landmark: contributionData.landmark,
+          original_office_id: contributionData.officeId || null,
+          submitted_county: contributionData.county || null,
+          submitted_constituency_code: contributionData.constituencyCode || null,
+          submitted_constituency: contributionData.constituency || null,
+          submitted_office_location: contributionData.officeLocation || 'User Contributed Location',
+          submitted_landmark: contributionData.landmark || null,
           submitted_latitude: contributionData.latitude,
           submitted_longitude: contributionData.longitude,
-          submitted_accuracy_meters: contributionData.accuracy,
+          submitted_accuracy_meters: contributionData.accuracy || null,
           device_metadata: deviceMeta,
-          nearby_landmarks: contributionData.nearbyLandmarks,
+          nearby_landmarks: contributionData.nearbyLandmarks || null,
           image_path: imageUploadResult?.path,
           image_public_url: imageUploadResult?.publicUrl,
           status: 'pending'
@@ -216,22 +87,24 @@ export const useContributeLocation = () => {
         .select()
         .single();
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('Database insert error:', insertError);
+        throw new Error(`Failed to save contribution: ${insertError.message}`);
+      }
 
+      console.log('Contribution submitted successfully:', data);
       return data;
+
     } catch (err) {
+      console.error('Contribution submission error:', err);
       setError(err.message);
       throw err;
     } finally {
       setIsSubmitting(false);
     }
-  }, [uploadImageToStorage]);
+  }, []);
 
   return {
-    getCurrentPosition,
-    convertImageToWebP,
-    findNearbyLandmarks,
-    calculateWeightedPosition,
     submitContribution,
     isSubmitting,
     error
