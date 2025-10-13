@@ -370,22 +370,12 @@ export const useContributeLocation = () => {
     try {
       // Fallback 3: Try to get map landmarks directly with coordinate parsing
       if (fallbackLandmarks.length < 5) {
-        const { data: mapLandmarks, error: mapError } = await supabase
-          .from('map_landmarks')
-          .select(`
-          id,
-          name,
-          landmark_type,
-          landmark_subtype,
-          typical_accuracy_meters,
-          triangulation_weight,
-          verified,
-          tags,
-          centroid
-          `)
-          .eq('verified', true)
-          .limit(25);
-        
+       const { data: mapLandmarks, error: mapError } = await supabase
+         .from('map_landmarks_readable')
+         .select('*')
+         .eq('verified', true)
+         .limit(25);
+                
         if (!mapError && mapLandmarks) {
           const processedMap = mapLandmarks
             .map(landmark => {
@@ -393,15 +383,9 @@ export const useContributeLocation = () => {
                 // Parse coordinates from centroid geography
                 let landmarkLat, landmarkLng;
                 
-                // Preferred: use GeoJSON from centroid_geojson
-                if (landmark.centroid_geojson && landmark.centroid_geojson.coordinates) {
-                  landmarkLng = landmark.centroid_geojson.coordinates[0];
-                  landmarkLat = landmark.centroid_geojson.coordinates[1];
-                }
-                  
-                  // Fallback: parse centroid WKT if provided as string
-                else if (landmark.centroid && typeof landmark.centroid === 'string') {
-                  const match = landmark.centroid.match(/POINT\(([^ ]+) ([^ ]+)\)/);
+                // Parse from centroid_wkt (returned by view)
+                if (landmark.centroid_wkt && typeof landmark.centroid_wkt === 'string') {
+                  const match = landmark.centroid_wkt.match(/POINT\(([^ ]+) ([^ ]+)\)/);
                   if (match) {
                     landmarkLng = parseFloat(match[1]);
                     landmarkLat = parseFloat(match[2]);
@@ -413,6 +397,7 @@ export const useContributeLocation = () => {
                   console.warn('Could not extract coordinates for landmark:', landmark.id);
                   return null;
                 }
+
 
                 const distance = calculateDistance(latitude, longitude, landmarkLat, landmarkLng);
                 
