@@ -34,8 +34,8 @@ const LayerControlPanel = ({
       color: 'green'
     },
     {
-      id: 'counties',
-      name: 'Counties',
+      id: 'kenya-counties',
+      name: 'Kenya Counties Voters Data',
       description: 'Kenya county boundaries',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
