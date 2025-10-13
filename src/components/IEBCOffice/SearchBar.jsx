@@ -252,7 +252,7 @@ const SearchBar = ({
           </div>
           
           {/* Search Input */}
-          <div className="flex-1 relative">
+          <div className="flex-1 relative min-w-0">
             <input
               ref={inputRef}
               type="text"
@@ -261,7 +261,9 @@ const SearchBar = ({
               onFocus={handleInputFocus}
               onKeyPress={handleKeyPress}
               placeholder={placeholder}
-              className="w-full bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground text-base py-2 px-1"
+              className="w-full bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground text-base py-2 px-1 pr-10"
+              style={{ textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }}
+              aria-label={placeholder}
             />
 
             {/* right-side controls container (clear + location) */}
