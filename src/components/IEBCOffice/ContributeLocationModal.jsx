@@ -1,10 +1,12 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { useContributeLocation } from '@/hooks/useContributeLocation';
 import MapContainer from '@/components/IEBCOffice/MapContainer';
+import UserLocationMarker from '@/components/IEBCOffice/UserLocationMarker';
 import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
 import { supabase } from '@/integrations/supabase/client';
+import L from 'leaflet';
 
 const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) => {
   const [step, setStep] = useState(1);
@@ -17,7 +19,15 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const [nearbyOffices, setNearbyOffices] = useState([]);
   const [useTriangulation, setUseTriangulation] = useState(true);
   const [agreement, setAgreement] = useState(false);
+  const [mapCenter, setMapCenter] = useState([-1.286389, 36.817223]);
+  const [mapZoom, setMapZoom] = useState(6);
+  const [isMapReady, setIsMapReady] = useState(false);
+  const [locationError, setLocationError] = useState(null);
   
+  const mapRef = useRef(null);
+  const accuracyCircleRef = useRef(null);
+  const markerRef = useRef(null);
+
   const {
     getCurrentPosition,
     convertImageToWebP,
@@ -28,24 +38,121 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     error
   } = useContributeLocation();
 
-  // Initialize with user's current location
-  useEffect(() => {
-    if (isOpen && userLocation) {
-      setPosition({
-        lat: userLocation.latitude,
-        lng: userLocation.longitude
-      });
-      setAccuracy(userLocation.accuracy);
+  const handleMapReady = useCallback((map) => {
+    mapRef.current = map;
+    setIsMapReady(true);
+    
+    if (position) {
+      addMarkerToMap(position);
+      addAccuracyCircle(position, accuracy);
     }
-  }, [isOpen, userLocation]);
+  }, [position, accuracy]);
+
+  const addMarkerToMap = useCallback((position) => {
+    if (!mapRef.current || !position) return;
+
+    if (markerRef.current) {
+      mapRef.current.removeLayer(markerRef.current);
+    }
+
+    const customIcon = L.divIcon({
+      className: 'contribution-marker',
+      html: `
+        <div style="
+          width: 24px;
+          height: 24px;
+          background: #34C759;
+          border: 3px solid white;
+          border-radius: 50%;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        ">
+          <div style="
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+          "></div>
+        </div>
+      `,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
+    });
+
+    markerRef.current = L.marker([position.lat, position.lng], { 
+      icon: customIcon,
+      draggable: true 
+    }).addTo(mapRef.current);
+
+    markerRef.current.on('dragend', (event) => {
+      const newPosition = event.target.getLatLng();
+      setPosition({ lat: newPosition.lat, lng: newPosition.lng });
+      setAccuracy(5);
+    });
+  }, []);
+
+  const addAccuracyCircle = useCallback((position, accuracy) => {
+    if (!mapRef.current || !position || !accuracy) return;
+
+    if (accuracyCircleRef.current) {
+      mapRef.current.removeLayer(accuracyCircleRef.current);
+    }
+
+    accuracyCircleRef.current = L.circle([position.lat, position.lng], {
+      radius: accuracy,
+      color: '#34C759',
+      fillColor: '#34C759',
+      fillOpacity: 0.1,
+      weight: 2,
+      opacity: 0.6
+    }).addTo(mapRef.current);
+  }, []);
+
+  const initializeMapWithUserLocation = useCallback(() => {
+    if (userLocation?.latitude && userLocation?.longitude) {
+      const userPos = { lat: userLocation.latitude, lng: userLocation.longitude };
+      setPosition(userPos);
+      setAccuracy(userLocation.accuracy);
+      setMapCenter([userLocation.latitude, userLocation.longitude]);
+      setMapZoom(16);
+      
+      if (mapRef.current) {
+        mapRef.current.flyTo([userLocation.latitude, userLocation.longitude], 16, {
+          duration: 1
+        });
+        addMarkerToMap(userPos);
+        addAccuracyCircle(userPos, userLocation.accuracy);
+      }
+    }
+  }, [userLocation, addMarkerToMap, addAccuracyCircle]);
+
+  useEffect(() => {
+    if (isOpen && isMapReady) {
+      initializeMapWithUserLocation();
+    }
+  }, [isOpen, isMapReady, initializeMapWithUserLocation]);
 
   const captureLocation = useCallback(async () => {
+    setLocationError(null);
     try {
       const pos = await getCurrentPosition();
-      setPosition({ lat: pos.latitude, lng: pos.longitude });
-      setAccuracy(pos.accuracy);
+      const capturedPosition = { lat: pos.latitude, lng: pos.longitude };
       
-      // Find nearby landmarks for triangulation
+      setPosition(capturedPosition);
+      setAccuracy(pos.accuracy);
+      setMapCenter([pos.latitude, pos.longitude]);
+      setMapZoom(16);
+
+      if (mapRef.current) {
+        mapRef.current.flyTo([pos.latitude, pos.longitude], 16, {
+          duration: 1
+        });
+        addMarkerToMap(capturedPosition);
+        addAccuracyCircle(capturedPosition, pos.accuracy);
+      }
+      
       if (useTriangulation) {
         const landmarks = await findNearbyLandmarks(pos.latitude, pos.longitude);
         setNearbyOffices(landmarks);
@@ -58,10 +165,16 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
           
           const improvedPosition = calculateWeightedPosition(triangulationPoints);
           if (improvedPosition) {
-            setPosition({ 
-              lat: improvedPosition.latitude, 
-              lng: improvedPosition.longitude 
-            });
+            const improvedPos = { lat: improvedPosition.latitude, lng: improvedPosition.longitude };
+            setPosition(improvedPos);
+            
+            if (mapRef.current) {
+              mapRef.current.flyTo([improvedPosition.latitude, improvedPosition.longitude], 16, {
+                duration: 1
+              });
+              addMarkerToMap(improvedPos);
+              addAccuracyCircle(improvedPos, pos.accuracy);
+            }
           }
         }
       }
@@ -69,40 +182,62 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       setStep(2);
     } catch (err) {
       console.error('Error capturing location:', err);
+      setLocationError(err.message);
+      
+      if (mapRef.current) {
+        const defaultCenter = userLocation ? 
+          [userLocation.latitude, userLocation.longitude] : 
+          [-1.286389, 36.817223];
+        mapRef.current.flyTo(defaultCenter, 10, { duration: 1 });
+      }
     }
-  }, [getCurrentPosition, findNearbyLandmarks, calculateWeightedPosition, useTriangulation]);
+  }, [
+    getCurrentPosition, 
+    findNearbyLandmarks, 
+    calculateWeightedPosition, 
+    useTriangulation, 
+    userLocation,
+    addMarkerToMap,
+    addAccuracyCircle
+  ]);
 
   const handleImageSelect = useCallback(async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
     try {
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         throw new Error('Please select an image file');
       }
 
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         throw new Error('Image must be smaller than 5MB');
       }
 
-      // Convert to WebP
       const webpFile = await convertImageToWebP(file);
       setImageFile(webpFile);
       
-      // Create preview
       const previewUrl = URL.createObjectURL(webpFile);
       setImagePreview(previewUrl);
     } catch (err) {
       console.error('Error processing image:', err);
+      setLocationError(err.message);
     }
   }, [convertImageToWebP]);
 
   const handleMapClick = useCallback((e) => {
-    setPosition(e.latlng);
-    setAccuracy(10); // Manual placement has higher assumed accuracy
-  }, []);
+    const clickedPosition = { lat: e.latlng.lat, lng: e.latlng.lng };
+    setPosition(clickedPosition);
+    setAccuracy(10);
+    
+    if (mapRef.current) {
+      mapRef.current.flyTo([e.latlng.lat, e.latlng.lng], 16, {
+        duration: 0.5
+      });
+      addMarkerToMap(clickedPosition);
+      addAccuracyCircle(clickedPosition, 10);
+    }
+  }, [addMarkerToMap, addAccuracyCircle]);
 
   const handleSubmit = useCallback(async () => {
     if (!position || !agreement) return;
@@ -129,13 +264,21 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         onSuccess(result);
       }
       
-      setStep(4); // Success step
+      setStep(4);
     } catch (err) {
       console.error('Submission error:', err);
+      setLocationError(err.message);
     }
   }, [
-    position, accuracy, selectedOffice, notes, nearbyOffices, 
-    imageFile, agreement, submitContribution, onSuccess
+    position, 
+    accuracy, 
+    selectedOffice, 
+    notes, 
+    nearbyOffices, 
+    imageFile, 
+    agreement, 
+    submitContribution, 
+    onSuccess
   ]);
 
   const resetForm = useCallback(() => {
@@ -148,7 +291,25 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     setSelectedOffice(null);
     setNearbyOffices([]);
     setAgreement(false);
+    setLocationError(null);
+    setMapCenter([-1.286389, 36.817223]);
+    setMapZoom(6);
+    setIsMapReady(false);
+
+    if (markerRef.current && mapRef.current) {
+      mapRef.current.removeLayer(markerRef.current);
+      markerRef.current = null;
+    }
     
+    if (accuracyCircleRef.current && mapRef.current) {
+      mapRef.current.removeLayer(accuracyCircleRef.current);
+      accuracyCircleRef.current = null;
+    }
+    
+    if (mapRef.current) {
+      mapRef.current = null;
+    }
+
     if (imagePreview) {
       URL.revokeObjectURL(imagePreview);
     }
@@ -159,10 +320,18 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     onClose();
   }, [resetForm, onClose]);
 
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
   if (!isOpen) return null;
 
   const modalContent = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black bg-opacity-50">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -178,7 +347,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
           </h2>
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -187,12 +356,29 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         </div>
 
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+          {locationError && (
+            <div className="mb-4 bg-red-50 border border-red-200 rounded-xl p-4">
+              <div className="flex items-center space-x-2">
+                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <span className="text-sm font-medium text-red-700">{locationError}</span>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="mb-4 bg-red-50 border border-red-200 rounded-xl p-4">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+
           {/* Step 1: Location Capture */}
           {step === 1 && (
             <div className="space-y-6">
               <div className="text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
@@ -205,14 +391,14 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                 </p>
               </div>
 
-              <div className="bg-blue-50 rounded-lg p-4">
+              <div className="bg-green-50 rounded-lg p-4">
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0">
-                    <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-green-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <div className="text-sm text-blue-700">
+                  <div className="text-sm text-green-700">
                     <p className="font-medium">Privacy Notice</p>
                     <p>We only collect location data and optional photos. No personal information is stored. All submissions are moderated before being published.</p>
                   </div>
@@ -225,7 +411,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     type="checkbox"
                     checked={useTriangulation}
                     onChange={(e) => setUseTriangulation(e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-gray-300 text-green-600 focus:ring-green-500"
                   />
                   <span className="text-sm text-gray-700">
                     Use advanced location accuracy (recommended)
@@ -237,7 +423,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     type="checkbox"
                     checked={agreement}
                     onChange={(e) => setAgreement(e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-gray-300 text-green-600 focus:ring-green-500"
                   />
                   <span className="text-sm text-gray-700">
                     I agree to contribute anonymous location data for public benefit
@@ -255,7 +441,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                 <button
                   onClick={captureLocation}
                   disabled={!agreement}
-                  className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Capture Location
                 </button>
@@ -273,16 +459,26 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                 <p className="text-gray-600">
                   {accuracy ? `Accuracy: ±${Math.round(accuracy)} meters` : 'Tap on the map to place the marker'}
                 </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Drag the marker to adjust the exact location
+                </p>
               </div>
 
-              <div className="h-64 rounded-lg overflow-hidden border border-gray-300">
+              <div className="h-96 rounded-lg overflow-hidden border border-gray-300 bg-gray-100">
                 <MapContainer
-                  center={position || [userLocation.latitude, userLocation.longitude]}
-                  zoom={16}
+                  center={mapCenter}
+                  zoom={mapZoom}
                   className="h-full w-full"
+                  onMapReady={handleMapReady}
                   onClick={handleMapClick}
                 >
-                  {/* You would add markers and accuracy circle here */}
+                  {position && (
+                    <UserLocationMarker
+                      position={[position.lat, position.lng]}
+                      accuracy={accuracy}
+                      color="#34C759"
+                    />
+                  )}
                 </MapContainer>
               </div>
 
@@ -312,7 +508,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                 <button
                   onClick={() => setStep(3)}
                   disabled={!position}
-                  className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Continue
                 </button>
@@ -379,15 +575,9 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Any landmarks, building details, or other information..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-green-500 focus:border-green-500"
                 />
               </div>
-
-              {error && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                  <p className="text-sm text-red-700">{error}</p>
-                </div>
-              )}
 
               <div className="flex space-x-3 pt-4">
                 <button
@@ -399,7 +589,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                 <button
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                  className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                 >
                   {isSubmitting ? (
                     <>
@@ -445,7 +635,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
 
               <button
                 onClick={handleClose}
-                className="w-full px-4 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
+                className="w-full px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors"
               >
                 Close
               </button>
