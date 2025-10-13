@@ -145,7 +145,7 @@ export const useContributeLocation = () => {
 
   // Get current position using browser geolocation with automatic OSM fetching
   const getCurrentPosition = useCallback(async (options = {}) => {
-    const { enableOSMFetching = true, osmRadius = 2000 } = options;
+    const { enableOSMFetching = true, osmRadius = 10000 } = options;
     
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
