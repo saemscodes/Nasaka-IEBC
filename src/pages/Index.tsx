@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Users, FileText, Shield, MapPin, TrendingUp, UserPlus, UserCheck } from 'lucide-react';
+import { CheckCircle, Users, FileText, Shield, MapPin, TrendingUp, UserPlus, UserCheck, ArrowRight } from 'lucide-react';
 import ModernHeader from '@/components/ModernHeader';
 import ModernFooter from '@/components/ModernFooter';
 import WardSearchInterface from '@/components/WardSearchInterface';
@@ -28,6 +29,7 @@ interface Constituency {
 }
 
 const Index = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [darkMode, setDarkMode] = useState(false);
   const [selectedConstituency, setSelectedConstituency] = useState<Constituency | null>(null);
@@ -697,13 +699,163 @@ const Index = () => {
           )}
           {activeTab === 'voter' && (
             <div ref={el => sectionsRef.current.voter = el}>
-              <div className="space-y-6">
-                <Card className="border-0 shadow-lg">
-                  <CardContent className="p-0">
-                    <IEBCVoterRegistrationMap showVoterRegistrationInfo={true} />
+              <div className="max-w-4xl mx-auto">
+                {/* iOS-Inspired IEBC Office Finder Section */}
+                <Card className={`relative overflow-hidden transition-all duration-300 border-0 shadow-2xl ${
+                  darkMode 
+                    ? 'bg-gradient-to-br from-gray-800 via-gray-800 to-gray-900' 
+                    : 'bg-gradient-to-br from-white via-green-50/30 to-white'
+                }`}>
+                  <CardContent className="p-12 text-center">
+                    {/* Icon */}
+                    <div className={`inline-flex p-6 rounded-3xl mb-6 transition-colors duration-300 ${
+                      darkMode 
+                        ? 'bg-green-900/30' 
+                        : 'bg-green-100'
+                    }`}>
+                      <MapPin className={`w-16 h-16 ${
+                        darkMode ? 'text-green-400' : 'text-green-600'
+                      }`} />
+                    </div>
+
+                    {/* Heading */}
+                    <h2 className={`text-4xl font-bold mb-4 transition-colors duration-300 ${
+                      darkMode ? 'text-white' : 'text-gray-900'
+                    }`}>
+                      Find Your IEBC Registration Centre
+                    </h2>
+
+                    {/* Description */}
+                    <p className={`text-lg mb-8 max-w-2xl mx-auto transition-colors duration-300 ${
+                      darkMode ? 'text-gray-300' : 'text-gray-600'
+                    }`}>
+                      Visit Nasaka IEBC and discover the nearest voter registration centre in Kenya. 
+                      Get directions, office hours, and contact information.
+                    </p>
+
+                    {/* CTA Button */}
+                    <Button 
+                      onClick={() => navigate('/iebc-office')}
+                      className={`px-8 py-6 text-lg font-semibold rounded-2xl shadow-lg transition-all duration-300 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-green-600 hover:bg-green-500 text-white' 
+                          : 'bg-green-600 hover:bg-green-700 text-white'
+                      }`}
+                    >
+                      <span className="flex items-center gap-3">
+                        Find IEBC Office
+                        <ArrowRight className="w-5 h-5" />
+                      </span>
+                    </Button>
                   </CardContent>
                 </Card>
-                <PythonScriptExecutor />
+
+                {/* Additional Voter Registration Info Cards */}
+                <div className="mt-12">
+                  <h3 className={`text-2xl font-bold mb-6 transition-colors duration-300 ${
+                    darkMode ? 'text-white' : 'text-gray-900'
+                  }`}>
+                    Voter Registration Services
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Verify Registration Card */}
+                    <Card className={`relative overflow-hidden transition-all duration-300 hover:shadow-xl ${
+                      darkMode 
+                        ? 'bg-gray-800 border-gray-700' 
+                        : 'bg-white border-green-200/50'
+                    }`}>
+                      <CardContent className="p-6">
+                        <div className="flex items-center mb-4">
+                          <div className={`p-3 rounded-2xl mr-4 ${
+                            darkMode 
+                              ? 'bg-green-900/30 text-green-400' 
+                              : 'bg-green-100 text-green-600'
+                          }`}>
+                            <UserCheck className="w-6 h-6" />
+                          </div>
+                          <h4 className={`text-xl font-bold ${
+                            darkMode ? 'text-white' : 'text-gray-900'
+                          }`}>
+                            Already Registered?
+                          </h4>
+                        </div>
+                        
+                        <p className={`mb-6 transition-colors duration-300 ${
+                          darkMode ? 'text-gray-300' : 'text-gray-600'
+                        }`}>
+                          Verify your voter registration status with IEBC
+                        </p>
+                        
+                        <Button 
+                          asChild
+                          className={`w-full rounded-xl transition-all duration-300 ${
+                            darkMode 
+                              ? 'bg-green-700 hover:bg-green-600' 
+                              : 'bg-green-600 hover:bg-green-700'
+                          }`}
+                        >
+                          <a 
+                            href="https://verify.iebc.or.ke/" 
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-white"
+                          >
+                            Verify Registration Status
+                          </a>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                    
+                    {/* How To Register Card */}
+                    <Card className={`relative overflow-hidden transition-all duration-300 hover:shadow-xl ${
+                      darkMode 
+                        ? 'bg-gray-800 border-gray-700' 
+                        : 'bg-white border-green-200/50'
+                    }`}>
+                      <CardContent className="p-6">
+                        <div className="flex items-center mb-4">
+                          <div className={`p-3 rounded-2xl mr-4 ${
+                            darkMode 
+                              ? 'bg-green-900/30 text-green-400' 
+                              : 'bg-green-100 text-green-600'
+                          }`}>
+                            <UserPlus className="w-6 h-6" />
+                          </div>
+                          <h4 className={`text-xl font-bold ${
+                            darkMode ? 'text-white' : 'text-gray-900'
+                          }`}>
+                            Become a Voter
+                          </h4>
+                        </div>
+                        
+                        <p className={`mb-6 transition-colors duration-300 ${
+                          darkMode ? 'text-gray-300' : 'text-gray-600'
+                        }`}>
+                          Learn how to register as a voter in Kenya
+                        </p>
+                        
+                        <Button 
+                          asChild
+                          className={`w-full rounded-xl transition-all duration-300 ${
+                            darkMode 
+                              ? 'bg-green-700 hover:bg-green-600' 
+                              : 'bg-green-600 hover:bg-green-700'
+                          }`}
+                        >
+                          <a 
+                            href="https://www.iebc.or.ke/registration/?how" 
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-white"
+                          >
+                            How To Register
+                          </a>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
               </div>
             </div>
           )}
