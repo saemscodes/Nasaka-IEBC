@@ -1,14 +1,17 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { useContributeLocation } from '@/hooks/useContributeLocation';
 import MapContainer from '@/components/IEBCOffice/MapContainer';
+import GeoJSONLayerManager from '@/components/IEBCOffice/GeoJSONLayerManager';
 import UserLocationMarker from '@/components/IEBCOffice/UserLocationMarker';
 import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
 import { supabase } from '@/integrations/supabase/client';
 import L from 'leaflet';
 
 const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [position, setPosition] = useState(null);
   const [accuracy, setAccuracy] = useState(null);
@@ -23,10 +26,13 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const [mapZoom, setMapZoom] = useState(6);
   const [isMapReady, setIsMapReady] = useState(false);
   const [locationError, setLocationError] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [contributionId, setContributionId] = useState(null);
   
   const mapRef = useRef(null);
   const accuracyCircleRef = useRef(null);
   const markerRef = useRef(null);
+  const geoJSONManagerRef = useRef(null);
 
   const {
     getCurrentPosition,
@@ -259,12 +265,13 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       };
 
       const result = await submitContribution(contributionData);
+      setContributionId(result.id);
       
       if (onSuccess) {
         onSuccess(result);
       }
       
-      setStep(4);
+      setShowSuccessModal(true);
     } catch (err) {
       console.error('Submission error:', err);
       setLocationError(err.message);
@@ -281,6 +288,24 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     onSuccess
   ]);
 
+  const handleHardReload = useCallback(() => {
+    // Clear all caches and do hard reload
+    if (caches) {
+      caches.keys().then(names => {
+        names.forEach(name => {
+          caches.delete(name);
+        });
+      });
+    }
+    
+    // Clear localStorage and sessionStorage if needed
+    localStorage.removeItem('iebc-offices-cache');
+    sessionStorage.clear();
+    
+    // Force hard reload
+    window.location.href = window.location.origin + window.location.pathname + '?contribution=' + contributionId + '&reload=' + Date.now();
+  }, [contributionId]);
+
   const resetForm = useCallback(() => {
     setStep(1);
     setPosition(null);
@@ -295,6 +320,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     setMapCenter([-1.286389, 36.817223]);
     setMapZoom(6);
     setIsMapReady(false);
+    setShowSuccessModal(false);
+    setContributionId(null);
 
     if (markerRef.current && mapRef.current) {
       mapRef.current.removeLayer(markerRef.current);
@@ -304,10 +331,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     if (accuracyCircleRef.current && mapRef.current) {
       mapRef.current.removeLayer(accuracyCircleRef.current);
       accuracyCircleRef.current = null;
-    }
-    
-    if (mapRef.current) {
-      mapRef.current = null;
     }
 
     if (imagePreview) {
@@ -330,6 +353,57 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
 
   if (!isOpen) return null;
 
+  const SuccessModal = () => (
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black bg-opacity-50">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-auto"
+      >
+        <div className="p-6 text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            Contribution Submitted Successfully!
+          </h3>
+          
+          <p className="text-gray-600 mb-4">
+            Thank you for helping improve IEBC office locations. Your contribution has been received and will now go through our moderation process.
+          </p>
+
+          <div className="bg-green-50 rounded-xl p-4 mb-6 text-left">
+            <p className="text-sm text-green-700">
+              <strong>What happens next:</strong><br />
+              • Your submission ID: <code className="bg-green-100 px-1 rounded">{contributionId}</code><br />
+              • Our team will verify the location data<br />
+              • If approved, it will be added to the database<br />
+              • This helps build better civic infrastructure for Kenya
+            </p>
+          </div>
+
+          <div className="flex space-x-3">
+            <button
+              onClick={handleClose}
+              className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+            >
+              Continue Browsing
+            </button>
+            <button
+              onClick={handleHardReload}
+              className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors"
+            >
+              Refresh Map
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+
   const modalContent = (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black bg-opacity-50">
       <motion.div
@@ -343,7 +417,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
             {step === 1 && 'Contribute Location'}
             {step === 2 && 'Confirm Location'}
             {step === 3 && 'Additional Information'}
-            {step === 4 && 'Submission Complete'}
           </h2>
           <button
             onClick={handleClose}
@@ -472,6 +545,15 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                   onMapReady={handleMapReady}
                   onClick={handleMapClick}
                 >
+                  {/* Full map with all IEBC offices displayed */}
+                  <GeoJSONLayerManager
+                    activeLayers={['iebc-offices']}
+                    onOfficeSelect={() => {}}
+                    selectedOffice={null}
+                    onNearbyOfficesFound={() => {}}
+                    baseMap="standard"
+                  />
+                  
                   {position && (
                     <UserLocationMarker
                       position={[position.lat, position.lng]}
@@ -603,53 +685,21 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
               </div>
             </div>
           )}
-
-          {/* Step 4: Success */}
-          {step === 4 && (
-            <div className="text-center space-y-6">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Thank You for Your Contribution!
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Your location data has been submitted and will be reviewed by our team. 
-                  This helps improve the accuracy of IEBC office locations for everyone.
-                </p>
-              </div>
-
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-sm text-gray-600">
-                  <strong>What happens next:</strong><br />
-                  • Your submission enters moderation queue<br />
-                  • Our team verifies the location data<br />
-                  • Approved updates appear within 48 hours<br />
-                  • You're helping build better civic infrastructure
-                </p>
-              </div>
-
-              <button
-                onClick={handleClose}
-                className="w-full px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          )}
         </div>
       </motion.div>
     </div>
   );
 
   return createPortal(
-    <AnimatePresence>
-      {isOpen && modalContent}
-    </AnimatePresence>,
+    <>
+      <AnimatePresence>
+        {isOpen && modalContent}
+      </AnimatePresence>
+      
+      <AnimatePresence>
+        {showSuccessModal && <SuccessModal />}
+      </AnimatePresence>
+    </>,
     document.body
   );
 };
