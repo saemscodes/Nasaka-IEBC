@@ -381,7 +381,7 @@ export const useContributeLocation = () => {
           triangulation_weight,
           verified,
           tags,
-          centroid,
+          centroid
           `)
           .eq('verified', true)
           .limit(25);
