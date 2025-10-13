@@ -261,7 +261,7 @@ const SearchBar = ({
               onFocus={handleInputFocus}
               onKeyPress={handleKeyPress}
               placeholder={placeholder}
-              className="w-full bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground text-base py-2 px-1 pr-10"
+              className="w-full bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground text-base py-2 px-1 pr-16"
               style={{ textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }}
               aria-label={placeholder}
             />
