@@ -53,10 +53,15 @@ const IEBCOfficeMap = () => {
   const [baseMap, setBaseMap] = useState('standard');
   const [searchResults, setSearchResults] = useState([]);
   const [accuracyCircle, setAccuracyCircle] = useState(null);
+  const [routeBadgePosition, setRouteBadgePosition] = useState({ x: 0, y: 120 });
+  const [isDraggingRouteBadge, setIsDraggingRouteBadge] = useState(false);
 
   const mapInstanceRef = useRef(null);
   const tileLayersRef = useRef({});
   const accuracyCircleRef = useRef(null);
+  const routeBadgeRef = useRef(null);
+  const dragStartPos = useRef({ x: 0, y: 0 });
+  const badgeStartPos = useRef({ x: 0, y: 0 });
 
   // Initialize map reference
   const handleMapReady = useCallback((map) => {
@@ -334,8 +339,66 @@ const IEBCOfficeMap = () => {
   // Handle contribution success
   const handleContributionSuccess = useCallback((result) => {
     console.log('Contribution submitted successfully:', result);
-    // You can add a toast notification here
   }, []);
+
+  // Route badge drag handlers
+  const handleRouteBadgeMouseDown = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsDraggingRouteBadge(true);
+    dragStartPos.current = {
+      x: e.clientX || e.touches[0].clientX,
+      y: e.clientY || e.touches[0].clientY
+    };
+    badgeStartPos.current = { ...routeBadgePosition };
+    
+    // Add event listeners for drag
+    document.addEventListener('mousemove', handleRouteBadgeMouseMove);
+    document.addEventListener('mouseup', handleRouteBadgeMouseUp);
+    document.addEventListener('touchmove', handleRouteBadgeMouseMove, { passive: false });
+    document.addEventListener('touchend', handleRouteBadgeMouseUp);
+  }, [routeBadgePosition]);
+
+  const handleRouteBadgeMouseMove = useCallback((e) => {
+    if (!isDraggingRouteBadge) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    
+    if (clientX && clientY) {
+      const deltaX = clientX - dragStartPos.current.x;
+      const deltaY = clientY - dragStartPos.current.y;
+      
+      setRouteBadgePosition({
+        x: badgeStartPos.current.x + deltaX,
+        y: badgeStartPos.current.y + deltaY
+      });
+    }
+  }, [isDraggingRouteBadge]);
+
+  const handleRouteBadgeMouseUp = useCallback(() => {
+    setIsDraggingRouteBadge(false);
+    
+    // Remove event listeners
+    document.removeEventListener('mousemove', handleRouteBadgeMouseMove);
+    document.removeEventListener('mouseup', handleRouteBadgeMouseUp);
+    document.removeEventListener('touchmove', handleRouteBadgeMouseMove);
+    document.removeEventListener('touchend', handleRouteBadgeMouseUp);
+  }, [handleRouteBadgeMouseMove]);
+
+  // Cleanup event listeners on unmount
+  useEffect(() => {
+    return () => {
+      document.removeEventListener('mousemove', handleRouteBadgeMouseMove);
+      document.removeEventListener('mouseup', handleRouteBadgeMouseUp);
+      document.removeEventListener('touchmove', handleRouteBadgeMouseMove);
+      document.removeEventListener('touchend', handleRouteBadgeMouseUp);
+    };
+  }, [handleRouteBadgeMouseMove, handleRouteBadgeMouseUp]);
 
   if (loading) {
     return (
@@ -430,6 +493,7 @@ const IEBCOfficeMap = () => {
         </motion.div>
       </div>
 
+      {/* Fixed Badge Container - For non-draggable badges */}
       <div className="fixed-badge-container">
         <AnimatePresence>
           {isSearchingNearby && (
@@ -443,32 +507,6 @@ const IEBCOfficeMap = () => {
                 <LoadingSpinner size="small" />
                 <span className="text-sm font-medium">Searching nearby offices...</span>
               </div>
-            </motion.div>
-          )}
-
-          {currentRoute && currentRoute.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="route-badge cursor-pointer"
-              onClick={() => {
-                if (selectedOffice) {
-                  setBottomSheetState('expanded');
-                }
-              }}
-            >
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium">
-                  {currentRoute.length} route{currentRoute.length > 1 ? 's' : ''} found
-                </span>
-              </div>
-              {currentRoute[0] && (
-                <div className="text-muted-foreground text-xs mt-1">
-                  Best: {(currentRoute[0].summary.totalDistance / 1000).toFixed(1)} km, {Math.round(currentRoute[0].summary.totalTime / 60)} min
-                </div>
-              )}
             </motion.div>
           )}
 
@@ -490,6 +528,61 @@ const IEBCOfficeMap = () => {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Draggable Route Badge */}
+      <AnimatePresence>
+        {currentRoute && currentRoute.length > 0 && (
+          <motion.div
+            ref={routeBadgeRef}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ 
+              opacity: 1, 
+              y: 0,
+              x: routeBadgePosition.x,
+              y: routeBadgePosition.y
+            }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{
+              type: "spring",
+              stiffness: 500,
+              damping: 30,
+              mass: 1
+            }}
+            className={`route-badge-draggable cursor-move touch-none select-none ${
+              isDraggingRouteBadge ? 'shadow-2xl scale-105' : 'shadow-lg'
+            }`}
+            style={{
+              position: 'fixed',
+              left: 0,
+              top: 0,
+              transform: `translate(${routeBadgePosition.x}px, ${routeBadgePosition.y}px)`,
+              zIndex: 1000
+            }}
+            onMouseDown={handleRouteBadgeMouseDown}
+            onTouchStart={handleRouteBadgeMouseDown}
+            onClick={(e) => {
+              // Only trigger click if not dragging (small movement threshold)
+              if (!isDraggingRouteBadge && selectedOffice) {
+                setBottomSheetState('expanded');
+              }
+            }}
+          >
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium">
+                {currentRoute.length} route{currentRoute.length > 1 ? 's' : ''} found
+              </span>
+            </div>
+            {currentRoute[0] && (
+              <div className="text-muted-foreground text-xs mt-1">
+                Best: {(currentRoute[0].summary.totalDistance / 1000).toFixed(1)} km, {Math.round(currentRoute[0].summary.totalTime / 60)} min
+              </div>
+            )}
+            {/* Drag handle indicator */}
+            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-1 bg-gray-400 rounded-full opacity-60"></div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Map Container - Isolated */}
       <MapContainer
