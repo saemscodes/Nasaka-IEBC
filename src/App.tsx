@@ -13,20 +13,16 @@ import TermsAndConditions from "./pages/TermsAndConditions";
 import VerifySignature from "./pages/VerifySignature";
 import VoterRegistrationPage from "@/pages/VoterRegistration";
 import { IEBCOfficeSplash, IEBCOfficeMap } from './pages/IEBCOffice';
-import AdminLogin from './pages/Admin/AdminLogin';
-import AdminPortal from './pages/Admin/AdminPortal';
 import ContributionModeration from './pages/Admin/ContributionModeration';
-import UserManagement from './pages/Admin/UserManagement';
-import AnalyticsDashboard from './pages/Admin/AnalyticsDashboard';
-import ProtectedRoute from './components/Admin/ProtectedRoute';
+import AdminDashboard from './pages/Admin/AdminDashboard';
 import './styles/iebc-office.css';
 
-// Enhanced Query Client for IEBC Data
+// ✅ ENHANCED QUERY CLIENT FOR IEBC DATA
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,
-      gcTime: 10 * 60 * 1000,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
       retry: 2,
       refetchOnWindowFocus: false,
     },
@@ -34,71 +30,33 @@ const queryClient = new QueryClient({
 });
 
 const AppContent = () => {
-  useLenis();
+  // Initialize Lenis smooth scrolling
+  const { lenis } = useLenis();
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Routes */}
         <Route path="/" element={<Index />} />
         <Route path="/sign/:id" element={<SignPetition />} />
         <Route path="/verify" element={<VerifySignature />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsAndConditions />} />
         
-        {/* IEBC Voter Registration Routes */}
+        {/* ✅ IEBC VOTER REGISTRATION ROUTES */}
         <Route path="/voter-registration" element={<VoterRegistrationPage />} />
         <Route path="/iebc-offices" element={<VoterRegistrationPage />} />
         <Route path="/register-to-vote" element={<VoterRegistrationPage />} />
 
-        {/* IEBC Office Finder Routes */}
+        {/* ✅ IEBC OFFICE FINDER ROUTES */}
         <Route path="/iebc-office" element={<IEBCOfficeSplash />} />
         <Route path="/nasaka-iebc" element={<IEBCOfficeSplash />} />
         <Route path="/iebc-office/map" element={<IEBCOfficeMap />} />
         
-        {/* Admin Routes with Protection */}
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route 
-          path="/admin" 
-          element={
-            <ProtectedRoute>
-              <AdminPortal />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/admin/contributions" 
-          element={
-            <ProtectedRoute>
-              <ContributionModeration />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/admin/users" 
-          element={
-            <ProtectedRoute>
-              <UserManagement />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/admin/analytics" 
-          element={
-            <ProtectedRoute>
-              <AnalyticsDashboard />
-            </ProtectedRoute>
-          } 
-        />
+        {/* ✅ ADMIN PROTECTED ROUTES */}
+        <Route path="/admin/contributions" element={<ContributionModeration />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
         
-        {/* Redirect any unknown admin routes to admin portal */}
-        <Route path="/admin/*" element={
-          <ProtectedRoute>
-            <AdminPortal />
-          </ProtectedRoute>
-        } />
-        
-        {/* Catch-all Route */}
+        {/* ✅ ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
