@@ -21,7 +21,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const [nearbyOffices, setNearbyOffices] = useState([]);
   const [useTriangulation, setUseTriangulation] = useState(true);
   const [agreement, setAgreement] = useState(false);
-  const [mapCenter, setMapCenter] = useState([-1.286389, 36.817223]);
+  const [mapCenter, setMapCenter] = useState([-1.286389, 36.817223]); // Default: Nairobi coordinates
   const [mapZoom, setMapZoom] = useState(6);
   const [isMapReady, setIsMapReady] = useState(false);
   const [locationError, setLocationError] = useState(null);
@@ -96,7 +96,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     markerRef.current.on('dragend', (event) => {
       const newPosition = event.target.getLatLng();
       setPosition({ lat: newPosition.lat, lng: newPosition.lng });
-      setAccuracy(5);
+      setAccuracy(5); // Manual placement has high accuracy
     });
   }, []);
 
@@ -107,6 +107,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       mapRef.current.removeLayer(accuracyCircleRef.current);
     }
 
+    // Limit accuracy circle to maximum 1000 meters (1km)
     const limitedAccuracy = Math.min(accuracy, 1000);
     
     accuracyCircleRef.current = L.circle([position.lat, position.lng], {
@@ -123,7 +124,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     if (userLocation?.latitude && userLocation?.longitude) {
       const userPos = { lat: userLocation.latitude, lng: userLocation.longitude };
       setPosition(userPos);
-      setAccuracy(Math.min(userLocation.accuracy, 1000));
+      setAccuracy(Math.min(userLocation.accuracy, 1000)); // Limit to 1km
       setMapCenter([userLocation.latitude, userLocation.longitude]);
       setMapZoom(16);
       
@@ -148,7 +149,11 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     setIsCapturingLocation(true);
     
     try {
+      console.log('Starting location capture process...');
+      
       const pos = await getCurrentPosition();
+      console.log('Raw position data:', pos);
+      
       const capturedPosition = { lat: pos.latitude, lng: pos.longitude };
       const limitedAccuracy = Math.min(pos.accuracy, 1000);
       
@@ -165,18 +170,28 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         addAccuracyCircle(capturedPosition, limitedAccuracy);
       }
       
+      // Use triangulation if enabled
       if (useTriangulation) {
+        console.log('Using triangulation to improve accuracy...');
         const landmarks = await findNearbyLandmarks(pos.latitude, pos.longitude);
+        console.log('Found nearby landmarks:', landmarks);
         setNearbyOffices(landmarks);
         
         if (landmarks.length > 0) {
           const triangulationPoints = [
             { latitude: pos.latitude, longitude: pos.longitude, accuracy: limitedAccuracy },
-            ...landmarks.map(l => ({ latitude: l.latitude, longitude: l.longitude, accuracy: 10 }))
+            ...landmarks.map(l => ({ 
+              latitude: l.latitude, 
+              longitude: l.longitude, 
+              accuracy: 10 // Assume known landmarks have high accuracy
+            }))
           ];
           
+          console.log('Calculating weighted position with points:', triangulationPoints);
           const improvedPosition = calculateWeightedPosition(triangulationPoints);
+          
           if (improvedPosition) {
+            console.log('Improved position calculated:', improvedPosition);
             const improvedPos = { lat: improvedPosition.latitude, lng: improvedPosition.longitude };
             setPosition(improvedPos);
             
@@ -185,21 +200,26 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                 duration: 1
               });
               addMarkerToMap(improvedPos);
-              addAccuracyCircle(improvedPos, limitedAccuracy);
+              addAccuracyCircle(improvedPos, Math.min(improvedPosition.accuracy, limitedAccuracy));
             }
           }
+        } else {
+          console.log('No nearby landmarks found for triangulation');
         }
       }
       
       setStep(2);
+      console.log('Location capture completed successfully');
+      
     } catch (err) {
       console.error('Error capturing location:', err);
-      setLocationError(err.message);
+      setLocationError(err.message || 'Failed to capture location. Please try again.');
       
+      // Fallback to default center
       if (mapRef.current) {
         const defaultCenter = userLocation ? 
           [userLocation.latitude, userLocation.longitude] : 
-          [-1.286389, 36.817223];
+          [-1.286389, 36.817223]; // Nairobi coordinates
         mapRef.current.flyTo(defaultCenter, 10, { duration: 1 });
       }
     } finally {
@@ -220,29 +240,37 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     if (!file) return;
 
     try {
+      console.log('Processing selected image:', file.name, file.size);
+      
       if (!file.type.startsWith('image/')) {
-        throw new Error('Please select an image file');
+        throw new Error('Please select a valid image file (JPEG, PNG, etc.)');
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        throw new Error('Image must be smaller than 5MB');
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error('Image must be smaller than 10MB');
       }
 
+      console.log('Converting image to WebP format...');
       const webpFile = await convertImageToWebP(file);
       setImageFile(webpFile);
       
       const previewUrl = URL.createObjectURL(webpFile);
       setImagePreview(previewUrl);
+      
+      console.log('Image processed successfully');
+
     } catch (err) {
       console.error('Error processing image:', err);
       setLocationError(err.message);
+      // Reset file input
+      event.target.value = '';
     }
   }, [convertImageToWebP]);
 
   const handleMapClick = useCallback((e) => {
     const clickedPosition = { lat: e.latlng.lat, lng: e.latlng.lng };
     setPosition(clickedPosition);
-    setAccuracy(100);
+    setAccuracy(100); // Manual placement has 100m accuracy
     
     if (mapRef.current) {
       mapRef.current.flyTo([e.latlng.lat, e.latlng.lng], 16, {
@@ -254,9 +282,14 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   }, [addMarkerToMap, addAccuracyCircle]);
 
   const handleSubmit = useCallback(async () => {
-    if (!position || !agreement) return;
+    if (!position || !agreement) {
+      setLocationError('Please agree to the terms and ensure location is captured');
+      return;
+    }
 
     try {
+      console.log('Starting contribution submission...');
+      
       const contributionData = {
         latitude: position.lat,
         longitude: position.lng,
@@ -272,6 +305,13 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         timestamp: Date.now()
       };
 
+      console.log('Contribution data prepared:', {
+        coordinates: `${contributionData.latitude}, ${contributionData.longitude}`,
+        accuracy: contributionData.accuracy,
+        hasImage: !!contributionData.imageFile,
+        notesLength: contributionData.landmark?.length
+      });
+
       const result = await submitContribution(contributionData);
       setContributionId(result.id);
       setSubmissionSuccess(true);
@@ -281,9 +321,11 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       }
       
       setStep(4);
+      console.log('Contribution submitted successfully with ID:', result.id);
+      
     } catch (err) {
       console.error('Submission error:', err);
-      setLocationError(err.message);
+      setLocationError(err.message || 'Failed to submit contribution. Please try again.');
     }
   }, [
     position, 
@@ -298,11 +340,14 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   ]);
 
   const handleHardReload = useCallback(() => {
-    if (window.location.href.indexOf('?') > -1) {
-      window.location.href = window.location.href.split('?')[0] + '?contribution_success=' + contributionId + '&t=' + Date.now();
-    } else {
-      window.location.href = window.location.href + '?contribution_success=' + contributionId + '&t=' + Date.now();
-    }
+    console.log('Performing hard reload with contribution success parameter');
+    
+    // Clear cache and reload with contribution success parameter
+    const url = new URL(window.location.href);
+    url.searchParams.set('contribution_success', contributionId);
+    url.searchParams.set('t', Date.now().toString());
+    
+    window.location.href = url.toString();
   }, [contributionId]);
 
   const handleSuccessModalClose = useCallback(() => {
@@ -311,6 +356,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   }, [handleHardReload]);
 
   const resetForm = useCallback(() => {
+    console.log('Resetting contribution form...');
+    
     setStep(1);
     setPosition(null);
     setAccuracy(null);
@@ -345,10 +392,12 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   }, [imagePreview]);
 
   const handleClose = useCallback(() => {
+    console.log('Closing contribution modal');
     resetForm();
     onClose();
   }, [resetForm, onClose]);
 
+  // Cleanup image preview URLs
   useEffect(() => {
     return () => {
       if (imagePreview) {
@@ -357,29 +406,32 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     };
   }, [imagePreview]);
 
+  // Show success modal when submission is successful
   useEffect(() => {
     if (submissionSuccess && step === 4) {
+      console.log('Showing success modal for contribution:', contributionId);
       const timer = setTimeout(() => {
         setShowSuccessModal(true);
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [submissionSuccess, step]);
+  }, [submissionSuccess, step, contributionId]);
 
   if (!isOpen) return null;
 
   const modalContent = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-[var(--z-index-max)] flex items-center justify-center p-4 bg-black bg-opacity-50">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col"
+        style={{ zIndex: 'var(--z-index-max)' }}
       >
         <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">
-            {step === 1 && 'Contribute Location'}
-            {step === 2 && 'Confirm Location'}
+            {step === 1 && 'Contribute IEBC Office Location'}
+            {step === 2 && 'Confirm Location Accuracy'}
             {step === 3 && 'Additional Information'}
             {step === 4 && 'Submission Complete'}
           </h2>
@@ -423,10 +475,10 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                   </svg>
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Help Improve IEBC Office Locations
+                  Help Improve IEBC Office Locations in Kenya
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  Contribute accurate location data for IEBC offices. Your submission will help others find polling stations more easily.
+                  Contribute accurate location data for IEBC offices across Kenya. Your submission will help citizens find polling stations and registration centers more easily during elections.
                 </p>
               </div>
 
@@ -438,8 +490,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     </svg>
                   </div>
                   <div className="text-sm text-green-700">
-                    <p className="font-medium">Privacy Notice</p>
-                    <p>We only collect location data and optional photos. No personal information is stored. All submissions are moderated before being published.</p>
+                    <p className="font-medium">Privacy & Data Protection</p>
+                    <p>We only collect location coordinates and optional photos. No personal identification information is stored. All submissions are moderated by the IEBC before being published to ensure accuracy and integrity.</p>
                   </div>
                 </div>
               </div>
@@ -453,7 +505,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     className="rounded border-gray-300 text-green-600 focus:ring-green-500"
                   />
                   <span className="text-sm text-gray-700">
-                    Use advanced location accuracy (recommended)
+                    Use advanced location accuracy (recommended for better precision)
                   </span>
                 </label>
 
@@ -465,7 +517,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     className="rounded border-gray-300 text-green-600 focus:ring-green-500"
                   />
                   <span className="text-sm text-gray-700">
-                    I agree to contribute anonymous location data for public benefit
+                    I agree to contribute anonymous location data for public civic benefit in Kenya
                   </span>
                 </label>
               </div>
@@ -500,13 +552,13 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Confirm the Location
+                  Confirm the IEBC Office Location
                 </h3>
                 <p className="text-gray-600">
-                  {accuracy ? `Accuracy: ±${Math.round(accuracy)} meters` : 'Tap on the map to place the marker'}
+                  {accuracy ? `Estimated accuracy: ±${Math.round(accuracy)} meters` : 'Tap on the map to place the marker'}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">
-                  Drag the marker to adjust the exact location
+                  Drag the green marker to adjust the exact location if needed
                 </p>
               </div>
 
@@ -518,6 +570,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                   onMapReady={handleMapReady}
                   onClick={handleMapClick}
                 >
+                  {/* Show all IEBC offices on the map */}
                   <GeoJSONLayerManager
                     activeLayers={['iebc-offices']}
                     onOfficeSelect={() => {}}
@@ -526,6 +579,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     baseMap="standard"
                   />
 
+                  {/* User current location marker */}
                   {userLocation && (
                     <UserLocationMarker
                       position={[userLocation.latitude, userLocation.longitude]}
@@ -533,6 +587,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     />
                   )}
 
+                  {/* Contribution marker */}
                   {position && (
                     <UserLocationMarker
                       position={[position.lat, position.lng]}
@@ -544,15 +599,15 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
               </div>
 
               {nearbyOffices.length > 0 && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm font-medium text-gray-700 mb-2">
-                    Nearby IEBC Offices Found:
+                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                  <p className="text-sm font-medium text-blue-700 mb-2">
+                    📍 Nearby IEBC Offices Found:
                   </p>
                   <div className="space-y-2">
                     {nearbyOffices.slice(0, 3).map((office) => (
                       <div key={office.id} className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">{office.name}</span>
-                        <span className="text-gray-500">{Math.round(office.distance_m)}m away</span>
+                        <span className="text-blue-600">{office.office_location}</span>
+                        <span className="text-blue-500 font-medium">{Math.round(office.distance_m)}m away</span>
                       </div>
                     ))}
                   </div>
@@ -585,14 +640,14 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                   Additional Information
                 </h3>
                 <p className="text-gray-600">
-                  Add a photo or notes to help verify the location (optional)
+                  Add a photo or descriptive notes to help verify this IEBC office location (optional but helpful)
                 </p>
               </div>
 
               {/* Image Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Photo of the Office
+                  Photo of the IEBC Office
                 </label>
                 <div className="flex items-center space-x-4">
                   <label className="flex-1 cursor-pointer">
@@ -608,18 +663,28 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                       <p className="text-sm text-gray-600">
-                        {imageFile ? 'Photo selected' : 'Take or upload a photo'}
+                        {imageFile ? 'Photo selected' : 'Take or upload a photo of the office'}
                       </p>
+                      <p className="text-xs text-gray-500 mt-1">Max 10MB • JPEG, PNG, WebP</p>
                     </div>
                   </label>
                   
                   {imagePreview && (
-                    <div className="flex-shrink-0 w-20 h-20">
+                    <div className="flex-shrink-0 w-20 h-20 relative">
                       <img
                         src={imagePreview}
-                        alt="Preview"
+                        alt="IEBC office preview"
                         className="w-full h-full object-cover rounded-lg"
                       />
+                      <button
+                        onClick={() => {
+                          setImageFile(null);
+                          setImagePreview(null);
+                        }}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
+                      >
+                        ×
+                      </button>
                     </div>
                   )}
                 </div>
@@ -628,16 +693,19 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
               {/* Notes */}
               <div>
                 <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
-                  Additional Notes
+                  Additional Notes & Landmarks
                 </label>
                 <textarea
                   id="notes"
                   rows={3}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Any landmarks, building details, or other information..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-green-500 focus:border-green-500"
+                  placeholder="Describe nearby landmarks, building details, signage, or any other information that can help identify this IEBC office..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-green-500 focus:border-green-500 resize-none"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Example: "Next to the chief's camp, blue building with IEBC flag"
+                </p>
               </div>
 
               <div className="flex space-x-3 pt-4">
@@ -655,7 +723,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                   {isSubmitting ? (
                     <>
                       <LoadingSpinner size="small" className="mr-2" />
-                      Submitting...
+                      Submitting to IEBC...
                     </>
                   ) : (
                     'Submit Contribution'
@@ -678,27 +746,27 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                   
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      Contribution Successfully Submitted!
+                      Contribution Successfully Submitted to IEBC!
                     </h3>
                     <p className="text-gray-600 mb-4">
-                      Your location data has been successfully submitted and is now in our moderation queue.
+                      Your IEBC office location data has been successfully submitted and is now in the moderation queue for verification.
                     </p>
                   </div>
 
                   <div className="bg-green-50 rounded-xl p-4 border border-green-200">
                     <p className="text-sm text-green-700 text-left">
-                      <strong className="block mb-2">What happens next:</strong>
-                      <span className="block mb-1">✓ Your submission enters our moderation queue</span>
-                      <span className="block mb-1">✓ Our team will verify the location data for accuracy</span>
-                      <span className="block mb-1">✓ Once approved, it will be added to the official database</span>
-                      <span className="block">✓ You'll be helping thousands of Kenyans find accurate IEBC office locations</span>
+                      <strong className="block mb-2">Next Steps in the Process:</strong>
+                      <span className="block mb-1">✓ Your submission enters IEBC moderation queue</span>
+                      <span className="block mb-1">✓ IEBC team verifies location data for accuracy</span>
+                      <span className="block mb-1">✓ Once approved, it will be added to official IEBC database</span>
+                      <span className="block">✓ You'll be helping Kenyan citizens find accurate polling locations</span>
                     </p>
                   </div>
 
                   <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
                     <p className="text-sm text-blue-700 text-left">
-                      <strong className="block mb-1">Contribution ID: #{contributionId}</strong>
-                      <span>Keep this reference number for any inquiries about your submission.</span>
+                      <strong className="block mb-1">Contribution ID: IEBC-CONT-{contributionId}</strong>
+                      <span>Keep this reference number for any inquiries about your submission to the IEBC.</span>
                     </p>
                   </div>
 
@@ -720,7 +788,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
               ) : (
                 <div className="py-8">
                   <LoadingSpinner size="large" />
-                  <p className="text-gray-600 mt-4">Processing your contribution...</p>
+                  <p className="text-gray-600 mt-4">Processing your IEBC office contribution...</p>
                 </div>
               )}
             </div>
@@ -730,13 +798,15 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     </div>
   );
 
+  // Success Modal (shows after contribution is submitted)
   const successModalContent = showSuccessModal && (
-    <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-[calc(var(--z-index-max)+1)] flex items-center justify-center p-4 bg-black bg-opacity-50">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-auto p-6 text-center"
+        style={{ zIndex: 'calc(var(--z-index-max) + 1)' }}
       >
         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -745,26 +815,26 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         </div>
         
         <h3 className="text-xl font-semibold text-gray-900 mb-2">
-          Thank You for Your Contribution!
+          Thank You for Your Civic Contribution!
         </h3>
         
         <p className="text-gray-600 mb-4">
-          Your IEBC office location data has been successfully submitted and will be reviewed by our moderation team.
+          Your IEBC office location data has been successfully submitted to the Independent Electoral and Boundaries Commission and will be reviewed by the moderation team.
         </p>
 
         <div className="bg-green-50 rounded-lg p-4 mb-4 text-left">
           <p className="text-sm text-green-700">
-            <strong>Next Steps:</strong><br />
-            • Submission enters moderation queue<br />
+            <strong>Contribution Process:</strong><br />
+            • Submission received by IEBC<br />
             • Team verifies location accuracy<br />
-            • Approved data added to database<br />
-            • Helps improve civic infrastructure
+            • Approved data added to official database<br />
+            • Helps improve electoral infrastructure in Kenya
           </p>
         </div>
 
         <div className="bg-blue-50 rounded-lg p-3 mb-4">
           <p className="text-sm text-blue-700">
-            <strong>Reference:</strong> Contribution #{contributionId}
+            <strong>IEBC Reference:</strong> Contribution #{contributionId}
           </p>
         </div>
 
