@@ -1,3 +1,4 @@
+// src/components/IEBCOffice/ContributeLocationModal.js
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
@@ -27,6 +28,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
   const [contributionId, setContributionId] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isCapturingLocation, setIsCapturingLocation] = useState(false);
   
   const mapRef = useRef(null);
   const accuracyCircleRef = useRef(null);
@@ -105,7 +107,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       mapRef.current.removeLayer(accuracyCircleRef.current);
     }
 
-    // Limit accuracy circle to maximum 1000 meters (1km)
     const limitedAccuracy = Math.min(accuracy, 1000);
     
     accuracyCircleRef.current = L.circle([position.lat, position.lng], {
@@ -122,7 +123,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     if (userLocation?.latitude && userLocation?.longitude) {
       const userPos = { lat: userLocation.latitude, lng: userLocation.longitude };
       setPosition(userPos);
-      setAccuracy(Math.min(userLocation.accuracy, 1000)); // Limit to 1km
+      setAccuracy(Math.min(userLocation.accuracy, 1000));
       setMapCenter([userLocation.latitude, userLocation.longitude]);
       setMapZoom(16);
       
@@ -144,12 +145,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
 
   const captureLocation = useCallback(async () => {
     setLocationError(null);
-
-    console.log({
-      getCurrentPosition: typeof getCurrentPosition,
-      findNearbyLandmarks: typeof findNearbyLandmarks,
-      calculateWeightedPosition: typeof calculateWeightedPosition
-    });
+    setIsCapturingLocation(true);
     
     try {
       const pos = await getCurrentPosition();
@@ -206,6 +202,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
           [-1.286389, 36.817223];
         mapRef.current.flyTo(defaultCenter, 10, { duration: 1 });
       }
+    } finally {
+      setIsCapturingLocation(false);
     }
   }, [
     getCurrentPosition, 
@@ -244,7 +242,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const handleMapClick = useCallback((e) => {
     const clickedPosition = { lat: e.latlng.lat, lng: e.latlng.lng };
     setPosition(clickedPosition);
-    setAccuracy(100); // Manual placement has 100m accuracy
+    setAccuracy(100);
     
     if (mapRef.current) {
       mapRef.current.flyTo([e.latlng.lat, e.latlng.lng], 16, {
@@ -300,7 +298,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   ]);
 
   const handleHardReload = useCallback(() => {
-    // Clear cache and reload with contribution success parameter
     if (window.location.href.indexOf('?') > -1) {
       window.location.href = window.location.href.split('?')[0] + '?contribution_success=' + contributionId + '&t=' + Date.now();
     } else {
@@ -330,6 +327,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     setSubmissionSuccess(false);
     setContributionId(null);
     setShowSuccessModal(false);
+    setIsCapturingLocation(false);
 
     if (markerRef.current && mapRef.current) {
       mapRef.current.removeLayer(markerRef.current);
@@ -339,10 +337,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     if (accuracyCircleRef.current && mapRef.current) {
       mapRef.current.removeLayer(accuracyCircleRef.current);
       accuracyCircleRef.current = null;
-    }
-    
-    if (mapRef.current) {
-      mapRef.current = null;
     }
 
     if (imagePreview) {
@@ -363,7 +357,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     };
   }, [imagePreview]);
 
-  // Show success modal when submission is successful
   useEffect(() => {
     if (submissionSuccess && step === 4) {
       const timer = setTimeout(() => {
@@ -376,13 +369,12 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   if (!isOpen) return null;
 
   const modalContent = (
-    <div className="fixed inset-0 z-[var(--z-index-max)] flex items-center justify-center p-4 bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col"
-        style={{ zIndex: 'var(--z-index-max)' }}
       >
         <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">
@@ -394,6 +386,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
           <button
             onClick={handleClose}
             className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
+            disabled={isSubmitting}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -486,10 +479,17 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                 </button>
                 <button
                   onClick={captureLocation}
-                  disabled={!agreement}
-                  className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  disabled={!agreement || isCapturingLocation}
+                  className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                 >
-                  Capture Location
+                  {isCapturingLocation ? (
+                    <>
+                      <LoadingSpinner size="small" className="mr-2" />
+                      Capturing Location...
+                    </>
+                  ) : (
+                    'Capture Location'
+                  )}
                 </button>
               </div>
             </div>
@@ -518,7 +518,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                   onMapReady={handleMapReady}
                   onClick={handleMapClick}
                 >
-                  {/* Show all IEBC offices on the map */}
                   <GeoJSONLayerManager
                     activeLayers={['iebc-offices']}
                     onOfficeSelect={() => {}}
@@ -527,7 +526,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     baseMap="standard"
                   />
 
-                  {/* User location marker */}
                   {userLocation && (
                     <UserLocationMarker
                       position={[userLocation.latitude, userLocation.longitude]}
@@ -535,7 +533,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     />
                   )}
 
-                  {/* Contribution marker */}
                   {position && (
                     <UserLocationMarker
                       position={[position.lat, position.lng]}
@@ -733,15 +730,13 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     </div>
   );
 
-  // Success Modal (shows after contribution is submitted)
   const successModalContent = showSuccessModal && (
-    <div className="fixed inset-0 z-[calc(var(--z-index-max)+1)] flex items-center justify-center p-4 bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black bg-opacity-50">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-auto p-6 text-center"
-        style={{ zIndex: 'calc(var(--z-index-max) + 1)' }}
       >
         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
