@@ -6,6 +6,88 @@ export const useContributeLocation = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
+  // Helper function to calculate distance between two coordinates (Haversine formula)
+  const calculateDistance = useCallback((lat1, lon1, lat2, lon2) => {
+    const R = 6371000; // Earth's radius in meters
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }, []);
+
+  // Calculate bearing between two points
+  const calculateBearing = useCallback((lat1, lon1, lat2, lon2) => {
+    const lat1Rad = (lat1 * Math.PI) / 180;
+    const lat2Rad = (lat2 * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
+    const y = Math.sin(dLon) * Math.cos(lat2Rad);
+    const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - 
+              Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLon);
+    
+    let bearing = Math.atan2(y, x);
+    bearing = (bearing * 180) / Math.PI;
+    bearing = (bearing + 360) % 360;
+
+    return bearing;
+  }, []);
+
+  // Get direction description from bearing
+  const getDirectionFromBearing = useCallback((bearing) => {
+    const directions = ['North', 'North-East', 'East', 'South-East', 'South', 'South-West', 'West', 'North-West'];
+    const index = Math.round(bearing / 45) % 8;
+    return `${directions[index]} of your position`;
+  }, []);
+
+  // Determine side of road based on latitude difference
+  const determineSideOfRoad = useCallback((userLat, landmarkLat) => {
+    const diff = landmarkLat - userLat;
+    if (Math.abs(diff) < 0.00001) return 'on_road';
+    return diff > 0 ? 'east_side' : 'west_side';
+  }, []);
+
+  // Enhanced landmark quality calculation
+  const calculateLandmarkQuality = useCallback((landmark, distance, maxRadius) => {
+    let quality = 0.5; // Base quality
+
+    // Distance factor (closer is better, but not too close for triangulation)
+    const optimalDistance = maxRadius * 0.3; // 30% of search radius
+    const distanceScore = Math.max(0, 1 - Math.abs(distance - optimalDistance) / optimalDistance);
+    quality += distanceScore * 0.3;
+
+    // Verification factor
+    if (landmark.verified) quality += 0.2;
+
+    // Type-based factors
+    const typeWeights = {
+      'government': 0.9,
+      'infrastructure': 0.85,
+      'physical_feature': 0.8,
+      'commercial': 0.7,
+      'public_facility': 0.75,
+      'unique': 0.8
+    };
+    
+    const landmarkType = landmark.landmark_type || 'government';
+    quality += (typeWeights[landmarkType] || 0.5) * 0.2;
+
+    // Accuracy factor
+    const accuracy = landmark.typical_accuracy_meters || landmark.accuracy_meters || 20;
+    const accuracyScore = Math.max(0, 1 - (accuracy / 50));
+    quality += accuracyScore * 0.2;
+
+    return Math.min(1, quality);
+  }, []);
+
+  // Validate coordinate
+  const isValidCoordinate = useCallback((lat, lng) => {
+    return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+  }, []);
+
   // Get current position using browser geolocation
   const getCurrentPosition = useCallback(() => {
     return new Promise((resolve, reject) => {
@@ -62,122 +144,186 @@ export const useContributeLocation = () => {
         radiusMeters 
       });
 
-      // Query for optimal triangulation landmarks
-      const { data: landmarks, error: landmarksError } = await supabase
-        .rpc('get_optimal_triangulation_landmarks', {
-          p_lat: latitude,
-          p_lng: longitude,
-          p_radius_meters: radiusMeters,
-          p_max_landmarks: 8
-        });
+      // First try the enhanced triangulation function
+      try {
+        const { data: landmarks, error: landmarksError } = await supabase
+          .rpc('get_optimal_triangulation_landmarks', {
+            p_lat: latitude,
+            p_lng: longitude,
+            p_radius_meters: radiusMeters,
+            p_max_landmarks: 8
+          });
 
-      if (landmarksError) {
-        console.error('Error fetching triangulation landmarks:', landmarksError);
-        
-        // Fallback to basic IEBC offices query
-        const { data: basicLandmarks, error: fallbackError } = await supabase
-          .from('iebc_offices')
-          .select('*')
-          .eq('verified', true)
-          .limit(20);
-
-        if (fallbackError) {
-          throw new Error(`Failed to fetch landmarks: ${fallbackError.message}`);
+        if (!landmarksError && landmarks && landmarks.length > 0) {
+          console.log('Found enhanced triangulation landmarks:', landmarks);
+          return landmarks;
         }
+        
+        if (landmarksError) {
+          console.warn('Enhanced triangulation failed, falling back to basic method:', landmarksError);
+        }
+      } catch (rpcError) {
+        console.warn('RPC call failed, using fallback method:', rpcError);
+      }
 
-        // Enhanced client-side processing with bearing calculation
-        const landmarksWithMetadata = basicLandmarks.map(landmark => {
-          const distance = calculateDistance(
-            latitude,
-            longitude,
-            landmark.verified_latitude || landmark.latitude,
-            landmark.verified_longitude || landmark.longitude
-          );
+      // Fallback: Use basic IEBC offices with enhanced client-side processing
+      console.log('Using fallback landmark detection...');
+      
+      const { data: basicLandmarks, error: fallbackError } = await supabase
+        .from('iebc_offices')
+        .select('*')
+        .eq('verified', true)
+        .limit(25);
+
+      if (fallbackError) {
+        console.error('Fallback query failed:', fallbackError);
+        throw new Error(`Failed to fetch landmarks: ${fallbackError.message}`);
+      }
+
+      if (!basicLandmarks || basicLandmarks.length === 0) {
+        console.warn('No landmarks found in fallback query');
+        return [];
+      }
+
+      // Enhanced client-side processing with bearing and quality calculation
+      const landmarksWithMetadata = basicLandmarks
+        .map(landmark => {
+          const landmarkLat = landmark.verified_latitude || landmark.latitude;
+          const landmarkLng = landmark.verified_longitude || landmark.longitude;
           
-          const bearing = calculateBearing(
-            latitude,
-            longitude,
-            landmark.verified_latitude || landmark.latitude,
-            landmark.verified_longitude || landmark.longitude
-          );
+          // Skip invalid coordinates
+          if (!landmarkLat || !landmarkLng) {
+            console.warn('Landmark missing coordinates:', landmark.id);
+            return null;
+          }
 
+          const distance = calculateDistance(latitude, longitude, landmarkLat, landmarkLng);
+          
+          // Skip if too far
+          if (distance > radiusMeters) {
+            return null;
+          }
+          
+          const bearing = calculateBearing(latitude, longitude, landmarkLat, landmarkLng);
           const qualityScore = calculateLandmarkQuality(landmark, distance, radiusMeters);
 
           return {
-            ...landmark,
-            distance_m: distance,
-            distance_km: distance / 1000,
+            id: landmark.id,
+            landmark_id: landmark.id,
+            landmark_name: landmark.office_location,
+            landmark_type: 'government',
+            landmark_subtype: 'iebc_office',
+            latitude: landmarkLat,
+            longitude: landmarkLng,
+            distance_meters: distance,
             bearing_degrees: bearing,
+            triangulation_weight: 0.8, // Default weight for IEBC offices
             quality_score: qualityScore,
             direction_description: getDirectionFromBearing(bearing),
-            side_of_road: determineSideOfRoad(latitude, landmark.verified_latitude || landmark.latitude)
+            side_of_road: determineSideOfRoad(latitude, landmarkLat),
+            // Include original data for compatibility
+            ...landmark
           };
         })
-        .filter(landmark => landmark.distance_m <= radiusMeters)
+        .filter(landmark => landmark !== null)
         .sort((a, b) => b.quality_score - a.quality_score)
-        .slice(0, 6);
+        .slice(0, 8); // Return top 8 landmarks
 
-        return landmarksWithMetadata;
-      }
-
-      console.log('Found triangulation landmarks:', landmarks);
-      return landmarks || [];
+      console.log('Processed fallback landmarks:', landmarksWithMetadata);
+      return landmarksWithMetadata;
 
     } catch (err) {
       console.error('Error in findOptimalTriangulationLandmarks:', err);
       throw new Error(`Failed to find triangulation landmarks: ${err.message}`);
     }
-  }, []);
+  }, [calculateDistance, calculateBearing, calculateLandmarkQuality, getDirectionFromBearing, determineSideOfRoad]);
 
-  // Enhanced triangulation with vector-based weighted average
-  const calculateEnhancedTriangulation = useCallback((userPosition, landmarks) => {
-    if (!landmarks || !Array.isArray(landmarks) || landmarks.length < 3) {
-      console.warn('Insufficient landmarks for enhanced triangulation');
-      return userPosition; // Fallback to raw GPS
+  // Original weighted position calculation (kept for compatibility)
+  const calculateWeightedPosition = useCallback((points) => {
+    if (!points || !Array.isArray(points) || points.length === 0) {
+      console.warn('No points provided for weighted position calculation');
+      return null;
     }
 
     try {
-      console.log('Performing enhanced triangulation with', landmarks.length, 'landmarks');
+      let totalWeight = 0;
+      let weightedLat = 0;
+      let weightedLng = 0;
 
-      // Select optimal landmarks for triangulation (best quality and distribution)
-      const optimalLandmarks = selectOptimalTriangulationSet(landmarks);
-      
-      if (optimalLandmarks.length < 3) {
-        console.warn('Not enough optimal landmarks, using basic weighted average');
-        return calculateWeightedPosition([userPosition, ...landmarks.slice(0, 2)]);
-      }
+      points.forEach(point => {
+        if (!point.latitude || !point.longitude) {
+          console.warn('Invalid point in triangulation data:', point);
+          return;
+        }
 
-      // Method 1: Vector-based triangulation
-      const vectorResult = vectorBasedTriangulation(userPosition, optimalLandmarks);
-      
-      // Method 2: Quality-weighted centroid
-      const centroidResult = calculateQualityWeightedCentroid(optimalLandmarks);
-      
-      // Method 3: GPS accuracy weighted position (fallback)
-      const gpsWeightedResult = calculateWeightedPosition([userPosition]);
-
-      // Combine results based on confidence
-      const finalResult = combineTriangulationMethods(
-        vectorResult, 
-        centroidResult, 
-        gpsWeightedResult, 
-        optimalLandmarks
-      );
-
-      console.log('Enhanced triangulation result:', {
-        inputGPS: userPosition,
-        vectorResult,
-        centroidResult,
-        gpsWeightedResult,
-        finalResult,
-        landmarksUsed: optimalLandmarks.length
+        // Use inverse of accuracy as weight (higher accuracy = higher weight)
+        const accuracy = point.accuracy || 50;
+        const weight = 1 / Math.max(accuracy, 1);
+        
+        weightedLat += point.latitude * weight;
+        weightedLng += point.longitude * weight;
+        totalWeight += weight;
       });
 
-      return finalResult;
+      if (totalWeight === 0) {
+        console.warn('Total weight is zero, using first point as fallback');
+        return {
+          latitude: points[0].latitude,
+          longitude: points[0].longitude,
+          accuracy: points[0].accuracy || 50
+        };
+      }
+
+      const result = {
+        latitude: weightedLat / totalWeight,
+        longitude: weightedLng / totalWeight,
+        accuracy: Math.min(...points.map(p => p.accuracy || 50))
+      };
+
+      console.log('Weighted position calculated:', result);
+      return result;
 
     } catch (err) {
-      console.error('Error in enhanced triangulation:', err);
-      return calculateWeightedPosition([userPosition, ...landmarks.slice(0, 2)]);
+      console.error('Error calculating weighted position:', err);
+      return null;
+    }
+  }, []);
+
+  // Calculate intersection point of two vectors
+  const calculateVectorIntersection = useCallback((vector1, vector2) => {
+    try {
+      // Convert bearings to radians
+      const bearing1 = (vector1.bearing * Math.PI) / 180;
+      const bearing2 = (vector2.bearing * Math.PI) / 180;
+
+      // Calculate intersection using spherical geometry
+      const lat1 = (vector1.fromLat * Math.PI) / 180;
+      const lng1 = (vector1.fromLng * Math.PI) / 180;
+      const lat2 = (vector2.fromLat * Math.PI) / 180;
+      const lng2 = (vector2.fromLng * Math.PI) / 180;
+
+      // Simplified intersection calculation
+      const denominator = Math.sin(bearing1) * Math.cos(bearing2) - Math.cos(bearing1) * Math.sin(bearing2);
+      
+      if (Math.abs(denominator) < 1e-10) {
+        return null; // Vectors are parallel
+      }
+
+      // Calculate intersection point
+      const numerator = (lat2 - lat1) * Math.sin(bearing2) - (lng2 - lng1) * Math.cos(bearing2);
+      const t = numerator / denominator;
+
+      const intersectionLat = lat1 + t * Math.sin(bearing1);
+      const intersectionLng = lng1 + t * Math.cos(bearing1);
+
+      return {
+        lat: (intersectionLat * 180) / Math.PI,
+        lng: (intersectionLng * 180) / Math.PI
+      };
+
+    } catch (err) {
+      console.error('Error calculating vector intersection:', err);
+      return null;
     }
   }, []);
 
@@ -244,45 +390,7 @@ export const useContributeLocation = () => {
       landmarks_used: landmarks.length,
       intersections_calculated: intersectionPoints.length
     };
-  }, []);
-
-  // Calculate intersection point of two vectors
-  const calculateVectorIntersection = useCallback((vector1, vector2) => {
-    try {
-      // Convert bearings to radians
-      const bearing1 = (vector1.bearing * Math.PI) / 180;
-      const bearing2 = (vector2.bearing * Math.PI) / 180;
-
-      // Calculate intersection using spherical geometry
-      const lat1 = (vector1.fromLat * Math.PI) / 180;
-      const lng1 = (vector1.fromLng * Math.PI) / 180;
-      const lat2 = (vector2.fromLat * Math.PI) / 180;
-      const lng2 = (vector2.fromLng * Math.PI) / 180;
-
-      // Simplified intersection calculation
-      const denominator = Math.sin(bearing1) * Math.cos(bearing2) - Math.cos(bearing1) * Math.sin(bearing2);
-      
-      if (Math.abs(denominator) < 1e-10) {
-        return null; // Vectors are parallel
-      }
-
-      // Calculate intersection point
-      const numerator = (lat2 - lat1) * Math.sin(bearing2) - (lng2 - lng1) * Math.cos(bearing2);
-      const t = numerator / denominator;
-
-      const intersectionLat = lat1 + t * Math.sin(bearing1);
-      const intersectionLng = lng1 + t * Math.cos(bearing1);
-
-      return {
-        lat: (intersectionLat * 180) / Math.PI,
-        lng: (intersectionLng * 180) / Math.PI
-      };
-
-    } catch (err) {
-      console.error('Error calculating vector intersection:', err);
-      return null;
-    }
-  }, []);
+  }, [calculateVectorIntersection, isValidCoordinate, calculateDistance]);
 
   // Select optimal landmarks for triangulation
   const selectOptimalTriangulationSet = useCallback((landmarks) => {
@@ -386,126 +494,59 @@ export const useContributeLocation = () => {
     };
   }, []);
 
-  // Original weighted position calculation (kept for compatibility)
-  const calculateWeightedPosition = useCallback((points) => {
-    if (!points || !Array.isArray(points) || points.length === 0) {
-      console.warn('No points provided for weighted position calculation');
-      return null;
+  // Enhanced triangulation with vector-based weighted average
+  const calculateEnhancedTriangulation = useCallback((userPosition, landmarks) => {
+    if (!landmarks || !Array.isArray(landmarks) || landmarks.length < 3) {
+      console.warn('Insufficient landmarks for enhanced triangulation');
+      return userPosition; // Fallback to raw GPS
     }
 
     try {
-      let totalWeight = 0;
-      let weightedLat = 0;
-      let weightedLng = 0;
+      console.log('Performing enhanced triangulation with', landmarks.length, 'landmarks');
 
-      points.forEach(point => {
-        if (!point.latitude || !point.longitude) {
-          console.warn('Invalid point in triangulation data:', point);
-          return;
-        }
-
-        // Use inverse of accuracy as weight (higher accuracy = higher weight)
-        const accuracy = point.accuracy || 50;
-        const weight = 1 / Math.max(accuracy, 1);
-        
-        weightedLat += point.latitude * weight;
-        weightedLng += point.longitude * weight;
-        totalWeight += weight;
-      });
-
-      if (totalWeight === 0) {
-        console.warn('Total weight is zero, using first point as fallback');
-        return {
-          latitude: points[0].latitude,
-          longitude: points[0].longitude,
-          accuracy: points[0].accuracy || 50
-        };
+      // Select optimal landmarks for triangulation (best quality and distribution)
+      const optimalLandmarks = selectOptimalTriangulationSet(landmarks);
+      
+      if (optimalLandmarks.length < 3) {
+        console.warn('Not enough optimal landmarks, using basic weighted average');
+        return calculateWeightedPosition([userPosition, ...landmarks.slice(0, 2)]);
       }
 
-      const result = {
-        latitude: weightedLat / totalWeight,
-        longitude: weightedLng / totalWeight,
-        accuracy: Math.min(...points.map(p => p.accuracy || 50))
-      };
+      // Method 1: Vector-based triangulation
+      const vectorResult = vectorBasedTriangulation(userPosition, optimalLandmarks);
+      
+      // Method 2: Quality-weighted centroid
+      const centroidResult = calculateQualityWeightedCentroid(optimalLandmarks);
+      
+      // Method 3: GPS accuracy weighted position (fallback)
+      const gpsWeightedResult = calculateWeightedPosition([userPosition]);
 
-      console.log('Weighted position calculated:', result);
-      return result;
+      // Combine results based on confidence
+      const finalResult = combineTriangulationMethods(
+        vectorResult, 
+        centroidResult, 
+        gpsWeightedResult, 
+        optimalLandmarks
+      );
+
+      console.log('Enhanced triangulation result:', {
+        inputGPS: userPosition,
+        vectorResult,
+        centroidResult,
+        gpsWeightedResult,
+        finalResult,
+        landmarksUsed: optimalLandmarks.length
+      });
+
+      return finalResult;
 
     } catch (err) {
-      console.error('Error calculating weighted position:', err);
-      return null;
+      console.error('Error in enhanced triangulation:', err);
+      return calculateWeightedPosition([userPosition, ...landmarks.slice(0, 2)]);
     }
-  }, []);
+  }, [selectOptimalTriangulationSet, calculateWeightedPosition, vectorBasedTriangulation, calculateQualityWeightedCentroid, combineTriangulationMethods]);
 
-  // Enhanced landmark quality calculation
-  const calculateLandmarkQuality = useCallback((landmark, distance, maxRadius) => {
-    let quality = 0.5; // Base quality
-
-    // Distance factor (closer is better, but not too close for triangulation)
-    const optimalDistance = maxRadius * 0.3; // 30% of search radius
-    const distanceScore = Math.max(0, 1 - Math.abs(distance - optimalDistance) / optimalDistance);
-    quality += distanceScore * 0.3;
-
-    // Verification factor
-    if (landmark.verified) quality += 0.2;
-
-    // Type-based factors
-    const typeWeights = {
-      'government': 0.9,
-      'infrastructure': 0.85,
-      'physical_feature': 0.8,
-      'commercial': 0.7,
-      'public_facility': 0.75,
-      'unique': 0.8
-    };
-    
-    quality += (typeWeights[landmark.landmark_type] || 0.5) * 0.2;
-
-    // Accuracy factor
-    const accuracy = landmark.typical_accuracy_meters || landmark.accuracy_meters || 20;
-    const accuracyScore = Math.max(0, 1 - (accuracy / 50));
-    quality += accuracyScore * 0.2;
-
-    return Math.min(1, quality);
-  }, []);
-
-  // Calculate bearing between two points
-  const calculateBearing = useCallback((lat1, lon1, lat2, lon2) => {
-    const lat1Rad = (lat1 * Math.PI) / 180;
-    const lat2Rad = (lat2 * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-
-    const y = Math.sin(dLon) * Math.cos(lat2Rad);
-    const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - 
-              Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLon);
-    
-    let bearing = Math.atan2(y, x);
-    bearing = (bearing * 180) / Math.PI;
-    bearing = (bearing + 360) % 360;
-
-    return bearing;
-  }, []);
-
-  // Get direction description from bearing
-  const getDirectionFromBearing = useCallback((bearing) => {
-    const directions = ['North', 'North-East', 'East', 'South-East', 'South', 'South-West', 'West', 'North-West'];
-    const index = Math.round(bearing / 45) % 8;
-    return `${directions[index]} of your position`;
-  }, []);
-
-  // Determine side of road based on latitude difference
-  const determineSideOfRoad = useCallback((userLat, landmarkLat) => {
-    const diff = landmarkLat - userLat;
-    if (Math.abs(diff) < 0.00001) return 'on_road';
-    return diff > 0 ? 'east_side' : 'west_side';
-  }, []);
-
-  // Validate coordinate
-  const isValidCoordinate = useCallback((lat, lng) => {
-    return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
-  }, []);
-
-  // Convert image to WebP format (unchanged from original)
+  // Convert image to WebP format
   const convertImageToWebP = useCallback((file, quality = 0.8) => {
     return new Promise((resolve, reject) => {
       if (!file.type.startsWith('image/')) {
@@ -567,7 +608,7 @@ export const useContributeLocation = () => {
     });
   }, []);
 
-  // Submit contribution to database (unchanged from original)
+  // Submit contribution to database
   const submitContribution = useCallback(async (contributionData) => {
     setIsSubmitting(true);
     setError(null);
@@ -707,25 +748,12 @@ export const useContributeLocation = () => {
     }
   }, []);
 
-  // Helper function to calculate distance between two coordinates (Haversine formula)
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371000; // Earth's radius in meters
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-  };
-
   return {
     // Core functions
     getCurrentPosition,
-    findNearbyLandmarks: findOptimalTriangulationLandmarks, // Enhanced version
+    findNearbyLandmarks: findOptimalTriangulationLandmarks,
     calculateWeightedPosition,
-    calculateEnhancedTriangulation, // New enhanced triangulation
+    calculateEnhancedTriangulation,
     convertImageToWebP,
     submitContribution,
     
@@ -737,7 +765,9 @@ export const useContributeLocation = () => {
     calculateDistance,
     calculateBearing,
     calculateLandmarkQuality,
-    getDirectionFromBearing
+    getDirectionFromBearing,
+    determineSideOfRoad,
+    isValidCoordinate
   };
 };
 
