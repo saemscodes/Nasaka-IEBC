@@ -108,6 +108,18 @@ const IEBCOfficeSplash = () => {
     }
   };
 
+  const subheadlineVariants = {
+    initial: { opacity: 0, y: 20 },
+    animate: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        delay: 0.3,
+        duration: 0.5
+      }
+    }
+  };
+
   return (
     <motion.div
       className="relative flex flex-col items-center justify-center min-h-screen bg-white px-6 overflow-hidden"
@@ -150,7 +162,7 @@ const IEBCOfficeSplash = () => {
         </motion.div>
         
         <motion.div
-          className="mb-8"
+          className="mb-4"
           variants={headlineVariants}
           initial="initial"
           animate="animate"
@@ -167,11 +179,20 @@ const IEBCOfficeSplash = () => {
           </div>
         </motion.div>
 
+        <motion.h2
+          className="text-2xl font-semibold text-ios-gray-900 mb-3"
+          variants={subheadlineVariants}
+          initial="initial"
+          animate="animate"
+        >
+          Find Your Nearest IEBC Office
+        </motion.h2>
+
         <motion.p
           className="text-ios-gray-600 mb-8 text-base"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.4 }}
         >
           Allow location access to find the closest IEBC registration center and get turn-by-turn navigation.
         </motion.p>
@@ -200,7 +221,7 @@ const IEBCOfficeSplash = () => {
           className="flex flex-col space-y-3"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.5 }}
         >
           <motion.button
             whileTap={{ scale: 0.95 }}
@@ -236,7 +257,7 @@ const IEBCOfficeSplash = () => {
           className="text-ios-gray-500 text-xs mt-8"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.6 }}
         >
           Your location data is processed locally and never stored on our servers.
         </motion.p>
