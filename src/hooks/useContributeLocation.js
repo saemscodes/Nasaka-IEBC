@@ -91,7 +91,7 @@ export const useContributeLocation = () => {
   }, []);
 
   // Generate location key for deduplication
-  const generateLocationKey = useCallback((lat, lng, radius = 2000) => {
+  const generateLocationKey = useCallback((lat, lng, radius = 10000) => {
     // Round to 3 decimal places (~100m precision) for deduplication
     const roundedLat = Math.round(lat * 1000) / 1000;
     const roundedLng = Math.round(lng * 1000) / 1000;
@@ -99,7 +99,7 @@ export const useContributeLocation = () => {
   }, []);
 
   // Automatic OSM data fetching for new locations
-  const fetchOSMDataForLocation = useCallback(async (latitude, longitude, radiusMeters = 2000) => {
+  const fetchOSMDataForLocation = useCallback(async (latitude, longitude, radiusMeters = 10000) => {
     const locationKey = generateLocationKey(latitude, longitude, radiusMeters);
     
     // Check if we've already fetched data for this location
