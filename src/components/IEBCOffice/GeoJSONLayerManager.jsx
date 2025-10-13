@@ -159,9 +159,9 @@ const GeoJSONLayerManager = ({
         fillOpacity: 0.1
       }
     },
-    'counties': {
-      name: 'County Boundaries',
-      url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/counties.geojson',
+    'healthcare-facilities': {
+      name: 'Healthcare Facilities across the Country',
+      url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/healthcare_facilities.geojson',
       type: 'geojson',
       style: {
         color: '#7c3aed',
