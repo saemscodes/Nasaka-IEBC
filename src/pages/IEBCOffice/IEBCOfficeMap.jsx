@@ -11,6 +11,7 @@ import LayerControlPanel from '@/components/IEBCOffice/LayerControlPanel';
 import OfficeBottomSheet from '@/components/IEBCOffice/OfficeBottomSheet';
 import OfficeListPanel from '@/components/IEBCOffice/OfficeListPanel';
 import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
+import ContributeLocationButton from '@/components/IEBCOffice/ContributeLocationButton';
 import { useIEBCOffices } from '@/hooks/useIEBCOffices';
 import { useMapControls } from '@/hooks/useMapControls';
 import { findNearestOffice, findNearestOffices } from '@/utils/geoUtils';
@@ -51,9 +52,11 @@ const IEBCOfficeMap = () => {
   const [isPanelBackdropVisible, setIsPanelBackdropVisible] = useState(false);
   const [baseMap, setBaseMap] = useState('standard');
   const [searchResults, setSearchResults] = useState([]);
+  const [accuracyCircle, setAccuracyCircle] = useState(null);
 
   const mapInstanceRef = useRef(null);
   const tileLayersRef = useRef({});
+  const accuracyCircleRef = useRef(null);
 
   // Initialize map reference
   const handleMapReady = useCallback((map) => {
@@ -102,11 +105,36 @@ const IEBCOfficeMap = () => {
     }
   }, [baseMap]);
 
-  // Set initial map center
+  // Set initial map center and create accuracy circle
   useEffect(() => {
     if (userLocation?.latitude && userLocation?.longitude) {
       flyToLocation(userLocation.latitude, userLocation.longitude, 14);
+      
+      // Create accuracy circle if accuracy data is available
+      if (userLocation.accuracy && mapInstanceRef.current) {
+        // Remove existing accuracy circle
+        if (accuracyCircleRef.current) {
+          mapInstanceRef.current.removeLayer(accuracyCircleRef.current);
+        }
+        
+        // Create new accuracy circle
+        accuracyCircleRef.current = L.circle([userLocation.latitude, userLocation.longitude], {
+          radius: userLocation.accuracy,
+          color: '#007AFF',
+          fillColor: '#007AFF',
+          fillOpacity: 0.1,
+          weight: 1,
+          opacity: 0.6
+        }).addTo(mapInstanceRef.current);
+      }
     }
+
+    // Cleanup function to remove accuracy circle
+    return () => {
+      if (accuracyCircleRef.current && mapInstanceRef.current) {
+        mapInstanceRef.current.removeLayer(accuracyCircleRef.current);
+      }
+    };
   }, [userLocation, flyToLocation]);
 
   // Enhanced office selection
@@ -303,6 +331,12 @@ const IEBCOfficeMap = () => {
     }
   }, [isListPanelOpen, isLayerPanelOpen]);
 
+  // Handle contribution success
+  const handleContributionSuccess = useCallback((result) => {
+    console.log('Contribution submitted successfully:', result);
+    // You can add a toast notification here
+  }, []);
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background">
@@ -355,6 +389,12 @@ const IEBCOfficeMap = () => {
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="flex flex-col space-y-3"
         >
+          {/* Contribute Location Button */}
+          <ContributeLocationButton 
+            userLocation={userLocation}
+            onSuccess={handleContributionSuccess}
+          />
+
           <button
             onClick={openLayerPanel}
             className="ios-control-btn"
@@ -460,7 +500,7 @@ const IEBCOfficeMap = () => {
         onMapReady={handleMapReady}
         onDoubleTap={handleDoubleTap}
       >
-        {/* User Location Marker */}
+        {/* User Location Marker with Accuracy Circle */}
         <UserLocationMarker
           position={userLocation ? [userLocation.latitude, userLocation.longitude] : null}
           accuracy={userLocation?.accuracy}
