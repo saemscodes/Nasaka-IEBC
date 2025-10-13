@@ -245,65 +245,7 @@
 }
 
 /* ============================================
-   5. DRAGGABLE ROUTE BADGE - FIXED IMPLEMENTATION
-   ============================================ */
-
-.route-badge-draggable {
-  background: hsl(var(--card));
-  backdrop-filter: blur(20px) saturate(180%);
-  border-radius: calc(var(--radius) - 2px);
-  padding: 12px 16px;
-  border: 1px solid hsl(var(--border));
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  max-width: 300px;
-  color: hsl(var(--foreground));
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  touch-action: none;
-  cursor: grab;
-  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-  position: fixed;
-  z-index: 1000;
-}
-
-.route-badge-draggable.dragging {
-  cursor: grabbing;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.18);
-  transform: scale(1.05);
-  transition: all 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.route-badge-draggable:active {
-  cursor: grabbing;
-}
-
-/* Drag handle indicator */
-.route-badge-draggable .drag-handle {
-  position: absolute;
-  bottom: -4px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 24px;
-  height: 3px;
-  background: hsl(var(--muted-foreground) / 0.4);
-  border-radius: 2px;
-  transition: opacity 0.2s ease, background-color 0.2s ease;
-}
-
-.route-badge-draggable:hover .drag-handle {
-  opacity: 0.8;
-  background: hsl(var(--muted-foreground) / 0.6);
-}
-
-.route-badge-draggable.dragging .drag-handle {
-  background: hsl(var(--primary));
-  opacity: 1;
-}
-
-/* ============================================
-   6. PANEL BACKDROP - CRITICAL FIX
+   5. PANEL BACKDROP - CRITICAL FIX
    ============================================ */
 
 /* Panel Backdrop - ABOVE MAP, BELOW ALL CONTROLS */
@@ -329,7 +271,7 @@
 }
 
 /* ============================================
-   7. SIDE PANELS - ABOVE BACKDROP, BELOW CONTROLS
+   6. SIDE PANELS - ABOVE BACKDROP, BELOW CONTROLS
    ============================================ */
 
 /* List Panel - Slides from left */
@@ -383,7 +325,7 @@
 }
 
 /* ============================================
-   8. BOTTOM SHEET - PEEK DECK STYLE
+   7. BOTTOM SHEET - PEEK DECK STYLE
    ============================================ */
 
 .office-bottom-sheet {
@@ -449,6 +391,43 @@
   padding: 0 20px 20px;
   overflow-y: auto;
   max-height: calc(70vh - 80px);
+}
+
+/* ============================================
+   8. SEARCH SUGGESTIONS - FIXED Z-INDEX
+   ============================================ */
+
+.search-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: hsl(var(--card));
+  backdrop-filter: blur(20px) saturate(180%);
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  margin-top: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: var(--z-fixed-search); /* SAME as search bar - 1000 */
+}
+
+.search-suggestion-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid hsl(var(--border) / 0.1);
+  transition: background-color 0.2s ease;
+  color: hsl(var(--foreground));
+}
+
+.search-suggestion-item:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.search-suggestion-item:last-child {
+  border-bottom: none;
 }
 
 /* ============================================
@@ -564,10 +543,6 @@
   
   .office-bottom-sheet.expanded {
     max-height: 85vh;
-  }
-  
-  .route-badge-draggable {
-    max-width: 280px;
   }
 }
 
@@ -724,4 +699,56 @@
 
 .animate-slide-up {
   animation: slide-up 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Draggable Route Badge Styles */
+.route-badge-draggable {
+  @apply bg-white rounded-2xl px-4 py-3 border border-gray-200 backdrop-blur-sm bg-white/95;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.route-badge-draggable:active {
+  @apply shadow-2xl scale-105;
+  transition: all 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* iOS-like smooth cursor */
+.cursor-move {
+  cursor: grab;
+}
+
+.cursor-move:active {
+  cursor: grabbing;
+}
+
+/* Fixed badge container positioning */
+.fixed-badge-container {
+  @apply fixed top-24 left-6 right-6 z-30 space-y-3;
+}
+
+.fixed-controls-container {
+  @apply fixed top-24 right-6 z-40;
+}
+
+.fixed-search-container {
+  @apply fixed top-6 left-6 right-6 z-40;
+}
+
+.search-indicator {
+  @apply bg-white rounded-2xl px-4 py-3 shadow-lg border border-gray-200 backdrop-blur-sm bg-white/95;
+}
+
+.error-notification {
+  @apply bg-red-50 border border-red-200 rounded-2xl px-4 py-3 shadow-lg backdrop-blur-sm;
+}
+
+.panel-backdrop {
+  @apply fixed inset-0 bg-black bg-opacity-50 z-40 backdrop-blur-sm;
+}
+
+.ios-control-btn {
+  @apply w-12 h-12 rounded-2xl bg-white shadow-lg border border-gray-200 flex items-center justify-center transition-all duration-200 hover:shadow-xl active:scale-95 backdrop-blur-sm bg-white/95;
 }
