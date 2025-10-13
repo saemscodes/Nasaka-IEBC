@@ -26,6 +26,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const [locationError, setLocationError] = useState(null);
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
   const [contributionId, setContributionId] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   
   const mapRef = useRef(null);
   const accuracyCircleRef = useRef(null);
@@ -104,8 +105,11 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       mapRef.current.removeLayer(accuracyCircleRef.current);
     }
 
+    // Limit accuracy circle to maximum 1000 meters (1km)
+    const limitedAccuracy = Math.min(accuracy, 1000);
+    
     accuracyCircleRef.current = L.circle([position.lat, position.lng], {
-      radius: accuracy,
+      radius: limitedAccuracy,
       color: '#34C759',
       fillColor: '#34C759',
       fillOpacity: 0.1,
@@ -118,7 +122,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     if (userLocation?.latitude && userLocation?.longitude) {
       const userPos = { lat: userLocation.latitude, lng: userLocation.longitude };
       setPosition(userPos);
-      setAccuracy(userLocation.accuracy);
+      setAccuracy(Math.min(userLocation.accuracy, 1000)); // Limit to 1km
       setMapCenter([userLocation.latitude, userLocation.longitude]);
       setMapZoom(16);
       
@@ -127,7 +131,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
           duration: 1
         });
         addMarkerToMap(userPos);
-        addAccuracyCircle(userPos, userLocation.accuracy);
+        addAccuracyCircle(userPos, Math.min(userLocation.accuracy, 1000));
       }
     }
   }, [userLocation, addMarkerToMap, addAccuracyCircle]);
@@ -143,9 +147,10 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     try {
       const pos = await getCurrentPosition();
       const capturedPosition = { lat: pos.latitude, lng: pos.longitude };
+      const limitedAccuracy = Math.min(pos.accuracy, 1000);
       
       setPosition(capturedPosition);
-      setAccuracy(pos.accuracy);
+      setAccuracy(limitedAccuracy);
       setMapCenter([pos.latitude, pos.longitude]);
       setMapZoom(16);
 
@@ -154,7 +159,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
           duration: 1
         });
         addMarkerToMap(capturedPosition);
-        addAccuracyCircle(capturedPosition, pos.accuracy);
+        addAccuracyCircle(capturedPosition, limitedAccuracy);
       }
       
       if (useTriangulation) {
@@ -163,7 +168,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         
         if (landmarks.length > 0) {
           const triangulationPoints = [
-            { latitude: pos.latitude, longitude: pos.longitude, accuracy: pos.accuracy },
+            { latitude: pos.latitude, longitude: pos.longitude, accuracy: limitedAccuracy },
             ...landmarks.map(l => ({ latitude: l.latitude, longitude: l.longitude, accuracy: 10 }))
           ];
           
@@ -177,7 +182,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                 duration: 1
               });
               addMarkerToMap(improvedPos);
-              addAccuracyCircle(improvedPos, pos.accuracy);
+              addAccuracyCircle(improvedPos, limitedAccuracy);
             }
           }
         }
@@ -232,14 +237,14 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const handleMapClick = useCallback((e) => {
     const clickedPosition = { lat: e.latlng.lat, lng: e.latlng.lng };
     setPosition(clickedPosition);
-    setAccuracy(10);
+    setAccuracy(100); // Manual placement has 100m accuracy
     
     if (mapRef.current) {
       mapRef.current.flyTo([e.latlng.lat, e.latlng.lng], 16, {
         duration: 0.5
       });
       addMarkerToMap(clickedPosition);
-      addAccuracyCircle(clickedPosition, 10);
+      addAccuracyCircle(clickedPosition, 100);
     }
   }, [addMarkerToMap, addAccuracyCircle]);
 
@@ -288,12 +293,18 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   ]);
 
   const handleHardReload = useCallback(() => {
+    // Clear cache and reload with contribution success parameter
     if (window.location.href.indexOf('?') > -1) {
       window.location.href = window.location.href.split('?')[0] + '?contribution_success=' + contributionId + '&t=' + Date.now();
     } else {
       window.location.href = window.location.href + '?contribution_success=' + contributionId + '&t=' + Date.now();
     }
   }, [contributionId]);
+
+  const handleSuccessModalClose = useCallback(() => {
+    setShowSuccessModal(false);
+    handleHardReload();
+  }, [handleHardReload]);
 
   const resetForm = useCallback(() => {
     setStep(1);
@@ -311,6 +322,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     setIsMapReady(false);
     setSubmissionSuccess(false);
     setContributionId(null);
+    setShowSuccessModal(false);
 
     if (markerRef.current && mapRef.current) {
       mapRef.current.removeLayer(markerRef.current);
@@ -344,15 +356,26 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     };
   }, [imagePreview]);
 
+  // Show success modal when submission is successful
+  useEffect(() => {
+    if (submissionSuccess && step === 4) {
+      const timer = setTimeout(() => {
+        setShowSuccessModal(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [submissionSuccess, step]);
+
   if (!isOpen) return null;
 
   const modalContent = (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-[var(--z-index-max)] flex items-center justify-center p-4 bg-black bg-opacity-50">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col"
+        style={{ zIndex: 'var(--z-index-max)' }}
       >
         <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">
@@ -501,7 +524,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                   {userLocation && (
                     <UserLocationMarker
                       position={[userLocation.latitude, userLocation.longitude]}
-                      accuracy={userLocation.accuracy}
+                      accuracy={Math.min(userLocation.accuracy, 1000)}
                     />
                   )}
 
@@ -638,48 +661,44 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
             </div>
           )}
 
-          {/* Step 4: Success */}
+          {/* Step 4: Processing/Success */}
           {step === 4 && (
             <div className="text-center space-y-6">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {submissionSuccess ? 'Contribution Successfully Submitted!' : 'Processing Submission...'}
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  {submissionSuccess ? 
-                    'Your location data has been successfully submitted and is now in our moderation queue.' : 
-                    'Please wait while we process your submission...'}
-                </p>
-              </div>
+              {submissionSuccess ? (
+                <>
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Contribution Successfully Submitted!
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Your location data has been successfully submitted and is now in our moderation queue.
+                    </p>
+                  </div>
 
-              <div className="bg-green-50 rounded-xl p-4 border border-green-200">
-                <p className="text-sm text-green-700 text-left">
-                  <strong className="block mb-2">What happens next:</strong>
-                  <span className="block mb-1">✓ Your submission enters our moderation queue</span>
-                  <span className="block mb-1">✓ Our team will verify the location data for accuracy</span>
-                  <span className="block mb-1">✓ Once approved, it will be added to the official database</span>
-                  <span className="block">✓ You'll be helping thousands of Kenyans find accurate IEBC office locations</span>
-                </p>
-              </div>
+                  <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+                    <p className="text-sm text-green-700 text-left">
+                      <strong className="block mb-2">What happens next:</strong>
+                      <span className="block mb-1">✓ Your submission enters our moderation queue</span>
+                      <span className="block mb-1">✓ Our team will verify the location data for accuracy</span>
+                      <span className="block mb-1">✓ Once approved, it will be added to the official database</span>
+                      <span className="block">✓ You'll be helping thousands of Kenyans find accurate IEBC office locations</span>
+                    </p>
+                  </div>
 
-              {submissionSuccess && (
-                <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-                  <p className="text-sm text-blue-700 text-left">
-                    <strong className="block mb-1">Contribution ID: #{contributionId}</strong>
-                    <span>Keep this reference number for any inquiries about your submission.</span>
-                  </p>
-                </div>
-              )}
+                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                    <p className="text-sm text-blue-700 text-left">
+                      <strong className="block mb-1">Contribution ID: #{contributionId}</strong>
+                      <span>Keep this reference number for any inquiries about your submission.</span>
+                    </p>
+                  </div>
 
-              <div className="flex space-x-3 pt-2">
-                {submissionSuccess ? (
-                  <>
+                  <div className="flex space-x-3 pt-2">
                     <button
                       onClick={handleClose}
                       className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-xl font-medium hover:bg-gray-200 transition-colors"
@@ -692,14 +711,14 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     >
                       Reload Map & See Updates
                     </button>
-                  </>
-                ) : (
-                  <div className="w-full flex items-center justify-center py-4">
-                    <LoadingSpinner size="medium" />
-                    <span className="ml-2 text-gray-600">Processing your contribution...</span>
                   </div>
-                )}
-              </div>
+                </>
+              ) : (
+                <div className="py-8">
+                  <LoadingSpinner size="large" />
+                  <p className="text-gray-600 mt-4">Processing your contribution...</p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -707,10 +726,65 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     </div>
   );
 
+  // Success Modal (shows after contribution is submitted)
+  const successModalContent = showSuccessModal && (
+    <div className="fixed inset-0 z-[calc(var(--z-index-max)+1)] flex items-center justify-center p-4 bg-black bg-opacity-50">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-auto p-6 text-center"
+        style={{ zIndex: 'calc(var(--z-index-max) + 1)' }}
+      >
+        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          Thank You for Your Contribution!
+        </h3>
+        
+        <p className="text-gray-600 mb-4">
+          Your IEBC office location data has been successfully submitted and will be reviewed by our moderation team.
+        </p>
+
+        <div className="bg-green-50 rounded-lg p-4 mb-4 text-left">
+          <p className="text-sm text-green-700">
+            <strong>Next Steps:</strong><br />
+            • Submission enters moderation queue<br />
+            • Team verifies location accuracy<br />
+            • Approved data added to database<br />
+            • Helps improve civic infrastructure
+          </p>
+        </div>
+
+        <div className="bg-blue-50 rounded-lg p-3 mb-4">
+          <p className="text-sm text-blue-700">
+            <strong>Reference:</strong> Contribution #{contributionId}
+          </p>
+        </div>
+
+        <button
+          onClick={handleSuccessModalClose}
+          className="w-full px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors"
+        >
+          Reload Map & Continue
+        </button>
+      </motion.div>
+    </div>
+  );
+
   return createPortal(
-    <AnimatePresence>
-      {isOpen && modalContent}
-    </AnimatePresence>,
+    <>
+      <AnimatePresence>
+        {isOpen && modalContent}
+      </AnimatePresence>
+      <AnimatePresence>
+        {successModalContent}
+      </AnimatePresence>
+    </>,
     document.body
   );
 };
