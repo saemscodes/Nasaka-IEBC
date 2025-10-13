@@ -53,7 +53,7 @@ const IEBCOfficeMap = () => {
   const [baseMap, setBaseMap] = useState('standard');
   const [searchResults, setSearchResults] = useState([]);
   const [accuracyCircle, setAccuracyCircle] = useState(null);
-  const [routeBadgePosition, setRouteBadgePosition] = useState({ x: 0, y: 120 });
+  const [routeBadgePosition, setRouteBadgePosition] = useState({ x: 20, y: 140 });
   const [isDraggingRouteBadge, setIsDraggingRouteBadge] = useState(false);
 
   const mapInstanceRef = useRef(null);
@@ -341,64 +341,66 @@ const IEBCOfficeMap = () => {
     console.log('Contribution submitted successfully:', result);
   }, []);
 
-  // Route badge drag handlers
+  // Route badge drag handlers - FIXED IMPLEMENTATION
   const handleRouteBadgeMouseDown = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
     
     setIsDraggingRouteBadge(true);
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    
     dragStartPos.current = {
-      x: e.clientX || e.touches[0].clientX,
-      y: e.clientY || e.touches[0].clientY
+      x: clientX,
+      y: clientY
     };
     badgeStartPos.current = { ...routeBadgePosition };
     
     // Add event listeners for drag
-    document.addEventListener('mousemove', handleRouteBadgeMouseMove);
-    document.addEventListener('mouseup', handleRouteBadgeMouseUp);
-    document.addEventListener('touchmove', handleRouteBadgeMouseMove, { passive: false });
-    document.addEventListener('touchend', handleRouteBadgeMouseUp);
-  }, [routeBadgePosition]);
-
-  const handleRouteBadgeMouseMove = useCallback((e) => {
-    if (!isDraggingRouteBadge) return;
-    
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-    
-    if (clientX && clientY) {
-      const deltaX = clientX - dragStartPos.current.x;
-      const deltaY = clientY - dragStartPos.current.y;
+    const handleMove = (moveEvent) => {
+      if (!isDraggingRouteBadge) return;
       
-      setRouteBadgePosition({
-        x: badgeStartPos.current.x + deltaX,
-        y: badgeStartPos.current.y + deltaY
-      });
-    }
-  }, [isDraggingRouteBadge]);
+      moveEvent.preventDefault();
+      moveEvent.stopPropagation();
+      
+      const moveClientX = moveEvent.clientX || (moveEvent.touches && moveEvent.touches[0].clientX);
+      const moveClientY = moveEvent.clientY || (moveEvent.touches && moveEvent.touches[0].clientY);
+      
+      if (moveClientX && moveClientY) {
+        const deltaX = moveClientX - dragStartPos.current.x;
+        const deltaY = moveClientY - dragStartPos.current.y;
+        
+        setRouteBadgePosition({
+          x: badgeStartPos.current.x + deltaX,
+          y: badgeStartPos.current.y + deltaY
+        });
+      }
+    };
 
-  const handleRouteBadgeMouseUp = useCallback(() => {
-    setIsDraggingRouteBadge(false);
-    
-    // Remove event listeners
-    document.removeEventListener('mousemove', handleRouteBadgeMouseMove);
-    document.removeEventListener('mouseup', handleRouteBadgeMouseUp);
-    document.removeEventListener('touchmove', handleRouteBadgeMouseMove);
-    document.removeEventListener('touchend', handleRouteBadgeMouseUp);
-  }, [handleRouteBadgeMouseMove]);
+    const handleUp = () => {
+      setIsDraggingRouteBadge(false);
+      document.removeEventListener('mousemove', handleMove);
+      document.removeEventListener('mouseup', handleUp);
+      document.removeEventListener('touchmove', handleMove);
+      document.removeEventListener('touchend', handleUp);
+    };
+
+    document.addEventListener('mousemove', handleMove);
+    document.addEventListener('mouseup', handleUp);
+    document.addEventListener('touchmove', handleMove, { passive: false });
+    document.addEventListener('touchend', handleUp);
+  }, [routeBadgePosition, isDraggingRouteBadge]);
 
   // Cleanup event listeners on unmount
   useEffect(() => {
     return () => {
-      document.removeEventListener('mousemove', handleRouteBadgeMouseMove);
-      document.removeEventListener('mouseup', handleRouteBadgeMouseUp);
-      document.removeEventListener('touchmove', handleRouteBadgeMouseMove);
-      document.removeEventListener('touchend', handleRouteBadgeMouseUp);
+      // Remove any lingering event listeners
+      document.removeEventListener('mousemove', () => {});
+      document.removeEventListener('mouseup', () => {});
+      document.removeEventListener('touchmove', () => {});
+      document.removeEventListener('touchend', () => {});
     };
-  }, [handleRouteBadgeMouseMove, handleRouteBadgeMouseUp]);
+  }, []);
 
   if (loading) {
     return (
@@ -529,34 +531,38 @@ const IEBCOfficeMap = () => {
         </AnimatePresence>
       </div>
 
-      {/* Draggable Route Badge */}
+      {/* Draggable Route Badge - FIXED IMPLEMENTATION */}
       <AnimatePresence>
         {currentRoute && currentRoute.length > 0 && (
           <motion.div
             ref={routeBadgeRef}
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, scale: 0.8 }}
             animate={{ 
               opacity: 1, 
-              y: 0,
+              scale: isDraggingRouteBadge ? 1.05 : 1,
               x: routeBadgePosition.x,
               y: routeBadgePosition.y
             }}
-            exit={{ opacity: 0, y: -20 }}
+            exit={{ opacity: 0, scale: 0.8 }}
             transition={{
               type: "spring",
-              stiffness: 500,
+              stiffness: isDraggingRouteBadge ? 1000 : 500,
               damping: 30,
               mass: 1
             }}
-            className={`route-badge-draggable cursor-move touch-none select-none ${
-              isDraggingRouteBadge ? 'shadow-2xl scale-105' : 'shadow-lg'
-            }`}
+            className={`route-badge-draggable ${isDraggingRouteBadge ? 'dragging' : ''}`}
             style={{
               position: 'fixed',
               left: 0,
               top: 0,
               transform: `translate(${routeBadgePosition.x}px, ${routeBadgePosition.y}px)`,
-              zIndex: 1000
+              zIndex: 1000,
+              cursor: isDraggingRouteBadge ? 'grabbing' : 'grab',
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              MozUserSelect: 'none',
+              msUserSelect: 'none',
+              touchAction: 'none'
             }}
             onMouseDown={handleRouteBadgeMouseDown}
             onTouchStart={handleRouteBadgeMouseDown}
@@ -579,7 +585,7 @@ const IEBCOfficeMap = () => {
               </div>
             )}
             {/* Drag handle indicator */}
-            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-1 bg-gray-400 rounded-full opacity-60"></div>
+            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-1 bg-gray-400 rounded-full opacity-60 transition-opacity duration-200 hover:opacity-80"></div>
           </motion.div>
         )}
       </AnimatePresence>
