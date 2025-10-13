@@ -372,10 +372,21 @@ export const useContributeLocation = () => {
       if (fallbackLandmarks.length < 5) {
         const { data: mapLandmarks, error: mapError } = await supabase
           .from('map_landmarks')
-          .select('*')
+          .select(`
+          id,
+          name,
+          landmark_type,
+          landmark_subtype,
+          typical_accuracy_meters,
+          triangulation_weight,
+          verified,
+          tags,
+          centroid,
+          ST_AsGeoJSON(centroid)::json as centroid_geojson
+          `)
           .eq('verified', true)
           .limit(25);
-
+        
         if (!mapError && mapLandmarks) {
           const processedMap = mapLandmarks
             .map(landmark => {
@@ -383,8 +394,14 @@ export const useContributeLocation = () => {
                 // Parse coordinates from centroid geography
                 let landmarkLat, landmarkLng;
                 
-                if (landmark.centroid && typeof landmark.centroid === 'string') {
-                  // Parse WKT format: "POINT(lng lat)"
+                // Preferred: use GeoJSON from centroid_geojson
+                if (landmark.centroid_geojson && landmark.centroid_geojson.coordinates) {
+                  landmarkLng = landmark.centroid_geojson.coordinates[0];
+                  landmarkLat = landmark.centroid_geojson.coordinates[1];
+                }
+                  
+                  // Fallback: parse centroid WKT if provided as string
+                else if (landmark.centroid && typeof landmark.centroid === 'string') {
                   const match = landmark.centroid.match(/POINT\(([^ ]+) ([^ ]+)\)/);
                   if (match) {
                     landmarkLng = parseFloat(match[1]);
@@ -392,9 +409,9 @@ export const useContributeLocation = () => {
                   }
                 }
                 
-                // If parsing failed, try to use raw coordinates
+                // Absolute fallback
                 if (!landmarkLat || !landmarkLng) {
-                  console.warn('Could not parse coordinates for landmark:', landmark.id);
+                  console.warn('Could not extract coordinates for landmark:', landmark.id);
                   return null;
                 }
 
