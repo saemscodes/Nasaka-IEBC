@@ -32,12 +32,7 @@ const AppContent = () => {
   const { lenis } = useLenis();
 
   return (
-    <BrowserRouter
-      future={{
-        v7_startTransition: true,
-        v7_relativeSplatPath: true,
-      }}
-    >
+    <BrowserRouter>
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/sign/:id" element={<SignPetition />} />
