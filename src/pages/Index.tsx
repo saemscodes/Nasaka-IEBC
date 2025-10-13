@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Users, FileText, Shield, MapPin, TrendingUp, UserPlus, UserCheck } from 'lucide-react';
@@ -29,7 +28,6 @@ interface Constituency {
 }
 
 const Index = () => {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [darkMode, setDarkMode] = useState(false);
   const [selectedConstituency, setSelectedConstituency] = useState<Constituency | null>(null);
@@ -251,49 +249,137 @@ const Index = () => {
             </div>
           </div>
           
-          {/* Container 2: iOS-Style Voter Registration CTA */}
-          <div 
-            ref={(el) => (sectionsRef.current['voter'] = el)}
-            className={`rounded-2xl p-8 transition-all duration-300 ${
+          {/* Container 2: Voter Registration - Split Layout */}
+          <div className="text-left mb-6">
+            <h3 className={`text-xl font-bold mb-4 transition-colors duration-300 ${
+              darkMode ? 'text-white' : 'text-green-900'
+            }`}>
+              Voter Registration Services
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {/* Left Card - Registered Voters */}
+            <Card className={`relative overflow-hidden transition-colors duration-300 h-full ${
               darkMode 
-                ? 'bg-gradient-to-br from-gray-800/90 to-gray-900/90 border border-gray-700/50' 
-                : 'bg-gradient-to-br from-white/90 to-green-50/30 border border-green-100/50'
-            } backdrop-blur-xl shadow-xl`}
-          >
-            <div className="flex flex-col items-center text-center space-y-6 max-w-md mx-auto">
-              <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-colors duration-300 ${
+                ? 'border-gray-700' 
+                : 'border-green-200/50'
+            }`}>
+              <div className={`absolute inset-0 bg-cover bg-center z-0 ${
                 darkMode 
-                  ? 'bg-green-900/50 text-green-400' 
-                  : 'bg-green-100 text-green-700'
-              }`}>
-                <MapPin className="w-10 h-10" />
+                  ? 'bg-gradient-to-br from-green-900/70 to-gray-800/70' 
+                  : 'bg-gradient-to-br from-green-50/70 to-green-100/70'
+              }`} style={{ 
+                backgroundImage: darkMode 
+                  ? "linear-gradient(rgba(3, 46, 21, 0.7), url('https://images.unsplash.com/photo-1546521343-4eb2c01aa44b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
+                  : "linear-gradient(rgba(236, 253, 245, 0.7), url('https://images.unsplash.com/photo-1546521343-4eb2c01aa44b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
+              }}>
               </div>
               
-              <div className="space-y-2">
-                <h3 className={`text-2xl font-semibold transition-colors duration-300 ${
-                  darkMode ? 'text-white' : 'text-gray-900'
-                }`}>
-                  Register to Vote
-                </h3>
-                <p className={`text-base transition-colors duration-300 ${
-                  darkMode ? 'text-gray-300' : 'text-gray-600'
-                }`}>
-                  Visit Nasaka IEBC page & look for a centre to register as a voter
-                </p>
+              <CardContent className="p-6 flex flex-col h-full relative z-10">
+                <div className="flex items-center mb-4">
+                  <div className={`p-2 rounded-full mr-3 ${
+                    darkMode 
+                      ? 'bg-green-800/50 text-green-300' 
+                      : 'bg-green-100 text-green-700'
+                  }`}>
+                    <UserCheck className="w-6 h-6" />
+                  </div>
+                  <h4 className={`text-lg font-bold ${
+                    darkMode ? 'text-white' : 'text-green-900'
+                  }`}>
+                    Already Registered?
+                  </h4>
+                </div>
+                
+                <div className="flex-grow flex flex-col justify-center mb-6">
+                  <p className={`mb-4 transition-colors duration-300 text-center ${
+                    darkMode ? 'text-gray-200' : 'text-green-800'
+                  }`}>
+                    Verify your voter registration status with IEBC
+                  </p>
+                </div>
+                
+                <Button 
+                  asChild
+                  className={`mt-auto ${
+                    darkMode 
+                      ? 'bg-green-700 hover:bg-green-600' 
+                      : 'bg-green-600 hover:bg-green-700'
+                  }`}
+                >
+                  <a 
+                    href="https://verify.iebc.or.ke/" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white"
+                  >
+                    Verify Registration Status
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+            
+            {/* Right Card - New Voters */}
+            <Card className={`relative overflow-hidden transition-colors duration-300 h-full ${
+              darkMode 
+                ? 'border-gray-700' 
+                : 'border-green-200/50'
+            }`}>
+              <div className={`absolute inset-0 bg-cover bg-center z-0 ${
+                darkMode 
+                  ? 'bg-gradient-to-br from-green-900/70 to-gray-800/70' 
+                  : 'bg-gradient-to-br from-green-50/70 to-green-100/70'
+              }`} style={{ 
+                backgroundImage: darkMode 
+                  ? "linear-gradient(rgba(2, 44, 34, 0.7), url('https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
+                  : "linear-gradient(rgba(236, 253, 245, 0.7), url('https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
+              }}>
               </div>
-
-              <Button 
-                onClick={() => navigate('/nasaka-iebc')}
-                size="lg"
-                className={`w-full rounded-xl py-6 text-base font-medium transition-all duration-200 ${
-                  darkMode 
-                    ? 'bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-900/30' 
-                    : 'bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-600/30'
-                }`}
-              >
-                Find IEBC Office Near You
-              </Button>
-            </div>
+              
+              <CardContent className="p-6 flex flex-col h-full relative z-10">
+                <div className="flex items-center mb-4">
+                  <div className={`p-2 rounded-full mr-3 ${
+                    darkMode 
+                      ? 'bg-green-800/50 text-green-300' 
+                      : 'bg-green-100 text-green-700'
+                  }`}>
+                    <UserPlus className="w-6 h-6" />
+                  </div>
+                  <h4 className={`text-lg font-bold ${
+                    darkMode ? 'text-white' : 'text-green-900'
+                  }`}>
+                    Become a Voter
+                  </h4>
+                </div>
+                
+                <div className="flex-grow flex flex-col justify-center mb-6">
+                  <p className={`mb-4 transition-colors duration-300 text-center ${
+                    darkMode ? 'text-gray-200' : 'text-green-800'
+                  }`}>
+                    Learn how to register as a voter in Kenya
+                  </p>
+                </div>
+                
+                <Button 
+                  asChild
+                  className={`mt-auto ${
+                    darkMode 
+                      ? 'bg-green-700 hover:bg-green-600' 
+                      : 'bg-green-600 hover:bg-green-700'
+                  }`}
+                >
+                  <a 
+                    href="https://www.iebc.or.ke/registration/?how" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white"
+                  >
+                    How To Register
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
@@ -336,49 +422,136 @@ const Index = () => {
             </div>
           </div>
           
-          {/* Container 2: iOS-Style Voter Registration CTA */}
-          <div 
-            ref={(el) => (sectionsRef.current['voter'] = el)}
-            className={`rounded-2xl p-8 transition-all duration-300 ${
+          {/* Container 2: Voter Registration - Split Layout */}
+          <div className="text-left mb-6">
+            <h3 className={`text-xl font-bold mb-4 transition-colors duration-300 ${
+              darkMode ? 'text-white' : 'text-green-900'
+            }`}>
+              Voter Registration Services
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {/* Left Card - Registered Voters */}
+            <Card className={`relative overflow-hidden transition-colors duration-300 h-full ${
               darkMode 
-                ? 'bg-gradient-to-br from-gray-800/90 to-gray-900/90 border border-gray-700/50' 
-                : 'bg-gradient-to-br from-white/90 to-green-50/30 border border-green-100/50'
-            } backdrop-blur-xl shadow-xl`}
-          >
-            <div className="flex flex-col items-center text-center space-y-6 max-w-md mx-auto">
-              <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-colors duration-300 ${
+                ? 'border-gray-700' 
+                : 'border-green-200/50'
+            }`}>
+              <div className={`absolute inset-0 bg-cover bg-center z-0 ${
                 darkMode 
-                  ? 'bg-green-900/50 text-green-400' 
-                  : 'bg-green-100 text-green-700'
-              }`}>
-                <MapPin className="w-10 h-10" />
+                  ? 'bg-gradient-to-br from-green-900/70 to-gray-800/70' 
+                  : 'bg-gradient-to-br from-green-50/70 to-green-100/70'
+              }`} style={{ 
+                backgroundImage: darkMode 
+                  ? "linear-gradient(rgba(3, 46, 21, 0.7), url('https://images.unsplash.com/photo-1546521343-4eb2c01aa44b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
+                  : "linear-gradient(rgba(236, 253, 245, 0.7), url('https://images.unsplash.com/photo-1546521343-4eb2c01aa44b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
+              }}>
               </div>
               
-              <div className="space-y-2">
-                <h3 className={`text-2xl font-semibold transition-colors duration-300 ${
-                  darkMode ? 'text-white' : 'text-gray-900'
-                }`}>
-                  Register to Vote
-                </h3>
-                <p className={`text-base transition-colors duration-300 ${
-                  darkMode ? 'text-gray-300' : 'text-gray-600'
-                }`}>
-                  Visit Nasaka IEBC page & look for a centre to register as a voter
-                </p>
+              <CardContent className="p-6 flex flex-col h-full relative z-10">
+                <div className="flex items-center mb-4">
+                  <div className={`p-2 rounded-full mr-3 ${
+                    darkMode 
+                      ? 'bg-green-800/50 text-green-300' 
+                      : 'bg-green-100 text-green-700'
+                  }`}>
+                    <UserCheck className="w-6 h-6" />
+                  </div>
+                  <h4 className={`text-lg font-bold ${
+                    darkMode ? 'text-white' : 'text-green-900'
+                  }`}>
+                    Already Registered?
+                  </h4>
+                </div>
+                
+                <div className="flex-grow flex flex-col justify-center mb-6">
+                  <p className={`mb-4 transition-colors duration-300 text-center ${
+                    darkMode ? 'text-gray-200' : 'text-green-800'
+                  }`}>
+                    Verify your voter registration status with IEBC
+                  </p>
+                </div>
+                
+                <Button 
+                  asChild
+                  className={`mt-auto ${
+                    darkMode 
+                      ? 'bg-green-700 hover:bg-green-600' 
+                      : 'bg-green-600 hover:bg-green-700'
+                  }`}
+                >
+                  <a 
+                    href="https://verify.iebc.or.ke/" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white"
+                  >
+                    Verify Registration Status
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <Card className={`relative overflow-hidden transition-colors duration-300 h-full ${
+              darkMode 
+                ? 'border-gray-700' 
+                : 'border-emerald-200/50'
+            }`}>
+              <div className={`absolute inset-0 bg-cover bg-center z-0 ${
+                darkMode 
+                  ? 'bg-gradient-to-br from-emerald-900/70 to-gray-800/70' 
+                  : 'bg-gradient-to-br from-emerald-50/70 to-emerald-100/70'
+              }`} style={{ 
+                backgroundImage: darkMode 
+                  ? "linear-gradient(rgba(2, 44, 34, 0.7), url('https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
+                  : "linear-gradient(rgba(236, 253, 245, 0.7), url('https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
+              }}>
               </div>
-
-              <Button 
-                onClick={() => navigate('/nasaka-iebc')}
-                size="lg"
-                className={`w-full rounded-xl py-6 text-base font-medium transition-all duration-200 ${
-                  darkMode 
-                    ? 'bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-900/30' 
-                    : 'bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-600/30'
-                }`}
-              >
-                Find IEBC Office Near You
-              </Button>
-            </div>
+              
+              <CardContent className="p-6 flex flex-col h-full relative z-10">
+                <div className="flex items-center mb-4">
+                  <div className={`p-2 rounded-full mr-3 ${
+                    darkMode 
+                      ? 'bg-emerald-800/50 text-emerald-300' 
+                      : 'bg-emerald-100 text-emerald-700'
+                  }`}>
+                    <UserPlus className="w-6 h-6" />
+                  </div>
+                  <h4 className={`text-lg font-bold ${
+                    darkMode ? 'text-white' : 'text-emerald-900'
+                  }`}>
+                    Become a Voter
+                  </h4>
+                </div>
+                
+                <div className="flex-grow flex flex-col justify-center mb-6">
+                  <p className={`mb-4 transition-colors duration-300 text-center ${
+                    darkMode ? 'text-gray-200' : 'text-emerald-800'
+                  }`}>
+                    Learn how to register as a voter in Kenya
+                  </p>
+                </div>
+                
+                <Button 
+                  asChild
+                  className={`mt-auto ${
+                    darkMode 
+                      ? 'bg-emerald-700 hover:bg-emerald-600' 
+                      : 'bg-emerald-600 hover:bg-emerald-700'
+                  }`}
+                >
+                  <a 
+                    href="https://www.iebc.or.ke/registration/?how" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white"
+                  >
+                    How To Register
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
