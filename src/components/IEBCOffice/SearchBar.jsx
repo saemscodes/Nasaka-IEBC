@@ -1,9 +1,9 @@
-// src/components/IEBCOffice/SearchBar.jsx
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, MapPin, Filter } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import Fuse from 'fuse.js';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const SearchBar = ({ 
   value, 
@@ -21,6 +21,7 @@ const SearchBar = ({
   const [fuse, setFuse] = useState(null);
   const inputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
+  const { theme } = useTheme();
 
   // Load all offices for Fuse.js indexing
   useEffect(() => {
@@ -131,16 +132,13 @@ const SearchBar = ({
   };
 
   const handleInputFocus = () => {
-    // Don't trigger panel immediately, just focus the input
     setIsExpanded(true);
-    // Don't call onFocus here - let Enter trigger the full search
   };
 
   const handleSuggestionSelect = (suggestion) => {
     if (suggestion.type === 'office' && onSearch) {
       onSearch(suggestion);
     } else if (suggestion.type === 'search_query' && onSearch) {
-      // Trigger broader search
       onSearch({ searchQuery: suggestion.query });
     }
     setIsExpanded(false);
@@ -171,15 +169,14 @@ const SearchBar = ({
       e.preventDefault();
       
       if (value.trim() && onSearch) {
-        // Trigger full search and open panel on Enter
         onSearch({ searchQuery: value.trim() });
-        if (onFocus) onFocus(); // Now trigger the panel
+        if (onFocus) onFocus();
       }
       setIsExpanded(false);
     }
   };
 
-  // Highlight matches in search results
+  // Enhanced highlightMatches with dark mode support
   const highlightMatches = (text, matches) => {
     if (!matches || !text) return text;
 
@@ -193,14 +190,16 @@ const SearchBar = ({
     let lastIndex = 0;
 
     matchIndices.forEach(([start, end]) => {
-      // Add text before match
       if (start > lastIndex) {
         result.push(text.slice(lastIndex, start));
       }
 
-      // Add highlighted match
       result.push(
-        <span key={start} className="bg-yellow-200 text-yellow-900 px-1 rounded">
+        <span key={start} className={`px-1 rounded ${
+          theme === 'dark' 
+            ? 'bg-amber-400/30 text-amber-300' 
+            : 'bg-yellow-200 text-yellow-900'
+        }`}>
           {text.slice(start, end + 1)}
         </span>
       );
@@ -208,7 +207,6 @@ const SearchBar = ({
       lastIndex = end + 1;
     });
 
-    // Add remaining text
     if (lastIndex < text.length) {
       result.push(text.slice(lastIndex));
     }
@@ -244,14 +242,18 @@ const SearchBar = ({
 
   return (
     <div className={`relative ${className}`}>
-      <div className="search-container bg-background/95 dark:bg-card/95">
+      <div className={`search-container transition-all duration-300 ${
+        theme === 'dark'
+          ? 'bg-ios-gray-800/95 border-ios-gray-600 shadow-ios-high-dark'
+          : 'bg-white/95 border-ios-gray-200 shadow-ios-high'
+      } backdrop-blur-xl border rounded-2xl`}>
         <div className="flex items-center space-x-3">
-          {/* Search Icon */}
           <div className="pl-2">
-            <Search className="w-5 h-5 text-muted-foreground" />
+            <Search className={`w-5 h-5 transition-colors duration-300 ${
+              theme === 'dark' ? 'text-ios-gray-400' : 'text-ios-gray-500'
+            }`} />
           </div>
           
-          {/* Search Input */}
           <div className="flex-1 relative min-w-0">
             <input
               ref={inputRef}
@@ -261,44 +263,54 @@ const SearchBar = ({
               onFocus={handleInputFocus}
               onKeyPress={handleKeyPress}
               placeholder={placeholder}
-              className="w-full bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground text-base py-2 px-1 pr-16"
+              className={`w-full bg-transparent border-none outline-none placeholder:text-muted-foreground text-base py-2 px-1 pr-16 transition-colors duration-300 ${
+                theme === 'dark' ? 'text-white placeholder-ios-gray-400' : 'text-ios-gray-900 placeholder-ios-gray-500'
+              }`}
               style={{ textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }}
               aria-label={placeholder}
             />
 
-            {/* right-side controls container (clear + location) */}
             <div className="absolute inset-y-0 right-2 flex items-center space-x-2">
-              {/* Clear Button */}
               {value && (
                 <motion.button
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0, opacity: 0 }}
                   onClick={handleClear}
-                  className="flex items-center justify-center p-1 rounded-full hover:bg-accent transition-colors"
+                  className={`flex items-center justify-center p-1 rounded-full transition-all duration-200 ${
+                    theme === 'dark'
+                      ? 'hover:bg-ios-gray-700 text-ios-gray-300'
+                      : 'hover:bg-ios-gray-100 text-ios-gray-500'
+                  }`}
                 >
-                  <X className="w-4 h-4 text-muted-foreground block" />
+                  <X className="w-4 h-4" />
                 </motion.button>
               )}
 
-              {/* Location Button */}
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={handleUseCurrentLocation}
-                className="p-2 rounded-xl hover:bg-accent transition-colors"
+                className={`p-2 rounded-xl transition-all duration-200 ${
+                  theme === 'dark'
+                    ? 'hover:bg-ios-gray-700 text-ios-blue-400'
+                    : 'hover:bg-ios-gray-100 text-ios-blue'
+                }`}
                 title="Use current location"
               >
-                <MapPin className="w-5 h-5 text-primary" />
+                <MapPin className="w-5 h-5" />
               </motion.button>
             </div>
           </div>
         </div>
 
-        {/* Search Suggestions - Fixed z-index to match search bar */}
         <AnimatePresence>
           {isExpanded && (suggestions.length > 0 || isLoading) && (
             <motion.div
-              className="absolute top-full left-0 right-0 mt-2 bg-background/98 dark:bg-card/98 backdrop-blur-xl border border-border rounded-2xl shadow-lg overflow-hidden max-h-96 overflow-y-auto"
+              className={`absolute top-full left-0 right-0 mt-2 backdrop-blur-xl border rounded-2xl shadow-lg overflow-hidden max-h-96 overflow-y-auto transition-all duration-300 ${
+                theme === 'dark'
+                  ? 'bg-ios-gray-800/98 border-ios-gray-600 shadow-ios-high-dark'
+                  : 'bg-white/98 border-ios-gray-200 shadow-ios-high'
+              }`}
               style={{ zIndex: 1001 }}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -306,8 +318,12 @@ const SearchBar = ({
               transition={{ duration: 0.2 }}
             >
               {isLoading ? (
-                <div className="p-4 text-center text-muted-foreground">
-                  <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                <div className={`p-4 text-center transition-colors duration-300 ${
+                  theme === 'dark' ? 'text-ios-gray-300' : 'text-ios-gray-600'
+                }`}>
+                  <div className={`inline-block animate-spin rounded-full h-4 w-4 border-b-2 ${
+                    theme === 'dark' ? 'border-ios-blue-400' : 'border-ios-blue'
+                  }`}></div>
                   <span className="ml-2">Searching...</span>
                 </div>
               ) : (
@@ -317,20 +333,30 @@ const SearchBar = ({
                     return (
                       <motion.div
                         key={suggestion.id || index}
-                        className="border-b border-border last:border-b-0"
+                        className={`border-b transition-colors duration-300 ${
+                          theme === 'dark' ? 'border-ios-gray-600' : 'border-ios-gray-200'
+                        } last:border-b-0`}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.05 }}
                       >
                         <button
                           onClick={() => handleSuggestionSelect(suggestion)}
-                          className="w-full text-left p-4 hover:bg-accent transition-colors"
+                          className={`w-full text-left p-4 transition-all duration-200 ${
+                            theme === 'dark'
+                              ? 'hover:bg-ios-gray-700/80 text-white'
+                              : 'hover:bg-ios-gray-50 text-ios-gray-900'
+                          }`}
                         >
                           <div className="flex items-start space-x-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
                               suggestion.type === 'office' 
-                                ? 'bg-primary/20 text-primary dark:bg-primary/30' 
-                                : 'bg-green-500/20 text-green-600 dark:bg-green-500/30 dark:text-green-400'
+                                ? theme === 'dark'
+                                  ? 'bg-ios-blue/30 text-ios-blue-300'
+                                  : 'bg-ios-blue/20 text-ios-blue'
+                                : theme === 'dark'
+                                  ? 'bg-green-500/30 text-green-400'
+                                  : 'bg-green-500/20 text-green-600'
                             }`}>
                               {suggestion.type === 'office' ? (
                                 <MapPin className="w-4 h-4" />
@@ -339,14 +365,20 @@ const SearchBar = ({
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="font-medium text-foreground text-sm truncate">
+                              <div className={`font-medium text-sm truncate transition-colors duration-300 ${
+                                theme === 'dark' ? 'text-white' : 'text-ios-gray-900'
+                              }`}>
                                 {display.primary}
                               </div>
-                              <div className="text-muted-foreground text-xs truncate">
+                              <div className={`text-xs truncate transition-colors duration-300 ${
+                                theme === 'dark' ? 'text-ios-gray-400' : 'text-ios-gray-600'
+                              }`}>
                                 {display.secondary}
                               </div>
                               {display.tertiary && (
-                                <div className="text-muted-foreground text-xs truncate mt-1">
+                                <div className={`text-xs truncate mt-1 transition-colors duration-300 ${
+                                  theme === 'dark' ? 'text-ios-gray-500' : 'text-ios-gray-500'
+                                }`}>
                                   {display.tertiary}
                                 </div>
                               )}
@@ -357,10 +389,19 @@ const SearchBar = ({
                     );
                   })}
                   
-                  {/* Search hint */}
-                  <div className="p-3 border-t border-border bg-muted/30">
-                    <div className="text-xs text-muted-foreground text-center">
-                      Press <kbd className="px-1 py-0.5 bg-background/80 dark:bg-card/80 border border-border rounded text-xs">Enter</kbd> to see all results
+                  <div className={`p-3 border-t transition-colors duration-300 ${
+                    theme === 'dark' 
+                      ? 'border-ios-gray-600 bg-ios-gray-700/50' 
+                      : 'border-ios-gray-200 bg-ios-gray-50'
+                  }`}>
+                    <div className={`text-xs text-center transition-colors duration-300 ${
+                      theme === 'dark' ? 'text-ios-gray-400' : 'text-ios-gray-500'
+                    }`}>
+                      Press <kbd className={`px-1 py-0.5 border rounded text-xs transition-colors duration-300 ${
+                        theme === 'dark'
+                          ? 'bg-ios-gray-600 border-ios-gray-500 text-ios-gray-300'
+                          : 'bg-white border-ios-gray-300 text-ios-gray-600'
+                      }`}>Enter</kbd> to see all results
                     </div>
                   </div>
                 </>
