@@ -57,19 +57,43 @@ const AppFooter = () => {
             onClick={handleCekaClick}
             className="flex items-center justify-center space-x-2 mx-auto group"
           >
-            {/* Mini CEKA Logo - Dual mode with direct Imgur links */}
-            <div className="relative">
-              {/* Colored logo for light mode */}
+            {/* Enhanced Dual Mode Logo with explicit theme-based rendering */}
+            <div className="relative w-6 h-6">
+              {/* Explicit theme-based rendering as primary solution */}
+              {theme === 'dark' ? (
+                <motion.img 
+                  key="dark-logo"
+                  src="https://i.imgur.com/9U7p4QQ.png" 
+                  alt="CEKA Logo" 
+                  className="w-6 h-6 group-hover:scale-110 transition-transform duration-200"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                />
+              ) : (
+                <motion.img 
+                  key="light-logo"
+                  src="https://i.imgur.com/xnC1q8e.png" 
+                  alt="CEKA Logo" 
+                  className="w-6 h-6 group-hover:scale-110 transition-transform duration-200"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                />
+              )}
+              
+              {/* Fallback CSS-based approach for additional reliability */}
               <img 
                 src="https://i.imgur.com/xnC1q8e.png" 
-                alt="CEKA Logo" 
-                className="w-6 h-6 group-hover:scale-110 transition-transform duration-200 block dark:hidden"
+                alt="CEKA Logo Light" 
+                className="absolute top-0 left-0 w-6 h-6 group-hover:scale-110 transition-transform duration-200 opacity-0 dark:opacity-100"
+                style={{ display: 'none' }}
               />
-              {/* White logo for dark mode */}
               <img 
                 src="https://i.imgur.com/9U7p4QQ.png" 
-                alt="CEKA Logo" 
-                className="w-6 h-6 group-hover:scale-110 transition-transform duration-200 hidden dark:block"
+                alt="CEKA Logo Dark" 
+                className="absolute top-0 left-0 w-6 h-6 group-hover:scale-110 transition-transform duration-200 opacity-0 dark:opacity-100"
+                style={{ display: 'none' }}
               />
             </div>
             <span className={`font-semibold text-sm tracking-wide group-hover:text-ios-blue transition-colors duration-200 ${
