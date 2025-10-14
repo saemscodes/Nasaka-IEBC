@@ -1,8 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const AppFooter = () => {
   const currentYear = new Date().getFullYear();
+  const { theme } = useTheme();
 
   const footerVariants = {
     initial: { opacity: 0, y: 20 },
@@ -35,7 +37,11 @@ const AppFooter = () => {
 
   return (
     <motion.footer
-      className="bg-white dark:bg-ios-gray-900 border-t border-ios-gray-200 dark:border-ios-gray-700 py-6 px-6 mt-auto"
+      className={`border-t py-6 px-6 mt-auto transition-all duration-500 ${
+        theme === 'dark'
+          ? 'bg-ios-gray-900 border-ios-gray-700'
+          : 'bg-white border-ios-gray-200'
+      }`}
       variants={footerVariants}
       initial="initial"
       animate="animate"
@@ -66,7 +72,11 @@ const AppFooter = () => {
                 className="w-6 h-6 group-hover:scale-110 transition-transform duration-200 hidden dark:block"
               />
             </div>
-            <span className="text-ios-gray-600 dark:text-ios-gray-300 font-semibold text-sm tracking-wide group-hover:text-ios-blue transition-colors duration-200">
+            <span className={`font-semibold text-sm tracking-wide group-hover:text-ios-blue transition-colors duration-200 ${
+              theme === 'dark' 
+                ? 'text-ios-gray-300 group-hover:text-ios-blue-400' 
+                : 'text-ios-gray-600 group-hover:text-ios-blue'
+            }`}>
               Powered by CEKA
             </span>
           </button>
@@ -76,23 +86,35 @@ const AppFooter = () => {
         <div className="flex items-center justify-center space-x-6 mb-4">
           <button
             onClick={handleSupportClick}
-            className="text-ios-blue dark:text-ios-blue-300 text-xs font-medium hover:text-ios-blue/80 dark:hover:text-ios-blue-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-ios-blue/50 focus:ring-offset-1 dark:focus:ring-offset-ios-gray-900 rounded-lg px-2 py-1"
+            className={`text-xs font-medium hover:opacity-80 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 rounded-lg px-2 py-1 ${
+              theme === 'dark'
+                ? 'text-ios-blue-300 focus:ring-ios-blue-400 focus:ring-offset-ios-gray-900'
+                : 'text-ios-blue focus:ring-ios-blue-500 focus:ring-offset-white'
+            }`}
           >
             Support/Donations
           </button>
           
-          <div className="w-px h-3 bg-ios-gray-300 dark:bg-ios-gray-600"></div>
+          <div className={`w-px h-3 ${
+            theme === 'dark' ? 'bg-ios-gray-600' : 'bg-ios-gray-300'
+          }`}></div>
           
           <button
             onClick={handleContactClick}
-            className="text-ios-blue dark:text-ios-blue-300 text-xs font-medium hover:text-ios-blue/80 dark:hover:text-ios-blue-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-ios-blue/50 focus:ring-offset-1 dark:focus:ring-offset-ios-gray-900 rounded-lg px-2 py-1"
+            className={`text-xs font-medium hover:opacity-80 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 rounded-lg px-2 py-1 ${
+              theme === 'dark'
+                ? 'text-ios-blue-300 focus:ring-ios-blue-400 focus:ring-offset-ios-gray-900'
+                : 'text-ios-blue focus:ring-ios-blue-500 focus:ring-offset-white'
+            }`}
           >
             Contact Us
           </button>
         </div>
 
         {/* Copyright */}
-        <div className="text-ios-gray-400 dark:text-ios-gray-500 text-xs">
+        <div className={`text-xs ${
+          theme === 'dark' ? 'text-ios-gray-500' : 'text-ios-gray-400'
+        }`}>
           © {currentYear} Recall254. Civic Education Kenya.
         </div>
       </div>

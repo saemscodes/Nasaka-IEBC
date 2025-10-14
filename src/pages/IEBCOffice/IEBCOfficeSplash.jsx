@@ -6,7 +6,7 @@ import LoadingSpinner from '../../components/IEBCOffice/LoadingSpinner';
 import AppFooter from '@/components/UI/AppFooter';
 import { useTheme } from '@/contexts/ThemeContext';
 
-// Enhanced Background Layers with Proper Dark Mode
+// Enhanced Background Layers with Faded Image and Proper Dark Mode
 const BackgroundLayers = ({ className = "" }) => {
   const { theme } = useTheme();
   
@@ -15,39 +15,44 @@ const BackgroundLayers = ({ className = "" }) => {
       aria-hidden="true"
       className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`}
     >
-      {/* Main Background */}
+      {/* Faded Background Image - MAINTAINED FROM ORIGINAL */}
       <div className="absolute inset-0 will-change-transform">
-        <div className={`absolute inset-0 transition-colors duration-300 ${
+        <div className="bg-peek absolute inset-0" />
+      </div>
+
+      {/* Dark Mode Overlay - Enhanced for better contrast */}
+      <div className="absolute inset-0 will-change-transform">
+        <div className={`absolute inset-0 transition-all duration-500 ${
           theme === 'dark' 
-            ? 'bg-ios-gray-900' 
-            : 'bg-white'
+            ? 'bg-ios-gray-900/80' 
+            : 'bg-white/0'
         }`} />
       </div>
 
-      {/* Background Pattern */}
+      {/* Pattern Overlay - Enhanced for dark mode */}
       <div className="absolute inset-0">
-        <div className={`absolute inset-0 transition-all duration-300 ${
+        <div className={`absolute inset-0 transition-all duration-500 ${
           theme === 'dark'
-            ? 'bg-pattern-grid-dark opacity-20'
+            ? 'bg-pattern-grid-dark opacity-15'
             : 'bg-pattern opacity-50'
         }`} />
       </div>
 
-      {/* Vignette Overlay */}
+      {/* Enhanced Vignette - Dynamic for theme */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className={`absolute inset-0 transition-all duration-300 ${
+        <div className={`absolute inset-0 transition-all duration-500 ${
           theme === 'dark'
             ? 'bg-vignette-dark'
             : 'bg-vignette'
         }`} />
       </div>
 
-      {/* Subtle Gradient Overlay */}
+      {/* Subtle Color Overlay for Better Text Readability */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className={`absolute inset-0 transition-all duration-300 ${
+        <div className={`absolute inset-0 transition-all duration-500 ${
           theme === 'dark'
-            ? 'bg-gradient-to-b from-ios-gray-900/80 via-ios-gray-900/40 to-ios-gray-900/80'
-            : 'bg-gradient-to-b from-white/80 via-white/40 to-white/80'
+            ? 'bg-gradient-to-b from-ios-gray-900/70 via-ios-gray-900/40 to-ios-gray-900/70'
+            : 'bg-gradient-to-b from-white/60 via-white/30 to-white/60'
         }`} />
       </div>
     </div>
@@ -182,7 +187,7 @@ const IEBCOfficeSplash = () => {
   };
 
   return (
-    <div className={`flex flex-col min-h-screen transition-colors duration-300 ${
+    <div className={`flex flex-col min-h-screen transition-colors duration-500 ${
       theme === 'dark' 
         ? 'bg-ios-gray-900 text-white' 
         : 'bg-white text-ios-gray-900'
@@ -319,10 +324,10 @@ const IEBCOfficeSplash = () => {
               whileTap={{ scale: 0.95 }}
               onClick={handleAllowLocation}
               disabled={loading}
-              className={`px-8 py-4 rounded-2xl font-semibold text-base disabled:opacity-50 flex items-center justify-center space-x-2 shadow-lg transition-colors duration-300 ${
+              className={`px-8 py-4 rounded-2xl font-semibold text-base disabled:opacity-50 flex items-center justify-center space-x-2 shadow-lg transition-all duration-300 ${
                 theme === 'dark'
-                  ? 'bg-ios-blue-600 text-white shadow-ios-blue/40'
-                  : 'bg-ios-blue text-white shadow-ios-blue/25'
+                  ? 'bg-ios-blue-600 text-white shadow-ios-blue/40 hover:bg-ios-blue-700'
+                  : 'bg-ios-blue text-white shadow-ios-blue/25 hover:bg-ios-blue-500'
               }`}
             >
               {loading ? (
@@ -343,10 +348,10 @@ const IEBCOfficeSplash = () => {
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={handleManualEntry}
-              className={`px-8 py-4 rounded-2xl font-medium text-base border transition-colors duration-300 ${
+              className={`px-8 py-4 rounded-2xl font-medium text-base border transition-all duration-300 ${
                 theme === 'dark'
-                  ? 'text-ios-blue-400 border-ios-gray-600 bg-ios-gray-800 hover:bg-ios-gray-700'
-                  : 'text-ios-blue border-ios-gray-300 bg-white hover:bg-ios-gray-50'
+                  ? 'text-ios-blue-400 border-ios-gray-600 bg-ios-gray-800 hover:bg-ios-gray-700 hover:border-ios-gray-500'
+                  : 'text-ios-blue border-ios-gray-300 bg-white hover:bg-ios-gray-50 hover:border-ios-gray-400'
               }`}
             >
               Search Manually
