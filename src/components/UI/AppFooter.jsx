@@ -124,7 +124,7 @@ const AppFooter = () => {
         <div className={`text-xs text-center ${
           theme === 'dark' ? 'text-ios-gray-500' : 'text-ios-gray-400'
         }`}>
-          © {currentYear} Recall254
+          © {currentYear} Civic Education Kenya 
         </div>
       </div>
     </motion.footer>
