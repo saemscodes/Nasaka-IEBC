@@ -265,14 +265,16 @@ const SearchBar = ({
               placeholder={placeholder}
               className={`w-full bg-transparent border-none outline-none placeholder:text-muted-foreground text-base py-2 px-1 pr-16 transition-colors duration-300 ${
                 theme === 'dark' 
-                  ? 'text-white placeholder-ios-gray-400 caret-white' 
-                  : 'text-ios-gray-900 placeholder-ios-gray-500 caret-ios-gray-900'
+                  ? 'text-white placeholder-ios-gray-400' 
+                  : 'text-ios-gray-900 placeholder-ios-gray-500'
               }`}
               style={{ 
                 textOverflow: "ellipsis", 
                 whiteSpace: "nowrap", 
                 overflow: "hidden",
-                // Enhanced caret styling for better visibility
+                // Force white text in dark mode, dark text in light mode
+                color: theme === 'dark' ? '#ffffff' : '#1C1C1E',
+                // Force caret color only - no placeholder blinking
                 caretColor: theme === 'dark' ? '#ffffff' : '#1C1C1E'
               }}
               aria-label={placeholder}
@@ -421,38 +423,59 @@ const SearchBar = ({
         </AnimatePresence>
       </div>
 
-      {/* Enhanced CSS for caret styling */}
+      {/* Enhanced CSS for caret styling without placeholder blinking */}
       <style jsx>{`
-        /* Force caret color for dark mode compatibility */
-        input.dark-caret::placeholder {
-          color: rgba(156, 163, 175, 0.8) !important;
-        }
-        
-        input.dark-caret {
-          caret-color: #ffffff !important;
-        }
-        
-        input.light-caret {
-          caret-color: #1C1C1E !important;
-        }
-        
-        /* Enhanced caret visibility with animation */
+        /* Force text color for dark mode compatibility */
         input {
-          caret-shape: block !important;
+          color: ${theme === 'dark' ? '#ffffff' : '#1C1C1E'} !important;
         }
         
-        /* Blinking animation for better visibility */
-        @keyframes caret-blink {
-          0%, 50% {
-            opacity: 1;
-          }
-          51%, 100% {
-            opacity: 0;
-          }
+        /* Force caret color only - no placeholder blinking */
+        input {
+          caret-color: ${theme === 'dark' ? '#ffffff' : '#1C1C1E'} !important;
         }
         
+        /* Remove any animation from the input that might cause placeholder blinking */
+        input {
+          animation: none !important;
+        }
+        
+        /* Ensure placeholder stays static and doesn't blink */
+        input::placeholder {
+          animation: none !important;
+          opacity: 1 !important;
+          color: ${theme === 'dark' ? 'rgba(156, 163, 175, 0.8)' : 'rgba(107, 114, 128, 0.8)'} !important;
+        }
+        
+        /* Browser-specific caret styling */
+        input::-webkit-input-placeholder {
+          animation: none !important;
+          opacity: 1 !important;
+        }
+        
+        input::-moz-placeholder {
+          animation: none !important;
+          opacity: 1 !important;
+        }
+        
+        input:-ms-input-placeholder {
+          animation: none !important;
+          opacity: 1 !important;
+        }
+        
+        input:-moz-placeholder {
+          animation: none !important;
+          opacity: 1 !important;
+        }
+        
+        /* Enhanced caret visibility without affecting placeholder */
         input:focus {
-          animation: caret-blink 1.2s step-end infinite;
+          outline: none !important;
+        }
+        
+        /* Remove any keyframe animations that might cause blinking */
+        @keyframes none {
+          /* Intentionally empty to override any existing animations */
         }
       `}</style>
     </div>
