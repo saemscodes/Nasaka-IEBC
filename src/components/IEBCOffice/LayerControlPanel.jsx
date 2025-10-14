@@ -226,7 +226,7 @@ const LayerControlPanel = ({
                           whileTap={!isDisabled ? { scale: 0.95 } : {}}
                         >
                           <motion.span
-                            className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md"
+                            className="absolute left-0.5 w-5 h-5 bg-white rounded-full shadow-md"
                             initial={false}
                             animate={{
                               x: isActive ? 24 : 0,
@@ -239,9 +239,10 @@ const LayerControlPanel = ({
                               mass: 0.8
                             }}
                             style={{
+                              top: '3px', // single authoritative vertical offset
                               boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
                             }}
-                          />
+                            />
                           {isActive && !isDisabled && (
                             <motion.div
                               className="absolute inset-0 rounded-full"
