@@ -45,6 +45,127 @@
 }
 
 /* ============================================
+   DARK MODE ENHANCEMENTS - ADDED ON TOP
+   ============================================ */
+
+/* Dark mode map container enhancements */
+.dark .ios-map-container {
+  background: hsl(var(--background));
+}
+
+/* Dark mode search container */
+.dark .search-container {
+  background: hsl(var(--card) / 0.95);
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark .search-container:focus-within {
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.35),
+              0 0 0 4px hsl(var(--ring) / 0.2);
+}
+
+/* Dark mode control buttons */
+.dark .ios-control-btn {
+  background: hsl(var(--card) / 0.95);
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark .ios-control-btn:hover {
+  background: hsl(var(--card) / 0.98);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+/* Dark mode badges and notifications */
+.dark .route-badge,
+.dark .search-indicator {
+  background: hsl(var(--card) / 0.95);
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark .error-notification {
+  background: hsl(var(--destructive) / 0.9);
+  border-color: hsl(var(--destructive) / 0.5);
+}
+
+/* Dark mode panel backdrop */
+.dark .panel-backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* Dark mode side panels */
+.dark .office-list-panel,
+.dark .layer-control-panel {
+  background: hsl(var(--card) / 0.98);
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+/* Dark mode bottom sheet */
+.dark .office-bottom-sheet {
+  background: hsl(var(--card) / 0.98);
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark .bottom-sheet-handle {
+  background: hsl(var(--muted-foreground) / 0.4);
+}
+
+/* Dark mode map popups */
+.dark .leaflet-popup-content-wrapper {
+  background: hsl(var(--card) / 0.98);
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border));
+}
+
+.dark .leaflet-popup-tip {
+  background: hsl(var(--card) / 0.98);
+  border-color: hsl(var(--border));
+}
+
+/* Dark mode search suggestions */
+.dark .search-suggestions {
+  background: hsl(var(--card) / 0.98);
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark .search-suggestion-item:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+/* Dark mode loading and error overlays */
+.dark .loading-overlay {
+  background: hsl(var(--background) / 0.98);
+  color: hsl(var(--foreground));
+}
+
+.dark .error-overlay {
+  background: hsl(var(--card) / 0.98);
+  color: hsl(var(--foreground));
+}
+
+/* Dark mode draggable route badge */
+.dark .route-badge-draggable {
+  background: hsl(var(--card) / 0.95);
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark .route-badge-draggable.dragging {
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+}
+
+/* Dark mode marker enhancements */
+.dark .marker-hover {
+  filter: brightness(1.15) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.25));
+}
+
+/* ============================================
    2. RESET LEAFLET Z-INDEX CONFLICTS
    ============================================ */
 
