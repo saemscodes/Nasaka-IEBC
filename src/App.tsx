@@ -15,6 +15,7 @@ import VoterRegistrationPage from "@/pages/VoterRegistration";
 import { IEBCOfficeSplash, IEBCOfficeMap } from './pages/IEBCOffice';
 import './styles/iebc-office.css';
 import { Analytics } from "@vercel/analytics/react";  // ✅ ADD THIS IMPORT
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 // ✅ Enhanced Query Client
 const queryClient = new QueryClient({
@@ -63,7 +64,8 @@ const App = () => (
       <Toaster />
       <Sonner position="top-right" expand={false} richColors closeButton />
       <AppContent />
-      <Analytics /> {/* ✅ ADD THIS LINE AT THE BOTTOM */}
+      <Analytics />
+      <SpeedInsights /> {/* ✅ ADD THIS LINE AT THE BOTTOM */}
     </TooltipProvider>
   </QueryClientProvider>
 );
