@@ -446,7 +446,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                   </div>
                   <div className="text-sm text-green-700">
                     <p className="font-medium">Privacy Notice</p>
-                    <p>We only collect location data and optional photos. No personal information is stored. All submissions are moderated before being published.</p>
+                    <p>We only collect location data pertaining to IEBC offices made public. No personal information is stored. All submissions are moderated before being published.</p>
                   </div>
                 </div>
               </div>
