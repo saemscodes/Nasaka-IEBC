@@ -264,9 +264,17 @@ const SearchBar = ({
               onKeyPress={handleKeyPress}
               placeholder={placeholder}
               className={`w-full bg-transparent border-none outline-none placeholder:text-muted-foreground text-base py-2 px-1 pr-16 transition-colors duration-300 ${
-                theme === 'dark' ? 'text-white placeholder-ios-gray-400' : 'text-ios-gray-900 placeholder-ios-gray-500'
+                theme === 'dark' 
+                  ? 'text-white placeholder-ios-gray-400 caret-white' 
+                  : 'text-ios-gray-900 placeholder-ios-gray-500 caret-ios-gray-900'
               }`}
-              style={{ textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }}
+              style={{ 
+                textOverflow: "ellipsis", 
+                whiteSpace: "nowrap", 
+                overflow: "hidden",
+                // Enhanced caret styling for better visibility
+                caretColor: theme === 'dark' ? '#ffffff' : '#1C1C1E'
+              }}
               aria-label={placeholder}
             />
 
@@ -412,6 +420,41 @@ const SearchBar = ({
           )}
         </AnimatePresence>
       </div>
+
+      {/* Enhanced CSS for caret styling */}
+      <style jsx>{`
+        /* Force caret color for dark mode compatibility */
+        input.dark-caret::placeholder {
+          color: rgba(156, 163, 175, 0.8) !important;
+        }
+        
+        input.dark-caret {
+          caret-color: #ffffff !important;
+        }
+        
+        input.light-caret {
+          caret-color: #1C1C1E !important;
+        }
+        
+        /* Enhanced caret visibility with animation */
+        input {
+          caret-shape: block !important;
+        }
+        
+        /* Blinking animation for better visibility */
+        @keyframes caret-blink {
+          0%, 50% {
+            opacity: 1;
+          }
+          51%, 100% {
+            opacity: 0;
+          }
+        }
+        
+        input:focus {
+          animation: caret-blink 1.2s step-end infinite;
+        }
+      `}</style>
     </div>
   );
 };
