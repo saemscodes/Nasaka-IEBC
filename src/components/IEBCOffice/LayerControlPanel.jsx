@@ -211,7 +211,7 @@ const LayerControlPanel = ({
                           {layer.name}
                         </h4>
                         <motion.div 
-                          className={`relative inline-flex w-12 h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${
+                          className={`relative inline-flex items-center w-12 h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${
                             isDisabled
                               ? 'bg-muted/50'
                               : isActive
@@ -220,40 +220,90 @@ const LayerControlPanel = ({
                           }`}
                           style={{
                             boxShadow: isActive && !isDisabled 
-                              ? '0 0 0 2px rgba(var(--primary-rgb, 34, 197, 94), 0.2)' 
-                              : 'none'
+                              ? '0 0 0 2px rgba(var(--primary-rgb, 34, 197, 94), 0.2), inset 0 1px 2px rgba(0, 0, 0, 0.1)' 
+                              : 'inset 0 1px 2px rgba(0, 0, 0, 0.1)'
                           }}
                           whileTap={!isDisabled ? { scale: 0.95 } : {}}
                         >
+                          {/* Track background with subtle gradient */}
+                          <div className={`absolute inset-0 rounded-full ${
+                            isActive && !isDisabled 
+                              ? 'bg-gradient-to-r from-primary to-primary/90' 
+                              : 'bg-gradient-to-r from-muted to-muted/80'
+                          }`} />
+                          
+                          {/* Thumb with enhanced shadow and perfect centering */}
                           <motion.span
-                            className="absolute left-0.5 w-5 h-5 bg-white rounded-full shadow-md"
+                            className="absolute w-5 h-5 bg-white rounded-full z-10"
                             initial={false}
                             animate={{
-                              x: isActive ? 24 : 0,
+                              x: isActive ? 26 : 2,
                               scale: isActive ? 1.05 : 1
                             }}
                             transition={{
                               type: 'spring',
-                              stiffness: 500,
+                              stiffness: 600,
                               damping: 35,
-                              mass: 0.8
+                              mass: 0.7
                             }}
                             style={{
-                              top: '3px', // single authoritative vertical offset
-                              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                              top: '2px',
+                              boxShadow: `
+                                0 2px 4px rgba(0, 0, 0, 0.2),
+                                0 1px 2px rgba(0, 0, 0, 0.1),
+                                inset 0 -1px 1px rgba(0, 0, 0, 0.05),
+                                inset 0 1px 1px rgba(255, 255, 255, 0.8)
+                              `,
+                              filter: 'brightness(1.02)'
                             }}
-                            />
+                          />
+                          
+                          {/* Inner glow effect for the thumb */}
+                          <motion.span
+                            className="absolute w-4 h-4 bg-white/20 rounded-full z-0"
+                            initial={false}
+                            animate={{
+                              x: isActive ? 27 : 3,
+                              scale: isActive ? 1 : 0.8
+                            }}
+                            transition={{
+                              type: 'spring',
+                              stiffness: 500,
+                              damping: 40
+                            }}
+                            style={{
+                              top: '3px'
+                            }}
+                          />
+
+                          {/* Active state ripple effect */}
                           {isActive && !isDisabled && (
                             <motion.div
-                              className="absolute inset-0 rounded-full"
+                              className="absolute inset-0 rounded-full z-0"
                               initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: [0, 0.3, 0], scale: [0.8, 1.2, 1] }}
+                              animate={{ 
+                                opacity: [0, 0.4, 0],
+                                scale: [0.8, 1.3, 1]
+                              }}
                               transition={{
-                                duration: 0.4,
-                                ease: 'easeOut'
+                                duration: 0.5,
+                                ease: 'easeOut',
+                                times: [0, 0.3, 1]
                               }}
                               style={{
-                                background: 'radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 70%)'
+                                background: 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%)',
+                                filter: 'blur(0.5px)'
+                              }}
+                            />
+                          )}
+
+                          {/* Inactive state subtle inner shadow */}
+                          {!isActive && !isDisabled && (
+                            <div 
+                              className="absolute inset-0 rounded-full"
+                              style={{
+                                boxShadow: 'inset 0 1px 3px rgba(0, 0, 0, 0.1)',
+                                background: 'linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.05) 100%)'
                               }}
                             />
                           )}
