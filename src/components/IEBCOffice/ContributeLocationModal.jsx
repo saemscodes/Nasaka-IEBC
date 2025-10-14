@@ -27,6 +27,9 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
   const [contributionId, setContributionId] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [initialPosition, setInitialPosition] = useState(null);
+  const [initialAccuracy, setInitialAccuracy] = useState(null);
+  const [hasRecordedInitial, setHasRecordedInitial] = useState(false);
   
   const mapRef = useRef(null);
   const accuracyCircleRef = useRef(null);
@@ -42,6 +45,43 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     isSubmitting,
     error
   } = useContributeLocation();
+
+  const recordInitialCapture = useCallback(async (capturedPosition, capturedAccuracy) => {
+    try {
+      if (hasRecordedInitial) return;
+
+      const initialContributionData = {
+        latitude: capturedPosition.lat,
+        longitude: capturedPosition.lng,
+        accuracy: capturedAccuracy,
+        status: 'initial_capture',
+        device_metadata: {
+          user_agent: navigator.userAgent,
+          platform: navigator.platform,
+          language: navigator.language,
+          timestamp: new Date().toISOString(),
+          capture_type: 'initial'
+        },
+        submitted_timestamp: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('iebc_office_contributions')
+        .insert(initialContributionData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error recording initial capture:', error);
+        return;
+      }
+
+      console.log('Initial capture recorded with ID:', data.id);
+      setHasRecordedInitial(true);
+    } catch (err) {
+      console.error('Failed to record initial capture:', err);
+    }
+  }, [hasRecordedInitial]);
 
   const handleMapReady = useCallback((map) => {
     mapRef.current = map;
@@ -105,7 +145,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       mapRef.current.removeLayer(accuracyCircleRef.current);
     }
 
-    // Limit accuracy circle to maximum 1000 meters (1km)
     const limitedAccuracy = Math.min(accuracy, 1000);
     
     accuracyCircleRef.current = L.circle([position.lat, position.lng], {
@@ -122,7 +161,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     if (userLocation?.latitude && userLocation?.longitude) {
       const userPos = { lat: userLocation.latitude, lng: userLocation.longitude };
       setPosition(userPos);
-      setAccuracy(Math.min(userLocation.accuracy, 1000)); // Limit to 1km
+      setAccuracy(Math.min(userLocation.accuracy, 1000));
       setMapCenter([userLocation.latitude, userLocation.longitude]);
       setMapZoom(16);
       
@@ -144,6 +183,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
 
   const captureLocation = useCallback(async () => {
     setLocationError(null);
+    setHasRecordedInitial(false);
 
     console.log({
       getCurrentPosition: typeof getCurrentPosition,
@@ -158,6 +198,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       
       setPosition(capturedPosition);
       setAccuracy(limitedAccuracy);
+      setInitialPosition(capturedPosition);
+      setInitialAccuracy(limitedAccuracy);
       setMapCenter([pos.latitude, pos.longitude]);
       setMapZoom(16);
 
@@ -168,6 +210,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         addMarkerToMap(capturedPosition);
         addAccuracyCircle(capturedPosition, limitedAccuracy);
       }
+      
+      await recordInitialCapture(capturedPosition, limitedAccuracy);
       
       if (useTriangulation) {
         const landmarks = await findNearbyLandmarks(pos.latitude, pos.longitude);
@@ -214,7 +258,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     useTriangulation, 
     userLocation,
     addMarkerToMap,
-    addAccuracyCircle
+    addAccuracyCircle,
+    recordInitialCapture
   ]);
 
   const handleImageSelect = useCallback(async (event) => {
@@ -244,7 +289,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const handleMapClick = useCallback((e) => {
     const clickedPosition = { lat: e.latlng.lat, lng: e.latlng.lng };
     setPosition(clickedPosition);
-    setAccuracy(100); // Manual placement has 100m accuracy
+    setAccuracy(100);
     
     if (mapRef.current) {
       mapRef.current.flyTo([e.latlng.lat, e.latlng.lng], 16, {
@@ -300,7 +345,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   ]);
 
   const handleHardReload = useCallback(() => {
-    // Clear cache and reload with contribution success parameter
     if (window.location.href.indexOf('?') > -1) {
       window.location.href = window.location.href.split('?')[0] + '?contribution_success=' + contributionId + '&t=' + Date.now();
     } else {
@@ -330,6 +374,9 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     setSubmissionSuccess(false);
     setContributionId(null);
     setShowSuccessModal(false);
+    setInitialPosition(null);
+    setInitialAccuracy(null);
+    setHasRecordedInitial(false);
 
     if (markerRef.current && mapRef.current) {
       mapRef.current.removeLayer(markerRef.current);
@@ -363,7 +410,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     };
   }, [imagePreview]);
 
-  // Show success modal when submission is successful
   useEffect(() => {
     if (submissionSuccess && step === 4) {
       const timer = setTimeout(() => {
@@ -419,7 +465,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
             </div>
           )}
 
-          {/* Step 1: Location Capture */}
           {step === 1 && (
             <div className="space-y-6">
               <div className="text-center">
@@ -495,7 +540,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
             </div>
           )}
 
-          {/* Step 2: Map Confirmation */}
           {step === 2 && (
             <div className="space-y-6">
               <div>
@@ -518,7 +562,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                   onMapReady={handleMapReady}
                   onClick={handleMapClick}
                 >
-                  {/* Show all IEBC offices on the map */}
                   <GeoJSONLayerManager
                     activeLayers={['iebc-offices']}
                     onOfficeSelect={() => {}}
@@ -527,7 +570,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     baseMap="standard"
                   />
 
-                  {/* User location marker */}
                   {userLocation && (
                     <UserLocationMarker
                       position={[userLocation.latitude, userLocation.longitude]}
@@ -535,7 +577,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     />
                   )}
 
-                  {/* Contribution marker */}
                   {position && (
                     <UserLocationMarker
                       position={[position.lat, position.lng]}
@@ -580,7 +621,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
             </div>
           )}
 
-          {/* Step 3: Additional Information */}
           {step === 3 && (
             <div className="space-y-6">
               <div>
@@ -592,7 +632,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                 </p>
               </div>
 
-              {/* Image Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Photo of the Office
@@ -628,7 +667,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                 </div>
               </div>
 
-              {/* Notes */}
               <div>
                 <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
                   Additional Notes
@@ -668,7 +706,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
             </div>
           )}
 
-          {/* Step 4: Processing/Success */}
           {step === 4 && (
             <div className="text-center space-y-6">
               {submissionSuccess ? (
@@ -733,7 +770,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     </div>
   );
 
-  // Success Modal (shows after contribution is submitted)
   const successModalContent = showSuccessModal && (
     <div className="fixed inset-0 z-[calc(var(--z-index-max)+1)] flex items-center justify-center p-4 bg-black bg-opacity-50">
       <motion.div
