@@ -59,7 +59,7 @@ const BackgroundLayers = ({ className = "" }) => {
   );
 };
 
-// Theme Toggle Component
+// Enhanced Theme Toggle Component with Better Visibility
 const ThemeToggle = () => {
   const { theme, toggleTheme } = useTheme();
 
@@ -68,7 +68,11 @@ const ThemeToggle = () => {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={toggleTheme}
-      className="absolute top-6 right-6 z-20 w-10 h-10 rounded-full bg-white dark:bg-ios-gray-800 shadow-lg dark:shadow-ios-gray-900/50 border border-ios-gray-200 dark:border-ios-gray-600 flex items-center justify-center transition-all duration-300"
+      className={`absolute top-6 right-6 z-20 w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 ${
+        theme === 'dark'
+          ? 'bg-ios-gray-800 shadow-ios-gray-900/50 border-ios-gray-600'
+          : 'bg-white shadow-ios-gray-200/50 border-ios-gray-200'
+      }`}
       aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
     >
       <motion.div
@@ -87,6 +91,27 @@ const ThemeToggle = () => {
         )}
       </motion.div>
     </motion.button>
+  );
+};
+
+// Text Shadow Layer Component for Better Readability
+const TextShadowLayer = ({ children, className = "" }) => {
+  const { theme } = useTheme();
+  
+  return (
+    <div className={`relative ${className}`}>
+      {/* Text Shadow Background - Hugs the text */}
+      <div className={`absolute inset-0 rounded-lg blur-xs transition-all duration-500 ${
+        theme === 'dark'
+          ? 'bg-black/30 -inset-1'
+          : 'bg-white/40 -inset-0.5'
+      }`} />
+      
+      {/* Main Content */}
+      <div className="relative z-10">
+        {children}
+      </div>
+    </div>
   );
 };
 
@@ -242,53 +267,59 @@ const IEBCOfficeSplash = () => {
             </div>
           </motion.div>
           
-          <motion.div
-            className="mb-4"
-            variants={headlineVariants}
-            initial="initial"
-            animate="animate"
-          >
-            <h1 className={`text-6xl font-black mb-2 tracking-tight leading-none ${
-              theme === 'dark' ? 'text-white' : 'text-ios-gray-900'
-            }`}>
-              NASAKA
-            </h1>
-            <div className="flex items-center justify-center space-x-2">
-              <div className={`h-px w-8 ${
-                theme === 'dark' ? 'bg-ios-blue/60' : 'bg-ios-blue/40'
-              }`}></div>
-              <h2 className={`text-xl font-semibold tracking-wide ${
-                theme === 'dark' ? 'text-ios-blue-400' : 'text-ios-blue'
+          {/* Enhanced Text Sections with Shadows */}
+          <TextShadowLayer className="mb-4">
+            <motion.div
+              variants={headlineVariants}
+              initial="initial"
+              animate="animate"
+            >
+              <h1 className={`text-6xl font-black mb-2 tracking-tight leading-none ${
+                theme === 'dark' ? 'text-white' : 'text-ios-gray-900'
               }`}>
-                IEBC
-              </h2>
-              <div className={`h-px w-8 ${
-                theme === 'dark' ? 'bg-ios-blue/60' : 'bg-ios-blue/40'
-              }`}></div>
-            </div>
-          </motion.div>
+                NASAKA
+              </h1>
+              <div className="flex items-center justify-center space-x-2">
+                <div className={`h-px w-8 ${
+                  theme === 'dark' ? 'bg-ios-blue/60' : 'bg-ios-blue/40'
+                }`}></div>
+                <h2 className={`text-xl font-semibold tracking-wide ${
+                  theme === 'dark' ? 'text-ios-blue-400' : 'text-ios-blue'
+                }`}>
+                  IEBC
+                </h2>
+                <div className={`h-px w-8 ${
+                  theme === 'dark' ? 'bg-ios-blue/60' : 'bg-ios-blue/40'
+                }`}></div>
+              </div>
+            </motion.div>
+          </TextShadowLayer>
 
-          <motion.h2
-            className={`text-2xl font-semibold mb-3 ${
-              theme === 'dark' ? 'text-white' : 'text-ios-gray-900'
-            }`}
-            variants={subheadlineVariants}
-            initial="initial"
-            animate="animate"
-          >
-            Find Your Nearest IEBC Office
-          </motion.h2>
+          <TextShadowLayer className="mb-3">
+            <motion.h2
+              className={`text-2xl font-semibold ${
+                theme === 'dark' ? 'text-white' : 'text-ios-gray-900'
+              }`}
+              variants={subheadlineVariants}
+              initial="initial"
+              animate="animate"
+            >
+              Find Your Nearest IEBC Office
+            </motion.h2>
+          </TextShadowLayer>
 
-          <motion.p
-            className={`mb-8 text-base ${
-              theme === 'dark' ? 'text-ios-gray-300' : 'text-ios-gray-600'
-            }`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            Allow location access to find the closest IEBC registration center and get turn-by-turn navigation.
-          </motion.p>
+          <TextShadowLayer className="mb-8">
+            <motion.p
+              className={`text-base ${
+                theme === 'dark' ? 'text-ios-gray-300' : 'text-ios-gray-600'
+              }`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              Allow location access to find the closest IEBC registration center and get turn-by-turn navigation.
+            </motion.p>
+          </TextShadowLayer>
 
           <AnimatePresence>
             {showError && (
@@ -298,18 +329,20 @@ const IEBCOfficeSplash = () => {
                 exit={{ opacity: 0, height: 0 }}
                 className="mb-6"
               >
-                <div className={`rounded-xl p-4 border ${
-                  theme === 'dark'
-                    ? 'bg-ios-red/20 border-ios-red/30 text-ios-red-300'
-                    : 'bg-ios-red/10 border-ios-red/20 text-ios-red'
-                }`}>
-                  <p className="text-sm font-medium">
-                    {error === 'Permission denied' 
-                      ? 'Location access denied. Please enable location services in your browser settings.'
-                      : 'Unable to access your location. You can still search for offices manually.'
-                    }
-                  </p>
-                </div>
+                <TextShadowLayer>
+                  <div className={`rounded-xl p-4 border ${
+                    theme === 'dark'
+                      ? 'bg-ios-red/20 border-ios-red/30 text-ios-red-300'
+                      : 'bg-ios-red/10 border-ios-red/20 text-ios-red'
+                  }`}>
+                    <p className="text-sm font-medium">
+                      {error === 'Permission denied' 
+                        ? 'Location access denied. Please enable location services in your browser settings.'
+                        : 'Unable to access your location. You can still search for offices manually.'
+                      }
+                    </p>
+                  </div>
+                </TextShadowLayer>
               </motion.div>
             )}
           </AnimatePresence>
@@ -358,16 +391,18 @@ const IEBCOfficeSplash = () => {
             </motion.button>
           </motion.div>
 
-          <motion.p
-            className={`text-xs mt-8 ${
-              theme === 'dark' ? 'text-ios-gray-400' : 'text-ios-gray-500'
-            }`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-          >
-            Your location data is processed locally and never stored on our servers.
-          </motion.p>
+          <TextShadowLayer className="mt-8">
+            <motion.p
+              className={`text-xs ${
+                theme === 'dark' ? 'text-ios-gray-400' : 'text-ios-gray-500'
+              }`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+            >
+              Your location data is processed locally and never stored on our servers.
+            </motion.p>
+          </TextShadowLayer>
         </div>
       </motion.div>
 
