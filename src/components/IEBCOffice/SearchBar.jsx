@@ -176,7 +176,7 @@ const SearchBar = ({
     }
   };
 
-  // Enhanced highlightMatches with dark mode support
+  // Enhanced highlightMatches with improved dark mode support
   const highlightMatches = (text, matches) => {
     if (!matches || !text) return text;
 
@@ -195,10 +195,10 @@ const SearchBar = ({
       }
 
       result.push(
-        <span key={start} className={`px-1 rounded ${
+        <span key={start} className={`px-1 rounded font-semibold transition-all duration-300 ${
           theme === 'dark' 
-            ? 'bg-amber-400/30 text-amber-300' 
-            : 'bg-yellow-200 text-yellow-900'
+            ? 'bg-amber-400/80 text-amber-900 shadow-lg' 
+            : 'bg-yellow-300/90 text-yellow-900 shadow-md'
         }`}>
           {text.slice(start, end + 1)}
         </span>
@@ -244,13 +244,13 @@ const SearchBar = ({
     <div className={`relative ${className}`}>
       <div className={`search-container transition-all duration-300 ${
         theme === 'dark'
-          ? 'bg-ios-gray-800/95 border-ios-gray-600 shadow-ios-high-dark'
-          : 'bg-white/95 border-ios-gray-200 shadow-ios-high'
-      } backdrop-blur-xl border rounded-2xl`}>
+          ? 'bg-ios-gray-800/95 border-ios-gray-600 shadow-ios-high-dark backdrop-blur-2xl'
+          : 'bg-white/95 border-ios-gray-200 shadow-ios-high backdrop-blur-2xl'
+      } border rounded-2xl`}>
         <div className="flex items-center space-x-3">
           <div className="pl-2">
             <Search className={`w-5 h-5 transition-colors duration-300 ${
-              theme === 'dark' ? 'text-ios-gray-400' : 'text-ios-gray-500'
+              theme === 'dark' ? 'text-ios-gray-300' : 'text-ios-gray-500'
             }`} />
           </div>
           
@@ -279,8 +279,8 @@ const SearchBar = ({
                   onClick={handleClear}
                   className={`flex items-center justify-center p-1 rounded-full transition-all duration-200 ${
                     theme === 'dark'
-                      ? 'hover:bg-ios-gray-700 text-ios-gray-300'
-                      : 'hover:bg-ios-gray-100 text-ios-gray-500'
+                      ? 'hover:bg-ios-gray-700/80 text-ios-gray-300 hover:text-white'
+                      : 'hover:bg-ios-gray-100 text-ios-gray-500 hover:text-ios-gray-700'
                   }`}
                 >
                   <X className="w-4 h-4" />
@@ -292,8 +292,8 @@ const SearchBar = ({
                 onClick={handleUseCurrentLocation}
                 className={`p-2 rounded-xl transition-all duration-200 ${
                   theme === 'dark'
-                    ? 'hover:bg-ios-gray-700 text-ios-blue-400'
-                    : 'hover:bg-ios-gray-100 text-ios-blue'
+                    ? 'hover:bg-ios-gray-700/80 text-ios-blue-400 hover:text-ios-blue-300'
+                    : 'hover:bg-ios-gray-100 text-ios-blue hover:text-ios-blue-600'
                 }`}
                 title="Use current location"
               >
@@ -306,10 +306,10 @@ const SearchBar = ({
         <AnimatePresence>
           {isExpanded && (suggestions.length > 0 || isLoading) && (
             <motion.div
-              className={`absolute top-full left-0 right-0 mt-2 backdrop-blur-xl border rounded-2xl shadow-lg overflow-hidden max-h-96 overflow-y-auto transition-all duration-300 ${
+              className={`absolute top-full left-0 right-0 mt-2 border rounded-2xl shadow-2xl overflow-hidden max-h-96 overflow-y-auto transition-all duration-300 ${
                 theme === 'dark'
-                  ? 'bg-ios-gray-800/98 border-ios-gray-600 shadow-ios-high-dark'
-                  : 'bg-white/98 border-ios-gray-200 shadow-ios-high'
+                  ? 'bg-ios-gray-800/95 backdrop-blur-2xl border-ios-gray-600 shadow-ios-high-dark'
+                  : 'bg-white/95 backdrop-blur-2xl border-ios-gray-200 shadow-ios-high'
               }`}
               style={{ zIndex: 1001 }}
               initial={{ opacity: 0, y: -10 }}
@@ -333,8 +333,10 @@ const SearchBar = ({
                     return (
                       <motion.div
                         key={suggestion.id || index}
-                        className={`border-b transition-colors duration-300 ${
-                          theme === 'dark' ? 'border-ios-gray-600' : 'border-ios-gray-200'
+                        className={`border-b transition-all duration-300 ${
+                          theme === 'dark' 
+                            ? 'border-ios-gray-700 hover:border-ios-gray-500' 
+                            : 'border-ios-gray-200 hover:border-ios-gray-300'
                         } last:border-b-0`}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -345,18 +347,18 @@ const SearchBar = ({
                           className={`w-full text-left p-4 transition-all duration-200 ${
                             theme === 'dark'
                               ? 'hover:bg-ios-gray-700/80 text-white'
-                              : 'hover:bg-ios-gray-50 text-ios-gray-900'
+                              : 'hover:bg-ios-gray-50/90 text-ios-gray-900'
                           }`}
                         >
                           <div className="flex items-start space-x-3">
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
                               suggestion.type === 'office' 
                                 ? theme === 'dark'
-                                  ? 'bg-ios-blue/30 text-ios-blue-300'
-                                  : 'bg-ios-blue/20 text-ios-blue'
+                                  ? 'bg-ios-blue/40 text-ios-blue-200 shadow-lg'
+                                  : 'bg-ios-blue/20 text-ios-blue shadow-md'
                                 : theme === 'dark'
-                                  ? 'bg-green-500/30 text-green-400'
-                                  : 'bg-green-500/20 text-green-600'
+                                  ? 'bg-green-500/40 text-green-200 shadow-lg'
+                                  : 'bg-green-500/20 text-green-600 shadow-md'
                             }`}>
                               {suggestion.type === 'office' ? (
                                 <MapPin className="w-4 h-4" />
@@ -371,13 +373,13 @@ const SearchBar = ({
                                 {display.primary}
                               </div>
                               <div className={`text-xs truncate transition-colors duration-300 ${
-                                theme === 'dark' ? 'text-ios-gray-400' : 'text-ios-gray-600'
+                                theme === 'dark' ? 'text-ios-gray-300' : 'text-ios-gray-600'
                               }`}>
                                 {display.secondary}
                               </div>
                               {display.tertiary && (
                                 <div className={`text-xs truncate mt-1 transition-colors duration-300 ${
-                                  theme === 'dark' ? 'text-ios-gray-500' : 'text-ios-gray-500'
+                                  theme === 'dark' ? 'text-ios-gray-400' : 'text-ios-gray-500'
                                 }`}>
                                   {display.tertiary}
                                 </div>
@@ -389,18 +391,18 @@ const SearchBar = ({
                     );
                   })}
                   
-                  <div className={`p-3 border-t transition-colors duration-300 ${
+                  <div className={`p-3 border-t transition-all duration-300 ${
                     theme === 'dark' 
-                      ? 'border-ios-gray-600 bg-ios-gray-700/50' 
-                      : 'border-ios-gray-200 bg-ios-gray-50'
+                      ? 'border-ios-gray-700 bg-ios-gray-800/80' 
+                      : 'border-ios-gray-200 bg-ios-gray-50/90'
                   }`}>
                     <div className={`text-xs text-center transition-colors duration-300 ${
                       theme === 'dark' ? 'text-ios-gray-400' : 'text-ios-gray-500'
                     }`}>
-                      Press <kbd className={`px-1 py-0.5 border rounded text-xs transition-colors duration-300 ${
+                      Press <kbd className={`px-2 py-1 border rounded text-xs font-mono transition-all duration-300 ${
                         theme === 'dark'
-                          ? 'bg-ios-gray-600 border-ios-gray-500 text-ios-gray-300'
-                          : 'bg-white border-ios-gray-300 text-ios-gray-600'
+                          ? 'bg-ios-gray-700 border-ios-gray-600 text-ios-gray-300 shadow-lg'
+                          : 'bg-white border-ios-gray-300 text-ios-gray-600 shadow-md'
                       }`}>Enter</kbd> to see all results
                     </div>
                   </div>
