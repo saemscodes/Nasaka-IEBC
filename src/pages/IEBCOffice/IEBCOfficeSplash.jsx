@@ -4,52 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import LoadingSpinner from '../../components/IEBCOffice/LoadingSpinner';
 import AppFooter from '@/components/UI/AppFooter';
-
-// Theme Context for Dark Mode Management
-const ThemeContext = React.createContext();
-
-export const useTheme = () => {
-  const context = React.useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
-};
-
-export const ThemeProvider = ({ children }) => {
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    // Check system preference and stored preference
-    const stored = localStorage.getItem('theme');
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (stored) {
-      setIsDark(stored === 'dark');
-    } else {
-      setIsDark(systemPrefersDark);
-    }
-  }, []);
-
-  useEffect(() => {
-    // Update DOM and localStorage when theme changes
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDark]);
-
-  const toggleTheme = () => setIsDark(!isDark);
-
-  return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
-};
+import { useTheme } from '@/contexts/ThemeContext';
 
 const BackgroundLayers = ({ className = "" }) => {
   return (
@@ -74,7 +29,8 @@ const BackgroundLayers = ({ className = "" }) => {
 
 // Theme Toggle Component
 const ThemeToggle = () => {
-  const { isDark, toggleTheme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === 'dark';
 
   return (
     <motion.button
@@ -107,7 +63,8 @@ const IEBCOfficeSplash = () => {
   const navigate = useNavigate();
   const { location, error, loading, requestLocation } = useGeolocation();
   const [showError, setShowError] = useState(false);
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   useEffect(() => {
     if (location) {
@@ -352,5 +309,4 @@ const IEBCOfficeSplash = () => {
   );
 };
 
-// Wrap your app with ThemeProvider in your main App.jsx or index.js
 export default IEBCOfficeSplash;
