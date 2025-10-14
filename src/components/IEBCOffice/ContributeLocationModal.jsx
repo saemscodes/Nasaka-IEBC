@@ -51,9 +51,9 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       if (hasRecordedInitial) return;
 
       const initialContributionData = {
-        latitude: capturedPosition.lat,
-        longitude: capturedPosition.lng,
-        accuracy: capturedAccuracy,
+        submitted_latitude: capturedPosition.lat,
+        submitted_longitude: capturedPosition.lng,
+        submitted_accuracy_meters: capturedAccuracy,
         status: 'initial_capture',
         device_metadata: {
           user_agent: navigator.userAgent,
@@ -68,7 +68,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       const { data, error } = await supabase
         .from('iebc_office_contributions')
         .insert(initialContributionData)
-        .select()
+        .select('id')
         .single();
 
       if (error) {
@@ -305,18 +305,25 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
 
     try {
       const contributionData = {
-        latitude: position.lat,
-        longitude: position.lng,
-        accuracy: accuracy,
-        officeId: selectedOffice?.id,
-        officeLocation: selectedOffice?.office_location,
-        county: selectedOffice?.county,
-        constituency: selectedOffice?.constituency_name,
-        constituencyCode: selectedOffice?.constituency_code,
-        landmark: notes,
-        nearbyLandmarks: nearbyOffices,
+        submitted_latitude: position.lat,
+        submitted_longitude: position.lng,
+        submitted_accuracy_meters: accuracy,
+        original_office_id: selectedOffice?.id,
+        submitted_office_location: selectedOffice?.office_location,
+        submitted_county: selectedOffice?.county,
+        submitted_constituency: selectedOffice?.constituency_name,
+        submitted_constituency_code: selectedOffice?.constituency_code,
+        submitted_landmark: notes,
+        nearby_landmarks: nearbyOffices,
         imageFile: imageFile,
-        timestamp: Date.now()
+        device_metadata: {
+          user_agent: navigator.userAgent,
+          platform: navigator.platform,
+          language: navigator.language,
+          timestamp: new Date().toISOString(),
+          capture_type: 'final'
+        },
+        submitted_timestamp: new Date().toISOString()
       };
 
       const result = await submitContribution(contributionData);
