@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
 
 const AppFooter = () => {
   const currentYear = new Date().getFullYear();
@@ -36,7 +35,7 @@ const AppFooter = () => {
 
   return (
     <motion.footer
-      className="bg-white border-t border-ios-gray-200 py-6 px-6 mt-auto"
+      className="bg-white dark:bg-ios-gray-900 border-t border-ios-gray-200 dark:border-ios-gray-700 py-6 px-6 mt-auto"
       variants={footerVariants}
       initial="initial"
       animate="animate"
@@ -52,22 +51,22 @@ const AppFooter = () => {
             onClick={handleCekaClick}
             className="flex items-center justify-center space-x-2 mx-auto group"
           >
-            {/* Mini CEKA Logo - Dual mode */}
+            {/* Mini CEKA Logo - Dual mode with direct Imgur links */}
             <div className="relative">
               {/* Colored logo for light mode */}
               <img 
-                src="/public/assets/logo-colored.png" 
+                src="https://i.imgur.com/xnC1q8e.png" 
                 alt="CEKA Logo" 
                 className="w-6 h-6 group-hover:scale-110 transition-transform duration-200 block dark:hidden"
               />
               {/* White logo for dark mode */}
               <img 
-                src="/public/assets/logo-white.png" 
+                src="https://i.imgur.com/9U7p4QQ.png" 
                 alt="CEKA Logo" 
                 className="w-6 h-6 group-hover:scale-110 transition-transform duration-200 hidden dark:block"
               />
             </div>
-            <span className="text-ios-gray-600 font-semibold text-sm tracking-wide group-hover:text-ios-blue transition-colors duration-200">
+            <span className="text-ios-gray-600 dark:text-ios-gray-300 font-semibold text-sm tracking-wide group-hover:text-ios-blue transition-colors duration-200">
               Powered by CEKA
             </span>
           </button>
@@ -77,23 +76,23 @@ const AppFooter = () => {
         <div className="flex items-center justify-center space-x-6 mb-4">
           <button
             onClick={handleSupportClick}
-            className="text-ios-blue text-xs font-medium hover:text-ios-blue/80 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-ios-blue/50 focus:ring-offset-1 rounded-lg px-2 py-1"
+            className="text-ios-blue dark:text-ios-blue-300 text-xs font-medium hover:text-ios-blue/80 dark:hover:text-ios-blue-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-ios-blue/50 focus:ring-offset-1 dark:focus:ring-offset-ios-gray-900 rounded-lg px-2 py-1"
           >
             Support/Donations
           </button>
           
-          <div className="w-px h-3 bg-ios-gray-300"></div>
+          <div className="w-px h-3 bg-ios-gray-300 dark:bg-ios-gray-600"></div>
           
           <button
             onClick={handleContactClick}
-            className="text-ios-blue text-xs font-medium hover:text-ios-blue/80 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-ios-blue/50 focus:ring-offset-1 rounded-lg px-2 py-1"
+            className="text-ios-blue dark:text-ios-blue-300 text-xs font-medium hover:text-ios-blue/80 dark:hover:text-ios-blue-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-ios-blue/50 focus:ring-offset-1 dark:focus:ring-offset-ios-gray-900 rounded-lg px-2 py-1"
           >
             Contact Us
           </button>
         </div>
 
         {/* Copyright */}
-        <div className="text-ios-gray-400 text-xs">
+        <div className="text-ios-gray-400 dark:text-ios-gray-500 text-xs">
           © {currentYear} Recall254. Civic Education Kenya.
         </div>
       </div>
