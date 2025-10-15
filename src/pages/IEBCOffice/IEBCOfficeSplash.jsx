@@ -17,9 +17,13 @@ const BackgroundLayers = ({ className = "" }) => {
     >
       {/* Faded Background Image - MAINTAINED FROM ORIGINAL */}
       <div className="absolute inset-0 will-change-transform">
-        <div className="bg-peek absolute inset-0" />
+        <div
+          className={`bg-peek absolute inset-0 transition-all duration-500 ${
+            theme === 'dark' ? 'opacity-50' : 'opacity-100'
+          }`}
+          />
       </div>
-
+      
       {/* Dark Mode Overlay - Enhanced for better contrast */}
       <div className="absolute inset-0 will-change-transform">
         <div className={`absolute inset-0 transition-all duration-500 ${
