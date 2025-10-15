@@ -251,7 +251,7 @@ const IEBCOfficeSplash = () => {
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 1080 1080"
                 className="w-16 h-16 mx-auto my-auto block transition-all duration-500"
-                fill={theme === 'dark' ? '#ffffff' : '#000000'}
+                fill={theme === 'dark' ? '#ffffff' : '#ffffff'}
                 >
                 <g
                   transform="translate(0,1080) scale(0.1,-0.1)"
