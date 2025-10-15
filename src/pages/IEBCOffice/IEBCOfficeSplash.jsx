@@ -97,20 +97,20 @@ const ThemeToggle = () => {
 // Text Shadow Layer Component for Better Readability
 const TextShadowLayer = ({ children, className = "" }) => {
   const { theme } = useTheme();
-  
+
   return (
-    <div className={`relative ${className}`}>
-      {/* Text Shadow Background - Hugs the text */}
-      <div className={`absolute inset-0 rounded-lg blur-xs transition-all duration-500 ${
-        theme === 'dark'
-          ? 'bg-black/30 -inset-1'
-          : 'bg-white/40 -inset-0.5'
-      }`} />
-      
-      {/* Main Content */}
-      <div className="relative z-10">
-        {children}
-      </div>
+    <div className={`relative inline-block ${className}`}>
+      {/* Shadow layer hugging text */}
+      <div
+        className={`absolute -inset-1 rounded-lg blur-md transition-all duration-500 z-0 ${
+          theme === "dark"
+            ? "bg-black/40"
+            : "bg-black/15"
+        }`}
+        aria-hidden="true"
+      />
+      {/* Main text content */}
+      <div className="relative z-10">{children}</div>
     </div>
   );
 };
