@@ -197,8 +197,8 @@ const SearchBar = ({
       result.push(
         <span key={start} className={`px-1 rounded font-semibold transition-all duration-300 ${
           theme === 'dark' 
-            ? 'bg-amber-400/80 text-amber-900 shadow-lg' 
-            : 'bg-yellow-300/90 text-yellow-900 shadow-md'
+            ? 'bg-amber-400/90 text-amber-900 shadow-lg' 
+            : 'bg-yellow-400/90 text-yellow-900 shadow-md'
         }`}>
           {text.slice(start, end + 1)}
         </span>
@@ -242,15 +242,36 @@ const SearchBar = ({
 
   return (
     <div className={`relative ${className}`}>
+      {/* Enhanced Backdrop Overlay */}
+      <AnimatePresence>
+        {isExpanded && (suggestions.length > 0 || isLoading) && (
+          <motion.div
+            className="fixed inset-0 z-1000"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              background: theme === 'dark' 
+                ? 'radial-gradient(ellipse at center, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.6) 100%)'
+                : 'radial-gradient(ellipse at center, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.6) 100%)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)'
+            }}
+            onClick={() => setIsExpanded(false)}
+          />
+        )}
+      </AnimatePresence>
+
       <div className={`search-container transition-all duration-300 ${
         theme === 'dark'
-          ? 'bg-ios-gray-800/95 border-ios-gray-600 shadow-ios-high-dark backdrop-blur-2xl'
-          : 'bg-white/95 border-ios-gray-200 shadow-ios-high backdrop-blur-2xl'
+          ? 'bg-ios-dark-surface/95 border-ios-dark-border shadow-ios-high-dark backdrop-blur-2xl'
+          : 'bg-white/95 border-ios-light-border shadow-ios-high backdrop-blur-2xl'
       } border rounded-2xl`}>
         <div className="flex items-center space-x-3">
           <div className="pl-2">
             <Search className={`w-5 h-5 transition-colors duration-300 ${
-              theme === 'dark' ? 'text-ios-gray-300' : 'text-ios-gray-500'
+              theme === 'dark' ? 'text-ios-dark-text-secondary' : 'text-ios-light-text-secondary'
             }`} />
           </div>
           
@@ -265,17 +286,15 @@ const SearchBar = ({
               placeholder={placeholder}
               className={`w-full bg-transparent border-none outline-none placeholder:text-muted-foreground text-base py-2 px-1 pr-16 transition-colors duration-300 ${
                 theme === 'dark' 
-                  ? 'text-white placeholder-ios-gray-400' 
-                  : 'text-ios-gray-900 placeholder-ios-gray-500'
+                  ? 'text-ios-dark-text-primary placeholder-ios-dark-text-tertiary' 
+                  : 'text-ios-light-text-primary placeholder-ios-light-text-tertiary'
               }`}
               style={{ 
                 textOverflow: "ellipsis", 
                 whiteSpace: "nowrap", 
                 overflow: "hidden",
-                // Force white text in dark mode, dark text in light mode
-                color: theme === 'dark' ? '#ffffff' : '#1C1C1E',
-                // Force caret color only - no placeholder blinking
-                caretColor: theme === 'dark' ? '#ffffff' : '#1C1C1E'
+                color: theme === 'dark' ? '#FFFFFF' : '#1C1C1E',
+                caretColor: theme === 'dark' ? '#FFFFFF' : '#1C1C1E'
               }}
               aria-label={placeholder}
             />
@@ -289,8 +308,8 @@ const SearchBar = ({
                   onClick={handleClear}
                   className={`flex items-center justify-center p-1 rounded-full transition-all duration-200 ${
                     theme === 'dark'
-                      ? 'hover:bg-ios-gray-700/80 text-ios-gray-300 hover:text-white'
-                      : 'hover:bg-ios-gray-100 text-ios-gray-500 hover:text-ios-gray-700'
+                      ? 'hover:bg-ios-dark-surface-hover text-ios-dark-text-secondary hover:text-ios-dark-text-primary'
+                      : 'hover:bg-ios-light-surface-hover text-ios-light-text-secondary hover:text-ios-light-text-primary'
                   }`}
                 >
                   <X className="w-4 h-4" />
@@ -302,8 +321,8 @@ const SearchBar = ({
                 onClick={handleUseCurrentLocation}
                 className={`p-2 rounded-xl transition-all duration-200 ${
                   theme === 'dark'
-                    ? 'hover:bg-ios-gray-700/80 text-ios-blue-400 hover:text-ios-blue-300'
-                    : 'hover:bg-ios-gray-100 text-ios-blue hover:text-ios-blue-600'
+                    ? 'hover:bg-ios-dark-surface-hover text-ios-blue-dark hover:text-ios-blue-light'
+                    : 'hover:bg-ios-light-surface-hover text-ios-blue hover:text-ios-blue-dark'
                 }`}
                 title="Use current location"
               >
@@ -318,23 +337,28 @@ const SearchBar = ({
             <motion.div
               className={`absolute top-full left-0 right-0 mt-2 border rounded-2xl shadow-2xl overflow-hidden max-h-96 overflow-y-auto transition-all duration-300 ${
                 theme === 'dark'
-                ? 'bg-gradient-to-b from-ios-gray-800/20 via-ios-gray-800/30 to-ios-gray-800/50 backdrop-blur-3xl border-ios-gray-700/40 shadow-ios-high-dark'
-                : 'bg-gradient-to-b from-white/10 via-white/25 to-white/50 backdrop-blur-3xl border-ios-gray-300/40 shadow-ios-high'
+                  ? 'bg-ios-dark-surface/95 backdrop-blur-3xl border-ios-dark-border shadow-ios-high-dark'
+                  : 'bg-white/98 backdrop-blur-3xl border-ios-light-border shadow-ios-high'
               }`}
               style={{ zIndex: 1001 }}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ 
+                duration: 0.2,
+                type: "spring",
+                stiffness: 500,
+                damping: 30
+              }}
             >
               {isLoading ? (
-                <div className={`p-4 text-center transition-colors duration-300 ${
-                  theme === 'dark' ? 'text-ios-gray-300' : 'text-ios-gray-600'
+                <div className={`p-6 text-center transition-colors duration-300 ${
+                  theme === 'dark' ? 'text-ios-dark-text-secondary' : 'text-ios-light-text-secondary'
                 }`}>
-                  <div className={`inline-block animate-spin rounded-full h-4 w-4 border-b-2 ${
-                    theme === 'dark' ? 'border-ios-blue-400' : 'border-ios-blue'
+                  <div className={`inline-block animate-spin rounded-full h-6 w-6 border-b-2 ${
+                    theme === 'dark' ? 'border-ios-blue-dark' : 'border-ios-blue'
                   }`}></div>
-                  <span className="ml-2">Searching...</span>
+                  <span className="ml-3 text-sm font-medium">Searching IEBC offices...</span>
                 </div>
               ) : (
                 <>
@@ -345,51 +369,56 @@ const SearchBar = ({
                         key={suggestion.id || index}
                         className={`border-b transition-all duration-300 ${
                           theme === 'dark' 
-                            ? 'border-ios-gray-700 hover:border-ios-gray-500' 
-                            : 'border-ios-gray-200 hover:border-ios-gray-300'
+                            ? 'border-ios-dark-border hover:border-ios-dark-border-hover' 
+                            : 'border-ios-light-border hover:border-ios-light-border-hover'
                         } last:border-b-0`}
-                        initial={{ opacity: 0, x: -20 }}
+                        initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
+                        transition={{ 
+                          delay: index * 0.03,
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 25
+                        }}
                       >
                         <button
                           onClick={() => handleSuggestionSelect(suggestion)}
                           className={`w-full text-left p-4 transition-all duration-200 ${
                             theme === 'dark'
-                              ? 'hover:bg-ios-gray-700/80 text-white'
-                              : 'hover:bg-ios-gray-50/90 text-ios-gray-900'
+                              ? 'hover:bg-ios-dark-surface-hover text-ios-dark-text-primary'
+                              : 'hover:bg-ios-light-surface-hover text-ios-light-text-primary'
                           }`}
                         >
                           <div className="flex items-start space-x-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
                               suggestion.type === 'office' 
                                 ? theme === 'dark'
-                                  ? 'bg-ios-blue/40 text-ios-blue-200 shadow-lg'
-                                  : 'bg-ios-blue/20 text-ios-blue shadow-md'
+                                  ? 'bg-ios-blue-dark/30 text-ios-blue-light shadow-lg'
+                                  : 'bg-ios-blue/20 text-ios-blue-dark shadow-md'
                                 : theme === 'dark'
-                                  ? 'bg-green-500/40 text-green-200 shadow-lg'
+                                  ? 'bg-green-500/30 text-green-300 shadow-lg'
                                   : 'bg-green-500/20 text-green-600 shadow-md'
                             }`}>
                               {suggestion.type === 'office' ? (
-                                <MapPin className="w-4 h-4" />
+                                <MapPin className="w-5 h-5" />
                               ) : (
-                                <Search className="w-4 h-4" />
+                                <Search className="w-5 h-5" />
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className={`font-medium text-sm truncate transition-colors duration-300 ${
-                                theme === 'dark' ? 'text-white' : 'text-ios-gray-900'
+                              <div className={`font-semibold text-base truncate transition-colors duration-300 ${
+                                theme === 'dark' ? 'text-ios-dark-text-primary' : 'text-ios-light-text-primary'
                               }`}>
                                 {display.primary}
                               </div>
-                              <div className={`text-xs truncate transition-colors duration-300 ${
-                                theme === 'dark' ? 'text-ios-gray-300' : 'text-ios-gray-600'
+                              <div className={`text-sm truncate mt-1 transition-colors duration-300 ${
+                                theme === 'dark' ? 'text-ios-dark-text-secondary' : 'text-ios-light-text-secondary'
                               }`}>
                                 {display.secondary}
                               </div>
                               {display.tertiary && (
-                                <div className={`text-xs truncate mt-1 transition-colors duration-300 ${
-                                  theme === 'dark' ? 'text-ios-gray-400' : 'text-ios-gray-500'
+                                <div className={`text-xs truncate mt-2 transition-colors duration-300 ${
+                                  theme === 'dark' ? 'text-ios-dark-text-tertiary' : 'text-ios-light-text-tertiary'
                                 }`}>
                                   {display.tertiary}
                                 </div>
@@ -401,19 +430,19 @@ const SearchBar = ({
                     );
                   })}
                   
-                  <div className={`p-3 border-t transition-all duration-300 ${
+                  <div className={`p-4 border-t transition-all duration-300 ${
                     theme === 'dark' 
-                      ? 'border-ios-gray-700 bg-ios-gray-800/80' 
-                      : 'border-ios-gray-200 bg-ios-gray-50/90'
+                      ? 'border-ios-dark-border bg-ios-dark-surface/80' 
+                      : 'border-ios-light-border bg-ios-light-surface/90'
                   }`}>
-                    <div className={`text-xs text-center transition-colors duration-300 ${
-                      theme === 'dark' ? 'text-ios-gray-400' : 'text-ios-gray-500'
+                    <div className={`text-sm text-center transition-colors duration-300 ${
+                      theme === 'dark' ? 'text-ios-dark-text-tertiary' : 'text-ios-light-text-tertiary'
                     }`}>
-                      Press <kbd className={`px-2 py-1 border rounded text-xs font-mono transition-all duration-300 ${
+                      Press <kbd className={`px-2 py-1 border rounded text-sm font-mono transition-all duration-300 ${
                         theme === 'dark'
-                          ? 'bg-ios-gray-700 border-ios-gray-600 text-ios-gray-300 shadow-lg'
-                          : 'bg-white border-ios-gray-300 text-ios-gray-600 shadow-md'
-                      }`}>Enter</kbd> to see all results
+                          ? 'bg-ios-dark-surface border-ios-dark-border text-ios-dark-text-secondary shadow-lg'
+                          : 'bg-white border-ios-light-border text-ios-light-text-secondary shadow-md'
+                      }`}>Enter</kbd> to see all IEBC office results
                     </div>
                   </div>
                 </>
@@ -423,16 +452,128 @@ const SearchBar = ({
         </AnimatePresence>
       </div>
 
-      {/* Enhanced CSS for caret styling without placeholder blinking */}
+      {/* Enhanced CSS for better glassmorphism and contrast */}
       <style jsx>{`
+        /* Enhanced glassmorphism with better backdrop support */
+        .backdrop-blur-3xl {
+          backdrop-filter: blur(48px);
+          -webkit-backdrop-filter: blur(48px);
+        }
+
+        /* Improved contrast for dark mode */
+        .bg-ios-dark-surface {
+          background-color: rgba(28, 28, 30, 0.95);
+        }
+
+        .bg-ios-dark-surface\\/95 {
+          background-color: rgba(28, 28, 30, 0.95);
+        }
+
+        .bg-ios-dark-surface-hover {
+          background-color: rgba(44, 44, 46, 0.8);
+        }
+
+        .border-ios-dark-border {
+          border-color: rgba(84, 84, 88, 0.65);
+        }
+
+        .border-ios-dark-border-hover {
+          border-color: rgba(120, 120, 128, 0.8);
+        }
+
+        .text-ios-dark-text-primary {
+          color: rgba(255, 255, 255, 0.95);
+        }
+
+        .text-ios-dark-text-secondary {
+          color: rgba(235, 235, 245, 0.8);
+        }
+
+        .text-ios-dark-text-tertiary {
+          color: rgba(235, 235, 245, 0.6);
+        }
+
+        /* Improved contrast for light mode */
+        .bg-ios-light-surface {
+          background-color: rgba(255, 255, 255, 0.98);
+        }
+
+        .bg-ios-light-surface\\/98 {
+          background-color: rgba(255, 255, 255, 0.98);
+        }
+
+        .bg-ios-light-surface-hover {
+          background-color: rgba(242, 242, 247, 0.9);
+        }
+
+        .border-ios-light-border {
+          border-color: rgba(216, 216, 220, 0.8);
+        }
+
+        .border-ios-light-border-hover {
+          border-color: rgba(174, 174, 178, 0.8);
+        }
+
+        .text-ios-light-text-primary {
+          color: rgba(28, 28, 30, 0.95);
+        }
+
+        .text-ios-light-text-secondary {
+          color: rgba(60, 60, 67, 0.8);
+        }
+
+        .text-ios-light-text-tertiary {
+          color: rgba(60, 60, 67, 0.6);
+        }
+
+        /* iOS blue colors */
+        .text-ios-blue {
+          color: rgba(0, 122, 255, 1);
+        }
+
+        .text-ios-blue-dark {
+          color: rgba(10, 132, 255, 1);
+        }
+
+        .text-ios-blue-light {
+          color: rgba(100, 210, 255, 1);
+        }
+
+        .bg-ios-blue {
+          background-color: rgba(0, 122, 255, 1);
+        }
+
+        .bg-ios-blue-dark {
+          background-color: rgba(10, 132, 255, 1);
+        }
+
+        .border-ios-blue-dark {
+          border-color: rgba(10, 132, 255, 1);
+        }
+
+        /* Shadow enhancements */
+        .shadow-ios-high {
+          box-shadow: 
+            0 24px 48px rgba(0, 0, 0, 0.18),
+            0 12px 24px rgba(0, 0, 0, 0.12),
+            0 0 0 1px rgba(0, 0, 0, 0.05);
+        }
+
+        .shadow-ios-high-dark {
+          box-shadow: 
+            0 24px 48px rgba(0, 0, 0, 0.35),
+            0 12px 24px rgba(0, 0, 0, 0.25),
+            0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+
         /* Force text color for dark mode compatibility */
         input {
-          color: ${theme === 'dark' ? '#ffffff' : '#1C1C1E'} !important;
+          color: ${theme === 'dark' ? '#FFFFFF' : '#1C1C1E'} !important;
         }
         
         /* Force caret color only - no placeholder blinking */
         input {
-          caret-color: ${theme === 'dark' ? '#ffffff' : '#1C1C1E'} !important;
+          caret-color: ${theme === 'dark' ? '#FFFFFF' : '#1C1C1E'} !important;
         }
         
         /* Remove any animation from the input that might cause placeholder blinking */
@@ -444,10 +585,10 @@ const SearchBar = ({
         input::placeholder {
           animation: none !important;
           opacity: 1 !important;
-          color: ${theme === 'dark' ? 'rgba(156, 163, 175, 0.8)' : 'rgba(107, 114, 128, 0.8)'} !important;
+          color: ${theme === 'dark' ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)'} !important;
         }
         
-        /* Browser-specific caret styling */
+        /* Browser-specific placeholder styling */
         input::-webkit-input-placeholder {
           animation: none !important;
           opacity: 1 !important;
@@ -476,6 +617,25 @@ const SearchBar = ({
         /* Remove any keyframe animations that might cause blinking */
         @keyframes none {
           /* Intentionally empty to override any existing animations */
+        }
+
+        /* Enhanced scrollbar for dropdown */
+        .overflow-y-auto::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .overflow-y-auto::-webkit-scrollbar-track {
+          background: ${theme === 'dark' ? 'rgba(44, 44, 46, 0.4)' : 'rgba(242, 242, 247, 0.8)'};
+          border-radius: 3px;
+        }
+
+        .overflow-y-auto::-webkit-scrollbar-thumb {
+          background: ${theme === 'dark' ? 'rgba(120, 120, 128, 0.6)' : 'rgba(174, 174, 178, 0.6)'};
+          border-radius: 3px;
+        }
+
+        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+          background: ${theme === 'dark' ? 'rgba(150, 150, 160, 0.8)' : 'rgba(142, 142, 147, 0.8)'};
         }
       `}</style>
     </div>
