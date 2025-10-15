@@ -42,6 +42,50 @@
   --spacing-safe-bottom: env(safe-area-inset-bottom, 0px);
   --spacing-safe-left: env(safe-area-inset-left, 0px);
   --spacing-safe-right: env(safe-area-inset-right, 0px);
+  
+  /* Light Mode Colors */
+  --ios-light-surface: rgba(255, 255, 255, 0.98);
+  --ios-light-surface-hover: rgba(242, 242, 247, 0.9);
+  --ios-light-border: rgba(216, 216, 220, 0.8);
+  --ios-light-border-hover: rgba(174, 174, 178, 0.8);
+  --ios-light-text-primary: rgba(28, 28, 30, 0.95);
+  --ios-light-text-secondary: rgba(60, 60, 67, 0.8);
+  --ios-light-text-tertiary: rgba(60, 60, 67, 0.6);
+  
+  /* Dark Mode Colors */
+  --ios-dark-surface: rgba(28, 28, 30, 0.95);
+  --ios-dark-surface-hover: rgba(44, 44, 46, 0.8);
+  --ios-dark-border: rgba(84, 84, 88, 0.65);
+  --ios-dark-border-hover: rgba(120, 120, 128, 0.8);
+  --ios-dark-text-primary: rgba(255, 255, 255, 0.95);
+  --ios-dark-text-secondary: rgba(235, 235, 245, 0.8);
+  --ios-dark-text-tertiary: rgba(235, 235, 245, 0.6);
+  
+  /* iOS Blue Colors */
+  --ios-blue: rgba(0, 122, 255, 1);
+  --ios-blue-dark: rgba(10, 132, 255, 1);
+  --ios-blue-light: rgba(100, 210, 255, 1);
+}
+
+/* Enhanced backdrop blur utilities */
+.backdrop-blur-3xl {
+  backdrop-filter: blur(48px);
+  -webkit-backdrop-filter: blur(48px);
+}
+
+/* High contrast shadow systems */
+.shadow-ios-high {
+  box-shadow: 
+    0 24px 48px rgba(0, 0, 0, 0.18),
+    0 12px 24px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-ios-high-dark {
+  box-shadow: 
+    0 24px 48px rgba(0, 0, 0, 0.35),
+    0 12px 24px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 /* ============================================
