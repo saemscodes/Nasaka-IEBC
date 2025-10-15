@@ -318,8 +318,8 @@ const SearchBar = ({
             <motion.div
               className={`absolute top-full left-0 right-0 mt-2 border rounded-2xl shadow-2xl overflow-hidden max-h-96 overflow-y-auto transition-all duration-300 ${
                 theme === 'dark'
-                  ? 'bg-ios-gray-800/95 backdrop-blur-2xl border-ios-gray-600 shadow-ios-high-dark'
-                  : 'bg-white/95 backdrop-blur-2xl border-ios-gray-200 shadow-ios-high'
+                ? 'bg-ios-gray-800/30 backdrop-blur-3xl border-ios-gray-700/40 shadow-ios-high-dark'
+                : 'bg-white/25 backdrop-blur-3xl border-ios-gray-300/40 shadow-ios-high'
               }`}
               style={{ zIndex: 1001 }}
               initial={{ opacity: 0, y: -10 }}
