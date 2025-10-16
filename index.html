@@ -5,49 +5,135 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Primary Meta Tags -->
-    <title>Recall254 – Empowering Kenyans to Recall Underperforming Leaders</title>
-    <meta name="description" content="Recall254 by CEKA educates Kenyans on their constitutional right to recall elected leaders. Learn the legal grounds, process, and how to take action for accountability." />
-    <meta name="author" content="CEKA – Civic Education Kenya App" />
+    <!-- Primary Meta Tags (Nasaka IEBC) -->
+    <title>Nasaka IEBC — Find & Verify IEBC Offices Across Kenya</title>
+    <meta name="description" content="Nasaka IEBC helps Kenyans locate, verify and engage with IEBC service points. Interactive maps, directions, verification and civic reporting for trustworthy electoral access." />
+    <meta name="author" content="Nasaka IEBC / CEKA" />
     <link rel="canonical" href="https://recall254.vercel.app" />
 
-    <!-- Open Graph / Facebook -->
+    <!-- Theme color for browser UI -->
+    <meta name="theme-color" content="#0b63c6" />
+    <meta name="msapplication-TileColor" content="#0b63c6" />
+
+    <!-- Open Graph / Facebook (multiple images — social platforms will typically pick one) -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://recall254.vercel.app" />
-    <meta property="og:title" content="Recall254 – Your Right to Remove Non-Performing Leaders" />
-    <meta property="og:description" content="Built by CEKA, Recall254 guides Kenyans through the constitutional recall process with clear steps and legal insights." />
-    <meta property="og:image" content="https://recall254.vercel.app/logo_green.png" />
+    <meta property="og:site_name" content="Nasaka IEBC" />
+    <meta property="og:url" content="https://recall254.vercel.app/" />
+    <meta property="og:title" content="Nasaka IEBC — Locate & Verify IEBC Offices in Kenya" />
+    <meta property="og:description" content="Interactive finder for IEBC registration and service points — maps, directions, verification and crowdsourced reporting to improve voter access." />
+
+    <!-- OG images (variants). Keep these public at /nasaka-*.png -->
+    <meta property="og:image" content="https://recall254.vercel.app/nasaka-white.png" />
+    <meta property="og:image:alt" content="Nasaka IEBC — white background, blue text" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <meta property="og:image" content="https://recall254.vercel.app/nasaka-black.png" />
+    <meta property="og:image:alt" content="Nasaka IEBC — black background, white text" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <meta property="og:image" content="https://recall254.vercel.app/nasaka-blue.png" />
+    <meta property="og:image:alt" content="Nasaka IEBC — blue background, white text" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <meta property="og:image" content="https://recall254.vercel.app/nasaka-bnw.png" />
+    <meta property="og:image:alt" content="Nasaka IEBC — black & white" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@CivicEdKenya" />
     <meta name="twitter:creator" content="@CivicEdKenya" />
-    <meta name="twitter:title" content="Recall254 – Hold Your Leaders Accountable" />
-    <meta name="twitter:description" content="Explore your right to recall elected leaders in Kenya with CEKA's civic education tool." />
-    <meta name="twitter:image" content="https://recall254.vercel.app/logo_white.png" />
+    <meta name="twitter:title" content="Nasaka IEBC — Locate & Verify IEBC Offices" />
+    <meta name="twitter:description" content="Find IEBC registration points and official offices across Kenya. Map-based finder with verification and reporting features." />
+    <meta name="twitter:image" content="https://recall254.vercel.app/nasaka-white.png" />
+    <meta name="twitter:image:alt" content="Nasaka IEBC share preview" />
 
-    <!-- Favicon & Manifest -->
+    <!-- Reddit & TikTok (they rely on Open Graph too; explicit alt + multiple og:image entries above help them pick) -->
+    <meta name="twitter:app:name:iphone" content="Nasaka IEBC" />
+
+    <!-- Favicon & Apple / PWA -->
     <link rel="icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" href="/logo_green.png" />
+    <link rel="apple-touch-icon" href="/nasaka-white.png" />
     <link rel="manifest" href="/site.webmanifest" />
 
     <!-- Structured Data -->
     <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "Recall254",
-        "url": "https://recall254.vercel.app",
-        "description": "Recall254 by CEKA educates Kenyans on their constitutional right to recall elected leaders who fail to deliver.",
-        "publisher": {
-          "@type": "Organization",
-          "name": "CEKA – Civic Education Kenya App"
-        }
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Nasaka IEBC",
+      "url": "https://recall254.vercel.app",
+      "description": "Nasaka IEBC helps Kenyans locate and verify IEBC offices, access directions, and report civic issues to improve electoral access.",
+      "publisher": {
+        "@type": "Organization",
+        "name": "CEKA – Civic Education Kenya App"
       }
+    }
     </script>
 
     <!-- Stylesheets -->
-    <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous" />
+    <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet" crossorigin="anonymous" />
+
+    <!-- Client-side helper: swap page icons/meta for in-browser dark/light preference or explicit ?platform= param -->
+    <script>
+      (function () {
+        try {
+          const params = new URLSearchParams(location.search);
+          const platform = params.get('platform');
+          const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+          const pick = (p) => {
+            if (platform === 'tiktok') return '/nasaka-blue.png';
+            if (platform === 'reddit') return '/nasaka-bnw.png';
+            return prefersDark ? '/nasaka-black.png' : '/nasaka-white.png';
+          };
+
+          const chosen = pick(platform);
+          
+          const updateLink = (rel, href) => {
+            let el = document.querySelector('link[rel="'+rel+'"]');
+            if (!el) {
+              el = document.createElement('link');
+              el.rel = rel;
+              document.head.appendChild(el);
+            }
+            el.href = href;
+          };
+
+          updateLink('icon', chosen);
+          updateLink('apple-touch-icon', chosen);
+
+          const metaTheme = document.querySelector('meta[name="theme-color"]');
+          if (metaTheme) metaTheme.content = prefersDark ? '#111827' : '#0b63c6';
+
+          const setMeta = (name, content, property = false) => {
+            let selector = property ? 'meta[property="'+name+'"]' : 'meta[name="'+name+'"]';
+            let m = document.querySelector(selector);
+            if (!m) {
+              m = document.createElement('meta');
+              if (property) m.setAttribute('property', name); else m.setAttribute('name', name);
+              document.head.appendChild(m);
+            }
+            m.content = content;
+          };
+          
+          setMeta('twitter:image', chosen);
+          
+          let og = document.querySelector('meta[property="og:image"]');
+          if (og) og.content = chosen;
+          else {
+            const mo = document.createElement('meta');
+            mo.setAttribute('property','og:image');
+            mo.content = chosen;
+            document.head.appendChild(mo);
+          }
+        } catch (e) { }
+      })();
+    </script>
 
     <!-- Robots -->
     <meta name="robots" content="index, follow" />
@@ -57,9 +143,9 @@
     <!-- JavaScript Fallback for Non-JS Agents -->
     <noscript>
       <div style="padding: 2rem; text-align: center;">
-        <h1>Recall254: Empowering Kenyans to Recall Underperforming Leaders</h1>
-        <p>This platform by CEKA helps citizens understand the constitutional recall process and how to take action against non-performing elected officials.</p>
-        <p><a href="https://recall254.vercel.app">Visit Recall254</a></p>
+        <h1>Nasaka IEBC: Locate & Verify IEBC Offices Across Kenya</h1>
+        <p>This platform helps Kenyan citizens find official IEBC registration centers, verify office locations, and access electoral services with interactive maps and directions.</p>
+        <p><a href="https://recall254.vercel.app">Visit Nasaka IEBC</a></p>
       </div>
     </noscript>
 
@@ -73,4 +159,3 @@
     </script>
   </body>
 </html>
-
