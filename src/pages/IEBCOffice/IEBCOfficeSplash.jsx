@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useGeolocation } from '../../hooks/useGeolocation';
@@ -6,25 +6,59 @@ import LoadingSpinner from '../../components/IEBCOffice/LoadingSpinner';
 import AppFooter from '@/components/UI/AppFooter';
 import { useTheme } from '@/contexts/ThemeContext';
 
-// Enhanced Background Layers with Faded Image and Proper Dark Mode
+// Enhanced Background Layers with Cursor-Tracking Radial Effects
 const BackgroundLayers = ({ className = "" }) => {
   const { theme } = useTheme();
-  
+  const [cursorPos, setCursorPos] = useState({ x: 50, y: 50 });
+  const [isHovering, setIsHovering] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!containerRef.current) return;
+      
+      const rect = containerRef.current.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      
+      setCursorPos({ x, y });
+      setIsHovering(true);
+    };
+
+    const handleMouseLeave = () => {
+      setIsHovering(false);
+    };
+
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('mousemove', handleMouseMove);
+      container.addEventListener('mouseleave', handleMouseLeave);
+    }
+
+    return () => {
+      if (container) {
+        container.removeEventListener('mousemove', handleMouseMove);
+        container.removeEventListener('mouseleave', handleMouseLeave);
+      }
+    };
+  }, []);
+
   return (
     <div
+      ref={containerRef}
       aria-hidden="true"
       className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`}
     >
-      {/* Faded Background Image - MAINTAINED FROM ORIGINAL */}
+      {/* Faded Background Image */}
       <div className="absolute inset-0 will-change-transform">
         <div
           className={`bg-peek absolute inset-0 transition-all duration-500 ${
             theme === 'dark' ? 'opacity-50' : 'opacity-100'
           }`}
-          />
+        />
       </div>
       
-      {/* Dark Mode Overlay - Enhanced for better contrast */}
+      {/* Dark Mode Base Overlay */}
       <div className="absolute inset-0 will-change-transform">
         <div className={`absolute inset-0 transition-all duration-500 ${
           theme === 'dark' 
@@ -33,14 +67,120 @@ const BackgroundLayers = ({ className = "" }) => {
         }`} />
       </div>
 
-      {/* Pattern Overlay - Enhanced for dark mode */}
+      {/* Dynamic Pattern Overlay with Color Drift */}
       <div className="absolute inset-0">
-        <div className={`absolute inset-0 transition-all duration-500 ${
-          theme === 'dark'
-            ? 'bg-pattern-grid-dark opacity-15'
-            : 'bg-pattern opacity-50'
-        }`} />
+        <motion.div
+          className={`absolute inset-0 transition-all duration-1000 ${
+            theme === 'dark'
+              ? 'bg-iebc-pattern-dark'
+              : 'bg-iebc-pattern'
+          }`}
+          animate={{
+            filter: theme === 'dark' ? [
+              'hue-rotate(0deg)',
+              'hue-rotate(15deg)',
+              'hue-rotate(-10deg)',
+              'hue-rotate(0deg)'
+            ] : 'none'
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+        />
       </div>
+
+      {/* Cursor-Tracking Radial Gradient - Dark Mode Only */}
+      {theme === 'dark' && (
+        <>
+          {/* Base Radial Glow */}
+          <motion.div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: `radial-gradient(circle at ${cursorPos.x}% ${cursorPos.y}%, 
+                rgba(120, 120, 255, 0.1) 0%,
+                rgba(80, 80, 200, 0.05) 20%,
+                rgba(40, 40, 150, 0.02) 40%,
+                transparent 70%)`
+            }}
+            animate={{
+              opacity: isHovering ? 1 : 0.3,
+              scale: isHovering ? [1, 1.02, 1] : 1
+            }}
+            transition={{
+              opacity: { duration: 0.5 },
+              scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+            }}
+          />
+          
+          {/* Dynamic Color Drift Layer */}
+          <motion.div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: `radial-gradient(circle at ${cursorPos.x}% ${cursorPos.y}%, 
+                rgba(255, 100, 100, 0.08) 0%,
+                rgba(100, 255, 100, 0.05) 25%,
+                rgba(100, 100, 255, 0.08) 50%,
+                transparent 70%)`,
+              mixBlendMode: 'overlay'
+            }}
+            animate={{
+              opacity: isHovering ? [0.3, 0.6, 0.3] : 0.1,
+              background: isHovering ? [
+                `radial-gradient(circle at ${cursorPos.x}% ${cursorPos.y}%, 
+                 rgba(255, 100, 100, 0.1) 0%,
+                 rgba(100, 255, 100, 0.07) 25%,
+                 rgba(100, 100, 255, 0.1) 50%,
+                 transparent 70%)`,
+                `radial-gradient(circle at ${cursorPos.x}% ${cursorPos.y}%, 
+                 rgba(100, 255, 100, 0.1) 0%,
+                 rgba(100, 100, 255, 0.07) 25%,
+                 rgba(255, 100, 100, 0.1) 50%,
+                 transparent 70%)`,
+                `radial-gradient(circle at ${cursorPos.x}% ${cursorPos.y}%, 
+                 rgba(100, 100, 255, 0.1) 0%,
+                 rgba(255, 100, 100, 0.07) 25%,
+                 rgba(100, 255, 100, 0.1) 50%,
+                 transparent 70%)`
+              ] : `radial-gradient(circle at ${cursorPos.x}% ${cursorPos.y}%, 
+                 rgba(255, 100, 100, 0.05) 0%,
+                 rgba(100, 255, 100, 0.03) 25%,
+                 rgba(100, 100, 255, 0.05) 50%,
+                 transparent 70%)`
+            }}
+            transition={{
+              opacity: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+              background: { duration: 8, repeat: Infinity, ease: "easeInOut" }
+            }}
+          />
+          
+          {/* Moving Glare Sweep */}
+          <motion.div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: `linear-gradient(120deg, 
+                transparent 0%,
+                rgba(255, 255, 255, 0.03) 45%,
+                rgba(255, 255, 255, 0.08) 50%,
+                rgba(255, 255, 255, 0.03) 55%,
+                transparent 100%)`,
+              mixBlendMode: 'soft-light',
+              transformOrigin: `${cursorPos.x}% ${cursorPos.y}%`
+            }}
+            animate={{
+              rotate: [0, 360],
+              scale: [1, 1.2, 1],
+              opacity: [0.1, 0.3, 0.1]
+            }}
+            transition={{
+              rotate: { duration: 20, repeat: Infinity, ease: "linear" },
+              scale: { duration: 4, repeat: Infinity, ease: "easeInOut" },
+              opacity: { duration: 5, repeat: Infinity, ease: "easeInOut" }
+            }}
+          />
+        </>
+      )}
 
       {/* Enhanced Vignette - Dynamic for theme */}
       <div className="absolute inset-0 pointer-events-none">
