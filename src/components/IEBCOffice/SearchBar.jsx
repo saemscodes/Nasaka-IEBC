@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, MapPin, Filter } from 'lucide-react';
+import { Search, X, Filter } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import Fuse from 'fuse.js';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -22,6 +22,24 @@ const SearchBar = ({
   const inputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
   const { theme } = useTheme();
+
+  // IEBC Icon Component
+  const IEBCIcon = ({ className = "w-5 h-5" }) => (
+    <svg
+      version="1.0"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      viewBox="0 0 1080.000000 1080.000000"
+      preserveAspectRatio="xMidYMid meet"
+      fill="currentColor"
+    >
+      <g transform="translate(0.000000,1080.000000) scale(0.100000,-0.100000)" stroke="none">
+        <path d="M5135 9223 c-559 -49 -1092 -260 -1555 -616 -117 -90 -384 -351 -477 -467 -290 -360 -500 -803 -593 -1250 -72 -351 -79 -741 -19 -1089 104 -604 429 -1261 949 -1922 103 -132 1951 -2309 1959 -2308 7 0 1719 2051 1854 2219 560 701 899 1332 1026 1905 50 227 56 288 56 580 0 294 -7 370 -52 595 -254 1267 -1318 2228 -2601 2350 -98 9 -453 11 -547 3z m575 -638 c250 -35 478 -104 692 -208 249 -122 436 -255 633 -452 356 -355 580 -799 657 -1299 31 -204 31 -519 0 -701 -86 -502 -308 -938 -653 -1284 -439 -438 -1025 -681 -1644 -681 -864 0 -1643 471 -2055 1243 -176 330 -261 685 -261 1092 0 476 126 888 394 1290 116 173 289 364 453 497 427 348 970 536 1514 523 85 -2 207 -11 270 -20z"/>
+        <path d="M5250 7760 c-597 -83 -1055 -488 -1213 -1070 -30 -112 -31 -122 -31 -330 -1 -172 3 -232 17 -300 125 -583 579 -1025 1157 -1125 126 -22 354 -22 485 0 575 96 1033 540 1161 1125 15 67 19 127 19 280 0 209 -10 279 -61 443 l-26 80 -119 -119 -120 -120 16 -88 c69 -397 -86 -810 -399 -1065 -134 -109 -267 -175 -450 -224 -69 -18 -108 -21 -266 -21 -159 0 -196 3 -265 21 -164 45 -307 116 -427 212 -214 170 -351 396 -409 673 -30 148 -23 372 16 503 36 121 74 211 125 292 206 327 541 524 920 540 296 12 569 -85 790 -283 l63 -56 106 107 106 106 -65 60 c-181 166 -432 292 -685 344 -94 19 -352 28 -445 15z"/>
+        <path d="M6780 7494 c-30 -8 -78 -29 -107 -46 -32 -20 -258 -238 -614 -594 l-563 -564 -196 195 c-170 169 -206 199 -266 227 -66 31 -75 33 -184 33 -105 0 -120 -2 -170 -27 -30 -15 -71 -41 -90 -57 l-35 -30 450 -450 c442 -443 451 -451 490 -451 39 0 49 9 867 827 l827 827 -20 22 c-31 33 -127 80 -187 93 -70 15 -135 13 -202 -5z"/>
+      </g>
+    </svg>
+  );
 
   // Load all offices for Fuse.js indexing
   useEffect(() => {
@@ -326,7 +344,7 @@ const SearchBar = ({
                 }`}
                 title="Use current location"
               >
-                <MapPin className="w-5 h-5" />
+                <IEBCIcon className="w-5 h-5" />
               </motion.button>
             </div>
           </div>
@@ -400,7 +418,7 @@ const SearchBar = ({
                                   : 'bg-green-500/20 text-green-600 shadow-md'
                             }`}>
                               {suggestion.type === 'office' ? (
-                                <MapPin className="w-5 h-5" />
+                                <IEBCIcon className="w-5 h-5" />
                               ) : (
                                 <Search className="w-5 h-5" />
                               )}
