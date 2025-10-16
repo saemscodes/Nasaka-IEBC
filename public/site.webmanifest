@@ -1,22 +1,42 @@
 {
-  "name": "Recall254 – Hold Leaders Accountable",
-  "short_name": "Recall254",
-  "description": "CEKA’s tool to educate and activate Kenyans on the constitutional recall process.",
+  "name": "Nasaka IEBC — Locate & Verify IEBC Offices",
+  "short_name": "Nasaka IEBC",
+  "description": "Find, verify and engage with IEBC offices across Kenya — maps, directions and civic reporting.",
   "start_url": "/?utm_source=web_app_manifest",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
-  "theme_color": "#2a9d8f",
+  "theme_color": "#0b63c6",
   "icons": [
     {
-      "src": "/logo_green.png",
-      "sizes": "500x500",
-      "type": "image/png"
+      "src": "/nasaka-white.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "/logo_white.png",
-      "sizes": "500x500",
-      "type": "image/png"
+      "src": "/nasaka-black.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/nasaka-blue.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/nasaka-bnw.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/nasaka-white.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
