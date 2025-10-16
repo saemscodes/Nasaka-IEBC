@@ -22,23 +22,23 @@
     <meta property="og:title" content="Nasaka IEBC — Locate & Verify IEBC Offices in Kenya" />
     <meta property="og:description" content="Interactive finder for IEBC registration and service points — maps, directions, verification and crowdsourced reporting to improve voter access." />
 
-    <!-- OG images (variants). Keep these public at /nasaka-*.png -->
-    <meta property="og:image" content="https://recall254.vercel.app/nasaka-white.png" />
+    <!-- OG images (variants) -->
+    <meta property="og:image" content="https://recall254.vercel.app/nasaka-logo-white.png" />
     <meta property="og:image:alt" content="Nasaka IEBC — white background, blue text" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
 
-    <meta property="og:image" content="https://recall254.vercel.app/nasaka-black.png" />
+    <meta property="og:image" content="https://recall254.vercel.app/nasaka-logo-black.png" />
     <meta property="og:image:alt" content="Nasaka IEBC — black background, white text" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
 
-    <meta property="og:image" content="https://recall254.vercel.app/nasaka-blue.png" />
+    <meta property="og:image" content="https://recall254.vercel.app/nasaka-logo-blue.png" />
     <meta property="og:image:alt" content="Nasaka IEBC — blue background, white text" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
 
-    <meta property="og:image" content="https://recall254.vercel.app/nasaka-bnw.png" />
+    <meta property="og:image" content="https://recall254.vercel.app/nasaka-logo-bnw.png" />
     <meta property="og:image:alt" content="Nasaka IEBC — black & white" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -49,16 +49,19 @@
     <meta name="twitter:creator" content="@CivicEdKenya" />
     <meta name="twitter:title" content="Nasaka IEBC — Locate & Verify IEBC Offices" />
     <meta name="twitter:description" content="Find IEBC registration points and official offices across Kenya. Map-based finder with verification and reporting features." />
-    <meta name="twitter:image" content="https://recall254.vercel.app/nasaka-white.png" />
+    <meta name="twitter:image" content="https://recall254.vercel.app/nasaka-logo-white.png" />
     <meta name="twitter:image:alt" content="Nasaka IEBC share preview" />
 
-    <!-- Reddit & TikTok (they rely on Open Graph too; explicit alt + multiple og:image entries above help them pick) -->
+    <!-- Reddit & TikTok -->
     <meta name="twitter:app:name:iphone" content="Nasaka IEBC" />
 
-    <!-- Favicon & Apple / PWA -->
-    <link rel="icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" href="/nasaka-white.png" />
+    <!-- Favicon & Apple / PWA - Default to blue logo -->
+    <link rel="icon" href="/nasaka-logo-blue.png" />
+    <link rel="apple-touch-icon" href="/nasaka-logo-round-blacknblue.png" />
     <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- SVG Favicon for modern browsers -->
+    <link rel="icon" type="image/svg+xml" href="/nasaka.svg" />
 
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -78,7 +81,7 @@
     <!-- Stylesheets -->
     <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet" crossorigin="anonymous" />
 
-    <!-- Client-side helper: swap page icons/meta for in-browser dark/light preference or explicit ?platform= param -->
+    <!-- Client-side helper: dynamic icon selection based on platform and theme -->
     <script>
       (function () {
         try {
@@ -86,52 +89,139 @@
           const platform = params.get('platform');
           const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-          const pick = (p) => {
-            if (platform === 'tiktok') return '/nasaka-blue.png';
-            if (platform === 'reddit') return '/nasaka-bnw.png';
-            return prefersDark ? '/nasaka-black.png' : '/nasaka-white.png';
+          // Enhanced icon selection logic
+          const pickIcons = (platform, prefersDark) => {
+            if (platform === 'tiktok') {
+              return {
+                favicon: '/nasaka-logo-round-blacknblue.png',
+                appleTouch: '/nasaka-logo-round-blacknblue.png',
+                ogImage: '/nasaka-logo-blue.png',
+                themeColor: '#0b63c6'
+              };
+            }
+            
+            if (platform === 'reddit') {
+              return {
+                favicon: '/nasaka-logo-round-bnw.png',
+                appleTouch: '/nasaka-logo-round-bnw.png',
+                ogImage: '/nasaka-logo-bnw.png',
+                themeColor: '#1c1c1c'
+              };
+            }
+
+            if (prefersDark) {
+              return {
+                favicon: '/nasaka-logo-white.png',
+                appleTouch: '/nasaka-logo-round-black.png',
+                ogImage: '/nasaka-logo-black.png',
+                themeColor: '#111827'
+              };
+            }
+
+            // Light mode default
+            return {
+              favicon: '/nasaka-logo-blue.png',
+              appleTouch: '/nasaka-logo-round-blacknblue.png',
+              ogImage: '/nasaka-logo-white.png',
+              themeColor: '#0b63c6'
+            };
           };
 
-          const chosen = pick(platform);
+          const icons = pickIcons(platform, prefersDark);
           
-          const updateLink = (rel, href) => {
-            let el = document.querySelector('link[rel="'+rel+'"]');
+          // Update favicon and apple touch icon
+          const updateLink = (rel, href, type = null) => {
+            let el = document.querySelector(`link[rel="${rel}"]`);
             if (!el) {
               el = document.createElement('link');
               el.rel = rel;
+              if (type) el.type = type;
               document.head.appendChild(el);
             }
             el.href = href;
           };
 
-          updateLink('icon', chosen);
-          updateLink('apple-touch-icon', chosen);
+          // Update PNG favicon
+          updateLink('icon', icons.favicon);
+          
+          // Update SVG favicon for modern browsers
+          updateLink('icon', '/nasaka.svg', 'image/svg+xml');
+          
+          // Update apple touch icon
+          updateLink('apple-touch-icon', icons.appleTouch);
 
+          // Update theme color
           const metaTheme = document.querySelector('meta[name="theme-color"]');
-          if (metaTheme) metaTheme.content = prefersDark ? '#111827' : '#0b63c6';
+          if (metaTheme) metaTheme.content = icons.themeColor;
 
+          // Update msapplication tile color
+          const msTileColor = document.querySelector('meta[name="msapplication-TileColor"]');
+          if (msTileColor) msTileColor.content = icons.themeColor;
+
+          // Update social meta images
           const setMeta = (name, content, property = false) => {
-            let selector = property ? 'meta[property="'+name+'"]' : 'meta[name="'+name+'"]';
+            let selector = property ? `meta[property="${name}"]` : `meta[name="${name}"]`;
             let m = document.querySelector(selector);
             if (!m) {
               m = document.createElement('meta');
-              if (property) m.setAttribute('property', name); else m.setAttribute('name', name);
+              if (property) m.setAttribute('property', name); 
+              else m.setAttribute('name', name);
               document.head.appendChild(m);
             }
             m.content = content;
           };
           
-          setMeta('twitter:image', chosen);
+          // Update Twitter image
+          setMeta('twitter:image', icons.ogImage);
           
-          let og = document.querySelector('meta[property="og:image"]');
-          if (og) og.content = chosen;
-          else {
-            const mo = document.createElement('meta');
-            mo.setAttribute('property','og:image');
-            mo.content = chosen;
-            document.head.appendChild(mo);
-          }
-        } catch (e) { }
+          // Update all OG images to use the selected one
+          const ogImages = document.querySelectorAll('meta[property="og:image"]');
+          ogImages.forEach(meta => {
+            meta.content = icons.ogImage;
+          });
+
+          // Dynamic SVG color based on theme
+          const updateSvgColor = () => {
+            const svgLink = document.querySelector('link[rel="icon"][type="image/svg+xml"]');
+            if (svgLink) {
+              fetch(svgLink.href)
+                .then(response => response.text())
+                .then(svgText => {
+                  // Create a temporary div to parse SVG
+                  const tempDiv = document.createElement('div');
+                  tempDiv.innerHTML = svgText;
+                  const svgElement = tempDiv.querySelector('svg');
+                  
+                  if (svgElement) {
+                    // Set SVG fill color based on theme
+                    const paths = svgElement.querySelectorAll('path');
+                    paths.forEach(path => {
+                      if (prefersDark) {
+                        path.setAttribute('fill', '#ffffff');
+                      } else {
+                        path.setAttribute('fill', '#0b63c6');
+                      }
+                    });
+                    
+                    // Create blob URL for the modified SVG
+                    const modifiedSvg = new XMLSerializer().serializeToString(svgElement);
+                    const blob = new Blob([modifiedSvg], { type: 'image/svg+xml' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    // Update SVG favicon
+                    svgLink.href = url;
+                  }
+                })
+                .catch(error => console.error('Error updating SVG color:', error));
+            }
+          };
+
+          // Update SVG color dynamically
+          updateSvgColor();
+
+        } catch (e) { 
+          console.error('Icon selection error:', e);
+        }
       })();
     </script>
 
