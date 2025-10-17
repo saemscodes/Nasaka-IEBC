@@ -25,7 +25,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
-// Search nearby offices using Supabase - NOW USES REAL-TIME DATA
+// Search nearby offices using Supabase
 const searchNearbyOffices = async (lat, lng, radius = 5000, onNearbyOfficesFound = null) => {
   try {
     const { data: offices, error } = await supabase
@@ -65,7 +65,7 @@ const GeoJSONLayerManager = ({
   searchRadius = 5000, // meters
   onNearbyOfficesFound,
   baseMap = 'standard',
-  offices = [] // CRITICAL: Real-time offices from parent
+  offices = [] // Real-time offices from parent for additional markers
 }) => {
   const map = useMap();
   const [layerData, setLayerData] = useState({});
@@ -73,25 +73,29 @@ const GeoJSONLayerManager = ({
   const geoJsonLayersRef = useRef({});
 
   // Custom office marker icons - FIXED MARKER DISPLAY
-  const createOfficeIcon = (isSelected = false) => {
+  const createOfficeIcon = (isSelected = false, isRealTime = false) => {
+    const baseColor = isRealTime ? '#FF9500' : '#007AFF'; // Orange for real-time, Blue for static
+    const borderColor = isRealTime ? '#FFFFFF' : '#FFFFFF';
+    
     return L.divIcon({
       html: `
         <div class="relative">
-          <div class="w-6 h-6 bg-primary rounded-full border-2 border-background shadow-lg flex items-center justify-center ${
-            isSelected ? 'scale-125 ring-2 ring-primary ring-opacity-50' : ''
-          }">
+          <div class="w-6 h-6 rounded-full border-2 border-background shadow-lg flex items-center justify-center ${
+            isSelected ? 'scale-125 ring-2 ring-opacity-50' : ''
+          }" style="background-color: ${baseColor}; ${isSelected ? `ring-color: ${baseColor};` : ''}">
             <div class="w-2 h-2 bg-background rounded-full"></div>
           </div>
-          ${isSelected ? '<div class="absolute inset-0 rounded-full bg-primary animate-ping opacity-20"></div>' : ''}
+          ${isSelected ? `<div class="absolute inset-0 rounded-full animate-ping opacity-20" style="background-color: ${baseColor};"></div>` : ''}
+          ${isRealTime ? `<div class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>` : ''}
         </div>
       `,
-      className: `office-marker ${isSelected ? 'selected' : ''}`,
+      className: `office-marker ${isSelected ? 'selected' : ''} ${isRealTime ? 'real-time' : 'static'}`,
       iconSize: [24, 24],
       iconAnchor: [12, 12]
     });
   };
 
-  // Convert real-time offices to GeoJSON format
+  // Convert real-time offices to GeoJSON format for additional markers
   const realTimeOfficesGeoJSON = useMemo(() => {
     if (!offices || offices.length === 0) {
       return null;
@@ -115,7 +119,8 @@ const GeoJSONLayerManager = ({
         longitude: office.longitude,
         verified: office.verified,
         formatted_address: office.formatted_address,
-        displayName: office.displayName
+        displayName: office.displayName,
+        isRealTime: true // Flag to identify real-time markers
       }
     }));
 
@@ -129,7 +134,8 @@ const GeoJSONLayerManager = ({
   const layerConfigs = useMemo(() => ({
     'iebc-offices': {
       name: 'IEBC Offices',
-      type: 'dynamic', // Mark as dynamic to use real-time data
+      url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/iebc_offices.geojson',
+      type: 'geojson',
       style: {
         color: '#007AFF',
         weight: 2,
@@ -139,9 +145,10 @@ const GeoJSONLayerManager = ({
       },
       pointToLayer: (feature, latlng) => {
         const isSelected = selectedOffice && selectedOffice.id === feature.properties.id;
+        const isRealTime = feature.properties.isRealTime;
         
         return L.marker(latlng, {
-          icon: createOfficeIcon(isSelected)
+          icon: createOfficeIcon(isSelected, isRealTime)
         });
       }
     },
@@ -207,9 +214,9 @@ const GeoJSONLayerManager = ({
     }
   }), [selectedOffice]);
 
-  // Fetch GeoJSON data for static layers
+  // Fetch GeoJSON data
   const fetchLayerData = useCallback(async (layerId) => {
-    if (layerData[layerId] || layerConfigs[layerId]?.type === 'dynamic') return;
+    if (layerData[layerId]) return;
 
     setLoading(prev => ({ ...prev, [layerId]: true }));
     try {
@@ -249,7 +256,25 @@ const GeoJSONLayerManager = ({
             if (!error) office = data;
           }
           
-          // Fallback: Use feature properties directly
+          // Fallback: Try to get from GeoJSON geometry coordinates
+          if (!office && feature.geometry && feature.geometry.coordinates) {
+            const [lng, lat] = feature.geometry.coordinates;
+            office = {
+              id: feature.properties.id,
+              constituency_name: feature.properties.constituency_name,
+              office_location: feature.properties.office_location,
+              county: feature.properties.county,
+              constituency: feature.properties.constituency,
+              constituency_code: feature.properties.constituency_code,
+              latitude: lat,
+              longitude: lng,
+              landmark: feature.properties.landmark,
+              verified: feature.properties.verified,
+              isRealTime: feature.properties.isRealTime || false
+            };
+          }
+          
+          // Final fallback to feature properties
           if (!office && feature.properties) {
             office = {
               id: feature.properties.id,
@@ -262,8 +287,7 @@ const GeoJSONLayerManager = ({
               longitude: feature.properties.longitude || (feature.geometry?.coordinates ? feature.geometry.coordinates[0] : null),
               landmark: feature.properties.landmark,
               verified: feature.properties.verified,
-              formatted_address: feature.properties.formatted_address,
-              displayName: feature.properties.displayName
+              isRealTime: feature.properties.isRealTime || false
             };
           }
 
@@ -306,7 +330,7 @@ const GeoJSONLayerManager = ({
   // Load data for active layers and manage layer visibility
   useEffect(() => {
     activeLayers.forEach(layerId => {
-      if (layerConfigs[layerId] && layerConfigs[layerId].type !== 'dynamic') {
+      if (layerConfigs[layerId]) {
         fetchLayerData(layerId);
       }
     });
@@ -329,17 +353,23 @@ const GeoJSONLayerManager = ({
     // Check if coordinates are valid
     const hasValidCoords = lat && lng && !isNaN(lat) && !isNaN(lng);
     
+    const isRealTime = properties.isRealTime;
+    const badge = isRealTime ? '<span class="bg-orange-100 text-orange-700 text-xs px-2 py-1 rounded-full font-medium ml-2">New</span>' : '';
+    
     return `
       <div class="min-w-[280px] p-3">
         <div class="flex items-start justify-between mb-2">
           <h3 class="font-semibold text-gray-900 text-base">
             ${properties.constituency_name || 'IEBC Office'}
           </h3>
-          ${properties.verified ? `
-            <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">
-              Verified
-            </span>
-          ` : ''}
+          <div class="flex items-center">
+            ${properties.verified ? `
+              <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">
+                Verified
+              </span>
+            ` : ''}
+            ${badge}
+          </div>
         </div>
         
         <div class="space-y-2 text-sm">
@@ -363,6 +393,15 @@ const GeoJSONLayerManager = ({
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
               </svg>
               <span>Near ${properties.landmark}</span>
+            </div>
+          ` : ''}
+          
+          ${isRealTime ? `
+            <div class="flex items-center space-x-2 text-orange-500 text-xs">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span>Real-time data</span>
             </div>
           ` : ''}
           
@@ -448,26 +487,12 @@ const GeoJSONLayerManager = ({
 
   return (
     <>
-      {/* Dynamic Real-time IEBC Offices Layer */}
-      {activeLayers.includes('iebc-offices') && realTimeOfficesGeoJSON && (
-        <GeoJSON
-          key={`dynamic-offices-${realTimeOfficesGeoJSON.features.length}`}
-          data={realTimeOfficesGeoJSON}
-          style={layerConfigs['iebc-offices']?.style}
-          pointToLayer={layerConfigs['iebc-offices']?.pointToLayer}
-          onEachFeature={onEachFeature}
-        />
-      )}
-
-      {/* Other static layers */}
+      {/* MAIN STATIC IEBC OFFICES LAYER - SHOWS ALL MARKERS */}
       {activeLayers.map(layerId => {
-        // Skip dynamic layers that are handled separately
-        if (layerId === 'iebc-offices' && realTimeOfficesGeoJSON) return null;
-        
         const config = layerConfigs[layerId];
         const data = layerData[layerId];
         
-        if (!data || !config || config.type === 'dynamic') return null;
+        if (!data || !config) return null;
 
         return (
           <GeoJSON
@@ -479,6 +504,28 @@ const GeoJSONLayerManager = ({
           />
         );
       })}
+
+      {/* ADDITIONAL REAL-TIME OFFICES LAYER - SHOWS NEW DATABASE ENTRIES */}
+      {activeLayers.includes('iebc-offices') && realTimeOfficesGeoJSON && (
+        <GeoJSON
+          key={`real-time-offices-${realTimeOfficesGeoJSON.features.length}`}
+          data={realTimeOfficesGeoJSON}
+          style={{
+            color: '#FF9500',
+            weight: 2,
+            opacity: 0.9,
+            fillColor: '#FF9500',
+            fillOpacity: 0.6
+          }}
+          pointToLayer={(feature, latlng) => {
+            const isSelected = selectedOffice && selectedOffice.id === feature.properties.id;
+            return L.marker(latlng, {
+              icon: createOfficeIcon(isSelected, true) // true = real-time marker
+            });
+          }}
+          onEachFeature={onEachFeature}
+        />
+      )}
     </>
   );
 };
