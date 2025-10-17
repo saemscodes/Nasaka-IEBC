@@ -67,10 +67,10 @@ export const useIEBCOffices = () => {
     }
   }, []);
 
-  // Set up real-time subscriptions
+  // Set up real-time subscriptions for instant updates
   const setupRealtimeSubscription = useCallback(() => {
     const sub = supabase
-      .channel('iebc-offices-changes')
+      .channel('iebc-offices-real-time')
       .on(
         'postgres_changes',
         {
@@ -79,9 +79,8 @@ export const useIEBCOffices = () => {
           table: 'iebc_offices'
         },
         (payload) => {
-          console.log('Real-time update received:', payload);
+          console.log('Real-time database change detected:', payload);
           
-          // Handle different event types
           if (payload.eventType === 'INSERT') {
             const newOffice = payload.new;
             if (newOffice.latitude && newOffice.longitude) {
@@ -99,7 +98,7 @@ export const useIEBCOffices = () => {
                 
                 const updatedOffices = [...prev, formattedOffice];
                 
-                // Update Fuse.js index with new data
+                // Update Fuse.js search index with new data
                 const fuseOptions = {
                   keys: [
                     'county',
@@ -120,6 +119,7 @@ export const useIEBCOffices = () => {
                 };
                 setFuse(new Fuse(updatedOffices, fuseOptions));
                 
+                console.log('New office added to state:', formattedOffice);
                 return updatedOffices;
               });
             }
@@ -139,7 +139,7 @@ export const useIEBCOffices = () => {
                   office.id === updatedOffice.id ? formattedOffice : office
                 );
                 
-                // Update Fuse.js index
+                // Update Fuse.js search index
                 const fuseOptions = {
                   keys: [
                     'county',
@@ -160,6 +160,7 @@ export const useIEBCOffices = () => {
                 };
                 setFuse(new Fuse(updatedOffices, fuseOptions));
                 
+                console.log('Office updated in state:', formattedOffice);
                 return updatedOffices;
               });
             }
@@ -169,7 +170,7 @@ export const useIEBCOffices = () => {
             setOffices(prev => {
               const updatedOffices = prev.filter(office => office.id !== deletedOffice.id);
               
-              // Update Fuse.js index
+              // Update Fuse.js search index
               const fuseOptions = {
                 keys: [
                   'county',
@@ -190,6 +191,7 @@ export const useIEBCOffices = () => {
               };
               setFuse(new Fuse(updatedOffices, fuseOptions));
               
+              console.log('Office removed from state:', deletedOffice);
               return updatedOffices;
             });
           }
@@ -197,9 +199,13 @@ export const useIEBCOffices = () => {
       )
       .subscribe((status) => {
         console.log('Real-time subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('Successfully subscribed to IEBC offices real-time updates');
+        }
       });
 
     setSubscription(sub);
+    return sub;
   }, []);
 
   const searchOffices = useCallback((query) => {
@@ -219,12 +225,12 @@ export const useIEBCOffices = () => {
   // Initial fetch and real-time setup
   useEffect(() => {
     fetchOffices();
-    setupRealtimeSubscription();
+    const sub = setupRealtimeSubscription();
 
     // Cleanup subscription on unmount
     return () => {
-      if (subscription) {
-        subscription.unsubscribe();
+      if (sub) {
+        supabase.removeChannel(sub);
       }
     };
   }, [fetchOffices, setupRealtimeSubscription]);
