@@ -987,3 +987,150 @@
 .ios-control-btn:active {
   transform: scale(0.95);
 }
+
+
+/* ============================================
+   URL QUERY PARAMETER FEATURE - ADDITIONAL STYLES
+   ============================================ */
+
+/* Geocoding search indicator */
+.geocoding-indicator {
+  background: hsl(var(--card) / 0.95);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-radius: calc(var(--radius) - 2px);
+  padding: 12px 16px;
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  margin-bottom: 12px;
+  max-width: 300px;
+  color: hsl(var(--foreground));
+  font-weight: 500;
+}
+
+/* Enhanced popup styles for URL query results */
+.leaflet-popup-content .p-2 h3 {
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: hsl(var(--foreground));
+}
+
+.leaflet-popup-content .p-2 .text-gray-600 {
+  color: hsl(var(--muted-foreground));
+  line-height: 1.4;
+}
+
+.leaflet-popup-content .p-2 .text-primary {
+  color: hsl(var(--primary));
+  font-weight: 500;
+}
+
+/* URL query parameter loading state */
+.url-query-loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: var(--z-loading);
+  background: hsl(var(--card) / 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+}
+
+/* Enhanced search container for URL queries */
+.search-container.url-query-active {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
+}
+
+/* URL query badge */
+.url-query-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  z-index: 1;
+}
+
+/* Dark mode enhancements for URL query features */
+.dark .geocoding-indicator {
+  background: hsl(var(--card) / 0.95);
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.dark .url-query-loading {
+  background: hsl(var(--card) / 0.95);
+  color: hsl(var(--foreground));
+}
+
+.dark .search-container.url-query-active {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
+}
+
+/* Responsive adjustments for URL query features */
+@media (max-width: 640px) {
+  .url-query-loading {
+    padding: 16px;
+    border-radius: 12px;
+  }
+  
+  .geocoding-indicator {
+    max-width: 280px;
+    font-size: 0.875rem;
+  }
+}
+
+/* Animation for URL query processing */
+@keyframes url-query-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.url-query-processing {
+  animation: url-query-pulse 2s ease-in-out infinite;
+}
+
+/* Enhanced marker styles for URL query results */
+.url-query-marker {
+  filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.4));
+}
+
+.url-query-marker .leaflet-marker-icon {
+  filter: hue-rotate(200deg) brightness(1.2);
+}
+
+/* Loading states for geocoding */
+.geocoding-loading .leaflet-marker-icon {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes geocoding-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.geocoding-active-marker {
+  animation: geocoding-pulse 2s ease-in-out infinite;
+}
