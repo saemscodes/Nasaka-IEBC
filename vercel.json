@@ -1,4 +1,12 @@
 {
+  "redirects": [
+    { "source": "/IEBC.office", "destination": "/iebc-office", "permanent": true },
+    { "source": "/iebc", "destination": "/iebc-office", "permanent": true },
+    { "source": "/iebc-", "destination": "/iebc-office", "permanent": true },
+    { "source": "/IEBC-OFFICE", "destination": "/iebc-office", "permanent": true },
+    { "source": "/iebce-office", "destination": "/iebc-office", "permanent": true },
+    { "source": "/iebcoffice", "destination": "/iebc-office", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/" }
   ],
@@ -8,7 +16,7 @@
       "headers": [{ "key": "Content-Type", "value": "text/css" }]
     },
     {
-      "source": "/(.*)\\.js",
+      "source": "/(.*)\\.js", 
       "headers": [{ "key": "Content-Type", "value": "application/javascript" }]
     }
   ]
