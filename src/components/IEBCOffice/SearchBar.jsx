@@ -11,14 +11,13 @@ const SearchBar = ({
   onFocus, 
   onSearch,
   onLocationSearch,
+  searchOffices, // CRITICAL: Use parent's real-time search function
   placeholder = "Search IEBC offices by county, constituency, or location...",
   className = ""
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [allOffices, setAllOffices] = useState([]);
-  const [fuse, setFuse] = useState(null);
   const inputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
   const { theme } = useTheme();
@@ -41,63 +40,20 @@ const SearchBar = ({
     </svg>
   );
 
-  // Load all offices for Fuse.js indexing
-  useEffect(() => {
-    loadAllOffices();
-  }, []);
-
-  const loadAllOffices = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('iebc_offices')
-        .select('*')
-        .not('latitude', 'is', null)
-        .not('longitude', 'is', null);
-
-      if (error) throw error;
-
-      setAllOffices(data || []);
-      
-      // Initialize Fuse.js for fuzzy search
-      const fuseOptions = {
-        keys: [
-          'county',
-          'constituency_name',
-          'constituency',
-          'office_location',
-          'landmark',
-          'clean_office_location',
-          'formatted_address'
-        ],
-        threshold: 0.3,
-        includeScore: true,
-        includeMatches: true,
-        minMatchCharLength: 2,
-        shouldSort: true,
-        findAllMatches: true
-      };
-      
-      setFuse(new Fuse(data || [], fuseOptions));
-    } catch (error) {
-      console.error('Error loading offices for search:', error);
-    }
-  };
-
-  // Enhanced search function with Fuse.js
+  // Enhanced search function using the parent's real-time searchOffices function
   const performSearch = useCallback((searchTerm) => {
-    if (!searchTerm.trim() || !fuse) {
+    if (!searchTerm.trim()) {
       setSuggestions([]);
       return;
     }
-
-    setIsLoading(true);
     
+    setIsLoading(true);
     try {
-      const results = fuse.search(searchTerm).slice(0, 8);
-      const formattedSuggestions = results.map(result => ({
-        ...result.item,
-        matches: result.matches,
-        score: result.score,
+      // Use the real-time search function from parent (which uses the real-time data)
+      const results = searchOffices(searchTerm);
+      
+      const formattedSuggestions = results.slice(0, 8).map(result => ({
+        ...result,
         type: 'office'
       }));
 
@@ -111,7 +67,7 @@ const SearchBar = ({
           query: searchTerm
         });
       }
-
+      
       setSuggestions(formattedSuggestions);
     } catch (error) {
       console.error('Search error:', error);
@@ -119,7 +75,7 @@ const SearchBar = ({
     } finally {
       setIsLoading(false);
     }
-  }, [fuse]);
+  }, [searchOffices]);
 
   // Debounced search
   useEffect(() => {
