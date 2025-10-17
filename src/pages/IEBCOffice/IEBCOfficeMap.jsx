@@ -20,9 +20,9 @@ import L from 'leaflet';
 
 const IEBCOfficeMap = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const userLocation = location.state?.userLocation;
-  const manualEntry = location.state?.manualEntry;
+  const { state } = useLocation();
+  const userLocation = state?.userLocation;
+  const manualEntry = state?.manualEntry;
 
   const { offices, loading, error, searchOffices } = useIEBCOffices();
   const {
@@ -55,7 +55,6 @@ const IEBCOfficeMap = () => {
   const [accuracyCircle, setAccuracyCircle] = useState(null);
   const [routeBadgePosition, setRouteBadgePosition] = useState({ x: 20, y: 140 });
   const [isDraggingRouteBadge, setIsDraggingRouteBadge] = useState(false);
-  const [isGeocoding, setIsGeocoding] = useState(false);
 
   const mapInstanceRef = useRef(null);
   const tileLayersRef = useRef({});
@@ -63,95 +62,6 @@ const IEBCOfficeMap = () => {
   const routeBadgeRef = useRef(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const badgeStartPos = useRef({ x: 0, y: 0 });
-
-  // Custom hook for URL query parameters
-  const useQuery = () => {
-    return useMemo(() => new URLSearchParams(location.search), [location.search]);
-  };
-
-  const query = useQuery();
-  const searchMarkerRef = useRef(null);
-
-  // Geocoding function for URL query parameter
-  const geocodeQuery = useCallback(async (searchQuery) => {
-    if (!searchQuery || !mapInstanceRef.current) return;
-
-    setIsGeocoding(true);
-    try {
-      const encodedQuery = encodeURIComponent(searchQuery);
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodedQuery}&countrycodes=ke&limit=1`
-      );
-      
-      if (!response.ok) throw new Error('Geocoding failed');
-      
-      const data = await response.json();
-      
-      if (data && data.length > 0) {
-        const { lat, lon, display_name } = data[0];
-        const latitude = parseFloat(lat);
-        const longitude = parseFloat(lon);
-        
-        // Remove existing search marker if any
-        if (searchMarkerRef.current && mapInstanceRef.current) {
-          mapInstanceRef.current.removeLayer(searchMarkerRef.current);
-        }
-        
-        // Fly to the location
-        mapInstanceRef.current.flyTo([latitude, longitude], 15, {
-          duration: 2
-        });
-
-        // Create and add marker
-        searchMarkerRef.current = L.marker([latitude, longitude])
-          .addTo(mapInstanceRef.current)
-          .bindPopup(`
-            <div class="p-2">
-              <h3 class="font-semibold text-sm">Search Result</h3>
-              <p class="text-xs text-gray-600 mt-1">${display_name}</p>
-              <p class="text-xs text-primary mt-2">Query: "${searchQuery}"</p>
-            </div>
-          `)
-          .openPopup();
-
-        // Also search for nearby IEBC offices
-        const nearby = await searchNearbyOffices(latitude, longitude, 5000);
-        setNearbyOffices(nearby);
-        setSearchResults(nearby);
-        
-        if (nearby.length > 0) {
-          openListPanel();
-          setIsPanelBackdropVisible(true);
-        }
-      } else {
-        console.warn('No results found for query:', searchQuery);
-      }
-    } catch (error) {
-      console.error('Geocoding error:', error);
-    } finally {
-      setIsGeocoding(false);
-    }
-  }, [openListPanel]);
-
-  // Handle URL query parameter on component mount
-  useEffect(() => {
-    const urlQuery = query.get('q');
-    if (urlQuery && mapInstanceRef.current && !searchQuery) {
-      setSearchQuery(urlQuery);
-      setTimeout(() => {
-        geocodeQuery(urlQuery);
-      }, 1000);
-    }
-  }, [query, searchQuery, geocodeQuery, setSearchQuery]);
-
-  // Cleanup search marker on unmount
-  useEffect(() => {
-    return () => {
-      if (searchMarkerRef.current && mapInstanceRef.current) {
-        mapInstanceRef.current.removeLayer(searchMarkerRef.current);
-      }
-    };
-  }, []);
 
   // Initialize map reference
   const handleMapReady = useCallback((map) => {
@@ -161,6 +71,7 @@ const IEBCOfficeMap = () => {
 
   // Initialize tile layers
   const initializeTileLayers = useCallback((map) => {
+    // Standard OpenStreetMap
     tileLayersRef.current.standard = L.tileLayer(
       'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       {
@@ -169,6 +80,7 @@ const IEBCOfficeMap = () => {
       }
     );
 
+    // Satellite view
     tileLayersRef.current.satellite = L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
@@ -177,6 +89,7 @@ const IEBCOfficeMap = () => {
       }
     );
 
+    // Add default base map
     tileLayersRef.current.standard.addTo(map);
   }, []);
 
@@ -184,12 +97,14 @@ const IEBCOfficeMap = () => {
   useEffect(() => {
     if (!mapInstanceRef.current || !tileLayersRef.current.standard) return;
 
+    // Remove all tile layers
     Object.values(tileLayersRef.current).forEach(layer => {
       if (mapInstanceRef.current.hasLayer(layer)) {
         mapInstanceRef.current.removeLayer(layer);
       }
     });
 
+    // Add selected base map
     if (tileLayersRef.current[baseMap]) {
       tileLayersRef.current[baseMap].addTo(mapInstanceRef.current);
     }
@@ -200,11 +115,14 @@ const IEBCOfficeMap = () => {
     if (userLocation?.latitude && userLocation?.longitude) {
       flyToLocation(userLocation.latitude, userLocation.longitude, 14);
       
+      // Create accuracy circle if accuracy data is available
       if (userLocation.accuracy && mapInstanceRef.current) {
+        // Remove existing accuracy circle
         if (accuracyCircleRef.current) {
           mapInstanceRef.current.removeLayer(accuracyCircleRef.current);
         }
         
+        // Create new accuracy circle
         accuracyCircleRef.current = L.circle([userLocation.latitude, userLocation.longitude], {
           radius: userLocation.accuracy,
           color: '#007AFF',
@@ -216,6 +134,7 @@ const IEBCOfficeMap = () => {
       }
     }
 
+    // Cleanup function to remove accuracy circle
     return () => {
       if (accuracyCircleRef.current && mapInstanceRef.current) {
         mapInstanceRef.current.removeLayer(accuracyCircleRef.current);
@@ -250,31 +169,23 @@ const IEBCOfficeMap = () => {
     setRoutingError(null);
   }, [setSelectedOffice, flyToOffice, closeListPanel]);
 
-  // Enhanced search handler with URL update
+  // Enhanced search handler
   const handleSearch = useCallback(async (result) => {
     if (result.searchQuery) {
-      const newSearchParams = new URLSearchParams();
-      newSearchParams.set('q', result.searchQuery);
-      navigate(`/iebc-office/map?${newSearchParams.toString()}`, { replace: true, state: location.state });
-
+      // Perform full search with the query
       const results = searchOffices(result.searchQuery);
       setSearchResults(results);
       setNearbyOffices(results);
-      
-      if (results.length === 0) {
-        geocodeQuery(result.searchQuery);
-      } else {
-        openListPanel();
-        setIsPanelBackdropVisible(true);
-      }
+      openListPanel();
+      setIsPanelBackdropVisible(true);
     } else if (result.latitude && result.longitude) {
-      navigate('/iebc-office/map', { replace: true, state: location.state });
+      // Office object selected
       handleOfficeSelect(result);
     } else {
-      navigate('/iebc-office/map', { replace: true, state: location.state });
+      // Other result type
       handleOfficeSelect(result);
     }
-  }, [searchOffices, handleOfficeSelect, openListPanel, navigate, location.state, geocodeQuery]);
+  }, [searchOffices, handleOfficeSelect, openListPanel]);
 
   // Double-tap handler for area search
   const handleDoubleTap = useCallback(async (latlng) => {
@@ -370,6 +281,7 @@ const IEBCOfficeMap = () => {
   // Navigation handlers
   const handleBack = () => navigate(-1);
   const handleSearchFocus = () => {
+    // This now only opens panel when called from search (on Enter)
     openListPanel();
     setIsPanelBackdropVisible(true);
   };
@@ -390,10 +302,6 @@ const IEBCOfficeMap = () => {
     closeListPanel();
     setIsPanelBackdropVisible(false);
     setSearchResults([]);
-    const hasQuery = query.get('q');
-    if (hasQuery) {
-      navigate('/iebc-office/map', { replace: true, state: location.state });
-    }
   };
 
   const handleBackdropClick = () => {
@@ -401,10 +309,6 @@ const IEBCOfficeMap = () => {
     closeLayerPanel();
     setIsPanelBackdropVisible(false);
     setSearchResults([]);
-    const hasQuery = query.get('q');
-    if (hasQuery) {
-      navigate('/iebc-office/map', { replace: true, state: location.state });
-    }
   };
 
   // Bottom sheet handlers
@@ -437,7 +341,7 @@ const IEBCOfficeMap = () => {
     console.log('Contribution submitted successfully:', result);
   }, []);
 
-  // Route badge drag handlers
+  // Route badge drag handlers - FIXED IMPLEMENTATION
   const handleRouteBadgeMouseDown = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -452,6 +356,7 @@ const IEBCOfficeMap = () => {
     };
     badgeStartPos.current = { ...routeBadgePosition };
     
+    // Add event listeners for drag
     const handleMove = (moveEvent) => {
       if (!isDraggingRouteBadge) return;
       
@@ -489,6 +394,7 @@ const IEBCOfficeMap = () => {
   // Cleanup event listeners on unmount
   useEffect(() => {
     return () => {
+      // Remove any lingering event listeners
       document.removeEventListener('mousemove', () => {});
       document.removeEventListener('mouseup', () => {});
       document.removeEventListener('touchmove', () => {});
@@ -592,20 +498,6 @@ const IEBCOfficeMap = () => {
       {/* Fixed Badge Container - For non-draggable badges */}
       <div className="fixed-badge-container">
         <AnimatePresence>
-          {isGeocoding && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="search-indicator"
-            >
-              <div className="flex items-center space-x-2">
-                <LoadingSpinner size="small" />
-                <span className="text-sm font-medium">Searching location...</span>
-              </div>
-            </motion.div>
-          )}
-
           {isSearchingNearby && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
@@ -639,7 +531,7 @@ const IEBCOfficeMap = () => {
         </AnimatePresence>
       </div>
 
-      {/* Draggable Route Badge */}
+      {/* Draggable Route Badge - FIXED IMPLEMENTATION */}
       <AnimatePresence>
         {currentRoute && currentRoute.length > 0 && (
           <motion.div
@@ -675,6 +567,7 @@ const IEBCOfficeMap = () => {
             onMouseDown={handleRouteBadgeMouseDown}
             onTouchStart={handleRouteBadgeMouseDown}
             onClick={(e) => {
+              // Only trigger click if not dragging (small movement threshold)
               if (!isDraggingRouteBadge && selectedOffice) {
                 setBottomSheetState('expanded');
               }
@@ -691,6 +584,7 @@ const IEBCOfficeMap = () => {
                 Best: {(currentRoute[0].summary.totalDistance / 1000).toFixed(1)} km, {Math.round(currentRoute[0].summary.totalTime / 60)} min
               </div>
             )}
+            {/* Drag handle indicator */}
             <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-1 bg-gray-400 rounded-full opacity-60 transition-opacity duration-200 hover:opacity-80"></div>
           </motion.div>
         )}
@@ -711,7 +605,7 @@ const IEBCOfficeMap = () => {
           accuracy={userLocation?.accuracy}
         />
 
-        {/* GeoJSON Layer Manager */}
+        {/* GeoJSON Layer Manager - FIXED MARKER DISPLAY */}
         <GeoJSONLayerManager
           activeLayers={activeLayers}
           onOfficeSelect={handleOfficeSelect}
@@ -741,7 +635,7 @@ const IEBCOfficeMap = () => {
         )}
       </MapContainer>
 
-      {/* PANEL BACKDROP */}
+      {/* PANEL BACKDROP - CRITICAL FIX: BELOW CONTROLS, ABOVE MAP */}
       <AnimatePresence>
         {isPanelBackdropVisible && (
           <motion.div

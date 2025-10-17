@@ -2,21 +2,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-/**
- * @typedef {Object} ContributeLocationReturn
- * @property {boolean} isSubmitting
- * @property {Error|null} error
- * @property {boolean} isFetchingOSM
- * @property {Function} getCurrentPosition
- * @property {Function} findOptimalTriangulationLandmarks
- * @property {Function} submitLocationContribution
- * @property {Function} uploadImageToSupabase
- * @property {Function} fetchOSMDataForLocation
- */
-
-/**
- * @returns {ContributeLocationReturn}
- */
 export const useContributeLocation = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
