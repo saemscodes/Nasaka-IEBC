@@ -25,7 +25,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
-// Search nearby offices using Supabase
+// Search nearby offices using Supabase - NOW USES REAL-TIME DATA
 const searchNearbyOffices = async (lat, lng, radius = 5000, onNearbyOfficesFound = null) => {
   try {
     const { data: offices, error } = await supabase
@@ -64,7 +64,8 @@ const GeoJSONLayerManager = ({
   selectedOffice,
   searchRadius = 5000, // meters
   onNearbyOfficesFound,
-  baseMap = 'standard'
+  baseMap = 'standard',
+  offices = [] // CRITICAL: Real-time offices from parent
 }) => {
   const map = useMap();
   const [layerData, setLayerData] = useState({});
@@ -90,12 +91,45 @@ const GeoJSONLayerManager = ({
     });
   };
 
+  // Convert real-time offices to GeoJSON format
+  const realTimeOfficesGeoJSON = useMemo(() => {
+    if (!offices || offices.length === 0) {
+      return null;
+    }
+
+    const features = offices.map(office => ({
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: [office.longitude, office.latitude]
+      },
+      properties: {
+        id: office.id,
+        county: office.county,
+        constituency_name: office.constituency_name,
+        constituency: office.constituency,
+        constituency_code: office.constituency_code,
+        office_location: office.office_location,
+        landmark: office.landmark,
+        latitude: office.latitude,
+        longitude: office.longitude,
+        verified: office.verified,
+        formatted_address: office.formatted_address,
+        displayName: office.displayName
+      }
+    }));
+
+    return {
+      type: 'FeatureCollection',
+      features: features
+    };
+  }, [offices]);
+
   // GeoJSON layer configurations with public URLs
   const layerConfigs = useMemo(() => ({
     'iebc-offices': {
       name: 'IEBC Offices',
-      url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/iebc_offices.geojson',
-      type: 'geojson',
+      type: 'dynamic', // Mark as dynamic to use real-time data
       style: {
         color: '#007AFF',
         weight: 2,
@@ -173,9 +207,9 @@ const GeoJSONLayerManager = ({
     }
   }), [selectedOffice]);
 
-  // Fetch GeoJSON data
+  // Fetch GeoJSON data for static layers
   const fetchLayerData = useCallback(async (layerId) => {
-    if (layerData[layerId]) return;
+    if (layerData[layerId] || layerConfigs[layerId]?.type === 'dynamic') return;
 
     setLoading(prev => ({ ...prev, [layerId]: true }));
     try {
@@ -215,24 +249,7 @@ const GeoJSONLayerManager = ({
             if (!error) office = data;
           }
           
-          // Fallback: Try to get from GeoJSON geometry coordinates
-          if (!office && feature.geometry && feature.geometry.coordinates) {
-            const [lng, lat] = feature.geometry.coordinates;
-            office = {
-              id: feature.properties.id,
-              constituency_name: feature.properties.constituency_name,
-              office_location: feature.properties.office_location,
-              county: feature.properties.county,
-              constituency: feature.properties.constituency,
-              constituency_code: feature.properties.constituency_code,
-              latitude: lat,
-              longitude: lng,
-              landmark: feature.properties.landmark,
-              verified: feature.properties.verified
-            };
-          }
-          
-          // Final fallback to feature properties
+          // Fallback: Use feature properties directly
           if (!office && feature.properties) {
             office = {
               id: feature.properties.id,
@@ -244,7 +261,9 @@ const GeoJSONLayerManager = ({
               latitude: feature.properties.latitude || (feature.geometry?.coordinates ? feature.geometry.coordinates[1] : null),
               longitude: feature.properties.longitude || (feature.geometry?.coordinates ? feature.geometry.coordinates[0] : null),
               landmark: feature.properties.landmark,
-              verified: feature.properties.verified
+              verified: feature.properties.verified,
+              formatted_address: feature.properties.formatted_address,
+              displayName: feature.properties.displayName
             };
           }
 
@@ -287,7 +306,7 @@ const GeoJSONLayerManager = ({
   // Load data for active layers and manage layer visibility
   useEffect(() => {
     activeLayers.forEach(layerId => {
-      if (layerConfigs[layerId]) {
+      if (layerConfigs[layerId] && layerConfigs[layerId].type !== 'dynamic') {
         fetchLayerData(layerId);
       }
     });
@@ -429,11 +448,26 @@ const GeoJSONLayerManager = ({
 
   return (
     <>
+      {/* Dynamic Real-time IEBC Offices Layer */}
+      {activeLayers.includes('iebc-offices') && realTimeOfficesGeoJSON && (
+        <GeoJSON
+          key={`dynamic-offices-${realTimeOfficesGeoJSON.features.length}`}
+          data={realTimeOfficesGeoJSON}
+          style={layerConfigs['iebc-offices']?.style}
+          pointToLayer={layerConfigs['iebc-offices']?.pointToLayer}
+          onEachFeature={onEachFeature}
+        />
+      )}
+
+      {/* Other static layers */}
       {activeLayers.map(layerId => {
+        // Skip dynamic layers that are handled separately
+        if (layerId === 'iebc-offices' && realTimeOfficesGeoJSON) return null;
+        
         const config = layerConfigs[layerId];
         const data = layerData[layerId];
         
-        if (!data || !config) return null;
+        if (!data || !config || config.type === 'dynamic') return null;
 
         return (
           <GeoJSON
