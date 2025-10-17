@@ -55,6 +55,7 @@ const IEBCOfficeMap = () => {
   const [accuracyCircle, setAccuracyCircle] = useState(null);
   const [routeBadgePosition, setRouteBadgePosition] = useState({ x: 20, y: 140 });
   const [isDraggingRouteBadge, setIsDraggingRouteBadge] = useState(false);
+  const [realTimeUpdateCount, setRealTimeUpdateCount] = useState(0); // Track real-time updates
 
   const mapInstanceRef = useRef(null);
   const tileLayersRef = useRef({});
@@ -62,6 +63,14 @@ const IEBCOfficeMap = () => {
   const routeBadgeRef = useRef(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const badgeStartPos = useRef({ x: 0, y: 0 });
+
+  // Force re-render when offices update for GeoJSONLayerManager
+  useEffect(() => {
+    if (offices.length > 0) {
+      setRealTimeUpdateCount(prev => prev + 1);
+      console.log(`Real-time update detected: ${offices.length} offices loaded`);
+    }
+  }, [offices]);
 
   // Initialize map reference
   const handleMapReady = useCallback((map) => {
@@ -169,10 +178,10 @@ const IEBCOfficeMap = () => {
     setRoutingError(null);
   }, [setSelectedOffice, flyToOffice, closeListPanel]);
 
-  // Enhanced search handler
+  // Enhanced search handler - NOW USES REAL-TIME DATA
   const handleSearch = useCallback(async (result) => {
     if (result.searchQuery) {
-      // Perform full search with the query
+      // Perform full search with the query using real-time data
       const results = searchOffices(result.searchQuery);
       setSearchResults(results);
       setNearbyOffices(results);
@@ -229,7 +238,7 @@ const IEBCOfficeMap = () => {
     setCurrentRoute(null);
   }, []);
 
-  // Find nearest office
+  // Find nearest office - NOW USES REAL-TIME DATA
   const nearestOffice = useMemo(() => {
     if (userLocation?.latitude && userLocation?.longitude && offices.length > 0) {
       return findNearestOffice(userLocation.latitude, userLocation.longitude, offices);
@@ -245,7 +254,7 @@ const IEBCOfficeMap = () => {
     }
   }, [nearestOffice, selectedOffice, manualEntry, setSelectedOffice]);
 
-  // Get offices for list panel
+  // Get offices for list panel - NOW USES REAL-TIME DATA
   const listPanelOffices = useMemo(() => {
     if (searchResults.length > 0) {
       return searchResults;
@@ -443,6 +452,7 @@ const IEBCOfficeMap = () => {
           onFocus={handleSearchFocus}
           onSearch={handleSearch}
           onLocationSearch={handleRetryLocation}
+          searchOffices={searchOffices} {/* CRITICAL: Pass real-time search function */}
           placeholder="Search IEBC offices by county, constituency, or location..."
         />
       </div>
@@ -605,13 +615,15 @@ const IEBCOfficeMap = () => {
           accuracy={userLocation?.accuracy}
         />
 
-        {/* GeoJSON Layer Manager - FIXED MARKER DISPLAY */}
+        {/* GeoJSON Layer Manager - NOW USES REAL-TIME DATA */}
         <GeoJSONLayerManager
+          key={`geojson-${realTimeUpdateCount}`} {/* Force re-render on real-time updates */}
           activeLayers={activeLayers}
           onOfficeSelect={handleOfficeSelect}
           selectedOffice={selectedOffice}
           onNearbyOfficesFound={setNearbyOffices}
           baseMap={baseMap}
+          offices={offices} {/* CRITICAL: Pass real-time offices data */}
         />
 
         {/* Last Tap Location Indicator */}
@@ -659,7 +671,7 @@ const IEBCOfficeMap = () => {
         onBaseMapChange={handleBaseMapChange}
       />
 
-      {/* Office List Panel */}
+      {/* Office List Panel - NOW USES REAL-TIME DATA */}
       <AnimatePresence>
         {isListPanelOpen && (
           <OfficeListPanel
