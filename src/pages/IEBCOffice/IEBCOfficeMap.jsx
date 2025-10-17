@@ -70,6 +70,7 @@ const IEBCOfficeMap = () => {
   };
 
   const query = useQuery();
+  const searchMarkerRef = useRef(null);
 
   // Geocoding function for URL query parameter
   const geocodeQuery = useCallback(async (searchQuery) => {
@@ -91,13 +92,18 @@ const IEBCOfficeMap = () => {
         const latitude = parseFloat(lat);
         const longitude = parseFloat(lon);
         
+        // Remove existing search marker if any
+        if (searchMarkerRef.current && mapInstanceRef.current) {
+          mapInstanceRef.current.removeLayer(searchMarkerRef.current);
+        }
+        
         // Fly to the location
         mapInstanceRef.current.flyTo([latitude, longitude], 15, {
           duration: 2
         });
 
         // Create and add marker
-        const marker = L.marker([latitude, longitude])
+        searchMarkerRef.current = L.marker([latitude, longitude])
           .addTo(mapInstanceRef.current)
           .bindPopup(`
             <div class="p-2">
@@ -125,19 +131,27 @@ const IEBCOfficeMap = () => {
     } finally {
       setIsGeocoding(false);
     }
-  }, []);
+  }, [openListPanel]);
 
   // Handle URL query parameter on component mount
   useEffect(() => {
     const urlQuery = query.get('q');
-    if (urlQuery && !searchQuery) {
+    if (urlQuery && mapInstanceRef.current && !searchQuery) {
       setSearchQuery(urlQuery);
-      // Small delay to ensure map is ready
       setTimeout(() => {
         geocodeQuery(urlQuery);
       }, 1000);
     }
-  }, [query, searchQuery, geocodeQuery]);
+  }, [query, searchQuery, geocodeQuery, setSearchQuery]);
+
+  // Cleanup search marker on unmount
+  useEffect(() => {
+    return () => {
+      if (searchMarkerRef.current && mapInstanceRef.current) {
+        mapInstanceRef.current.removeLayer(searchMarkerRef.current);
+      }
+    };
+  }, []);
 
   // Initialize map reference
   const handleMapReady = useCallback((map) => {
@@ -239,27 +253,28 @@ const IEBCOfficeMap = () => {
   // Enhanced search handler with URL update
   const handleSearch = useCallback(async (result) => {
     if (result.searchQuery) {
-      // Update URL with search query
       const newSearchParams = new URLSearchParams();
       newSearchParams.set('q', result.searchQuery);
-      navigate(`/iebc-office/map?${newSearchParams.toString()}`, { replace: true });
+      navigate(`/iebc-office/map?${newSearchParams.toString()}`, { replace: true, state: location.state });
 
-      // Perform full search with the query
       const results = searchOffices(result.searchQuery);
       setSearchResults(results);
       setNearbyOffices(results);
-      openListPanel();
-      setIsPanelBackdropVisible(true);
+      
+      if (results.length === 0) {
+        geocodeQuery(result.searchQuery);
+      } else {
+        openListPanel();
+        setIsPanelBackdropVisible(true);
+      }
     } else if (result.latitude && result.longitude) {
-      // Office object selected - clear URL query
-      navigate('/iebc-office/map', { replace: true });
+      navigate('/iebc-office/map', { replace: true, state: location.state });
       handleOfficeSelect(result);
     } else {
-      // Other result type - clear URL query
-      navigate('/iebc-office/map', { replace: true });
+      navigate('/iebc-office/map', { replace: true, state: location.state });
       handleOfficeSelect(result);
     }
-  }, [searchOffices, handleOfficeSelect, openListPanel, navigate]);
+  }, [searchOffices, handleOfficeSelect, openListPanel, navigate, location.state, geocodeQuery]);
 
   // Double-tap handler for area search
   const handleDoubleTap = useCallback(async (latlng) => {
@@ -375,8 +390,10 @@ const IEBCOfficeMap = () => {
     closeListPanel();
     setIsPanelBackdropVisible(false);
     setSearchResults([]);
-    // Clear URL query when panel is closed
-    navigate('/iebc-office/map', { replace: true });
+    const hasQuery = query.get('q');
+    if (hasQuery) {
+      navigate('/iebc-office/map', { replace: true, state: location.state });
+    }
   };
 
   const handleBackdropClick = () => {
@@ -384,8 +401,10 @@ const IEBCOfficeMap = () => {
     closeLayerPanel();
     setIsPanelBackdropVisible(false);
     setSearchResults([]);
-    // Clear URL query when backdrop is clicked
-    navigate('/iebc-office/map', { replace: true });
+    const hasQuery = query.get('q');
+    if (hasQuery) {
+      navigate('/iebc-office/map', { replace: true, state: location.state });
+    }
   };
 
   // Bottom sheet handlers

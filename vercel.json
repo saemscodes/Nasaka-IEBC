@@ -15,6 +15,7 @@
     { "source": "/IEBC-OFFICE", "destination": "/iebc-office", "permanent": true }
   ],
   "rewrites": [
+    { "source": "/iebc-office/map", "destination": "/iebc-office/map" },
     { "source": "/(.*)", "destination": "/" }
   ],
   "headers": [
