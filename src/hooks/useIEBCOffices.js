@@ -66,6 +66,30 @@ export const useIEBCOffices = () => {
     }
   }, []);
 
+  // NEW: Real-time subscription for database changes
+  useEffect(() => {
+    const subscription = supabase
+      .channel('iebc-offices-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'iebc_offices'
+        },
+        (payload) => {
+          console.log('Database change detected:', payload);
+          // Refresh offices when database changes
+          fetchOffices();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [fetchOffices]);
+
   const searchOffices = useCallback((query) => {
     if (!query.trim() || !fuse) return offices;
     
