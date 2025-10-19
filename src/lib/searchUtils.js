@@ -1,37 +1,21 @@
 // lib/searchUtils.js
-
-/**
- * Normalizes URL query parameters for search
- */
-export const normalizeQuery = (raw) => {
-  if (!raw || typeof raw !== 'string') return '';
+export function normalizeQuery(raw) {
+  if (!raw) return '';
   
   try {
-    // Decode URI component safely
     let decoded = decodeURIComponent(raw);
-    
-    // Replace + with space and collapse multiple spaces
-    decoded = decoded.replace(/\+/g, ' ')
-                    .replace(/\s+/g, ' ')
-                    .trim();
-    
-    // Limit length to prevent abuse
+    // Replace + with spaces and handle multiple spaces
+    decoded = decoded.replace(/\+/g, ' ').replace(/\s+/g, ' ').trim();
     return decoded.slice(0, 200);
-  } catch (error) {
-    // Fallback for double-encoding or malformed URLs
-    console.warn('URL decode failed, using fallback normalization:', error);
-    return raw.replace(/%20/g, ' ')
-             .replace(/\+/g, ' ')
-             .replace(/\s+/g, ' ')
-             .trim()
-             .slice(0, 200);
+  } catch (e) {
+    // If decode fails, fallback to basic replacement
+    let decoded = raw.replace(/\+/g, ' ').replace(/%20/g, ' ');
+    decoded = decoded.replace(/\s+/g, ' ').trim();
+    return decoded.slice(0, 200);
   }
-};
+}
 
-/**
- * Debounce function for search operations
- */
-export const debounce = (func, wait = 300) => {
+export function debounce(func, wait = 300) {
   let timeout;
   return function executedFunction(...args) {
     const later = () => {
@@ -41,22 +25,22 @@ export const debounce = (func, wait = 300) => {
     clearTimeout(timeout);
     timeout = setTimeout(later, wait);
   };
-};
+}
 
-/**
- * AbortController utility for search requests
- */
-export class SearchAbortController {
-  constructor() {
-    this.controller = new AbortController();
+// Helper to update URL without page reload
+export function updateUrlQuery(query, replace = false) {
+  if (typeof window === 'undefined') return;
+  
+  const url = new URL(window.location.href);
+  if (query) {
+    url.searchParams.set('q', query);
+  } else {
+    url.searchParams.delete('q');
   }
-
-  abort() {
-    this.controller.abort();
-    this.controller = new AbortController();
-  }
-
-  get signal() {
-    return this.controller.signal;
+  
+  if (replace) {
+    window.history.replaceState({}, '', url.toString());
+  } else {
+    window.history.pushState({}, '', url.toString());
   }
 }

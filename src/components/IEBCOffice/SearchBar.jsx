@@ -4,6 +4,7 @@ import { Search, X, Filter } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import Fuse from 'fuse.js';
 import { useTheme } from '@/contexts/ThemeContext';
+import { updateUrlQuery } from '@/lib/searchUtils';
 
 const SearchBar = ({ 
   value, 
@@ -11,12 +12,12 @@ const SearchBar = ({
   onFocus, 
   onSearch,
   onLocationSearch,
+  suggestions = [],
+  isSearching = false,
   placeholder = "Search IEBC offices by county, constituency, or location...",
   className = ""
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [suggestions, setSuggestions] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [allOffices, setAllOffices] = useState([]);
   const [fuse, setFuse] = useState(null);
   const inputRef = useRef(null);
@@ -41,7 +42,7 @@ const SearchBar = ({
     </svg>
   );
 
-  // Load all offices for Fuse.js indexing
+  // Load all offices for Fuse.js indexing (fallback if parent doesn't provide suggestions)
   useEffect(() => {
     loadAllOffices();
   }, []);
@@ -58,7 +59,7 @@ const SearchBar = ({
 
       setAllOffices(data || []);
       
-      // Initialize Fuse.js for fuzzy search
+      // Initialize Fuse.js for fuzzy search (fallback)
       const fuseOptions = {
         keys: [
           'county',
@@ -83,84 +84,38 @@ const SearchBar = ({
     }
   };
 
-  // Enhanced search function with Fuse.js
-  const performSearch = useCallback((searchTerm) => {
-    if (!searchTerm.trim() || !fuse) {
-      setSuggestions([]);
-      return;
-    }
-
-    setIsLoading(true);
-    
-    try {
-      const results = fuse.search(searchTerm).slice(0, 8);
-      const formattedSuggestions = results.map(result => ({
-        ...result.item,
-        matches: result.matches,
-        score: result.score,
-        type: 'office'
-      }));
-
-      // Add search query suggestion
-      if (searchTerm.length > 2) {
-        formattedSuggestions.push({
-          id: `search-${searchTerm}`,
-          name: `Search for "${searchTerm}"`,
-          subtitle: 'Find all matching IEBC offices',
-          type: 'search_query',
-          query: searchTerm
-        });
-      }
-
-      setSuggestions(formattedSuggestions);
-    } catch (error) {
-      console.error('Search error:', error);
-      setSuggestions([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [fuse]);
-
-  // Debounced search
-  useEffect(() => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    if (value.trim()) {
-      searchTimeoutRef.current = setTimeout(() => {
-        performSearch(value);
-      }, 300);
-    } else {
-      setSuggestions([]);
-    }
-
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
-  }, [value, performSearch]);
-
   const handleInputChange = (e) => {
-    onChange(e.target.value);
-    if (e.target.value.trim()) {
+    const newValue = e.target.value;
+    onChange(newValue);
+    
+    if (newValue.trim()) {
       setIsExpanded(true);
+    } else {
+      setIsExpanded(false);
+      // Clear URL query when search is cleared
+      updateUrlQuery('', true);
     }
   };
 
   const handleInputFocus = () => {
     setIsExpanded(true);
+    if (onFocus) onFocus();
   };
 
   const handleSuggestionSelect = (suggestion) => {
     if (suggestion.type === 'office' && onSearch) {
       onSearch(suggestion);
+      // Update URL with selected office
+      if (suggestion.constituency_name) {
+        updateUrlQuery(suggestion.constituency_name, false);
+      }
     } else if (suggestion.type === 'search_query' && onSearch) {
-      onSearch({ searchQuery: suggestion.query });
+      onSearch(suggestion);
+      // Update URL with search query
+      updateUrlQuery(suggestion.query, false);
     }
+    
     setIsExpanded(false);
-    setSuggestions([]);
     if (inputRef.current) {
       inputRef.current.blur();
     }
@@ -168,8 +123,10 @@ const SearchBar = ({
 
   const handleClear = () => {
     onChange('');
-    setSuggestions([]);
     setIsExpanded(false);
+    // Clear URL query
+    updateUrlQuery('', true);
+    
     if (inputRef.current) {
       inputRef.current.focus();
     }
@@ -187,8 +144,9 @@ const SearchBar = ({
       e.preventDefault();
       
       if (value.trim() && onSearch) {
-        onSearch({ searchQuery: value.trim() });
-        if (onFocus) onFocus();
+        onSearch({ searchQuery: value.trim(), type: 'search_query' });
+        // Update URL with search query on Enter
+        updateUrlQuery(value.trim(), false);
       }
       setIsExpanded(false);
     }
@@ -236,7 +194,8 @@ const SearchBar = ({
     if (suggestion.type === 'search_query') {
       return {
         primary: suggestion.name,
-        secondary: suggestion.subtitle
+        secondary: suggestion.subtitle,
+        searchSource: suggestion.searchSource
       };
     }
 
@@ -254,15 +213,20 @@ const SearchBar = ({
         suggestion.county,
       tertiary: locationMatch ? 
         highlightMatches(suggestion.office_location, [locationMatch]) : 
-        suggestion.office_location
+        suggestion.office_location,
+      searchSource: suggestion.searchSource
     };
   };
+
+  // Determine if we should show suggestions (from parent or local)
+  const displaySuggestions = suggestions.length > 0 ? suggestions : [];
+  const displayIsLoading = isSearching;
 
   return (
     <div className={`relative ${className}`}>
       {/* Enhanced Backdrop Overlay */}
       <AnimatePresence>
-        {isExpanded && (suggestions.length > 0 || isLoading) && (
+        {isExpanded && (displaySuggestions.length > 0 || displayIsLoading) && (
           <motion.div
             className="fixed inset-0 z-1000"
             initial={{ opacity: 0 }}
@@ -285,7 +249,7 @@ const SearchBar = ({
         theme === 'dark'
           ? 'bg-ios-dark-surface/95 border-ios-dark-border shadow-ios-high-dark backdrop-blur-2xl'
           : 'bg-white/95 border-ios-light-border shadow-ios-high backdrop-blur-2xl'
-      } border rounded-2xl`}>
+      } border rounded-2xl ${value ? 'url-query-active' : ''}`}>
         <div className="flex items-center space-x-3">
           <div className="pl-2">
             <Search className={`w-5 h-5 transition-colors duration-300 ${
@@ -306,7 +270,7 @@ const SearchBar = ({
                 theme === 'dark' 
                   ? 'text-ios-dark-text-primary placeholder-ios-dark-text-tertiary' 
                   : 'text-ios-light-text-primary placeholder-ios-light-text-tertiary'
-              }`}
+              } ${displayIsLoading ? 'url-query-loading' : ''}`}
               style={{ 
                 textOverflow: "ellipsis", 
                 whiteSpace: "nowrap", 
@@ -351,7 +315,7 @@ const SearchBar = ({
         </div>
 
         <AnimatePresence>
-          {isExpanded && (suggestions.length > 0 || isLoading) && (
+          {isExpanded && (displaySuggestions.length > 0 || displayIsLoading) && (
             <motion.div
               className={`absolute top-full left-0 right-0 mt-2 border rounded-2xl shadow-2xl overflow-hidden max-h-96 overflow-y-auto transition-all duration-300 ${
                 theme === 'dark'
@@ -369,7 +333,7 @@ const SearchBar = ({
                 damping: 30
               }}
             >
-              {isLoading ? (
+              {displayIsLoading ? (
                 <div className={`p-6 text-center transition-colors duration-300 ${
                   theme === 'dark' ? 'text-ios-dark-text-secondary' : 'text-ios-light-text-secondary'
                 }`}>
@@ -380,7 +344,7 @@ const SearchBar = ({
                 </div>
               ) : (
                 <>
-                  {suggestions.map((suggestion, index) => {
+                  {displaySuggestions.map((suggestion, index) => {
                     const display = getSuggestionDisplay(suggestion);
                     return (
                       <motion.div
@@ -389,7 +353,7 @@ const SearchBar = ({
                           theme === 'dark' 
                             ? 'border-ios-dark-border hover:border-ios-dark-border-hover' 
                             : 'border-ios-light-border hover:border-ios-light-border-hover'
-                        } last:border-b-0`}
+                        } last:border-b-0 ${display.searchSource ? `search-source-${display.searchSource}` : ''}`}
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ 
@@ -439,6 +403,13 @@ const SearchBar = ({
                                   theme === 'dark' ? 'text-ios-dark-text-tertiary' : 'text-ios-light-text-tertiary'
                                 }`}>
                                   {display.tertiary}
+                                </div>
+                              )}
+                              {display.searchSource && (
+                                <div className={`text-xs mt-1 transition-colors duration-300 ${
+                                  theme === 'dark' ? 'text-ios-dark-text-tertiary' : 'text-ios-light-text-tertiary'
+                                }`}>
+                                  Source: {display.searchSource}
                                 </div>
                               )}
                             </div>
@@ -582,6 +553,44 @@ const SearchBar = ({
             0 24px 48px rgba(0, 0, 0, 0.35),
             0 12px 24px rgba(0, 0, 0, 0.25),
             0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+
+        /* URL Query Loading State */
+        .url-query-loading {
+          border-color: #007AFF !important;
+          box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2) !important;
+        }
+
+        /* Search source indicators */
+        .search-source-url {
+          opacity: 0.9;
+          border-left: 3px solid #007AFF;
+        }
+
+        .search-source-ui {
+          opacity: 1;
+        }
+
+        .search-source-selection {
+          opacity: 0.95;
+          border-left: 3px solid #34C759;
+        }
+
+        .search-source-navigation {
+          opacity: 0.85;
+          border-left: 3px solid #FF9500;
+        }
+
+        /* Enhanced transition for URL-triggered searches */
+        .search-container.url-query-active {
+          transform: translateY(-2px);
+          box-shadow: 0 12px 48px rgba(0, 0, 0, 0.18),
+                      0 0 0 4px rgba(0, 122, 255, 0.15);
+        }
+
+        .dark .search-container.url-query-active {
+          box-shadow: 0 12px 48px rgba(0, 0, 0, 0.35),
+                      0 0 0 4px rgba(0, 122, 255, 0.25);
         }
 
         /* Force text color for dark mode compatibility */

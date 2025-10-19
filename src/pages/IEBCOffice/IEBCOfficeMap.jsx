@@ -1,6 +1,6 @@
 // src/pages/IEBCOffice/IEBCOfficeMap.jsx
 import React, { useEffect, useMemo, useCallback, useState, useRef } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import MapContainer from '@/components/IEBCOffice/MapContainer';
 import SearchBar from '@/components/IEBCOffice/SearchBar';
@@ -16,8 +16,7 @@ import { useIEBCOffices } from '@/hooks/useIEBCOffices';
 import { useMapControls } from '@/hooks/useMapControls';
 import { findNearestOffice, findNearestOffices } from '@/utils/geoUtils';
 import { supabase } from '@/integrations/supabase/client';
-import { useSearch } from '@/contexts/SearchContext';
-import { normalizeQuery } from '@/lib/searchUtils';
+import { normalizeQuery, updateUrlQuery } from '@/lib/searchUtils';
 import L from 'leaflet';
 
 // Configuration
@@ -26,33 +25,31 @@ const MAP_ZOOM_LEVEL = 15;
 
 const IEBCOfficeMap = () => {
   const navigate = useNavigate();
-  const { state } = useLocation();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { state, pathname } = useLocation();
   const userLocation = state?.userLocation;
   const manualEntry = state?.manualEntry;
 
-  // Use search context
   const { 
-    currentQuery, 
-    results: searchResults, 
-    isLoading: isSearchLoading,
-    setQuery,
-    performSearch,
+    offices, 
+    loading, 
+    error, 
+    searchQuery, 
+    searchResults, 
+    searchSuggestions, 
+    isSearching, 
+    handleSearch, 
     clearSearch 
-  } = useSearch();
-
-  const { offices, loading, error, searchOffices, refetch } = useIEBCOffices();
+  } = useIEBCOffices();
+  
   const {
     mapCenter,
     mapZoom,
     selectedOffice,
     isListPanelOpen,
-    searchQuery,
     mapRef,
     flyToOffice,
     flyToLocation,
     setSelectedOffice,
-    setSearchQuery,
     openListPanel,
     closeListPanel
   } = useMapControls();
@@ -80,81 +77,53 @@ const IEBCOfficeMap = () => {
   const dragStartPos = useRef({ x: 0, y: 0 });
   const badgeStartPos = useRef({ x: 0, y: 0 });
 
-  // NEW: Handle URL query parameter on component mount and changes
+  // NEW: Handle URL query parameter on component mount and URL changes
   useEffect(() => {
-    const urlQuery = searchParams.get('q');
+    const urlParams = new URLSearchParams(window.location.search);
+    const query = urlParams.get('q');
     
-    if (urlQuery && !urlQueryProcessed) {
-      const normalizedQuery = normalizeQuery(urlQuery);
+    if (query && !urlQueryProcessed && offices.length > 0) {
+      const normalizedQuery = normalizeQuery(query);
+      console.log('Processing URL query:', { raw: query, normalized: normalizedQuery });
       
-      if (normalizedQuery) {
-        // Set query in search context (from URL)
-        setQuery(normalizedQuery, { fromUrl: true, triggerSearch: true });
-        
-        // Also update local search query for UI consistency
-        setSearchQuery(normalizedQuery);
-        
-        setUrlQueryProcessed(true);
-        
-        // Log for analytics
-        console.log('Search initiated from URL:', {
-          query: normalizedQuery,
-          source: 'url_deep_link'
-        });
-      }
-    } else if (!urlQuery && urlQueryProcessed) {
-      // URL query was removed
-      clearSearch();
-      setSearchQuery('');
-      setUrlQueryProcessed(false);
-    }
-  }, [searchParams, urlQueryProcessed, setQuery, setSearchQuery, clearSearch]);
-
-  // NEW: Sync search context with local search query
-  useEffect(() => {
-    if (currentQuery !== searchQuery) {
-      setSearchQuery(currentQuery);
-    }
-  }, [currentQuery, searchQuery, setSearchQuery]);
-
-  // NEW: Handle search results from context
-  useEffect(() => {
-    if (searchResults.length > 0) {
-      setNearbyOffices(searchResults);
+      handleSearch(normalizedQuery, { source: 'url', autoSelectFirst: AUTO_OPEN_FIRST_RESULT });
+      setUrlQueryProcessed(true);
       
-      // Auto-open first result for URL-based searches
-      if (AUTO_OPEN_FIRST_RESULT && searchResults[0] && !selectedOffice) {
-        const firstResult = searchResults[0];
-        handleOfficeSelect(firstResult);
+      // Auto-open list panel for URL queries
+      openListPanel();
+      setIsPanelBackdropVisible(true);
+    }
+  }, [window.location.search, offices, urlQueryProcessed, handleSearch, openListPanel]);
+
+  // NEW: Auto-select first result for URL queries on map page
+  useEffect(() => {
+    if (urlQueryProcessed && searchResults.length > 0 && pathname.includes('/map') && AUTO_OPEN_FIRST_RESULT) {
+      const firstOfficeResult = searchResults.find(result => result.type === 'office');
+      if (firstOfficeResult) {
+        handleOfficeSelect(firstOfficeResult);
         
-        // Center map on the result if we're on map page
-        if (window.location.pathname.includes('/map') && mapInstanceRef.current) {
-          flyToOffice(firstResult);
+        // Fly to the office location
+        if (mapInstanceRef.current && firstOfficeResult.latitude && firstOfficeResult.longitude) {
+          mapInstanceRef.current.flyTo(
+            [firstOfficeResult.latitude, firstOfficeResult.longitude], 
+            MAP_ZOOM_LEVEL, 
+            { duration: 2 }
+          );
         }
       }
-      
-      // Open list panel to show results
-      if (!isListPanelOpen) {
-        openListPanel();
-        setIsPanelBackdropVisible(true);
-      }
     }
-  }, [searchResults, selectedOffice, isListPanelOpen, openListPanel]);
+  }, [searchResults, urlQueryProcessed, pathname]);
 
-  // NEW: Update URL when search query changes (from UI)
-  const updateURLWithQuery = useCallback((query) => {
-    const normalized = normalizeQuery(query);
-    const newParams = new URLSearchParams(searchParams);
-    
-    if (normalized) {
-      newParams.set('q', normalized);
-    } else {
-      newParams.delete('q');
+  // NEW: Sync URL when search query changes (debounced)
+  useEffect(() => {
+    if (searchQuery && !urlQueryProcessed) {
+      const timer = setTimeout(() => {
+        updateUrlQuery(searchQuery, true); // Use replace for typing
+      }, 500);
+      
+      return () => clearTimeout(timer);
     }
-    
-    // Use replace to avoid adding to history for every keystroke
-    setSearchParams(newParams, { replace: true });
-  }, [searchParams, setSearchParams]);
+  }, [searchQuery, urlQueryProcessed]);
 
   // Initialize map reference
   const handleMapReady = useCallback((map) => {
@@ -235,7 +204,7 @@ const IEBCOfficeMap = () => {
     };
   }, [userLocation, flyToLocation]);
 
-  // Enhanced office selection with URL update
+  // NEW: Enhanced office selection with URL sync
   const handleOfficeSelect = useCallback(async (office) => {
     let enhancedOffice = office;
     
@@ -260,42 +229,29 @@ const IEBCOfficeMap = () => {
     closeListPanel();
     setBottomSheetState('peek');
     setRoutingError(null);
-    
-    // NEW: Update URL with selected office name
+
+    // NEW: Update URL with office name when selected
     if (enhancedOffice.constituency_name) {
-      updateURLWithQuery(enhancedOffice.constituency_name);
+      const officeQuery = enhancedOffice.constituency_name;
+      handleSearch(officeQuery, { source: 'selection' });
+      updateUrlQuery(officeQuery, false); // Use push for selections
     }
-  }, [setSelectedOffice, flyToOffice, closeListPanel, updateURLWithQuery]);
+  }, [setSelectedOffice, flyToOffice, closeListPanel, handleSearch]);
 
-  // Enhanced search handler with URL integration
-  const handleSearch = useCallback(async (result) => {
-    if (result.searchQuery) {
-      // Update URL first
-      updateURLWithQuery(result.searchQuery);
-      
-      // Then perform search through context
-      setQuery(result.searchQuery, { triggerSearch: true });
-      
-    } else if (result.latitude && result.longitude) {
-      // Office object selected
+  // NEW: Enhanced search handler with URL sync
+  const handleSearchSelect = useCallback(async (result) => {
+    if (result.type === 'office') {
       handleOfficeSelect(result);
-    } else {
-      // Other result type
-      handleOfficeSelect(result);
+    } else if (result.type === 'search_query') {
+      // Update search query and URL
+      handleSearch(result.query, { source: 'suggestion' });
+      updateUrlQuery(result.query, false); // Use push for selections
+      
+      // Ensure list panel is open for search results
+      openListPanel();
+      setIsPanelBackdropVisible(true);
     }
-  }, [setQuery, handleOfficeSelect, updateURLWithQuery]);
-
-  // Handle search input changes with URL updates
-  const handleSearchChange = useCallback((value) => {
-    setSearchQuery(value);
-    
-    // Debounced URL update for typing
-    const timeoutId = setTimeout(() => {
-      updateURLWithQuery(value);
-    }, 500);
-    
-    return () => clearTimeout(timeoutId);
-  }, [setSearchQuery, updateURLWithQuery]);
+  }, [handleOfficeSelect, handleSearch, openListPanel]);
 
   // Double-tap handler for area search
   const handleDoubleTap = useCallback(async (latlng) => {
@@ -357,7 +313,7 @@ const IEBCOfficeMap = () => {
   // Get offices for list panel
   const listPanelOffices = useMemo(() => {
     if (searchResults.length > 0) {
-      return searchResults;
+      return searchResults.filter(result => result.type === 'office');
     }
     if (nearbyOffices.length > 0) {
       return nearbyOffices;
@@ -446,8 +402,7 @@ const IEBCOfficeMap = () => {
   // Handle contribution success
   const handleContributionSuccess = useCallback((result) => {
     console.log('Contribution submitted successfully:', result);
-    refetch();
-  }, [refetch]);
+  }, []);
 
   // Route badge drag handlers
   const handleRouteBadgeMouseDown = useCallback((e) => {
@@ -509,6 +464,26 @@ const IEBCOfficeMap = () => {
     };
   }, []);
 
+  // NEW: Handle browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const query = urlParams.get('q');
+      
+      if (query) {
+        const normalizedQuery = normalizeQuery(query);
+        handleSearch(normalizedQuery, { source: 'navigation' });
+        setUrlQueryProcessed(true);
+      } else {
+        clearSearch();
+        setUrlQueryProcessed(false);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [handleSearch, clearSearch]);
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background">
@@ -546,10 +521,12 @@ const IEBCOfficeMap = () => {
       <div className="fixed-search-container">
         <SearchBar
           value={searchQuery}
-          onChange={handleSearchChange}
+          onChange={handleSearch}
           onFocus={handleSearchFocus}
-          onSearch={handleSearch}
+          onSearch={handleSearchSelect}
           onLocationSearch={handleRetryLocation}
+          suggestions={searchSuggestions}
+          isSearching={isSearching}
           placeholder="Search IEBC offices by county, constituency, or location..."
         />
       </div>
@@ -605,20 +582,6 @@ const IEBCOfficeMap = () => {
       {/* Fixed Badge Container - For non-draggable badges */}
       <div className="fixed-badge-container">
         <AnimatePresence>
-          {isSearchLoading && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="search-indicator"
-            >
-              <div className="flex items-center space-x-2">
-                <LoadingSpinner size="small" />
-                <span className="text-sm font-medium">Searching offices...</span>
-              </div>
-            </motion.div>
-          )}
-
           {isSearchingNearby && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
@@ -788,7 +751,7 @@ const IEBCOfficeMap = () => {
             onClose={handleCloseListPanel}
             searchQuery={searchQuery}
             userLocation={userLocation}
-            isSearching={isSearchingNearby || isSearchLoading}
+            isSearching={isSearchingNearby}
           />
         )}
       </AnimatePresence>

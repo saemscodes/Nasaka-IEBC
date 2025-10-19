@@ -989,123 +989,43 @@
 }
 
 /* ============================================
-   17. SEARCH INTEGRATION STYLES
+   16. URL QUERY MARKER STYLES - NEW ADDITION
    ============================================ */
 
-/* Search loading states */
-.search-loading .search-container {
-  position: relative;
+/* Temporary search result marker */
+.url-query-marker {
+  background: transparent !important;
+  border: none !important;
 }
 
-.search-loading .search-container::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #007AFF, #34C759, #FF9500);
-  background-size: 200% 100%;
-  animation: searchLoading 1.5s infinite;
-  border-radius: 1px;
+.url-query-marker .leaflet-popup-content-wrapper {
+  background: hsl(var(--card));
+  backdrop-filter: blur(20px) saturate(180%);
+  border-radius: calc(var(--radius) - 2px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  border: 1px solid hsl(var(--border));
+  padding: 16px;
 }
 
-@keyframes searchLoading {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+.url-query-marker .leaflet-popup-content {
+  margin: 0;
+  line-height: 1.4;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: hsl(var(--foreground));
 }
 
-/* URL search indicator */
-.url-search-indicator {
-  background: rgba(0, 122, 255, 0.1);
-  border: 1px solid rgba(0, 122, 255, 0.3);
-  border-radius: 12px;
-  padding: 8px 12px;
-  margin-bottom: 8px;
-  font-size: 12px;
-  color: #007AFF;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.url-query-marker .leaflet-popup-tip {
+  background: hsl(var(--card));
+  box-shadow: none;
+  border: 1px solid hsl(var(--border));
 }
 
-.url-search-indicator::before {
-  content: '🔗';
-  font-size: 10px;
+/* Dark mode support for URL query markers */
+.dark .url-query-marker .leaflet-popup-content-wrapper {
+  background: hsl(var(--card) / 0.98);
+  color: hsl(var(--foreground));
 }
 
-/* Dark mode support */
-.dark .url-search-indicator {
-  background: rgba(10, 132, 255, 0.15);
-  border-color: rgba(10, 132, 255, 0.4);
-  color: #5AC8FA;
-}
-
-/* Search result highlighting */
-.search-result-highlight {
-  background: linear-gradient(120deg, #FFFBEB 0%, #FEF3C7 100%);
-  border-radius: 4px;
-  padding: 2px 4px;
-  margin: 0 1px;
-  font-weight: 600;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.dark .search-result-highlight {
-  background: linear-gradient(120deg, #78350F 0%, #92400E 100%);
-  color: #FEF3C7;
-}
-
-/* Auto-open animation */
-.auto-open-marker {
-  animation: pulseMarker 2s ease-in-out;
-}
-
-@keyframes pulseMarker {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-}
-
-/* Search context badges */
-.search-context-badge {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  background: #FF3B30;
-  color: white;
-  border-radius: 8px;
-  padding: 2px 6px;
-  font-size: 10px;
-  font-weight: 600;
-  z-index: 1;
-}
-
-/* Enhanced search transitions */
-.search-transition-enter {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
-.search-transition-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 300ms, transform 300ms;
-}
-
-.search-transition-exit {
-  opacity: 1;
-}
-
-.search-transition-exit-active {
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: opacity 300ms, transform 300ms;
+.dark .url-query-marker .leaflet-popup-tip {
+  background: hsl(var(--card) / 0.98);
 }
