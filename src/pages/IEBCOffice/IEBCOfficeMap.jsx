@@ -1,6 +1,6 @@
 // src/pages/IEBCOffice/IEBCOfficeMap.jsx
 import React, { useEffect, useMemo, useCallback, useState, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import MapContainer from '@/components/IEBCOffice/MapContainer';
 import SearchBar from '@/components/IEBCOffice/SearchBar';
@@ -21,10 +21,11 @@ import L from 'leaflet';
 const IEBCOfficeMap = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const userLocation = state?.userLocation;
   const manualEntry = state?.manualEntry;
 
-  const { offices, loading, error, searchOffices } = useIEBCOffices();
+  const { offices, loading, error, searchOffices, refetch } = useIEBCOffices();
   const {
     mapCenter,
     mapZoom,
@@ -55,6 +56,7 @@ const IEBCOfficeMap = () => {
   const [accuracyCircle, setAccuracyCircle] = useState(null);
   const [routeBadgePosition, setRouteBadgePosition] = useState({ x: 20, y: 140 });
   const [isDraggingRouteBadge, setIsDraggingRouteBadge] = useState(false);
+  const [urlQueryProcessed, setUrlQueryProcessed] = useState(false);
 
   const mapInstanceRef = useRef(null);
   const tileLayersRef = useRef({});
@@ -62,6 +64,75 @@ const IEBCOfficeMap = () => {
   const routeBadgeRef = useRef(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const badgeStartPos = useRef({ x: 0, y: 0 });
+
+  // NEW: Handle URL query parameter on component mount
+  useEffect(() => {
+    const query = searchParams.get('q');
+    if (query && !urlQueryProcessed && offices.length > 0 && mapInstanceRef.current) {
+      handleUrlQuerySearch(query);
+    }
+  }, [searchParams, offices, urlQueryProcessed]);
+
+  // NEW: Function to handle URL query parameter search
+  const handleUrlQuerySearch = async (query) => {
+    if (!query.trim()) return;
+
+    try {
+      // First try to find in existing offices
+      const officeResults = searchOffices(query);
+      if (officeResults.length > 0) {
+        // Found office in database - select it
+        handleOfficeSelect(officeResults[0]);
+        setUrlQueryProcessed(true);
+        return;
+      }
+
+      // If not found in database, geocode using Nominatim
+      const encodedQuery = encodeURIComponent(query);
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodedQuery}&limit=1`
+      );
+      
+      if (!response.ok) throw new Error('Geocoding failed');
+      
+      const data = await response.json();
+      
+      if (data.length > 0) {
+        const result = data[0];
+        const lat = parseFloat(result.lat);
+        const lon = parseFloat(result.lon);
+        
+        // Fly to the location
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.flyTo([lat, lon], 15, { duration: 2 });
+          
+          // Create a temporary marker for the search result
+          const marker = L.marker([lat, lon])
+            .addTo(mapInstanceRef.current)
+            .bindPopup(`
+              <div class="p-2">
+                <h3 class="font-semibold">Search Result</h3>
+                <p class="text-sm">${result.display_name}</p>
+                <p class="text-xs text-gray-500">Query: "${query}"</p>
+              </div>
+            `)
+            .openPopup();
+          
+          // Remove marker after 10 seconds
+          setTimeout(() => {
+            if (marker && mapInstanceRef.current) {
+              mapInstanceRef.current.removeLayer(marker);
+            }
+          }, 10000);
+        }
+      }
+      
+      setUrlQueryProcessed(true);
+    } catch (error) {
+      console.error('URL query search error:', error);
+      setUrlQueryProcessed(true);
+    }
+  };
 
   // Initialize map reference
   const handleMapReady = useCallback((map) => {
@@ -339,7 +410,9 @@ const IEBCOfficeMap = () => {
   // Handle contribution success
   const handleContributionSuccess = useCallback((result) => {
     console.log('Contribution submitted successfully:', result);
-  }, []);
+    // Refresh offices to include new contribution
+    refetch();
+  }, [refetch]);
 
   // Route badge drag handlers - FIXED IMPLEMENTATION
   const handleRouteBadgeMouseDown = useCallback((e) => {
@@ -612,6 +685,7 @@ const IEBCOfficeMap = () => {
           selectedOffice={selectedOffice}
           onNearbyOfficesFound={setNearbyOffices}
           baseMap={baseMap}
+          liveOffices={offices} // NEW: Pass live offices for real-time updates
         />
 
         {/* Last Tap Location Indicator */}
