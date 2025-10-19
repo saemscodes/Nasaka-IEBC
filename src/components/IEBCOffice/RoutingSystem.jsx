@@ -1,4 +1,3 @@
-// src/components/IEBCOffice/RoutingSystem.jsx
 import React, { useEffect, useRef, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet-routing-machine';
@@ -15,11 +14,9 @@ const RoutingSystem = ({
   const routeCalculationRef = useRef(null);
   const abortControllerRef = useRef(null);
 
-  // Enhanced error handling for routing
   const handleRouteError = useCallback((error) => {
     console.warn('Routing error:', error);
     
-    // Provide fallback options
     const fallbackMessage = 'Routing service temporarily unavailable. Use Google Maps for directions.';
     
     if (onRouteError) {
@@ -33,7 +30,6 @@ const RoutingSystem = ({
     }
   }, [onRouteError, destination]);
 
-  // Clean up routing control safely
   const cleanupRouting = useCallback(() => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -47,7 +43,6 @@ const RoutingSystem = ({
 
     if (routingControlRef.current) {
       try {
-        // Safely remove routing control
         if (map && map.hasControl(routingControlRef.current)) {
           map.removeControl(routingControlRef.current);
         }
@@ -58,30 +53,26 @@ const RoutingSystem = ({
     }
   }, [map]);
 
-  // Initialize routing control
   const initializeRouting = useCallback(() => {
     if (!userLocation || !destination) return;
     if (!userLocation.latitude || !userLocation.longitude) return;
     if (!destination.latitude || !destination.longitude) return;
 
-    // Clean up any existing routing
     cleanupRouting();
 
-    // Use AbortController to handle component unmounting
     abortControllerRef.current = new AbortController();
 
     try {
       const start = L.latLng(userLocation.latitude, userLocation.longitude);
       const end = L.latLng(destination.latitude, destination.longitude);
 
-      // Configure routing with error handling
       const routingControl = L.Routing.control({
         waypoints: [start, end],
         routeWhileDragging: false,
         showAlternatives: showAlternatives,
-        fitSelectedRoutes: false, // Disable auto-fit to prevent conflicts
+        fitSelectedRoutes: false,
         show: false,
-        createMarker: function() { return null; }, // No default markers
+        createMarker: function() { return null; },
         lineOptions: {
           styles: [{ 
             color: '#007AFF', 
@@ -93,13 +84,11 @@ const RoutingSystem = ({
           extendToWaypoints: false,
           addWaypoints: false
         },
-        // Use a more reliable routing service with fallback
         router: L.Routing.osrmv1({
           serviceUrl: 'https://router.project-osrm.org/route/v1',
-          timeout: 10000, // 10 second timeout
+          timeout: 10000,
           profile: 'driving'
         }),
-        // Alternative routing service configuration
         altLineOptions: {
           styles: [
             { color: '#34C759', weight: 4, opacity: 0.6 },
@@ -108,12 +97,10 @@ const RoutingSystem = ({
         }
       });
 
-      // Add to map with error handling
       if (map) {
         routingControl.addTo(map);
         routingControlRef.current = routingControl;
 
-        // Handle successful route calculation
         routingControl.on('routesfound', function(e) {
           if (abortControllerRef.current?.signal.aborted) return;
           
@@ -124,10 +111,9 @@ const RoutingSystem = ({
             onRouteFound(routes);
           }
 
-          // Auto-fit to route if it's not too long (avoid zooming out too much)
           if (routes.length > 0 && routes[0].summary) {
             const totalDistance = routes[0].summary.totalDistance;
-            if (totalDistance < 50000) { // Only auto-fit for routes < 50km
+            if (totalDistance < 50000) {
               routeCalculationRef.current = setTimeout(() => {
                 if (map && !abortControllerRef.current?.signal.aborted) {
                   map.fitBounds(routingControl.getRoutes()[0].coordinates, {
@@ -140,7 +126,6 @@ const RoutingSystem = ({
           }
         });
 
-        // Handle routing errors gracefully
         routingControl.on('routingerror', function(e) {
           if (abortControllerRef.current?.signal.aborted) return;
           
@@ -148,7 +133,6 @@ const RoutingSystem = ({
           handleRouteError(e.error);
         });
 
-        // Handle waypoint errors
         routingControl.on('waypointserror', function(e) {
           if (abortControllerRef.current?.signal.aborted) return;
           
@@ -163,9 +147,7 @@ const RoutingSystem = ({
     }
   }, [userLocation, destination, showAlternatives, map, onRouteFound, handleRouteError, cleanupRouting]);
 
-  // Effect to handle routing initialization and cleanup
   useEffect(() => {
-    // Debounce route calculation to prevent rapid re-renders
     routeCalculationRef.current = setTimeout(() => {
       if (userLocation && destination) {
         initializeRouting();
@@ -179,7 +161,6 @@ const RoutingSystem = ({
     };
   }, [userLocation, destination, initializeRouting, cleanupRouting]);
 
-  // Additional cleanup on unmount
   useEffect(() => {
     return () => {
       cleanupRouting();
