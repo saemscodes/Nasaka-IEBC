@@ -1,20 +1,13 @@
 // src/hooks/useIEBCOffices.js
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import Fuse from 'fuse.js';
-import { debounce } from '@/lib/searchUtils';
 
 export const useIEBCOffices = () => {
   const [offices, setOffices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [fuse, setFuse] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [searchSuggestions, setSearchSuggestions] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
-  
-  const searchControllerRef = useRef(null);
 
   const fetchOffices = useCallback(async () => {
     try {
@@ -73,113 +66,7 @@ export const useIEBCOffices = () => {
     }
   }, []);
 
-  // Enhanced search function with abort controller
-  const performSearch = useCallback(async (query, options = {}) => {
-    const { source = 'ui', autoSelectFirst = false } = options;
-    
-    if (!query.trim()) {
-      setSearchResults([]);
-      setSearchSuggestions([]);
-      setIsSearching(false);
-      return [];
-    }
-
-    // Cancel previous search
-    if (searchControllerRef.current) {
-      searchControllerRef.current.abort();
-    }
-    searchControllerRef.current = new AbortController();
-
-    setIsSearching(true);
-    
-    try {
-      let results = [];
-      
-      if (fuse) {
-        const fuseResults = fuse.search(query.trim());
-        results = fuseResults.map(result => ({
-          ...result.item,
-          matches: result.matches,
-          score: result.score,
-          type: 'office'
-        }));
-      }
-
-      // Add search query suggestion
-      if (query.length > 2) {
-        results.push({
-          id: `search-${query}`,
-          name: `Search for "${query}"`,
-          subtitle: 'Find all matching IEBC offices',
-          type: 'search_query',
-          query: query,
-          searchSource: source
-        });
-      }
-
-      setSearchResults(results.slice(0, 20));
-      setSearchSuggestions(results.slice(0, 8));
-      
-      // Analytics event (optional)
-      if (window.gtag && source !== 'url') {
-        window.gtag('event', 'search', {
-          search_term: query,
-          search_source: source
-        });
-      }
-
-      return results;
-    } catch (error) {
-      if (error.name !== 'AbortError') {
-        console.error('Search error:', error);
-      }
-      return [];
-    } finally {
-      setIsSearching(false);
-    }
-  }, [fuse]);
-
-  // Debounced search for typing
-  const debouncedSearch = useCallback(
-    debounce((query, options) => {
-      performSearch(query, options);
-    }, 300),
-    [performSearch]
-  );
-
-  // Search handler that can be called from anywhere
-  const handleSearch = useCallback((query, options = {}) => {
-    setSearchQuery(query);
-    
-    if (query.trim()) {
-      debouncedSearch(query, options);
-    } else {
-      setSearchResults([]);
-      setSearchSuggestions([]);
-    }
-  }, [debouncedSearch]);
-
-  // Clear search
-  const clearSearch = useCallback(() => {
-    setSearchQuery('');
-    setSearchResults([]);
-    setSearchSuggestions([]);
-    setIsSearching(false);
-    
-    if (searchControllerRef.current) {
-      searchControllerRef.current.abort();
-    }
-  }, []);
-
-  // Get offices by county
-  const getOfficesByCounty = useCallback((county) => {
-    if (!county) return offices;
-    return offices.filter(office => 
-      office.county?.toLowerCase() === county.toLowerCase()
-    );
-  }, [offices]);
-
-  // Real-time subscription for database changes
+  // NEW: Real-time subscription for database changes
   useEffect(() => {
     const subscription = supabase
       .channel('iebc-offices-changes')
@@ -203,14 +90,19 @@ export const useIEBCOffices = () => {
     };
   }, [fetchOffices]);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (searchControllerRef.current) {
-        searchControllerRef.current.abort();
-      }
-    };
-  }, []);
+  const searchOffices = useCallback((query) => {
+    if (!query.trim() || !fuse) return offices;
+    
+    const results = fuse.search(query.trim());
+    return results.map(result => result.item);
+  }, [offices, fuse]);
+
+  const getOfficesByCounty = useCallback((county) => {
+    if (!county) return offices;
+    return offices.filter(office => 
+      office.county?.toLowerCase() === county.toLowerCase()
+    );
+  }, [offices]);
 
   useEffect(() => {
     fetchOffices();
@@ -221,13 +113,7 @@ export const useIEBCOffices = () => {
     loading, 
     error, 
     refetch: fetchOffices,
-    searchQuery,
-    searchResults,
-    searchSuggestions,
-    isSearching,
-    handleSearch,
-    clearSearch,
-    performSearch,
+    searchOffices,
     getOfficesByCounty
   };
 };
