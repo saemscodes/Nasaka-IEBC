@@ -11,12 +11,12 @@ const SearchBar = ({
   onFocus, 
   onSearch,
   onLocationSearch,
-  suggestions = [],
-  isSearching = false,
   placeholder = "Search IEBC offices by county, constituency, or location...",
   className = ""
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [allOffices, setAllOffices] = useState([]);
   const [fuse, setFuse] = useState(null);
   const inputRef = useRef(null);
@@ -41,7 +41,7 @@ const SearchBar = ({
     </svg>
   );
 
-  // Load all offices for Fuse.js indexing (fallback)
+  // Load all offices for Fuse.js indexing
   useEffect(() => {
     loadAllOffices();
   }, []);
@@ -58,7 +58,7 @@ const SearchBar = ({
 
       setAllOffices(data || []);
       
-      // Initialize Fuse.js for fuzzy search (fallback)
+      // Initialize Fuse.js for fuzzy search
       const fuseOptions = {
         keys: [
           'county',
@@ -83,6 +83,65 @@ const SearchBar = ({
     }
   };
 
+  // Enhanced search function with Fuse.js
+  const performSearch = useCallback((searchTerm) => {
+    if (!searchTerm.trim() || !fuse) {
+      setSuggestions([]);
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      const results = fuse.search(searchTerm).slice(0, 8);
+      const formattedSuggestions = results.map(result => ({
+        ...result.item,
+        matches: result.matches,
+        score: result.score,
+        type: 'office'
+      }));
+
+      // Add search query suggestion
+      if (searchTerm.length > 2) {
+        formattedSuggestions.push({
+          id: `search-${searchTerm}`,
+          name: `Search for "${searchTerm}"`,
+          subtitle: 'Find all matching IEBC offices',
+          type: 'search_query',
+          query: searchTerm
+        });
+      }
+
+      setSuggestions(formattedSuggestions);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSuggestions([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fuse]);
+
+  // Debounced search
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (value.trim()) {
+      searchTimeoutRef.current = setTimeout(() => {
+        performSearch(value);
+      }, 300);
+    } else {
+      setSuggestions([]);
+    }
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [value, performSearch]);
+
   const handleInputChange = (e) => {
     onChange(e.target.value);
     if (e.target.value.trim()) {
@@ -92,16 +151,16 @@ const SearchBar = ({
 
   const handleInputFocus = () => {
     setIsExpanded(true);
-    if (onFocus) onFocus();
   };
 
   const handleSuggestionSelect = (suggestion) => {
     if (suggestion.type === 'office' && onSearch) {
       onSearch(suggestion);
     } else if (suggestion.type === 'search_query' && onSearch) {
-      onSearch(suggestion);
+      onSearch({ searchQuery: suggestion.query });
     }
     setIsExpanded(false);
+    setSuggestions([]);
     if (inputRef.current) {
       inputRef.current.blur();
     }
@@ -109,6 +168,7 @@ const SearchBar = ({
 
   const handleClear = () => {
     onChange('');
+    setSuggestions([]);
     setIsExpanded(false);
     if (inputRef.current) {
       inputRef.current.focus();
@@ -127,7 +187,8 @@ const SearchBar = ({
       e.preventDefault();
       
       if (value.trim() && onSearch) {
-        onSearch({ searchQuery: value.trim(), type: 'search_query' });
+        onSearch({ searchQuery: value.trim() });
+        if (onFocus) onFocus();
       }
       setIsExpanded(false);
     }
@@ -201,7 +262,7 @@ const SearchBar = ({
     <div className={`relative ${className}`}>
       {/* Enhanced Backdrop Overlay */}
       <AnimatePresence>
-        {isExpanded && (suggestions.length > 0 || isSearching) && (
+        {isExpanded && (suggestions.length > 0 || isLoading) && (
           <motion.div
             className="fixed inset-0 z-1000"
             initial={{ opacity: 0 }}
@@ -290,7 +351,7 @@ const SearchBar = ({
         </div>
 
         <AnimatePresence>
-          {isExpanded && (suggestions.length > 0 || isSearching) && (
+          {isExpanded && (suggestions.length > 0 || isLoading) && (
             <motion.div
               className={`absolute top-full left-0 right-0 mt-2 border rounded-2xl shadow-2xl overflow-hidden max-h-96 overflow-y-auto transition-all duration-300 ${
                 theme === 'dark'
@@ -308,7 +369,7 @@ const SearchBar = ({
                 damping: 30
               }}
             >
-              {isSearching ? (
+              {isLoading ? (
                 <div className={`p-6 text-center transition-colors duration-300 ${
                   theme === 'dark' ? 'text-ios-dark-text-secondary' : 'text-ios-light-text-secondary'
                 }`}>
