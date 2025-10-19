@@ -1,3 +1,4 @@
+// src/pages/IEBCOffice/IEBCOfficeMap.jsx
 import React, { useEffect, useMemo, useCallback, useState, useRef } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,9 +20,10 @@ import { useSearch } from '@/contexts/SearchContext';
 import { normalizeQuery, validateCoordinates } from '@/lib/searchUtils';
 import L from 'leaflet';
 
+// Configuration
 const AUTO_OPEN_FIRST_RESULT = true;
 const MAP_ZOOM_LEVEL = 15;
-const ROUTING_DEBOUNCE = 1000;
+const ROUTING_DEBOUNCE = 1000; // Increased debounce for routing
 
 const IEBCOfficeMap = () => {
   const navigate = useNavigate();
@@ -30,6 +32,7 @@ const IEBCOfficeMap = () => {
   const userLocation = state?.userLocation;
   const manualEntry = state?.manualEntry;
 
+  // Use search context
   const { 
     currentQuery, 
     results: searchResults, 
@@ -56,6 +59,7 @@ const IEBCOfficeMap = () => {
     closeListPanel
   } = useMapControls();
 
+  // Enhanced state management
   const [activeLayers, setActiveLayers] = useState(['iebc-offices']);
   const [isLayerPanelOpen, setIsLayerPanelOpen] = useState(false);
   const [currentRoute, setCurrentRoute] = useState(null);
@@ -80,9 +84,11 @@ const IEBCOfficeMap = () => {
   const routingTimeoutRef = useRef(null);
   const lastProcessedUrlQuery = useRef('');
 
+  // Enhanced URL query parameter handling
   useEffect(() => {
     const urlQuery = searchParams.get('q');
     
+    // Prevent duplicate processing
     if (urlQuery === lastProcessedUrlQuery.current) {
       return;
     }
@@ -94,10 +100,15 @@ const IEBCOfficeMap = () => {
       if (normalizedQuery) {
         console.log('Processing URL query:', { raw: urlQuery, normalized: normalizedQuery });
         
+        // Set query in search context (from URL)
         setQuery(normalizedQuery, { fromUrl: true, triggerSearch: true });
+        
+        // Also update local search query for UI consistency
         setSearchQuery(normalizedQuery);
+        
         setUrlQueryProcessed(true);
         
+        // Analytics
         console.log('Search initiated from URL:', {
           query: normalizedQuery,
           source: 'url_deep_link',
@@ -105,6 +116,7 @@ const IEBCOfficeMap = () => {
         });
       }
     } else if (!urlQuery && urlQueryProcessed) {
+      // URL query was removed
       lastProcessedUrlQuery.current = '';
       clearSearch();
       setSearchQuery('');
@@ -112,22 +124,27 @@ const IEBCOfficeMap = () => {
     }
   }, [searchParams, urlQueryProcessed, setQuery, setSearchQuery, clearSearch]);
 
+  // Sync search context with local search query
   useEffect(() => {
     if (currentQuery !== searchQuery) {
       setSearchQuery(currentQuery);
     }
   }, [currentQuery, searchQuery, setSearchQuery]);
 
+  // Enhanced search results handling
   useEffect(() => {
     if (searchResults.length > 0) {
       setNearbyOffices(searchResults);
       
+      // Auto-open first result for URL-based searches with validation
       if (AUTO_OPEN_FIRST_RESULT && searchResults[0] && !selectedOffice) {
         const firstResult = searchResults[0];
         
+        // Validate coordinates before attempting to fly
         if (validateCoordinates(firstResult.latitude, firstResult.longitude)) {
           handleOfficeSelect(firstResult);
           
+          // Center map on the result if we're on map page
           if (window.location.pathname.includes('/map') && mapInstanceRef.current) {
             flyToOffice(firstResult);
           }
@@ -136,6 +153,7 @@ const IEBCOfficeMap = () => {
         }
       }
       
+      // Open list panel to show results
       if (!isListPanelOpen) {
         openListPanel();
         setIsPanelBackdropVisible(true);
@@ -143,6 +161,7 @@ const IEBCOfficeMap = () => {
     }
   }, [searchResults, selectedOffice, isListPanelOpen, openListPanel, flyToOffice]);
 
+  // Enhanced URL update with query
   const updateURLWithQuery = useCallback((query) => {
     const normalized = normalizeQuery(query);
     const newParams = new URLSearchParams(searchParams);
@@ -153,9 +172,11 @@ const IEBCOfficeMap = () => {
       newParams.delete('q');
     }
     
+    // Use replace to avoid adding to history for every keystroke
     setSearchParams(newParams, { replace: true });
   }, [searchParams, setSearchParams]);
 
+  // Enhanced routing with debouncing and validation
   const handleRouteFound = useCallback((routes) => {
     if (routingTimeoutRef.current) {
       clearTimeout(routingTimeoutRef.current);
@@ -181,12 +202,15 @@ const IEBCOfficeMap = () => {
     }, 100);
   }, [setRouteData]);
 
+  // Initialize map reference
   const handleMapReady = useCallback((map) => {
     mapInstanceRef.current = map;
     initializeTileLayers(map);
   }, []);
 
+  // Initialize tile layers
   const initializeTileLayers = useCallback((map) => {
+    // Standard OpenStreetMap
     tileLayersRef.current.standard = L.tileLayer(
       'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       {
@@ -195,6 +219,7 @@ const IEBCOfficeMap = () => {
       }
     );
 
+    // Satellite view
     tileLayersRef.current.satellite = L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
@@ -203,32 +228,40 @@ const IEBCOfficeMap = () => {
       }
     );
 
+    // Add default base map
     tileLayersRef.current.standard.addTo(map);
   }, []);
 
+  // Handle base map changes
   useEffect(() => {
     if (!mapInstanceRef.current || !tileLayersRef.current.standard) return;
 
+    // Remove all tile layers safely
     Object.values(tileLayersRef.current).forEach(layer => {
       if (layer && mapInstanceRef.current.hasLayer(layer)) {
         mapInstanceRef.current.removeLayer(layer);
       }
     });
 
+    // Add selected base map
     if (tileLayersRef.current[baseMap]) {
       tileLayersRef.current[baseMap].addTo(mapInstanceRef.current);
     }
   }, [baseMap]);
 
+  // Set initial map center and create accuracy circle
   useEffect(() => {
     if (userLocation?.latitude && userLocation?.longitude) {
       flyToLocation(userLocation.latitude, userLocation.longitude, 14);
       
+      // Create accuracy circle if accuracy data is available
       if (userLocation.accuracy && mapInstanceRef.current) {
+        // Remove existing accuracy circle safely
         if (accuracyCircleRef.current && mapInstanceRef.current.hasLayer(accuracyCircleRef.current)) {
           mapInstanceRef.current.removeLayer(accuracyCircleRef.current);
         }
         
+        // Create new accuracy circle
         accuracyCircleRef.current = L.circle([userLocation.latitude, userLocation.longitude], {
           radius: userLocation.accuracy,
           color: '#007AFF',
@@ -240,6 +273,7 @@ const IEBCOfficeMap = () => {
       }
     }
 
+    // Cleanup function to remove accuracy circle
     return () => {
       if (accuracyCircleRef.current && mapInstanceRef.current && mapInstanceRef.current.hasLayer(accuracyCircleRef.current)) {
         mapInstanceRef.current.removeLayer(accuracyCircleRef.current);
@@ -247,11 +281,13 @@ const IEBCOfficeMap = () => {
     };
   }, [userLocation, flyToLocation]);
 
+  // Enhanced office selection with URL update and validation
   const handleOfficeSelect = useCallback(async (office) => {
     if (!office) return;
 
     let enhancedOffice = office;
     
+    // Validate coordinates before proceeding
     if (!validateCoordinates(office.latitude, office.longitude)) {
       console.error('Invalid office coordinates:', office);
       return;
@@ -279,28 +315,38 @@ const IEBCOfficeMap = () => {
     setBottomSheetState('peek');
     setRoutingError(null);
     
+    // Clear any existing routes when selecting new office
     clearRoutes();
     
+    // Update URL with selected office name
     if (enhancedOffice.constituency_name) {
       updateURLWithQuery(enhancedOffice.constituency_name);
     }
   }, [setSelectedOffice, flyToOffice, closeListPanel, updateURLWithQuery, clearRoutes]);
 
+  // Enhanced search handler with URL integration
   const handleSearch = useCallback(async (result) => {
     if (result.searchQuery) {
+      // Update URL first
       updateURLWithQuery(result.searchQuery);
+      
+      // Then perform search through context
       setQuery(result.searchQuery, { triggerSearch: true });
       
     } else if (result.latitude && result.longitude) {
+      // Office object selected
       handleOfficeSelect(result);
     } else {
+      // Other result type
       handleOfficeSelect(result);
     }
   }, [setQuery, handleOfficeSelect, updateURLWithQuery]);
 
+  // Handle search input changes with URL updates
   const handleSearchChange = useCallback((value) => {
     setSearchQuery(value);
     
+    // Debounced URL update for typing
     const timeoutId = setTimeout(() => {
       updateURLWithQuery(value);
     }, 500);
@@ -308,6 +354,7 @@ const IEBCOfficeMap = () => {
     return () => clearTimeout(timeoutId);
   }, [setSearchQuery, updateURLWithQuery]);
 
+  // Enhanced double-tap handler for area search
   const handleDoubleTap = useCallback(async (latlng) => {
     if (!validateCoordinates(latlng.lat, latlng.lng)) {
       console.warn('Invalid double-tap coordinates:', latlng);
@@ -340,6 +387,7 @@ const IEBCOfficeMap = () => {
     }
   }, [openListPanel]);
 
+  // Find nearest office with validation
   const nearestOffice = useMemo(() => {
     if (userLocation?.latitude && userLocation?.longitude && offices.length > 0) {
       return findNearestOffice(userLocation.latitude, userLocation.longitude, offices);
@@ -347,6 +395,7 @@ const IEBCOfficeMap = () => {
     return null;
   }, [userLocation, offices]);
 
+  // Set nearest office as selected with validation
   useEffect(() => {
     if (nearestOffice && !selectedOffice && !manualEntry) {
       if (validateCoordinates(nearestOffice.latitude, nearestOffice.longitude)) {
@@ -356,6 +405,7 @@ const IEBCOfficeMap = () => {
     }
   }, [nearestOffice, selectedOffice, manualEntry, setSelectedOffice]);
 
+  // Get offices for list panel
   const listPanelOffices = useMemo(() => {
     if (searchResults.length > 0) {
       return searchResults;
@@ -374,6 +424,7 @@ const IEBCOfficeMap = () => {
     return offices.slice(0, 20);
   }, [searchResults, nearbyOffices, userLocation, offices]);
 
+  // Toggle layer visibility
   const toggleLayer = useCallback((layerId) => {
     setActiveLayers(prev =>
       prev.includes(layerId)
@@ -382,10 +433,12 @@ const IEBCOfficeMap = () => {
     );
   }, []);
 
+  // Handle base map change
   const handleBaseMapChange = useCallback((mapId) => {
     setBaseMap(mapId);
   }, []);
 
+  // Navigation handlers
   const handleBack = () => navigate(-1);
   
   const handleSearchFocus = () => {
@@ -416,6 +469,7 @@ const IEBCOfficeMap = () => {
     setIsPanelBackdropVisible(false);
   };
 
+  // Bottom sheet handlers
   const handleBottomSheetExpand = () => setBottomSheetState('expanded');
   const handleBottomSheetCollapse = () => setBottomSheetState('peek');
   const handleBottomSheetClose = () => {
@@ -424,6 +478,7 @@ const IEBCOfficeMap = () => {
     clearRoutes();
   };
 
+  // Clear routing error after delay
   useEffect(() => {
     if (routingError) {
       const timer = setTimeout(() => {
@@ -433,17 +488,20 @@ const IEBCOfficeMap = () => {
     }
   }, [routingError]);
 
+  // Handle panel backdrop visibility
   useEffect(() => {
     if (!isListPanelOpen && !isLayerPanelOpen) {
       setIsPanelBackdropVisible(false);
     }
   }, [isListPanelOpen, isLayerPanelOpen]);
 
+  // Handle contribution success
   const handleContributionSuccess = useCallback((result) => {
     console.log('Contribution submitted successfully:', result);
     refetch();
   }, [refetch]);
 
+  // Enhanced route badge drag handlers
   const handleRouteBadgeMouseDown = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -458,6 +516,7 @@ const IEBCOfficeMap = () => {
     };
     badgeStartPos.current = { ...routeBadgePosition };
     
+    // Add event listeners for drag
     const handleMove = (moveEvent) => {
       if (!isDraggingRouteBadge) return;
       
@@ -492,8 +551,10 @@ const IEBCOfficeMap = () => {
     document.addEventListener('touchend', handleUp);
   }, [routeBadgePosition, isDraggingRouteBadge]);
 
+  // Enhanced cleanup on unmount
   useEffect(() => {
     return () => {
+      // Clean up all timeouts and event listeners
       if (routingTimeoutRef.current) {
         clearTimeout(routingTimeoutRef.current);
       }
@@ -503,6 +564,7 @@ const IEBCOfficeMap = () => {
       document.removeEventListener('touchmove', () => {});
       document.removeEventListener('touchend', () => {});
       
+      // Clear routes
       clearRoutes();
     };
   }, [clearRoutes]);
@@ -540,6 +602,7 @@ const IEBCOfficeMap = () => {
 
   return (
     <div className="ios-map-container relative">
+      {/* FIXED UI Controls - ALWAYS ON TOP */}
       <div className="fixed-search-container">
         <SearchBar
           value={searchQuery}
@@ -558,6 +621,7 @@ const IEBCOfficeMap = () => {
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="flex flex-col space-y-3"
         >
+          {/* Contribute Location Button */}
           <ContributeLocationButton 
             userLocation={userLocation}
             onSuccess={handleContributionSuccess}
@@ -598,6 +662,7 @@ const IEBCOfficeMap = () => {
         </motion.div>
       </div>
 
+      {/* Fixed Badge Container - For non-draggable badges */}
       <div className="fixed-badge-container">
         <AnimatePresence>
           {isSearchLoading && (
@@ -647,6 +712,7 @@ const IEBCOfficeMap = () => {
         </AnimatePresence>
       </div>
 
+      {/* Draggable Route Badge */}
       <AnimatePresence>
         {currentRoute && currentRoute.length > 0 && (
           <motion.div
@@ -703,6 +769,7 @@ const IEBCOfficeMap = () => {
         )}
       </AnimatePresence>
 
+      {/* Map Container - Isolated */}
       <MapContainer
         ref={mapRef}
         center={mapCenter}
@@ -711,11 +778,13 @@ const IEBCOfficeMap = () => {
         onMapReady={handleMapReady}
         onDoubleTap={handleDoubleTap}
       >
+        {/* User Location Marker with Accuracy Circle */}
         <UserLocationMarker
           position={userLocation ? [userLocation.latitude, userLocation.longitude] : null}
           accuracy={userLocation?.accuracy}
         />
 
+        {/* GeoJSON Layer Manager */}
         <GeoJSONLayerManager
           activeLayers={activeLayers}
           onOfficeSelect={handleOfficeSelect}
@@ -725,6 +794,7 @@ const IEBCOfficeMap = () => {
           liveOffices={offices}
         />
 
+        {/* Last Tap Location Indicator */}
         {lastTapLocation && (
           <UserLocationMarker
             position={[lastTapLocation.lat, lastTapLocation.lng]}
@@ -733,6 +803,7 @@ const IEBCOfficeMap = () => {
           />
         )}
 
+        {/* Enhanced Routing System with Error Handling */}
         {userLocation && selectedOffice && validateCoordinates(userLocation.latitude, userLocation.longitude) && validateCoordinates(selectedOffice.latitude, selectedOffice.longitude) && (
           <RoutingSystem
             userLocation={userLocation}
@@ -744,6 +815,7 @@ const IEBCOfficeMap = () => {
         )}
       </MapContainer>
 
+      {/* PANEL BACKDROP */}
       <AnimatePresence>
         {isPanelBackdropVisible && (
           <motion.div
@@ -756,6 +828,7 @@ const IEBCOfficeMap = () => {
         )}
       </AnimatePresence>
 
+      {/* Layer Control Panel */}
       <LayerControlPanel
         layers={activeLayers}
         onToggleLayer={toggleLayer}
@@ -766,6 +839,7 @@ const IEBCOfficeMap = () => {
         onBaseMapChange={handleBaseMapChange}
       />
 
+      {/* Office List Panel */}
       <AnimatePresence>
         {isListPanelOpen && (
           <OfficeListPanel
@@ -779,6 +853,7 @@ const IEBCOfficeMap = () => {
         )}
       </AnimatePresence>
 
+      {/* Office Bottom Sheet */}
       <OfficeBottomSheet
         office={selectedOffice || nearestOffice}
         userLocation={userLocation}
