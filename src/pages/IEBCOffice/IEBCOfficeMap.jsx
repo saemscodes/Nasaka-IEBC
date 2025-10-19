@@ -1,6 +1,6 @@
 // src/pages/IEBCOffice/IEBCOfficeMap.jsx
 import React, { useEffect, useMemo, useCallback, useState, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import MapContainer from '@/components/IEBCOffice/MapContainer';
 import SearchBar from '@/components/IEBCOffice/SearchBar';
@@ -16,40 +16,45 @@ import { useIEBCOffices } from '@/hooks/useIEBCOffices';
 import { useMapControls } from '@/hooks/useMapControls';
 import { findNearestOffice, findNearestOffices } from '@/utils/geoUtils';
 import { supabase } from '@/integrations/supabase/client';
-import { normalizeQuery, updateUrlQuery } from '@/lib/searchUtils';
+import { useSearch } from '@/contexts/SearchContext';
+import { normalizeQuery, validateCoordinates } from '@/lib/searchUtils';
 import L from 'leaflet';
 
 // Configuration
 const AUTO_OPEN_FIRST_RESULT = true;
 const MAP_ZOOM_LEVEL = 15;
+const ROUTING_DEBOUNCE = 1000; // Increased debounce for routing
 
 const IEBCOfficeMap = () => {
   const navigate = useNavigate();
-  const { state, pathname } = useLocation();
+  const { state } = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const userLocation = state?.userLocation;
   const manualEntry = state?.manualEntry;
 
+  // Use search context
   const { 
-    offices, 
-    loading, 
-    error, 
-    searchQuery, 
-    searchResults, 
-    searchSuggestions, 
-    isSearching, 
-    handleSearch, 
-    clearSearch 
-  } = useIEBCOffices();
-  
+    currentQuery, 
+    results: searchResults, 
+    isLoading: isSearchLoading,
+    setQuery,
+    clearSearch,
+    setRouteData,
+    clearRoutes
+  } = useSearch();
+
+  const { offices, loading, error, searchOffices, refetch } = useIEBCOffices();
   const {
     mapCenter,
     mapZoom,
     selectedOffice,
     isListPanelOpen,
+    searchQuery,
     mapRef,
     flyToOffice,
     flyToLocation,
     setSelectedOffice,
+    setSearchQuery,
     openListPanel,
     closeListPanel
   } = useMapControls();
@@ -76,54 +81,126 @@ const IEBCOfficeMap = () => {
   const routeBadgeRef = useRef(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const badgeStartPos = useRef({ x: 0, y: 0 });
+  const routingTimeoutRef = useRef(null);
+  const lastProcessedUrlQuery = useRef('');
 
-  // NEW: Handle URL query parameter on component mount and URL changes
+  // Enhanced URL query parameter handling
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const query = urlParams.get('q');
+    const urlQuery = searchParams.get('q');
     
-    if (query && !urlQueryProcessed && offices.length > 0) {
-      const normalizedQuery = normalizeQuery(query);
-      console.log('Processing URL query:', { raw: query, normalized: normalizedQuery });
-      
-      handleSearch(normalizedQuery, { source: 'url', autoSelectFirst: AUTO_OPEN_FIRST_RESULT });
-      setUrlQueryProcessed(true);
-      
-      // Auto-open list panel for URL queries
-      openListPanel();
-      setIsPanelBackdropVisible(true);
+    // Prevent duplicate processing
+    if (urlQuery === lastProcessedUrlQuery.current) {
+      return;
     }
-  }, [window.location.search, offices, urlQueryProcessed, handleSearch, openListPanel]);
 
-  // NEW: Auto-select first result for URL queries on map page
-  useEffect(() => {
-    if (urlQueryProcessed && searchResults.length > 0 && pathname.includes('/map') && AUTO_OPEN_FIRST_RESULT) {
-      const firstOfficeResult = searchResults.find(result => result.type === 'office');
-      if (firstOfficeResult) {
-        handleOfficeSelect(firstOfficeResult);
+    if (urlQuery && !urlQueryProcessed) {
+      const normalizedQuery = normalizeQuery(urlQuery);
+      lastProcessedUrlQuery.current = normalizedQuery;
+      
+      if (normalizedQuery) {
+        console.log('Processing URL query:', { raw: urlQuery, normalized: normalizedQuery });
         
-        // Fly to the office location
-        if (mapInstanceRef.current && firstOfficeResult.latitude && firstOfficeResult.longitude) {
-          mapInstanceRef.current.flyTo(
-            [firstOfficeResult.latitude, firstOfficeResult.longitude], 
-            MAP_ZOOM_LEVEL, 
-            { duration: 2 }
-          );
+        // Set query in search context (from URL)
+        setQuery(normalizedQuery, { fromUrl: true, triggerSearch: true });
+        
+        // Also update local search query for UI consistency
+        setSearchQuery(normalizedQuery);
+        
+        setUrlQueryProcessed(true);
+        
+        // Analytics
+        console.log('Search initiated from URL:', {
+          query: normalizedQuery,
+          source: 'url_deep_link',
+          timestamp: new Date().toISOString()
+        });
+      }
+    } else if (!urlQuery && urlQueryProcessed) {
+      // URL query was removed
+      lastProcessedUrlQuery.current = '';
+      clearSearch();
+      setSearchQuery('');
+      setUrlQueryProcessed(false);
+    }
+  }, [searchParams, urlQueryProcessed, setQuery, setSearchQuery, clearSearch]);
+
+  // Sync search context with local search query
+  useEffect(() => {
+    if (currentQuery !== searchQuery) {
+      setSearchQuery(currentQuery);
+    }
+  }, [currentQuery, searchQuery, setSearchQuery]);
+
+  // Enhanced search results handling
+  useEffect(() => {
+    if (searchResults.length > 0) {
+      setNearbyOffices(searchResults);
+      
+      // Auto-open first result for URL-based searches with validation
+      if (AUTO_OPEN_FIRST_RESULT && searchResults[0] && !selectedOffice) {
+        const firstResult = searchResults[0];
+        
+        // Validate coordinates before attempting to fly
+        if (validateCoordinates(firstResult.latitude, firstResult.longitude)) {
+          handleOfficeSelect(firstResult);
+          
+          // Center map on the result if we're on map page
+          if (window.location.pathname.includes('/map') && mapInstanceRef.current) {
+            flyToOffice(firstResult);
+          }
+        } else {
+          console.warn('Invalid coordinates for auto-open:', firstResult);
         }
       }
-    }
-  }, [searchResults, urlQueryProcessed, pathname]);
-
-  // NEW: Sync URL when search query changes (debounced)
-  useEffect(() => {
-    if (searchQuery && !urlQueryProcessed) {
-      const timer = setTimeout(() => {
-        updateUrlQuery(searchQuery, true); // Use replace for typing
-      }, 500);
       
-      return () => clearTimeout(timer);
+      // Open list panel to show results
+      if (!isListPanelOpen) {
+        openListPanel();
+        setIsPanelBackdropVisible(true);
+      }
     }
-  }, [searchQuery, urlQueryProcessed]);
+  }, [searchResults, selectedOffice, isListPanelOpen, openListPanel, flyToOffice]);
+
+  // Enhanced URL update with query
+  const updateURLWithQuery = useCallback((query) => {
+    const normalized = normalizeQuery(query);
+    const newParams = new URLSearchParams(searchParams);
+    
+    if (normalized) {
+      newParams.set('q', normalized);
+    } else {
+      newParams.delete('q');
+    }
+    
+    // Use replace to avoid adding to history for every keystroke
+    setSearchParams(newParams, { replace: true });
+  }, [searchParams, setSearchParams]);
+
+  // Enhanced routing with debouncing and validation
+  const handleRouteFound = useCallback((routes) => {
+    if (routingTimeoutRef.current) {
+      clearTimeout(routingTimeoutRef.current);
+    }
+
+    routingTimeoutRef.current = setTimeout(() => {
+      setCurrentRoute(routes);
+      setRoutingError(null);
+      setRouteData(routes);
+    }, 100);
+  }, [setRouteData]);
+
+  const handleRouteError = useCallback((error) => {
+    if (routingTimeoutRef.current) {
+      clearTimeout(routingTimeoutRef.current);
+    }
+
+    routingTimeoutRef.current = setTimeout(() => {
+      console.warn('Routing error handled:', error);
+      setRoutingError(error?.message || 'Failed to calculate route');
+      setCurrentRoute(null);
+      setRouteData(null, error);
+    }, 100);
+  }, [setRouteData]);
 
   // Initialize map reference
   const handleMapReady = useCallback((map) => {
@@ -159,9 +236,9 @@ const IEBCOfficeMap = () => {
   useEffect(() => {
     if (!mapInstanceRef.current || !tileLayersRef.current.standard) return;
 
-    // Remove all tile layers
+    // Remove all tile layers safely
     Object.values(tileLayersRef.current).forEach(layer => {
-      if (mapInstanceRef.current.hasLayer(layer)) {
+      if (layer && mapInstanceRef.current.hasLayer(layer)) {
         mapInstanceRef.current.removeLayer(layer);
       }
     });
@@ -179,8 +256,8 @@ const IEBCOfficeMap = () => {
       
       // Create accuracy circle if accuracy data is available
       if (userLocation.accuracy && mapInstanceRef.current) {
-        // Remove existing accuracy circle
-        if (accuracyCircleRef.current) {
+        // Remove existing accuracy circle safely
+        if (accuracyCircleRef.current && mapInstanceRef.current.hasLayer(accuracyCircleRef.current)) {
           mapInstanceRef.current.removeLayer(accuracyCircleRef.current);
         }
         
@@ -198,15 +275,23 @@ const IEBCOfficeMap = () => {
 
     // Cleanup function to remove accuracy circle
     return () => {
-      if (accuracyCircleRef.current && mapInstanceRef.current) {
+      if (accuracyCircleRef.current && mapInstanceRef.current && mapInstanceRef.current.hasLayer(accuracyCircleRef.current)) {
         mapInstanceRef.current.removeLayer(accuracyCircleRef.current);
       }
     };
   }, [userLocation, flyToLocation]);
 
-  // NEW: Enhanced office selection with URL sync
+  // Enhanced office selection with URL update and validation
   const handleOfficeSelect = useCallback(async (office) => {
+    if (!office) return;
+
     let enhancedOffice = office;
+    
+    // Validate coordinates before proceeding
+    if (!validateCoordinates(office.latitude, office.longitude)) {
+      console.error('Invalid office coordinates:', office);
+      return;
+    }
     
     if (office.id && (!office.constituency_name || !office.county)) {
       try {
@@ -229,32 +314,53 @@ const IEBCOfficeMap = () => {
     closeListPanel();
     setBottomSheetState('peek');
     setRoutingError(null);
-
-    // NEW: Update URL with office name when selected
+    
+    // Clear any existing routes when selecting new office
+    clearRoutes();
+    
+    // Update URL with selected office name
     if (enhancedOffice.constituency_name) {
-      const officeQuery = enhancedOffice.constituency_name;
-      handleSearch(officeQuery, { source: 'selection' });
-      updateUrlQuery(officeQuery, false); // Use push for selections
+      updateURLWithQuery(enhancedOffice.constituency_name);
     }
-  }, [setSelectedOffice, flyToOffice, closeListPanel, handleSearch]);
+  }, [setSelectedOffice, flyToOffice, closeListPanel, updateURLWithQuery, clearRoutes]);
 
-  // NEW: Enhanced search handler with URL sync
-  const handleSearchSelect = useCallback(async (result) => {
-    if (result.type === 'office') {
-      handleOfficeSelect(result);
-    } else if (result.type === 'search_query') {
-      // Update search query and URL
-      handleSearch(result.query, { source: 'suggestion' });
-      updateUrlQuery(result.query, false); // Use push for selections
+  // Enhanced search handler with URL integration
+  const handleSearch = useCallback(async (result) => {
+    if (result.searchQuery) {
+      // Update URL first
+      updateURLWithQuery(result.searchQuery);
       
-      // Ensure list panel is open for search results
-      openListPanel();
-      setIsPanelBackdropVisible(true);
+      // Then perform search through context
+      setQuery(result.searchQuery, { triggerSearch: true });
+      
+    } else if (result.latitude && result.longitude) {
+      // Office object selected
+      handleOfficeSelect(result);
+    } else {
+      // Other result type
+      handleOfficeSelect(result);
     }
-  }, [handleOfficeSelect, handleSearch, openListPanel]);
+  }, [setQuery, handleOfficeSelect, updateURLWithQuery]);
 
-  // Double-tap handler for area search
+  // Handle search input changes with URL updates
+  const handleSearchChange = useCallback((value) => {
+    setSearchQuery(value);
+    
+    // Debounced URL update for typing
+    const timeoutId = setTimeout(() => {
+      updateURLWithQuery(value);
+    }, 500);
+    
+    return () => clearTimeout(timeoutId);
+  }, [setSearchQuery, updateURLWithQuery]);
+
+  // Enhanced double-tap handler for area search
   const handleDoubleTap = useCallback(async (latlng) => {
+    if (!validateCoordinates(latlng.lat, latlng.lng)) {
+      console.warn('Invalid double-tap coordinates:', latlng);
+      return;
+    }
+
     setIsSearchingNearby(true);
     setLastTapLocation(latlng);
     
@@ -281,20 +387,7 @@ const IEBCOfficeMap = () => {
     }
   }, [openListPanel]);
 
-  // Handle route found event
-  const handleRouteFound = useCallback((routes) => {
-    setCurrentRoute(routes);
-    setRoutingError(null);
-  }, []);
-
-  // Handle route error
-  const handleRouteError = useCallback((error) => {
-    console.error('Routing error:', error);
-    setRoutingError(error?.message || 'Failed to calculate route');
-    setCurrentRoute(null);
-  }, []);
-
-  // Find nearest office
+  // Find nearest office with validation
   const nearestOffice = useMemo(() => {
     if (userLocation?.latitude && userLocation?.longitude && offices.length > 0) {
       return findNearestOffice(userLocation.latitude, userLocation.longitude, offices);
@@ -302,18 +395,20 @@ const IEBCOfficeMap = () => {
     return null;
   }, [userLocation, offices]);
 
-  // Set nearest office as selected
+  // Set nearest office as selected with validation
   useEffect(() => {
     if (nearestOffice && !selectedOffice && !manualEntry) {
-      setSelectedOffice(nearestOffice);
-      setBottomSheetState('peek');
+      if (validateCoordinates(nearestOffice.latitude, nearestOffice.longitude)) {
+        setSelectedOffice(nearestOffice);
+        setBottomSheetState('peek');
+      }
     }
   }, [nearestOffice, selectedOffice, manualEntry, setSelectedOffice]);
 
   // Get offices for list panel
   const listPanelOffices = useMemo(() => {
     if (searchResults.length > 0) {
-      return searchResults.filter(result => result.type === 'office');
+      return searchResults;
     }
     if (nearbyOffices.length > 0) {
       return nearbyOffices;
@@ -380,6 +475,7 @@ const IEBCOfficeMap = () => {
   const handleBottomSheetClose = () => {
     setBottomSheetState('hidden');
     setSelectedOffice(null);
+    clearRoutes();
   };
 
   // Clear routing error after delay
@@ -402,9 +498,10 @@ const IEBCOfficeMap = () => {
   // Handle contribution success
   const handleContributionSuccess = useCallback((result) => {
     console.log('Contribution submitted successfully:', result);
-  }, []);
+    refetch();
+  }, [refetch]);
 
-  // Route badge drag handlers
+  // Enhanced route badge drag handlers
   const handleRouteBadgeMouseDown = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -454,35 +551,23 @@ const IEBCOfficeMap = () => {
     document.addEventListener('touchend', handleUp);
   }, [routeBadgePosition, isDraggingRouteBadge]);
 
-  // Cleanup event listeners on unmount
+  // Enhanced cleanup on unmount
   useEffect(() => {
     return () => {
+      // Clean up all timeouts and event listeners
+      if (routingTimeoutRef.current) {
+        clearTimeout(routingTimeoutRef.current);
+      }
+      
       document.removeEventListener('mousemove', () => {});
       document.removeEventListener('mouseup', () => {});
       document.removeEventListener('touchmove', () => {});
       document.removeEventListener('touchend', () => {});
-    };
-  }, []);
-
-  // NEW: Handle browser back/forward navigation
-  useEffect(() => {
-    const handlePopState = () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const query = urlParams.get('q');
       
-      if (query) {
-        const normalizedQuery = normalizeQuery(query);
-        handleSearch(normalizedQuery, { source: 'navigation' });
-        setUrlQueryProcessed(true);
-      } else {
-        clearSearch();
-        setUrlQueryProcessed(false);
-      }
+      // Clear routes
+      clearRoutes();
     };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [handleSearch, clearSearch]);
+  }, [clearRoutes]);
 
   if (loading) {
     return (
@@ -521,12 +606,10 @@ const IEBCOfficeMap = () => {
       <div className="fixed-search-container">
         <SearchBar
           value={searchQuery}
-          onChange={handleSearch}
+          onChange={handleSearchChange}
           onFocus={handleSearchFocus}
-          onSearch={handleSearchSelect}
+          onSearch={handleSearch}
           onLocationSearch={handleRetryLocation}
-          suggestions={searchSuggestions}
-          isSearching={isSearching}
           placeholder="Search IEBC offices by county, constituency, or location..."
         />
       </div>
@@ -582,6 +665,20 @@ const IEBCOfficeMap = () => {
       {/* Fixed Badge Container - For non-draggable badges */}
       <div className="fixed-badge-container">
         <AnimatePresence>
+          {isSearchLoading && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="search-indicator"
+            >
+              <div className="flex items-center space-x-2">
+                <LoadingSpinner size="small" />
+                <span className="text-sm font-medium">Searching offices...</span>
+              </div>
+            </motion.div>
+          )}
+
           {isSearchingNearby && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
@@ -706,8 +803,8 @@ const IEBCOfficeMap = () => {
           />
         )}
 
-        {/* Routing System */}
-        {userLocation && selectedOffice && (
+        {/* Enhanced Routing System with Error Handling */}
+        {userLocation && selectedOffice && validateCoordinates(userLocation.latitude, userLocation.longitude) && validateCoordinates(selectedOffice.latitude, selectedOffice.longitude) && (
           <RoutingSystem
             userLocation={userLocation}
             destination={selectedOffice}
@@ -751,7 +848,7 @@ const IEBCOfficeMap = () => {
             onClose={handleCloseListPanel}
             searchQuery={searchQuery}
             userLocation={userLocation}
-            isSearching={isSearchingNearby}
+            isSearching={isSearchingNearby || isSearchLoading}
           />
         )}
       </AnimatePresence>
