@@ -66,11 +66,42 @@ export const useIEBCOffices = () => {
     }
   }, []);
 
-  const searchOffices = useCallback((query) => {
-    if (!query.trim() || !fuse) return offices;
+  // Real-time subscription for database changes
+  useEffect(() => {
+    const subscription = supabase
+      .channel('iebc-offices-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'iebc_offices'
+        },
+        (payload) => {
+          console.log('Database change detected:', payload);
+          fetchOffices();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [fetchOffices]);
+
+  const searchOffices = useCallback((query, signal) => {
+    if (signal && signal.aborted) {
+      return Promise.reject(new Error('Search aborted'));
+    }
     
-    const results = fuse.search(query.trim());
-    return results.map(result => result.item);
+    if (!query.trim() || !fuse) return Promise.resolve(offices);
+    
+    try {
+      const results = fuse.search(query.trim());
+      return Promise.resolve(results.map(result => result.item));
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }, [offices, fuse]);
 
   const getOfficesByCounty = useCallback((county) => {
