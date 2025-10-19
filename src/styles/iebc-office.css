@@ -987,3 +987,45 @@
 .ios-control-btn:active {
   transform: scale(0.95);
 }
+
+/* ============================================
+   16. URL QUERY MARKER STYLES - NEW ADDITION
+   ============================================ */
+
+/* Temporary search result marker */
+.url-query-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.url-query-marker .leaflet-popup-content-wrapper {
+  background: hsl(var(--card));
+  backdrop-filter: blur(20px) saturate(180%);
+  border-radius: calc(var(--radius) - 2px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  border: 1px solid hsl(var(--border));
+  padding: 16px;
+}
+
+.url-query-marker .leaflet-popup-content {
+  margin: 0;
+  line-height: 1.4;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: hsl(var(--foreground));
+}
+
+.url-query-marker .leaflet-popup-tip {
+  background: hsl(var(--card));
+  box-shadow: none;
+  border: 1px solid hsl(var(--border));
+}
+
+/* Dark mode support for URL query markers */
+.dark .url-query-marker .leaflet-popup-content-wrapper {
+  background: hsl(var(--card) / 0.98);
+  color: hsl(var(--foreground));
+}
+
+.dark .url-query-marker .leaflet-popup-tip {
+  background: hsl(var(--card) / 0.98);
+}
