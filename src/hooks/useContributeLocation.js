@@ -81,7 +81,13 @@ export const useContributeLocation = () => {
   }, []);
 
   const isValidCoordinate = useCallback((lat, lng) => {
-    return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+    const KENYA_BOUNDS = {
+      minLat: -4.678, maxLat: 5.506,
+      minLng: 33.908, maxLng: 41.899
+    };
+    return (!isNaN(lat) && !isNaN(lng) &&
+            lat >= KENYA_BOUNDS.minLat && lat <= KENYA_BOUNDS.maxLat &&
+            lng >= KENYA_BOUNDS.minLng && lng <= KENYA_BOUNDS.maxLng);
   }, []);
 
   const generateLocationKey = useCallback((lat, lng, radius = 10000) => {
@@ -110,6 +116,14 @@ export const useContributeLocation = () => {
     }
     
     return Math.abs(hash).toString(36);
+  }, []);
+
+  const hashString = useCallback(async (input) => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(input);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }, []);
 
   const fetchOSMDataForLocation = useCallback(async (latitude, longitude, radiusMeters = 10000) => {
@@ -609,23 +623,64 @@ export const useContributeLocation = () => {
     setError(null);
 
     try {
+      console.log('Starting contribution submission process...', {
+        latitude: contributionData.submitted_latitude,
+        longitude: contributionData.submitted_longitude,
+        hasImage: !!contributionData.imageFile,
+        notesLength: contributionData.submitted_landmark?.length || 0
+      });
+
+      if (!contributionData.submitted_latitude || !contributionData.submitted_longitude) {
+        throw new Error('Latitude and longitude are required for submission');
+      }
+
+      if (Math.abs(contributionData.submitted_latitude) > 90 || Math.abs(contributionData.submitted_longitude) > 180) {
+        throw new Error('Invalid coordinates provided');
+      }
+
       const deviceFingerprint = await generateDeviceFingerprint();
       
       let imagePublicUrl = null;
       if (contributionData.imageFile) {
+        console.log('Uploading contribution image...');
+        
         const fileName = `${Date.now()}_${contributionData.imageFile.name}`;
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('iebc-contributions')
-          .upload(fileName, contributionData.imageFile);
+          .upload(fileName, contributionData.imageFile, {
+            cacheControl: '3600',
+            upsert: false,
+            contentType: 'image/webp'
+          });
 
-        if (uploadError) throw uploadError;
-        
+        if (uploadError) {
+          console.error('Image upload failed:', uploadError);
+          throw new Error(`Image upload failed: ${uploadError.message}`);
+        }
+
         const { data: urlData } = supabase.storage
           .from('iebc-contributions')
           .getPublicUrl(fileName);
         
         imagePublicUrl = urlData.publicUrl;
+        console.log('Image uploaded successfully:', imagePublicUrl);
       }
+
+      const deviceMeta = {
+        accuracy: contributionData.submitted_accuracy_meters || null,
+        altitude: contributionData.altitude || null,
+        altitudeAccuracy: contributionData.altitudeAccuracy || null,
+        heading: contributionData.heading || null,
+        speed: contributionData.speed || null,
+        timestamp: contributionData.timestamp || Date.now(),
+        userAgent: navigator.userAgent ? navigator.userAgent.substring(0, 100) : 'unknown',
+        platform: navigator.platform || 'unknown',
+        screenResolution: `${window.screen.width}x${window.screen.height}`,
+        language: navigator.language || 'en',
+        hasTouch: 'ontouchstart' in window,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        capture_method: contributionData.capture_method || 'unknown'
+      };
 
       const contribution = {
         submitted_latitude: contributionData.submitted_latitude,
@@ -634,25 +689,51 @@ export const useContributeLocation = () => {
         submitted_office_location: contributionData.submitted_office_location,
         submitted_county: contributionData.submitted_county,
         submitted_constituency: contributionData.submitted_constituency,
+        submitted_constituency_code: contributionData.submitted_constituency_code || null,
         submitted_landmark: contributionData.submitted_landmark,
         google_maps_link: contributionData.google_maps_link,
         image_public_url: imagePublicUrl,
-        device_metadata: contributionData.device_metadata,
+        device_metadata: deviceMeta,
         device_fingerprint_hash: deviceFingerprint,
-        status: 'pending'
+        status: 'pending',
+        submission_source: 'web_contribution',
+        original_office_id: contributionData.original_office_id || null,
+        nearby_landmarks: contributionData.nearby_landmarks || null,
+        confidence_score: contributionData.confidence_score || 0,
+        exif_metadata: contributionData.exif_metadata || {},
+        reverse_geocode_result: contributionData.reverse_geocode_result || null
       };
 
+      console.log('Inserting contribution into database...');
+      
       const { data, error: insertError } = await supabase
         .from('iebc_office_contributions')
         .insert(contribution)
         .select()
         .single();
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('Database insertion failed:', insertError);
+        throw new Error(`Failed to save contribution: ${insertError.message}`);
+      }
+
+      console.log('Contribution submitted successfully:', data);
+      
+      console.log('Contribution Analytics:', {
+        contributionId: data.id,
+        location: `${data.submitted_latitude}, ${data.submitted_longitude}`,
+        county: data.submitted_county,
+        constituency: data.submitted_constituency,
+        hasImage: !!imagePublicUrl,
+        timestamp: data.created_at
+      });
 
       return data;
+
     } catch (err) {
-      setError(err.message);
+      console.error('Contribution submission error:', err);
+      const errorMessage = err.message || 'An unexpected error occurred during submission';
+      setError(errorMessage);
       throw err;
     } finally {
       setIsSubmitting(false);
@@ -680,6 +761,25 @@ export const useContributeLocation = () => {
     }
   }, []);
 
+  const checkRateLimit = useCallback(async () => {
+    try {
+      const deviceFingerprint = await generateDeviceFingerprint();
+      const ipHash = await hashString('client-ip-placeholder');
+
+      const { data, error } = await supabase
+        .rpc('check_submission_rate_limit', {
+          p_ip_hash: ipHash,
+          p_device_hash: deviceFingerprint
+        });
+
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      console.error('Rate limit check failed:', err);
+      return { allowed: true, reason: 'OK', retry_after_seconds: 0 };
+    }
+  }, [generateDeviceFingerprint, hashString]);
+
   return {
     getCurrentPosition,
     convertImageToWebP,
@@ -697,7 +797,10 @@ export const useContributeLocation = () => {
     calculateLandmarkQuality,
     getDirectionFromBearing,
     determineSideOfRoad,
-    isValidCoordinate
+    isValidCoordinate,
+    checkRateLimit,
+    generateDeviceFingerprint,
+    hashString
   };
 };
 
