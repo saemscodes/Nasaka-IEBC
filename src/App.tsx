@@ -5,7 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import { SearchProvider } from "@/contexts/SearchContext";
 import { useLenis } from "./hooks/useLenis";
 import Index from "./pages/Index";
 import SignPetition from "./pages/SignPetition";
@@ -15,11 +14,11 @@ import TermsAndConditions from "./pages/TermsAndConditions";
 import VerifySignature from "./pages/VerifySignature";
 import VoterRegistrationPage from "@/pages/VoterRegistration";
 import { IEBCOfficeSplash, IEBCOfficeMap } from './pages/IEBCOffice';
-import { useIEBCOffices } from './hooks/useIEBCOffices';
 import './styles/iebc-office.css';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
+// ✅ Enhanced Query Client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -31,55 +30,32 @@ const queryClient = new QueryClient({
   },
 });
 
-const useSearchFunction = () => {
-  const { searchOffices } = useIEBCOffices();
-  
-  return async (query, signal) => {
-    if (signal.aborted) throw new Error('Search aborted');
-    return searchOffices(query);
-  };
-};
-
-const useSuggestionsFunction = () => {
-  const { searchOffices } = useIEBCOffices();
-  
-  return async (query) => {
-    if (!query.trim()) return [];
-    const results = searchOffices(query);
-    return results.slice(0, 5);
-  };
-};
-
 const AppContent = () => {
   const { lenis } = useLenis();
-  const searchFunction = useSearchFunction();
-  const suggestionsFunction = useSuggestionsFunction();
 
   return (
-    <SearchProvider 
-      searchFunction={searchFunction} 
-      getSuggestionsFunction={suggestionsFunction}
-    >
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/sign/:id" element={<SignPetition />} />
-          <Route path="/verify" element={<VerifySignature />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/terms" element={<TermsAndConditions />} />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/sign/:id" element={<SignPetition />} />
+        <Route path="/verify" element={<VerifySignature />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsAndConditions />} />
 
-          <Route path="/voter-registration" element={<VoterRegistrationPage />} />
-          <Route path="/iebc-offices" element={<VoterRegistrationPage />} />
-          <Route path="/register-to-vote" element={<VoterRegistrationPage />} />
+        {/* ✅ IEBC VOTER REGISTRATION ROUTES */}
+        <Route path="/voter-registration" element={<VoterRegistrationPage />} />
+        <Route path="/iebc-offices" element={<VoterRegistrationPage />} />
+        <Route path="/register-to-vote" element={<VoterRegistrationPage />} />
 
-          <Route path="/iebc-office" element={<IEBCOfficeSplash />} />
-          <Route path="/nasaka-iebc" element={<IEBCOfficeSplash />} />
-          <Route path="/iebc-office/map" element={<IEBCOfficeMap />} />
+        {/* ✅ IEBC OFFICE FINDER ROUTES */}
+        <Route path="/iebc-office" element={<IEBCOfficeSplash />} />
+        <Route path="/nasaka-iebc" element={<IEBCOfficeSplash />} />
+        <Route path="/iebc-office/map" element={<IEBCOfficeMap />} />
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </SearchProvider>
+        {/* ✅ Catch-all */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
   );
 };
 
