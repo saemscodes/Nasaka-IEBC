@@ -1,0 +1,659 @@
+// src/components/Admin/ContributionsDashboard.jsx
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
+import MapContainer from '@/components/IEBCOffice/MapContainer';
+import GeoJSONLayerManager from '@/components/IEBCOffice/GeoJSONLayerManager';
+import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
+import { useTheme } from '@/contexts/ThemeContext';
+
+const ContributionCard = ({ contribution, onVerify, onReject, onRequestInfo, onMerge }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+  const { theme } = useTheme();
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'pending': return 'yellow';
+      case 'auto_verified': return 'green';
+      case 'more_info_requested': return 'blue';
+      case 'flagged_suspicious': return 'red';
+      default: return 'gray';
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'pending': return 'Pending Review';
+      case 'auto_verified': return 'Auto-Verified';
+      case 'more_info_requested': return 'More Info Requested';
+      case 'flagged_suspicious': return 'Flagged Suspicious';
+      default: return status;
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`rounded-xl border overflow-hidden ${
+        theme === 'dark' 
+          ? 'bg-ios-dark-surface border-ios-dark-border' 
+          : 'bg-white border-gray-200'
+      }`}
+    >
+      {/* Header */}
+      <div className={`p-4 border-b ${
+        theme === 'dark' ? 'border-ios-dark-border' : 'border-gray-200'
+      }`}>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center space-x-3">
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${getStatusColor(contribution.status)}-100 text-${getStatusColor(contribution.status)}-800`}>
+              {getStatusText(contribution.status)}
+            </span>
+            <span className="text-sm text-gray-500">
+              Confidence: {contribution.confidence_score}%
+            </span>
+          </div>
+          <div className="text-sm text-gray-500">
+            {new Date(contribution.created_at).toLocaleDateString()}
+          </div>
+        </div>
+        <h3 className="font-semibold text-gray-900 truncate">
+          {contribution.submitted_office_location}
+        </h3>
+        <p className="text-sm text-gray-600">
+          {contribution.submitted_county} • {contribution.submitted_constituency}
+        </p>
+      </div>
+
+      {/* Main Content */}
+      <div className="p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          {/* Map Preview */}
+          <div className="h-48 rounded-lg overflow-hidden border">
+            <MapContainer
+              center={[contribution.submitted_latitude, contribution.submitted_longitude]}
+              zoom={15}
+              className="h-full w-full"
+            >
+              <GeoJSONLayerManager
+                activeLayers={['iebc-offices']}
+                onOfficeSelect={() => {}}
+                selectedOffice={null}
+              />
+            </MapContainer>
+          </div>
+
+          {/* Details */}
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium text-gray-700">Coordinates</label>
+              <p className="text-sm text-gray-900 font-mono">
+                {contribution.submitted_latitude.toFixed(6)}, {contribution.submitted_longitude.toFixed(6)}
+              </p>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium text-gray-700">GPS Accuracy</label>
+              <p className="text-sm text-gray-900">
+                {contribution.submitted_accuracy_meters ? `±${Math.round(contribution.submitted_accuracy_meters)}m` : 'Unknown'}
+              </p>
+            </div>
+
+            {contribution.submitted_landmark && (
+              <div>
+                <label className="text-sm font-medium text-gray-700">Landmark</label>
+                <p className="text-sm text-gray-900">{contribution.submitted_landmark}</p>
+              </div>
+            )}
+
+            {contribution.google_maps_link && (
+              <div>
+                <label className="text-sm font-medium text-gray-700">Google Maps</label>
+                <a 
+                  href={contribution.google_maps_link} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 hover:text-blue-800 truncate block"
+                >
+                  View on Maps
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Evidence Section */}
+        {contribution.image_public_url && (
+          <div className="mb-4">
+            <label className="text-sm font-medium text-gray-700 mb-2 block">Photo Evidence</label>
+            <div className="flex space-x-4">
+              <div className="w-32 h-32 rounded-lg overflow-hidden border">
+                {imageLoading && (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                    <LoadingSpinner size="small" />
+                  </div>
+                )}
+                <img
+                  src={contribution.image_public_url}
+                  alt="Office evidence"
+                  className="w-full h-full object-cover"
+                  onLoad={() => setImageLoading(false)}
+                  onError={() => setImageLoading(false)}
+                />
+              </div>
+              
+              {contribution.exif_metadata && (
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                      contribution.exif_metadata.exif_gps_match 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {contribution.exif_metadata.exif_gps_match ? '✓ EXIF GPS Matches' : '⚠ EXIF GPS Mismatch'}
+                    </span>
+                  </div>
+                  
+                  <div className="text-xs text-gray-600 space-y-1">
+                    <div>Device: {contribution.exif_metadata.exif_device || 'Unknown'}</div>
+                    {contribution.exif_metadata.exif_timestamp && (
+                      <div>Photo taken: {new Date(contribution.exif_metadata.exif_timestamp).toLocaleString()}</div>
+                    )}
+                    {contribution.exif_metadata.exif_latitude && (
+                      <div>
+                        EXIF coords: {contribution.exif_metadata.exif_latitude.toFixed(6)}, {contribution.exif_metadata.exif_longitude.toFixed(6)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Warnings */}
+        {contribution.duplicate_candidate_ids?.length > 0 && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+            <div className="flex items-center space-x-2">
+              <svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <span className="text-sm text-yellow-700">
+                {contribution.duplicate_candidate_ids.length} potential duplicate(s) found within 200m
+              </span>
+            </div>
+          </div>
+        )}
+
+        {contribution.confirmation_count > 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+            <div className="flex items-center space-x-2">
+              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <span className="text-sm text-blue-700">
+                {contribution.confirmation_count} community confirmation{contribution.confirmation_count > 1 ? 's' : ''}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Expandable Device Metadata */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className={`w-full text-left p-2 rounded-lg hover:bg-gray-50 transition-colors ${
+            theme === 'dark' ? 'hover:bg-ios-dark-surface-hover' : ''
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-gray-700">Device Metadata</span>
+            <svg 
+              className={`w-4 h-4 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </button>
+
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                <pre className="text-xs text-gray-600 whitespace-pre-wrap">
+                  {JSON.stringify(contribution.device_metadata, null, 2)}
+                </pre>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Action Buttons */}
+      <div className={`p-4 border-t ${
+        theme === 'dark' ? 'border-ios-dark-border bg-ios-dark-surface' : 'border-gray-200 bg-gray-50'
+      }`}>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => onVerify(contribution)}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center space-x-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Verify</span>
+          </button>
+
+          {contribution.duplicate_candidate_ids?.length > 0 && (
+            <button
+              onClick={() => onMerge(contribution)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+              <span>Merge</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => onRequestInfo(contribution)}
+            className="px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors flex items-center space-x-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+            <span>Request Info</span>
+          </button>
+
+          <button
+            onClick={() => onReject(contribution)}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors flex items-center space-x-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            <span>Reject</span>
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const ContributionsDashboard = () => {
+  const [contributions, setContributions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({
+    status: 'all',
+    county: 'all',
+    confidence: 'all',
+    hasPhoto: 'all'
+  });
+  const [stats, setStats] = useState({
+    pending: 0,
+    verified_today: 0,
+    rejected: 0,
+    total: 0
+  });
+  const { theme } = useTheme();
+
+  const fetchContributions = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      let query = supabase
+        .from('iebc_office_contributions')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      // Apply filters
+      if (filters.status !== 'all') {
+        query = query.eq('status', filters.status);
+      }
+      if (filters.county !== 'all') {
+        query = query.eq('submitted_county', filters.county);
+      }
+      if (filters.hasPhoto !== 'all') {
+        if (filters.hasPhoto === 'yes') {
+          query = query.not('image_public_url', 'is', null);
+        } else {
+          query = query.is('image_public_url', null);
+        }
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      setContributions(data || []);
+    } catch (err) {
+      console.error('Error fetching contributions:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [filters]);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const { data: pendingData } = await supabase
+        .from('iebc_office_contributions')
+        .select('id')
+        .eq('status', 'pending');
+
+      const { data: todayData } = await supabase
+        .from('iebc_office_contributions')
+        .select('id')
+        .eq('status', 'verified')
+        .gte('reviewed_at', new Date().toISOString().split('T')[0]);
+
+      const { data: rejectedData } = await supabase
+        .from('iebc_office_contributions')
+        .select('id')
+        .eq('status', 'rejected');
+
+      const { data: totalData } = await supabase
+        .from('iebc_office_contributions')
+        .select('id');
+
+      setStats({
+        pending: pendingData?.length || 0,
+        verified_today: todayData?.length || 0,
+        rejected: rejectedData?.length || 0,
+        total: totalData?.length || 0
+      });
+    } catch (err) {
+      console.error('Error fetching stats:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchContributions();
+    fetchStats();
+  }, [fetchContributions, fetchStats]);
+
+  const handleVerify = async (contribution) => {
+    try {
+      const { data, error } = await supabase
+        .rpc('promote_contribution_to_office', {
+          p_contribution_id: contribution.id,
+          p_admin_id: 'admin', // Replace with actual admin ID
+          p_office_data: {
+            county: contribution.submitted_county,
+            constituency: contribution.submitted_constituency,
+            office_location: contribution.submitted_office_location,
+            landmark: contribution.submitted_landmark,
+            verification_source: 'admin_manual'
+          }
+        });
+
+      if (error) throw error;
+      
+      // Refresh data
+      fetchContributions();
+      fetchStats();
+      
+      alert('Contribution verified successfully!');
+    } catch (err) {
+      console.error('Error verifying contribution:', err);
+      alert('Failed to verify contribution: ' + err.message);
+    }
+  };
+
+  const handleReject = async (contribution) => {
+    const reason = prompt('Enter rejection reason:');
+    if (!reason) return;
+
+    try {
+      const { error } = await supabase
+        .from('iebc_office_contributions')
+        .update({
+          status: 'rejected',
+          review_notes: reason,
+          reviewed_at: new Date().toISOString()
+        })
+        .eq('id', contribution.id);
+
+      if (error) throw error;
+
+      // Refresh data
+      fetchContributions();
+      fetchStats();
+      
+      alert('Contribution rejected successfully!');
+    } catch (err) {
+      console.error('Error rejecting contribution:', err);
+      alert('Failed to reject contribution: ' + err.message);
+    }
+  };
+
+  const handleRequestInfo = async (contribution) => {
+    const message = prompt('Enter information request:');
+    if (!message) return;
+
+    try {
+      const { error } = await supabase
+        .from('iebc_office_contributions')
+        .update({
+          status: 'more_info_requested',
+          review_notes: message,
+          reviewed_at: new Date().toISOString()
+        })
+        .eq('id', contribution.id);
+
+      if (error) throw error;
+
+      alert('Information request sent successfully!');
+    } catch (err) {
+      console.error('Error requesting information:', err);
+      alert('Failed to send information request: ' + err.message);
+    }
+  };
+
+  const handleMerge = async (contribution) => {
+    // Implement merge logic here
+    alert('Merge functionality to be implemented');
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <LoadingSpinner size="large" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Contributions Dashboard</h1>
+              <p className="text-gray-600">Manage and verify IEBC office location submissions</p>
+            </div>
+            <div className="text-sm text-gray-500">
+              Last updated: {new Date().toLocaleString()}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Pending Review</p>
+                <p className="text-2xl font-semibold text-gray-900">{stats.pending}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Verified Today</p>
+                <p className="text-2xl font-semibold text-gray-900">{stats.verified_today}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Rejected</p>
+                <p className="text-2xl font-semibold text-gray-900">{stats.rejected}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Submissions</p>
+                <p className="text-2xl font-semibold text-gray-900">{stats.total}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+              <select
+                value={filters.status}
+                onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="auto_verified">Auto-Verified</option>
+                <option value="more_info_requested">Info Requested</option>
+                <option value="flagged_suspicious">Flagged</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">County</label>
+              <select
+                value={filters.county}
+                onChange={(e) => setFilters(prev => ({ ...prev, county: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="all">All Counties</option>
+                {/* Add county options dynamically */}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Confidence</label>
+              <select
+                value={filters.confidence}
+                onChange={(e) => setFilters(prev => ({ ...prev, confidence: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="all">All Confidence</option>
+                <option value="high">High (80-100%)</option>
+                <option value="medium">Medium (50-79%)</option>
+                <option value="low">Low (0-49%)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Photo</label>
+              <select
+                value={filters.hasPhoto}
+                onChange={(e) => setFilters(prev => ({ ...prev, hasPhoto: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="all">All</option>
+                <option value="yes">With Photo</option>
+                <option value="no">Without Photo</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Contributions Grid */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-red-700">{error}</span>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {contributions.map((contribution) => (
+            <ContributionCard
+              key={contribution.id}
+              contribution={contribution}
+              onVerify={handleVerify}
+              onReject={handleReject}
+              onRequestInfo={handleRequestInfo}
+              onMerge={handleMerge}
+            />
+          ))}
+        </div>
+
+        {contributions.length === 0 && !loading && (
+          <div className="text-center py-12">
+            <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No contributions found</h3>
+            <p className="text-gray-600">No submissions match your current filters.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ContributionsDashboard;
