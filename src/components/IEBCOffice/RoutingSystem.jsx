@@ -1,6 +1,7 @@
 // src/components/IEBCOffice/RoutingSystem.jsx
 import React, { useEffect, useRef, useCallback } from 'react';
 import L from 'leaflet';
+import { useMap } from 'react-leaflet';
 import 'leaflet-routing-machine';
 
 const RoutingSystem = ({ 
