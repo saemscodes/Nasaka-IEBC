@@ -8,7 +8,6 @@ export const useContributeLocation = () => {
   const [isFetchingOSM, setIsFetchingOSM] = useState(false);
   const fetchedLocations = useRef(new Set());
 
-  // Helper function to calculate distance between two coordinates (Haversine formula)
   const calculateDistance = useCallback((lat1, lon1, lat2, lon2) => {
     const R = 6371000;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -21,7 +20,6 @@ export const useContributeLocation = () => {
     return R * c;
   }, []);
 
-  // Calculate bearing between two points
   const calculateBearing = useCallback((lat1, lon1, lat2, lon2) => {
     const lat1Rad = (lat1 * Math.PI) / 180;
     const lat2Rad = (lat2 * Math.PI) / 180;
@@ -38,21 +36,18 @@ export const useContributeLocation = () => {
     return bearing;
   }, []);
 
-  // Get direction description from bearing
   const getDirectionFromBearing = useCallback((bearing) => {
     const directions = ['North', 'North-East', 'East', 'South-East', 'South', 'South-West', 'West', 'North-West'];
     const index = Math.round(bearing / 45) % 8;
     return `${directions[index]} of your position`;
   }, []);
 
-  // Determine side of road based on latitude difference
   const determineSideOfRoad = useCallback((userLat, landmarkLat) => {
     const diff = landmarkLat - userLat;
     if (Math.abs(diff) < 0.00001) return 'on_road';
     return diff > 0 ? 'east_side' : 'west_side';
   }, []);
 
-  // Enhanced landmark quality calculation
   const calculateLandmarkQuality = useCallback((landmark, distance, maxRadius) => {
     let quality = 0.5;
 
@@ -85,24 +80,41 @@ export const useContributeLocation = () => {
     return Math.min(1, quality);
   }, []);
 
-  // Validate coordinate
   const isValidCoordinate = useCallback((lat, lng) => {
     return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
   }, []);
 
-  // Generate location key for deduplication
   const generateLocationKey = useCallback((lat, lng, radius = 10000) => {
-    // Round to 3 decimal places (~100m precision) for deduplication
     const roundedLat = Math.round(lat * 1000) / 1000;
     const roundedLng = Math.round(lng * 1000) / 1000;
     return `${roundedLat},${roundedLng},${radius}`;
   }, []);
 
-  // Automatic OSM data fetching for new locations
+  const generateDeviceFingerprint = useCallback(async () => {
+    const components = [
+      navigator.userAgent,
+      navigator.language,
+      screen.width + 'x' + screen.height,
+      new Date().getTimezoneOffset(),
+      navigator.hardwareConcurrency || '',
+      navigator.deviceMemory || ''
+    ];
+
+    const fingerprint = components.join('|');
+    
+    let hash = 0;
+    for (let i = 0; i < fingerprint.length; i++) {
+      const char = fingerprint.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    
+    return Math.abs(hash).toString(36);
+  }, []);
+
   const fetchOSMDataForLocation = useCallback(async (latitude, longitude, radiusMeters = 10000) => {
     const locationKey = generateLocationKey(latitude, longitude, radiusMeters);
     
-    // Check if we've already fetched data for this location
     if (fetchedLocations.current.has(locationKey)) {
       console.log('OSM data already fetched for this location:', locationKey);
       return { landmarksAdded: 0, totalProcessed: 0 };
@@ -127,7 +139,6 @@ export const useContributeLocation = () => {
         const result = data[0];
         console.log(`OSM data fetch successful: ${result.landmarks_added} new landmarks added from ${result.total_landmarks} features`);
         
-        // Mark this location as fetched
         fetchedLocations.current.add(locationKey);
         
         return result;
@@ -143,7 +154,6 @@ export const useContributeLocation = () => {
     }
   }, [generateLocationKey]);
 
-  // Get current position using browser geolocation with automatic OSM fetching
   const getCurrentPosition = useCallback(async (options = {}) => {
     const { enableOSMFetching = true, osmRadius = 10000 } = options;
     
@@ -166,7 +176,6 @@ export const useContributeLocation = () => {
             timestamp: position.timestamp
           };
 
-          // Automatically fetch OSM data for new locations
           if (enableOSMFetching) {
             try {
               await fetchOSMDataForLocation(
@@ -176,7 +185,6 @@ export const useContributeLocation = () => {
               );
             } catch (osmError) {
               console.warn('Background OSM fetch failed:', osmError);
-              // Don't reject the main promise for OSM failures
             }
           }
 
@@ -209,7 +217,6 @@ export const useContributeLocation = () => {
     });
   }, [fetchOSMDataForLocation]);
 
-  // Enhanced: Find optimal triangulation landmarks with automatic data enrichment
   const findOptimalTriangulationLandmarks = useCallback(async (latitude, longitude, radiusMeters = 2000, options = {}) => {
     const { ensureData = true, maxRetries = 2 } = options;
     
@@ -221,7 +228,6 @@ export const useContributeLocation = () => {
         ensureData
       });
 
-      // Ensure we have OSM data for this location if requested
       if (ensureData) {
         const osmResult = await fetchOSMDataForLocation(latitude, longitude, radiusMeters);
         console.log('OSM data enrichment result:', osmResult);
@@ -230,7 +236,6 @@ export const useContributeLocation = () => {
       let landmarks = [];
       let attempt = 0;
 
-      // Retry logic for RPC calls
       while (attempt <= maxRetries && landmarks.length === 0) {
         try {
           const { data: rpcData, error: rpcError } = await supabase
@@ -254,13 +259,11 @@ export const useContributeLocation = () => {
 
         attempt++;
         
-        // Wait before retry
         if (attempt <= maxRetries && landmarks.length === 0) {
           await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
         }
       }
 
-      // If RPC failed or returned no data, use comprehensive fallback methods
       if (landmarks.length === 0) {
         console.log('Using comprehensive fallback landmark detection...');
         const fallbackLandmarks = await getFallbackLandmarks(latitude, longitude, radiusMeters);
@@ -276,12 +279,10 @@ export const useContributeLocation = () => {
     }
   }, [fetchOSMDataForLocation, calculateDistance, calculateBearing, calculateLandmarkQuality, getDirectionFromBearing, determineSideOfRoad]);
 
-  // Comprehensive fallback landmark detection
   const getFallbackLandmarks = useCallback(async (latitude, longitude, radiusMeters) => {
     const fallbackLandmarks = [];
 
     try {
-      // Fallback 1: Try the simpler IEBC offices function
       const { data: officeData, error: officeError } = await supabase
         .rpc('get_nearby_iebc_offices', {
           p_lat: latitude,
@@ -318,7 +319,6 @@ export const useContributeLocation = () => {
     }
 
     try {
-      // Fallback 2: Direct database query for verified IEBC offices
       if (fallbackLandmarks.length < 3) {
         const { data: directOfficeData, error: directError } = await supabase
           .from('iebc_offices')
@@ -368,7 +368,6 @@ export const useContributeLocation = () => {
     }
 
     try {
-      // Fallback 3: Try to get map landmarks directly with coordinate parsing
       if (fallbackLandmarks.length < 5) {
        const { data: mapLandmarks, error: mapError } = await supabase
          .from('map_landmarks_readable')
@@ -380,10 +379,8 @@ export const useContributeLocation = () => {
           const processedMap = mapLandmarks
             .map(landmark => {
               try {
-                // Parse coordinates from centroid geography
                 let landmarkLat, landmarkLng;
                 
-                // Parse from centroid_wkt (returned by view)
                 if (landmark.centroid_wkt && typeof landmark.centroid_wkt === 'string') {
                   const match = landmark.centroid_wkt.match(/POINT\(([^ ]+) ([^ ]+)\)/);
                   if (match) {
@@ -392,12 +389,10 @@ export const useContributeLocation = () => {
                   }
                 }
                 
-                // Absolute fallback
                 if (!landmarkLat || !landmarkLng) {
                   console.warn('Could not extract coordinates for landmark:', landmark.id);
                   return null;
                 }
-
 
                 const distance = calculateDistance(latitude, longitude, landmarkLat, landmarkLng);
                 
@@ -437,13 +432,11 @@ export const useContributeLocation = () => {
       console.warn('Map landmarks fallback failed:', mapError);
     }
 
-    // Final sorting and limiting
     return fallbackLandmarks
       .sort((a, b) => b.quality_score - a.quality_score)
       .slice(0, 8);
   }, [calculateDistance, calculateBearing, calculateLandmarkQuality, getDirectionFromBearing, determineSideOfRoad]);
 
-  // Original weighted position calculation
   const calculateWeightedPosition = useCallback((points) => {
     if (!points || !Array.isArray(points) || points.length === 0) {
       console.warn('No points provided for weighted position calculation');
@@ -493,14 +486,12 @@ export const useContributeLocation = () => {
     }
   }, []);
 
-  // Enhanced triangulation with automatic data enrichment
   const calculateEnhancedTriangulation = useCallback(async (userPosition, landmarks, options = {}) => {
     const { fetchAdditionalData = true } = options;
     
     if (!landmarks || !Array.isArray(landmarks) || landmarks.length < 3) {
       console.warn('Insufficient landmarks for enhanced triangulation');
       
-      // Try to fetch more data if we don't have enough landmarks
       if (fetchAdditionalData) {
         try {
           const newLandmarks = await findOptimalTriangulationLandmarks(
@@ -519,7 +510,6 @@ export const useContributeLocation = () => {
         }
       }
       
-      // If still insufficient, fallback to raw GPS
       if (!landmarks || landmarks.length < 3) {
         return userPosition;
       }
@@ -528,7 +518,6 @@ export const useContributeLocation = () => {
     try {
       console.log('Performing enhanced triangulation with', landmarks.length, 'landmarks');
 
-      // Use basic weighted average of landmarks and GPS
       const pointsToAverage = [
         userPosition,
         ...landmarks.slice(0, 3).map(landmark => ({
@@ -554,7 +543,6 @@ export const useContributeLocation = () => {
     }
   }, [findOptimalTriangulationLandmarks, calculateWeightedPosition]);
 
-  // Convert image to WebP format
   const convertImageToWebP = useCallback((file, quality = 0.8) => {
     return new Promise((resolve, reject) => {
       if (!file.type.startsWith('image/')) {
@@ -616,167 +604,94 @@ export const useContributeLocation = () => {
     });
   }, []);
 
-  // Submit contribution to database
   const submitContribution = useCallback(async (contributionData) => {
     setIsSubmitting(true);
     setError(null);
 
     try {
-      console.log('Starting contribution submission process...', {
-        latitude: contributionData.latitude,
-        longitude: contributionData.longitude,
-        hasImage: !!contributionData.imageFile,
-        notesLength: contributionData.landmark?.length || 0
-      });
-
-      // Validate required data
-      if (!contributionData.latitude || !contributionData.longitude) {
-        throw new Error('Latitude and longitude are required for submission');
-      }
-
-      if (Math.abs(contributionData.latitude) > 90 || Math.abs(contributionData.longitude) > 180) {
-        throw new Error('Invalid coordinates provided');
-      }
-
-      let imageUploadResult = null;
-
-      // Upload image if provided
-      if (contributionData.imageFile) {
-        console.log('Uploading contribution image...');
-        
-        const fileExt = 'webp';
-        const fileName = `contribution-${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-        const filePath = `map-contributions/${fileName}`;
-
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('map-data')
-          .upload(filePath, contributionData.imageFile, {
-            cacheControl: '3600',
-            upsert: false,
-            contentType: 'image/webp'
-          });
-
-        if (uploadError) {
-          console.error('Image upload failed:', uploadError);
-          throw new Error(`Image upload failed: ${uploadError.message}`);
-        }
-
-        // Get public URL for the uploaded image
-        const { data: { publicUrl } } = supabase.storage
-          .from('map-data')
-          .getPublicUrl(filePath);
-
-        imageUploadResult = {
-          path: uploadData.path,
-          publicUrl: publicUrl
-        };
-        
-        console.log('Image uploaded successfully:', imageUploadResult);
-      }
-
-      // Prepare device metadata (anonymized)
-      const deviceMeta = {
-        accuracy: contributionData.accuracy || null,
-        altitude: contributionData.altitude || null,
-        altitudeAccuracy: contributionData.altitudeAccuracy || null,
-        heading: contributionData.heading || null,
-        speed: contributionData.speed || null,
-        timestamp: contributionData.timestamp || Date.now(),
-        userAgent: navigator.userAgent ? navigator.userAgent.substring(0, 100) : 'unknown',
-        platform: navigator.platform || 'unknown',
-        screenResolution: `${window.screen.width}x${window.screen.height}`,
-        language: navigator.language || 'en',
-        hasTouch: 'ontouchstart' in window,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-      };
-
-      // Insert contribution record
-      console.log('Inserting contribution into database...');
+      const deviceFingerprint = await generateDeviceFingerprint();
       
-      const contributionPayload = {
-        original_office_id: contributionData.officeId || null,
-        submitted_county: contributionData.county || null,
-        submitted_constituency_code: contributionData.constituencyCode || null,
-        submitted_constituency: contributionData.constituency || null,
-        submitted_office_location: contributionData.officeLocation || 'User Contributed Location',
-        submitted_landmark: contributionData.landmark || null,
-        submitted_latitude: contributionData.latitude,
-        submitted_longitude: contributionData.longitude,
-        submitted_accuracy_meters: contributionData.accuracy || null,
-        device_metadata: deviceMeta,
-        nearby_landmarks: contributionData.nearbyLandmarks || null,
-        image_path: imageUploadResult?.path || null,
-        image_public_url: imageUploadResult?.publicUrl || null,
-        status: 'pending',
-        submission_source: 'web_contribution',
-        created_at: new Date().toISOString()
+      let imagePublicUrl = null;
+      if (contributionData.imageFile) {
+        const fileName = `${Date.now()}_${contributionData.imageFile.name}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('iebc-contributions')
+          .upload(fileName, contributionData.imageFile);
+
+        if (uploadError) throw uploadError;
+        
+        const { data: urlData } = supabase.storage
+          .from('iebc-contributions')
+          .getPublicUrl(fileName);
+        
+        imagePublicUrl = urlData.publicUrl;
+      }
+
+      const contribution = {
+        submitted_latitude: contributionData.submitted_latitude,
+        submitted_longitude: contributionData.submitted_longitude,
+        submitted_accuracy_meters: contributionData.submitted_accuracy_meters,
+        submitted_office_location: contributionData.submitted_office_location,
+        submitted_county: contributionData.submitted_county,
+        submitted_constituency: contributionData.submitted_constituency,
+        submitted_landmark: contributionData.submitted_landmark,
+        google_maps_link: contributionData.google_maps_link,
+        image_public_url: imagePublicUrl,
+        device_metadata: contributionData.device_metadata,
+        device_fingerprint_hash: deviceFingerprint,
+        status: 'pending'
       };
 
       const { data, error: insertError } = await supabase
         .from('iebc_office_contributions')
-        .insert([contributionPayload])
-        .select(
-          `id,
-          submitted_office_location,
-          submitted_county,
-          submitted_constituency,
-          submitted_latitude,
-          submitted_longitude,
-          status,
-          created_at`
-        )
+        .insert(contribution)
+        .select()
         .single();
 
-      if (insertError) {
-        console.error('Database insertion failed:', insertError);
-        throw new Error(`Failed to save contribution: ${insertError.message}`);
-      }
-
-      console.log('Contribution submitted successfully:', data);
-      
-      // Log successful submission for analytics
-      console.log('Contribution Analytics:', {
-        contributionId: data.id,
-        location: `${data.submitted_latitude}, ${data.submitted_longitude}`,
-        county: data.submitted_county,
-        constituency: data.submitted_constituency,
-        hasImage: !!imageUploadResult,
-        timestamp: data.created_at
-      });
+      if (insertError) throw insertError;
 
       return data;
-
     } catch (err) {
-      console.error('Contribution submission error:', err);
-      const errorMessage = err.message || 'An unexpected error occurred during submission';
-      setError(errorMessage);
+      setError(err.message);
       throw err;
     } finally {
       setIsSubmitting(false);
     }
   }, []);
 
-  // Manual OSM data fetch function for explicit control
   const manuallyFetchOSMData = useCallback(async (latitude, longitude, radiusMeters = 2000) => {
     return await fetchOSMDataForLocation(latitude, longitude, radiusMeters);
   }, [fetchOSMDataForLocation]);
 
+  const findNearbyLandmarks = useCallback(async (latitude, longitude, radius = 500) => {
+    try {
+      const { data, error } = await supabase
+        .rpc('find_nearby_offices', {
+          p_lat: latitude,
+          p_lng: longitude,
+          p_radius: radius
+        });
+
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.error('Error finding nearby landmarks:', err);
+      return [];
+    }
+  }, []);
+
   return {
-    // Core functions
     getCurrentPosition,
-    findNearbyLandmarks: findOptimalTriangulationLandmarks,
-    calculateWeightedPosition,
-    calculateEnhancedTriangulation,
     convertImageToWebP,
+    findNearbyLandmarks,
+    calculateWeightedPosition,
     submitContribution,
-    manuallyFetchOSMData,
-    
-    // State
     isSubmitting,
     error,
+    findOptimalTriangulationLandmarks,
+    calculateEnhancedTriangulation,
+    manuallyFetchOSMData,
     isFetchingOSM,
-    
-    // Helper functions
     calculateDistance,
     calculateBearing,
     calculateLandmarkQuality,
