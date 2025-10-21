@@ -288,7 +288,7 @@ const SearchBar = ({
       } border rounded-2xl`}>
         <div className="flex items-center space-x-3">
           <div className="pl-6">
-            <Search className={`w-8 h-8 transition-colors duration-300 ${
+            <Search className={`w-5 h-5 transition-colors duration-300 ${
               theme === 'dark' ? 'text-ios-dark-text-secondary' : 'text-ios-light-text-secondary'
             }`} />
           </div>
