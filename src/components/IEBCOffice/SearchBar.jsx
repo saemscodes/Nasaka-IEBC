@@ -287,7 +287,7 @@ const SearchBar = ({
           : 'bg-white/95 border-ios-light-border shadow-ios-high backdrop-blur-2xl'
       } border rounded-2xl`}>
         <div className="flex items-center space-x-3">
-          <div className="pl-4">
+          <div className="pl-10">
             <Search className={`w-5 h-5 transition-colors duration-300 ${
               theme === 'dark' ? 'text-ios-dark-text-secondary' : 'text-ios-light-text-secondary'
             }`} />
