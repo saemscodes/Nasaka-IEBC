@@ -1029,3 +1029,87 @@
 .dark .url-query-marker .leaflet-popup-tip {
   background: hsl(var(--card) / 0.98);
 }
+
+/* Add to src/index.css or src/styles/iebc-office.css */
+
+/* ===== CONTRIBUTIONS DASHBOARD Z-INDEX SYSTEM ===== */
+.contributions-dashboard {
+  position: relative !important;
+  z-index: 10000 !important;
+  isolation: isolate !important;
+}
+
+.contributions-dashboard * {
+  position: relative !important;
+  z-index: inherit !important;
+}
+
+/* Ensure dashboard content is above everything */
+.contributions-dashboard .bg-white,
+.contributions-dashboard .bg-gray-50,
+.contributions-dashboard .rounded-lg,
+.contributions-dashboard .shadow-sm,
+.contributions-dashboard .border {
+  z-index: 10001 !important;
+}
+
+/* Map containers within dashboard should have low z-index */
+.dashboard-map-container {
+  z-index: 1 !important;
+  position: relative !important;
+}
+
+.dashboard-map-container .leaflet-container {
+  z-index: 1 !important;
+  position: relative !important;
+}
+
+.dashboard-map-container .leaflet-tile-pane {
+  z-index: 1 !important;
+}
+
+.dashboard-map-container .leaflet-overlay-pane {
+  z-index: 2 !important;
+}
+
+.dashboard-map-container .leaflet-shadow-pane {
+  z-index: 3 !important;
+}
+
+.dashboard-map-container .leaflet-marker-pane {
+  z-index: 4 !important;
+}
+
+.dashboard-map-container .leaflet-tooltip-pane {
+  z-index: 5 !important;
+}
+
+.dashboard-map-container .leaflet-popup-pane {
+  z-index: 6 !important;
+}
+
+/* Contribution cards should have high z-index */
+.contribution-card {
+  z-index: 50 !important;
+  position: relative !important;
+}
+
+/* Force all interactive elements above map */
+.contributions-dashboard button,
+.contributions-dashboard select,
+.contributions-dashboard input,
+.contributions-dashboard a {
+  z-index: 10002 !important;
+  position: relative !important;
+}
+
+/* Override any map z-index issues */
+.leaflet-container {
+  z-index: 0 !important;
+}
+
+/* Ensure admin route container has high z-index */
+.admin-route-container {
+  z-index: 9999 !important;
+  position: relative !important;
+}
