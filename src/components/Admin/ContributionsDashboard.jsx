@@ -361,7 +361,7 @@ const ContributionCard: React.FC<{
   );
 };
 
-const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogout, counties }) => {
+const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogout, counties = [] }) => {
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -378,6 +378,10 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
     total: 0
   });
   const { theme } = useTheme();
+
+  // Safe array access with fallbacks
+  const safeCounties = Array.isArray(counties) ? counties : [];
+  const safeContributions = Array.isArray(contributions) ? contributions : [];
 
   const fetchContributions = useCallback(async () => {
     try {
@@ -406,7 +410,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
       const { data, error } = await query;
 
       if (error) throw error;
-      setContributions(data || []);
+      setContributions(Array.isArray(data) ? data : []);
     } catch (err: any) {
       console.error('Error fetching contributions:', err);
       setError(err.message);
@@ -588,12 +592,12 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
     try {
       for (const id of contributionIds) {
         if (action === 'verify') {
-          const contribution = contributions.find(c => c.id === id);
+          const contribution = safeContributions.find(c => c.id === id);
           if (contribution) {
             await handleVerify(contribution);
           }
         } else {
-          const contribution = contributions.find(c => c.id === id);
+          const contribution = safeContributions.find(c => c.id === id);
           if (contribution) {
             await handleReject(contribution);
           }
@@ -607,7 +611,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
     }
   };
 
-  if (loading && contributions.length === 0) {
+  if (loading && safeContributions.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-64">
         <LoadingSpinner size="large" />
@@ -739,7 +743,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="all">All Counties</option>
-                {counties.map(county => (
+                {safeCounties.map(county => (
                   <option key={county} value={county}>{county}</option>
                 ))}
               </select>
@@ -774,18 +778,18 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
           </div>
 
           {/* Bulk Actions */}
-          {contributions.length > 0 && (
+          {safeContributions.length > 0 && (
             <div className="mt-4 pt-4 border-t border-gray-200">
               <div className="flex items-center space-x-4">
                 <span className="text-sm font-medium text-gray-700">Bulk Actions:</span>
                 <button
-                  onClick={() => handleBulkAction('verify', contributions.map(c => c.id))}
+                  onClick={() => handleBulkAction('verify', safeContributions.map(c => c.id))}
                   className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
                 >
                   Verify All
                 </button>
                 <button
-                  onClick={() => handleBulkAction('reject', contributions.map(c => c.id))}
+                  onClick={() => handleBulkAction('reject', safeContributions.map(c => c.id))}
                   className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
                 >
                   Reject All
@@ -808,7 +812,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
         )}
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {contributions.map((contribution) => (
+          {safeContributions.map((contribution) => (
             <ContributionCard
               key={contribution.id}
               contribution={contribution}
@@ -820,7 +824,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
           ))}
         </div>
 
-        {contributions.length === 0 && !loading && (
+        {safeContributions.length === 0 && !loading && (
           <div className="text-center py-12">
             <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
