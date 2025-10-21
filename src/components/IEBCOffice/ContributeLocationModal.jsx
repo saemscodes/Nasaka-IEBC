@@ -219,6 +219,28 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     }
   };
 
+  // Safe map flyTo function with error handling
+  const safeFlyTo = useCallback((lat, lng, zoom = 16, duration = 1) => {
+    if (!mapRef.current || !isMapReady) {
+      console.warn('Map not ready for flyTo');
+      return false;
+    }
+
+    try {
+      // Check if map has the necessary Leaflet methods
+      if (typeof mapRef.current.flyTo === 'function') {
+        mapRef.current.flyTo([lat, lng], zoom, { duration });
+        return true;
+      } else {
+        console.warn('flyTo method not available on map instance');
+        return false;
+      }
+    } catch (err) {
+      console.error('Error during flyTo:', err);
+      return false;
+    }
+  }, [isMapReady]);
+
   // Add marker to map function
   const addMarkerToMap = useCallback((position, method = selectedMethod) => {
     if (!mapRef.current || !position || !position.lat || !position.lng) {
@@ -300,12 +322,12 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       setAccuracy(5);
       
       if (mapRef.current) {
-        mapRef.current.flyTo([lat, lng], 16, { duration: 0.5 });
+        safeFlyTo(lat, lng, 16, 0.5);
         addMarkerToMap(clickedPosition, 'drop_pin');
         addAccuracyCircle(clickedPosition, 5);
       }
     }
-  }, [selectedMethod, addMarkerToMap, addAccuracyCircle]);
+  }, [selectedMethod, addMarkerToMap, addAccuracyCircle, safeFlyTo]);
 
   // Handle map ready function
   const handleMapReady = useCallback((map) => {
@@ -331,10 +353,10 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       setMapZoom(16);
       
       if (mapRef.current) {
-        mapRef.current.flyTo([userLocation.latitude, userLocation.longitude], 16, { duration: 1 });
+        safeFlyTo(userLocation.latitude, userLocation.longitude, 16, 1);
       }
     }
-  }, [userLocation]);
+  }, [userLocation, safeFlyTo]);
 
   // Check for duplicate offices when position changes
   useEffect(() => {
@@ -412,7 +434,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       setMapZoom(16);
       
       if (mapRef.current) {
-        mapRef.current.flyTo([latitude, longitude], 16, { duration: 1 });
+        safeFlyTo(latitude, longitude, 16, 1);
         addMarkerToMap(capturedPosition);
         addAccuracyCircle(capturedPosition, limitedAccuracy);
         
@@ -471,9 +493,11 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         setMapZoom(16);
         
         if (mapRef.current) {
-          mapRef.current.flyTo([result.lat, result.lng], 16, { duration: 1 });
-          addMarkerToMap({ lat: result.lat, lng: result.lng });
-          addAccuracyCircle({ lat: result.lat, lng: result.lng }, 5);
+          const flySuccess = safeFlyTo(result.lat, result.lng, 16, 1);
+          if (flySuccess) {
+            addMarkerToMap({ lat: result.lat, lng: result.lng });
+            addAccuracyCircle({ lat: result.lat, lng: result.lng }, 5);
+          }
         }
         
         // Auto-fill office name if available
@@ -546,9 +570,29 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     }
   }, [imagePreview]);
 
-  const handleFormSubmit = (e) => {
+  // FIXED: This function was incorrectly setting step to 3 instead of submitting
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    setStep(3);
+    
+    // Validate required fields
+    if (!formData.submitted_office_location || !formData.submitted_county || !formData.submitted_constituency) {
+      setLocationError({
+        type: 'error',
+        message: 'Please fill in all required fields (Office Name, County, and Constituency)'
+      });
+      return;
+    }
+    
+    if (!agreement) {
+      setLocationError({
+        type: 'error',
+        message: 'Please agree to the terms before submitting'
+      });
+      return;
+    }
+    
+    // Proceed with submission
+    await handleFinalSubmit();
   };
 
   const handleFinalSubmit = async () => {
@@ -930,6 +974,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                         className="h-full w-full"
                         onMapReady={handleMapReady}
                         onClick={handleMapClick}
+                        isModalMap={true} // Add this prop to indicate this is a modal map
                       >
                         <GeoJSONLayerManager
                           activeLayers={['iebc-offices']}
@@ -937,6 +982,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                           selectedOffice={null}
                           onNearbyOfficesFound={() => {}}
                           baseMap="standard"
+                          isModalMap={true} // Add this to prevent interference with main map
                         />
                         {userLocation && (
                           <UserLocationMarker
