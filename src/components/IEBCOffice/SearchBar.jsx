@@ -344,7 +344,7 @@ const SearchBar = ({
                 }`}
                 title="Use current location"
               >
-                <IEBCIcon className="w-14 h-14" />
+                <IEBCIcon className="w-10 h-10" />
               </motion.button>
             </div>
           </div>
