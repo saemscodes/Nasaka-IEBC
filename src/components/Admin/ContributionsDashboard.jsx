@@ -1,33 +1,89 @@
-// src/components/Admin/ContributionsDashboard.jsx
+// src/components/Admin/ContributionsDashboard.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import MapContainer from '@/components/IEBCOffice/MapContainer';
 import GeoJSONLayerManager from '@/components/IEBCOffice/GeoJSONLayerManager';
+import UserLocationMarker from '@/components/IEBCOffice/UserLocationMarker';
 import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
 import { useTheme } from '@/contexts/ThemeContext';
 
-const ContributionCard = ({ contribution, onVerify, onReject, onRequestInfo, onMerge }) => {
+interface DeviceMetadata {
+  user_agent?: string;
+  platform?: string;
+  language?: string;
+  timestamp?: string;
+  capture_method?: string;
+  capture_source?: string;
+}
+
+interface ExifMetadata {
+  exif_gps_match?: boolean;
+  exif_device?: string;
+  exif_timestamp?: string;
+  exif_latitude?: number;
+  exif_longitude?: number;
+}
+
+interface Contribution {
+  id: number;
+  submitted_office_location: string;
+  submitted_county: string;
+  submitted_constituency: string;
+  submitted_landmark?: string;
+  submitted_latitude: number;
+  submitted_longitude: number;
+  submitted_accuracy_meters?: number;
+  google_maps_link?: string;
+  image_public_url?: string;
+  device_metadata: DeviceMetadata;
+  exif_metadata?: ExifMetadata;
+  confidence_score: number;
+  duplicate_candidate_ids?: number[];
+  confirmation_count?: number;
+  status: string;
+  created_at: string;
+  reviewed_at?: string;
+  review_notes?: string;
+  reviewer_id?: string;
+}
+
+interface ContributionsDashboardProps {
+  onLogout: () => void;
+  counties: string[];
+}
+
+const ContributionCard: React.FC<{
+  contribution: Contribution;
+  onVerify: (contribution: Contribution) => void;
+  onReject: (contribution: Contribution) => void;
+  onRequestInfo: (contribution: Contribution) => void;
+  onMerge: (contribution: Contribution) => void;
+}> = ({ contribution, onVerify, onReject, onRequestInfo, onMerge }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
   const { theme } = useTheme();
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'yellow';
       case 'auto_verified': return 'green';
       case 'more_info_requested': return 'blue';
       case 'flagged_suspicious': return 'red';
+      case 'verified': return 'green';
+      case 'rejected': return 'red';
       default: return 'gray';
     }
   };
 
-  const getStatusText = (status) => {
+  const getStatusText = (status: string) => {
     switch (status) {
       case 'pending': return 'Pending Review';
       case 'auto_verified': return 'Auto-Verified';
       case 'more_info_requested': return 'More Info Requested';
       case 'flagged_suspicious': return 'Flagged Suspicious';
+      case 'verified': return 'Verified';
+      case 'rejected': return 'Rejected';
       default: return status;
     }
   };
@@ -52,7 +108,7 @@ const ContributionCard = ({ contribution, onVerify, onReject, onRequestInfo, onM
               {getStatusText(contribution.status)}
             </span>
             <span className="text-sm text-gray-500">
-              Confidence: {contribution.confidence_score}%
+              Confidence: {contribution.confidence_score || 0}%
             </span>
           </div>
           <div className="text-sm text-gray-500">
@@ -81,6 +137,11 @@ const ContributionCard = ({ contribution, onVerify, onReject, onRequestInfo, onM
                 activeLayers={['iebc-offices']}
                 onOfficeSelect={() => {}}
                 selectedOffice={null}
+              />
+              <UserLocationMarker
+                position={[contribution.submitted_latitude, contribution.submitted_longitude]}
+                accuracy={contribution.submitted_accuracy_meters || 50}
+                color="#34C759"
               />
             </MapContainer>
           </div>
@@ -174,7 +235,7 @@ const ContributionCard = ({ contribution, onVerify, onReject, onRequestInfo, onM
         )}
 
         {/* Warnings */}
-        {contribution.duplicate_candidate_ids?.length > 0 && (
+        {contribution.duplicate_candidate_ids && contribution.duplicate_candidate_ids.length > 0 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
             <div className="flex items-center space-x-2">
               <svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -187,7 +248,7 @@ const ContributionCard = ({ contribution, onVerify, onReject, onRequestInfo, onM
           </div>
         )}
 
-        {contribution.confirmation_count > 0 && (
+        {contribution.confirmation_count && contribution.confirmation_count > 0 && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
             <div className="flex items-center space-x-2">
               <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -243,57 +304,67 @@ const ContributionCard = ({ contribution, onVerify, onReject, onRequestInfo, onM
         theme === 'dark' ? 'border-ios-dark-border bg-ios-dark-surface' : 'border-gray-200 bg-gray-50'
       }`}>
         <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => onVerify(contribution)}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center space-x-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            <span>Verify</span>
-          </button>
+          {contribution.status === 'pending' && (
+            <>
+              <button
+                onClick={() => onVerify(contribution)}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Verify</span>
+              </button>
 
-          {contribution.duplicate_candidate_ids?.length > 0 && (
-            <button
-              onClick={() => onMerge(contribution)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-              </svg>
-              <span>Merge</span>
-            </button>
+              {contribution.duplicate_candidate_ids && contribution.duplicate_candidate_ids.length > 0 && (
+                <button
+                  onClick={() => onMerge(contribution)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  <span>Merge</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => onRequestInfo(contribution)}
+                className="px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                <span>Request Info</span>
+              </button>
+
+              <button
+                onClick={() => onReject(contribution)}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span>Reject</span>
+              </button>
+            </>
           )}
 
-          <button
-            onClick={() => onRequestInfo(contribution)}
-            className="px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors flex items-center space-x-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
-            <span>Request Info</span>
-          </button>
-
-          <button
-            onClick={() => onReject(contribution)}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors flex items-center space-x-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-            <span>Reject</span>
-          </button>
+          {(contribution.status === 'verified' || contribution.status === 'rejected') && (
+            <div className="text-sm text-gray-600">
+              Reviewed by: {contribution.reviewer_id || 'System'} • {contribution.reviewed_at ? new Date(contribution.reviewed_at).toLocaleString() : 'N/A'}
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
   );
 };
 
-const ContributionsDashboard = () => {
-  const [contributions, setContributions] = useState([]);
+const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogout, counties }) => {
+  const [contributions, setContributions] = useState<Contribution[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     status: 'all',
     county: 'all',
@@ -336,7 +407,7 @@ const ContributionsDashboard = () => {
 
       if (error) throw error;
       setContributions(data || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching contributions:', err);
       setError(err.message);
     } finally {
@@ -351,11 +422,12 @@ const ContributionsDashboard = () => {
         .select('id')
         .eq('status', 'pending');
 
+      const today = new Date().toISOString().split('T')[0];
       const { data: todayData } = await supabase
         .from('iebc_office_contributions')
         .select('id')
         .eq('status', 'verified')
-        .gte('reviewed_at', new Date().toISOString().split('T')[0]);
+        .gte('reviewed_at', today);
 
       const { data: rejectedData } = await supabase
         .from('iebc_office_contributions')
@@ -380,14 +452,18 @@ const ContributionsDashboard = () => {
   useEffect(() => {
     fetchContributions();
     fetchStats();
+
+    // Refresh stats every 5 minutes
+    const interval = setInterval(fetchStats, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, [fetchContributions, fetchStats]);
 
-  const handleVerify = async (contribution) => {
+  const handleVerify = async (contribution: Contribution) => {
     try {
       const { data, error } = await supabase
         .rpc('promote_contribution_to_office', {
           p_contribution_id: contribution.id,
-          p_admin_id: 'admin', // Replace with actual admin ID
+          p_admin_id: 'admin_dashboard',
           p_office_data: {
             county: contribution.submitted_county,
             constituency: contribution.submitted_constituency,
@@ -400,17 +476,17 @@ const ContributionsDashboard = () => {
       if (error) throw error;
       
       // Refresh data
-      fetchContributions();
-      fetchStats();
+      await fetchContributions();
+      await fetchStats();
       
       alert('Contribution verified successfully!');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error verifying contribution:', err);
       alert('Failed to verify contribution: ' + err.message);
     }
   };
 
-  const handleReject = async (contribution) => {
+  const handleReject = async (contribution: Contribution) => {
     const reason = prompt('Enter rejection reason:');
     if (!reason) return;
 
@@ -420,24 +496,32 @@ const ContributionsDashboard = () => {
         .update({
           status: 'rejected',
           review_notes: reason,
+          reviewer_id: 'admin_dashboard',
           reviewed_at: new Date().toISOString()
         })
         .eq('id', contribution.id);
 
       if (error) throw error;
 
-      // Refresh data
-      fetchContributions();
-      fetchStats();
+      // Log rejection
+      await supabase.from('verification_log').insert({
+        contribution_id: contribution.id,
+        action: 'rejected',
+        actor: 'admin:dashboard',
+        details: { reason }
+      });
+
+      await fetchContributions();
+      await fetchStats();
       
       alert('Contribution rejected successfully!');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error rejecting contribution:', err);
       alert('Failed to reject contribution: ' + err.message);
     }
   };
 
-  const handleRequestInfo = async (contribution) => {
+  const handleRequestInfo = async (contribution: Contribution) => {
     const message = prompt('Enter information request:');
     if (!message) return;
 
@@ -453,19 +537,77 @@ const ContributionsDashboard = () => {
 
       if (error) throw error;
 
+      await fetchContributions();
       alert('Information request sent successfully!');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error requesting information:', err);
       alert('Failed to send information request: ' + err.message);
     }
   };
 
-  const handleMerge = async (contribution) => {
-    // Implement merge logic here
-    alert('Merge functionality to be implemented');
+  const handleMerge = async (contribution: Contribution) => {
+    try {
+      // Get duplicate candidates
+      const { data: duplicates } = await supabase
+        .rpc('find_duplicate_offices', {
+          p_lat: contribution.submitted_latitude,
+          p_lng: contribution.submitted_longitude,
+          p_name: contribution.submitted_office_location,
+          p_radius_meters: 200
+        });
+
+      if (duplicates && duplicates.length > 0) {
+        const duplicateList = duplicates.map((d: any) => 
+          `${d.office_name} (${Math.round(d.distance_meters)}m away)`
+        ).join('\n');
+
+        const confirmMerge = confirm(
+          `Merge this contribution with existing office?\n\nPotential duplicates:\n${duplicateList}\n\nClick OK to merge, Cancel to keep separate.`
+        );
+
+        if (confirmMerge) {
+          // For now, just verify the contribution
+          await handleVerify(contribution);
+        }
+      } else {
+        alert('No suitable duplicates found for merging.');
+      }
+    } catch (err: any) {
+      console.error('Error merging contribution:', err);
+      alert('Failed to merge contribution: ' + err.message);
+    }
   };
 
-  if (loading) {
+  const handleBulkAction = async (action: 'verify' | 'reject', contributionIds: number[]) => {
+    const confirmMessage = action === 'verify' 
+      ? `Are you sure you want to verify ${contributionIds.length} contributions?`
+      : `Are you sure you want to reject ${contributionIds.length} contributions?`;
+
+    if (!confirm(confirmMessage)) return;
+
+    try {
+      for (const id of contributionIds) {
+        if (action === 'verify') {
+          const contribution = contributions.find(c => c.id === id);
+          if (contribution) {
+            await handleVerify(contribution);
+          }
+        } else {
+          const contribution = contributions.find(c => c.id === id);
+          if (contribution) {
+            await handleReject(contribution);
+          }
+        }
+      }
+      
+      alert(`Successfully processed ${contributionIds.length} contributions!`);
+    } catch (err: any) {
+      console.error('Error in bulk action:', err);
+      alert('Failed to process bulk action: ' + err.message);
+    }
+  };
+
+  if (loading && contributions.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-64">
         <LoadingSpinner size="large" />
@@ -483,8 +625,19 @@ const ContributionsDashboard = () => {
               <h1 className="text-2xl font-bold text-gray-900">Contributions Dashboard</h1>
               <p className="text-gray-600">Manage and verify IEBC office location submissions</p>
             </div>
-            <div className="text-sm text-gray-500">
-              Last updated: {new Date().toLocaleString()}
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-500">
+                Last updated: {new Date().toLocaleString()}
+              </div>
+              <button
+                onClick={onLogout}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>Logout</span>
+              </button>
             </div>
           </div>
         </div>
@@ -570,6 +723,8 @@ const ContributionsDashboard = () => {
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
+                <option value="verified">Verified</option>
+                <option value="rejected">Rejected</option>
                 <option value="auto_verified">Auto-Verified</option>
                 <option value="more_info_requested">Info Requested</option>
                 <option value="flagged_suspicious">Flagged</option>
@@ -584,7 +739,9 @@ const ContributionsDashboard = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="all">All Counties</option>
-                {/* Add county options dynamically */}
+                {counties.map(county => (
+                  <option key={county} value={county}>{county}</option>
+                ))}
               </select>
             </div>
 
@@ -615,6 +772,27 @@ const ContributionsDashboard = () => {
               </select>
             </div>
           </div>
+
+          {/* Bulk Actions */}
+          {contributions.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="flex items-center space-x-4">
+                <span className="text-sm font-medium text-gray-700">Bulk Actions:</span>
+                <button
+                  onClick={() => handleBulkAction('verify', contributions.map(c => c.id))}
+                  className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+                >
+                  Verify All
+                </button>
+                <button
+                  onClick={() => handleBulkAction('reject', contributions.map(c => c.id))}
+                  className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+                >
+                  Reject All
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Contributions Grid */}
