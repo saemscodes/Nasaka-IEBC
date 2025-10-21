@@ -219,7 +219,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     }
   };
 
-  // Add marker to map function
+  // Add marker to map function - FIXED with map readiness check
   const addMarkerToMap = useCallback((position, method = selectedMethod) => {
     if (!mapRef.current || !position || !position.lat || !position.lng) {
       console.warn('Cannot add marker: invalid position or map not ready');
@@ -232,14 +232,21 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     }
     
     try {
+      // Check if map is ready and has addLayer method
+      const mapInstance = mapRef.current;
+      if (!mapInstance || typeof mapInstance.addLayer !== 'function') {
+        console.warn('Map instance not ready for adding marker');
+        return;
+      }
+      
       if (markerRef.current) {
-        mapRef.current.removeLayer(markerRef.current);
+        mapInstance.removeLayer(markerRef.current);
       }
       
       markerRef.current = L.marker([position.lat, position.lng], {
         icon: createCustomIcon(),
         draggable: method === 'drop_pin'
-      }).addTo(mapRef.current);
+      }).addTo(mapInstance);
       
       if (method === 'drop_pin') {
         markerRef.current.on('dragend', (event) => {
@@ -255,9 +262,10 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     }
   }, [selectedMethod]);
 
-  // Add accuracy circle function
+  // Add accuracy circle function - FIXED with proper error handling
   const addAccuracyCircle = useCallback((position, accuracyValue) => {
     if (!mapRef.current || !position || !position.lat || !position.lng || !accuracyValue) {
+      console.warn('Missing parameters for accuracy circle');
       return;
     }
 
@@ -267,8 +275,15 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     }
     
     try {
+      // Check if map is ready and has addLayer method
+      const mapInstance = mapRef.current;
+      if (!mapInstance || typeof mapInstance.addLayer !== 'function') {
+        console.warn('Map instance not ready for adding accuracy circle');
+        return;
+      }
+      
       if (accuracyCircleRef.current) {
-        mapRef.current.removeLayer(accuracyCircleRef.current);
+        mapInstance.removeLayer(accuracyCircleRef.current);
       }
       
       const limitedAccuracy = Math.min(accuracyValue, 1000);
@@ -279,7 +294,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         fillOpacity: 0.1,
         weight: 2,
         opacity: 0.6
-      }).addTo(mapRef.current);
+      }).addTo(mapInstance);
     } catch (error) {
       console.error('Error adding accuracy circle:', error);
     }
@@ -299,7 +314,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       setPosition(clickedPosition);
       setAccuracy(5);
       
-      if (mapRef.current) {
+      if (mapRef.current && mapRef.current.isReady && mapRef.current.isReady()) {
         mapRef.current.flyTo([lat, lng], 16, { duration: 0.5 });
         addMarkerToMap(clickedPosition, 'drop_pin');
         addAccuracyCircle(clickedPosition, 5);
@@ -307,9 +322,9 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     }
   }, [selectedMethod, addMarkerToMap, addAccuracyCircle]);
 
-  // Handle map ready function
+  // Handle map ready function - FIXED to properly handle map instance
   const handleMapReady = useCallback((map) => {
-    mapRef.current = map;
+    console.log('Map is ready:', map);
     setIsMapReady(true);
     
     // Ensure click events are captured for drop pin mode
@@ -318,8 +333,11 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     }
     
     if (position) {
-      addMarkerToMap(position);
-      addAccuracyCircle(position, accuracy);
+      // Use setTimeout to ensure map layers are fully initialized
+      setTimeout(() => {
+        addMarkerToMap(position);
+        addAccuracyCircle(position, accuracy);
+      }, 100);
     }
   }, [position, accuracy, handleMapClick, addMarkerToMap, addAccuracyCircle]);
 
@@ -330,7 +348,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       setMapCenter([userLocation.latitude, userLocation.longitude]);
       setMapZoom(16);
       
-      if (mapRef.current) {
+      if (mapRef.current && mapRef.current.isReady && mapRef.current.isReady()) {
         mapRef.current.flyTo([userLocation.latitude, userLocation.longitude], 16, { duration: 1 });
       }
     }
@@ -386,6 +404,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     }
   };
 
+  // FIXED: handleCurrentLocation with proper map readiness checks
   const handleCurrentLocation = async () => {
     setLocationError(null);
     setIsGettingLocation(true);
@@ -411,10 +430,18 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       setMapCenter([latitude, longitude]);
       setMapZoom(16);
       
+      // Wait for map to be ready before adding layers
       if (mapRef.current) {
-        mapRef.current.flyTo([latitude, longitude], 16, { duration: 1 });
-        addMarkerToMap(capturedPosition);
-        addAccuracyCircle(capturedPosition, limitedAccuracy);
+        // Use flyTo with callback to ensure map is ready for layer additions
+        mapRef.current.flyTo([latitude, longitude], 16, { 
+          duration: 1 
+        }, () => {
+          // This callback executes after flyTo completes
+          setTimeout(() => {
+            addMarkerToMap(capturedPosition);
+            addAccuracyCircle(capturedPosition, limitedAccuracy);
+          }, 300);
+        });
         
         // Show accuracy guidance
         if (limitedAccuracy > 100) {
@@ -432,6 +459,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
             message: `✓ Good accuracy (±${Math.round(limitedAccuracy)}m). You're within the recommended 20m range.`
           });
         }
+      } else {
+        console.warn('Map ref not available for location update');
       }
     } catch (err) {
       console.error('Error capturing location:', err);
@@ -449,6 +478,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     }
   };
 
+  // FIXED: handleGoogleMapsParse with proper map readiness
   const handleGoogleMapsParse = async () => {
     if (!googleMapsInput.trim()) return;
     
@@ -470,10 +500,16 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         setMapCenter([result.lat, result.lng]);
         setMapZoom(16);
         
-        if (mapRef.current && isMapReady) {
-          mapRef.current.flyTo([result.lat, result.lng], 16, { duration: 1 });
-          addMarkerToMap({ lat: result.lat, lng: result.lng });
-          addAccuracyCircle({ lat: result.lat, lng: result.lng }, 5);
+        if (mapRef.current && mapRef.current.isReady && mapRef.current.isReady()) {
+          mapRef.current.flyTo([result.lat, result.lng], 16, { 
+            duration: 1 
+          }, () => {
+            // Add layers after flyTo completes
+            setTimeout(() => {
+              addMarkerToMap({ lat: result.lat, lng: result.lng });
+              addAccuracyCircle({ lat: result.lat, lng: result.lng }, 5);
+            }, 300);
+          });
         } else {
           console.warn('Map not ready for flyTo operation');
         }
@@ -632,12 +668,20 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     }
     
     // Clean up map layers
-    if (markerRef.current && mapRef.current) {
-      mapRef.current.removeLayer(markerRef.current);
+    if (markerRef.current && mapRef.current && typeof mapRef.current.removeLayer === 'function') {
+      try {
+        mapRef.current.removeLayer(markerRef.current);
+      } catch (e) {
+        console.warn('Error removing marker:', e);
+      }
       markerRef.current = null;
     }
-    if (accuracyCircleRef.current && mapRef.current) {
-      mapRef.current.removeLayer(accuracyCircleRef.current);
+    if (accuracyCircleRef.current && mapRef.current && typeof mapRef.current.removeLayer === 'function') {
+      try {
+        mapRef.current.removeLayer(accuracyCircleRef.current);
+      } catch (e) {
+        console.warn('Error removing accuracy circle:', e);
+      }
       accuracyCircleRef.current = null;
     }
   }, [imagePreview]);
