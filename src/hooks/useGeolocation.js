@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 
 export const useGeolocation = () => {
   const [location, setLocation] = useState(null);
@@ -10,8 +10,10 @@ export const useGeolocation = () => {
     setError(null);
 
     if (!navigator.geolocation) {
-      setError('Geolocation is not supported by your browser');
+      const errorMsg = 'Geolocation is not supported by your browser';
+      setError(errorMsg);
       setLoading(false);
+      console.error(errorMsg);
       return;
     }
 
@@ -23,32 +25,54 @@ export const useGeolocation = () => {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy,
-          timestamp: position.timestamp
-        });
-        setLoading(false);
+        try {
+          if (!position || !position.coords) {
+            throw new Error('Invalid position data received');
+          }
+
+          const { latitude, longitude, accuracy } = position.coords;
+          
+          if (!latitude || !longitude || isNaN(latitude) || isNaN(longitude)) {
+            throw new Error('Invalid coordinates received');
+          }
+
+          setLocation({
+            latitude,
+            longitude,
+            accuracy: accuracy || 0,
+            timestamp: position.timestamp || Date.now()
+          });
+          setLoading(false);
+          setError(null);
+        } catch (processingError) {
+          console.error('Error processing geolocation:', processingError);
+          setError(processingError.message || 'Failed to process location data');
+          setLoading(false);
+        }
       },
       (err) => {
         let errorMessage = 'Unable to retrieve your location';
         
-        switch (err.code) {
-          case err.PERMISSION_DENIED:
-            errorMessage = 'Permission denied';
-            break;
-          case err.POSITION_UNAVAILABLE:
-            errorMessage = 'Location information unavailable';
-            break;
-          case err.TIMEOUT:
-            errorMessage = 'Location request timed out';
-            break;
-          default:
-            errorMessage = 'An unknown error occurred';
-            break;
+        if (!err) {
+          console.error('Unknown geolocation error');
+        } else {
+          switch (err.code) {
+            case 1: // PERMISSION_DENIED
+              errorMessage = 'Permission denied. Please allow location access in your browser settings.';
+              break;
+            case 2: // POSITION_UNAVAILABLE
+              errorMessage = 'Location information unavailable. Please check your GPS or network connection.';
+              break;
+            case 3: // TIMEOUT
+              errorMessage = 'Location request timed out. Please try again.';
+              break;
+            default:
+              errorMessage = err.message || 'An unknown error occurred while getting your location';
+              break;
+          }
         }
         
+        console.error('Geolocation error:', errorMessage, err);
         setError(errorMessage);
         setLoading(false);
       },
@@ -60,11 +84,17 @@ export const useGeolocation = () => {
     setError(null);
   }, []);
 
+  const clearLocation = useCallback(() => {
+    setLocation(null);
+    setError(null);
+  }, []);
+
   return { 
     location, 
     error, 
     loading, 
     requestLocation,
-    clearError
+    clearError,
+    clearLocation
   };
 };

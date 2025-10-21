@@ -17,12 +17,21 @@ const createUserLocationIcon = () => {
 };
 
 const UserLocationMarker = ({ position, accuracy }) => {
-  if (!position) return null;
+  if (!position || !Array.isArray(position) || position.length !== 2) {
+    console.warn('Invalid position provided to UserLocationMarker:', position);
+    return null;
+  }
+
+  const [lat, lng] = position;
+  if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
+    console.warn('Invalid coordinates in position:', position);
+    return null;
+  }
 
   return (
     <>
       {/* Accuracy circle */}
-      {accuracy && accuracy < 1000 && (
+      {accuracy && !isNaN(accuracy) && accuracy > 0 && accuracy < 1000 && (
         <Circle
           center={position}
           radius={accuracy}

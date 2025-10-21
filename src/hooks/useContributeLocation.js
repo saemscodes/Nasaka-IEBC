@@ -304,28 +304,30 @@ export const useContributeLocation = () => {
           p_radius: radiusMeters
         });
 
-      if (!officeError && officeData) {
-        const processedOffices = officeData.map(office => {
-          const distance = calculateDistance(latitude, longitude, office.office_latitude, office.office_longitude);
-          const bearing = calculateBearing(latitude, longitude, office.office_latitude, office.office_longitude);
-          const qualityScore = calculateLandmarkQuality(office, distance, radiusMeters);
+      if (!officeError && officeData && Array.isArray(officeData)) {
+        const processedOffices = officeData
+          .filter(office => office && office.office_latitude && office.office_longitude)
+          .map(office => {
+            const distance = calculateDistance(latitude, longitude, office.office_latitude, office.office_longitude);
+            const bearing = calculateBearing(latitude, longitude, office.office_latitude, office.office_longitude);
+            const qualityScore = calculateLandmarkQuality(office, distance, radiusMeters);
 
-          return {
-            landmark_id: office.office_id,
-            landmark_name: office.office_name,
-            landmark_type: 'government',
-            landmark_subtype: 'iebc_office',
-            landmark_latitude: office.office_latitude,
-            landmark_longitude: office.office_longitude,
-            distance_meters: distance,
-            bearing_degrees: bearing,
-            triangulation_weight: 0.85,
-            quality_score: qualityScore,
-            direction_description: getDirectionFromBearing(bearing),
-            side_of_road: determineSideOfRoad(latitude, office.office_latitude),
-            typical_accuracy_meters: 15
-          };
-        });
+            return {
+              landmark_id: office.office_id || `office_${Date.now()}`,
+              landmark_name: office.office_name || 'IEBC Office',
+              landmark_type: 'government',
+              landmark_subtype: 'iebc_office',
+              landmark_latitude: office.office_latitude,
+              landmark_longitude: office.office_longitude,
+              distance_meters: distance,
+              bearing_degrees: bearing,
+              triangulation_weight: 0.85,
+              quality_score: qualityScore,
+              direction_description: getDirectionFromBearing(bearing),
+              side_of_road: determineSideOfRoad(latitude, office.office_latitude),
+              typical_accuracy_meters: 15
+            };
+          });
         fallbackLandmarks.push(...processedOffices);
       }
     } catch (officeError) {
@@ -340,13 +342,15 @@ export const useContributeLocation = () => {
           .eq('verified', true)
           .limit(20);
 
-        if (!directError && directOfficeData) {
+        if (!directError && directOfficeData && Array.isArray(directOfficeData)) {
           const processedDirect = directOfficeData
             .map(office => {
+              if (!office) return null;
+              
               const officeLat = office.verified_latitude || office.latitude;
               const officeLng = office.verified_longitude || office.longitude;
               
-              if (!officeLat || !officeLng) return null;
+              if (!officeLat || !officeLng || isNaN(officeLat) || isNaN(officeLng)) return null;
 
               const distance = calculateDistance(latitude, longitude, officeLat, officeLng);
               if (distance > radiusMeters) return null;
@@ -355,8 +359,8 @@ export const useContributeLocation = () => {
               const qualityScore = calculateLandmarkQuality(office, distance, radiusMeters);
 
               return {
-                landmark_id: office.id,
-                landmark_name: office.office_location,
+                landmark_id: office.id || `office_${Date.now()}`,
+                landmark_name: office.office_location || 'IEBC Office',
                 landmark_type: 'government',
                 landmark_subtype: 'iebc_office',
                 landmark_latitude: officeLat,
@@ -370,7 +374,7 @@ export const useContributeLocation = () => {
                 typical_accuracy_meters: 15
               };
             })
-            .filter(office => office !== null)
+            .filter(office => office !== null && office.landmark_latitude && office.landmark_longitude)
             .sort((a, b) => b.quality_score - a.quality_score)
             .slice(0, 8 - fallbackLandmarks.length);
 
@@ -389,10 +393,12 @@ export const useContributeLocation = () => {
          .eq('verified', true)
          .limit(25);
                 
-        if (!mapError && mapLandmarks) {
+        if (!mapError && mapLandmarks && Array.isArray(mapLandmarks)) {
           const processedMap = mapLandmarks
             .map(landmark => {
               try {
+                if (!landmark) return null;
+                
                 let landmarkLat, landmarkLng;
                 
                 if (landmark.centroid_wkt && typeof landmark.centroid_wkt === 'string') {
@@ -403,8 +409,7 @@ export const useContributeLocation = () => {
                   }
                 }
                 
-                if (!landmarkLat || !landmarkLng) {
-                  console.warn('Could not extract coordinates for landmark:', landmark.id);
+                if (!landmarkLat || !landmarkLng || isNaN(landmarkLat) || isNaN(landmarkLng)) {
                   return null;
                 }
 
@@ -416,10 +421,10 @@ export const useContributeLocation = () => {
                 const qualityScore = calculateLandmarkQuality(landmark, distance, radiusMeters);
 
                 return {
-                  landmark_id: landmark.id,
-                  landmark_name: landmark.name || landmark.landmark_subtype,
-                  landmark_type: landmark.landmark_type,
-                  landmark_subtype: landmark.landmark_subtype,
+                  landmark_id: landmark.id || `landmark_${Date.now()}`,
+                  landmark_name: landmark.name || landmark.landmark_subtype || 'Unknown Landmark',
+                  landmark_type: landmark.landmark_type || 'unknown',
+                  landmark_subtype: landmark.landmark_subtype || 'unknown',
                   landmark_latitude: landmarkLat,
                   landmark_longitude: landmarkLng,
                   distance_meters: distance,
@@ -431,11 +436,11 @@ export const useContributeLocation = () => {
                   typical_accuracy_meters: landmark.typical_accuracy_meters || 20
                 };
               } catch (parseError) {
-                console.warn('Error processing landmark coordinates:', parseError, landmark);
+                console.warn('Error processing landmark coordinates:', parseError);
                 return null;
               }
             })
-            .filter(landmark => landmark !== null)
+            .filter(landmark => landmark !== null && landmark.landmark_latitude && landmark.landmark_longitude)
             .sort((a, b) => b.quality_score - a.quality_score)
             .slice(0, 8 - fallbackLandmarks.length);
 
@@ -463,7 +468,7 @@ export const useContributeLocation = () => {
       let weightedLng = 0;
 
       points.forEach(point => {
-        if (!point.latitude || !point.longitude) {
+        if (!point || !point.latitude || !point.longitude || isNaN(point.latitude) || isNaN(point.longitude)) {
           console.warn('Invalid point in triangulation data:', point);
           return;
         }
@@ -476,7 +481,7 @@ export const useContributeLocation = () => {
         totalWeight += weight;
       });
 
-      if (totalWeight === 0) {
+      if (totalWeight === 0 || isNaN(totalWeight)) {
         console.warn('Total weight is zero, using first point as fallback');
         return {
           latitude: points[0].latitude,
@@ -502,6 +507,11 @@ export const useContributeLocation = () => {
 
   const calculateEnhancedTriangulation = useCallback(async (userPosition, landmarks, options = {}) => {
     const { fetchAdditionalData = true } = options;
+    
+    if (!userPosition || !userPosition.latitude || !userPosition.longitude) {
+      console.warn('Invalid user position provided for triangulation');
+      return null;
+    }
     
     if (!landmarks || !Array.isArray(landmarks) || landmarks.length < 3) {
       console.warn('Insufficient landmarks for enhanced triangulation');
@@ -532,28 +542,44 @@ export const useContributeLocation = () => {
     try {
       console.log('Performing enhanced triangulation with', landmarks.length, 'landmarks');
 
-      const pointsToAverage = [
-        userPosition,
-        ...landmarks.slice(0, 3).map(landmark => ({
+      const validLandmarks = landmarks
+        .slice(0, 3)
+        .filter(landmark => 
+          landmark && 
+          (landmark.landmark_latitude || landmark.latitude) && 
+          (landmark.landmark_longitude || landmark.longitude)
+        )
+        .map(landmark => ({
           latitude: landmark.landmark_latitude || landmark.latitude,
           longitude: landmark.landmark_longitude || landmark.longitude,
           accuracy: landmark.typical_accuracy_meters || 20
-        }))
-      ];
+        }));
+
+      if (validLandmarks.length === 0) {
+        console.warn('No valid landmarks available for triangulation');
+        return userPosition;
+      }
+
+      const pointsToAverage = [userPosition, ...validLandmarks];
 
       const result = calculateWeightedPosition(pointsToAverage);
+      
+      if (!result) {
+        console.warn('Weighted position calculation failed, using original position');
+        return userPosition;
+      }
       
       console.log('Enhanced triangulation result:', {
         inputGPS: userPosition,
         finalResult: result,
-        landmarksUsed: Math.min(landmarks.length, 3)
+        landmarksUsed: validLandmarks.length
       });
 
       return result;
 
     } catch (err) {
       console.error('Error in enhanced triangulation:', err);
-      return calculateWeightedPosition([userPosition, ...landmarks.slice(0, 2)]);
+      return userPosition;
     }
   }, [findOptimalTriangulationLandmarks, calculateWeightedPosition]);
 

@@ -231,16 +231,27 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     
     try {
       const pos = await getCurrentPosition();
-      const capturedPosition = { lat: pos.latitude, lng: pos.longitude };
-      const limitedAccuracy = Math.min(pos.accuracy, 1000);
+      
+      if (!pos || !pos.latitude || !pos.longitude) {
+        throw new Error('Failed to retrieve valid location data');
+      }
+
+      const { latitude, longitude, accuracy = 50 } = pos;
+      
+      if (isNaN(latitude) || isNaN(longitude)) {
+        throw new Error('Invalid coordinates received from GPS');
+      }
+
+      const capturedPosition = { lat: latitude, lng: longitude };
+      const limitedAccuracy = Math.min(accuracy, 1000);
       
       setPosition(capturedPosition);
       setAccuracy(limitedAccuracy);
-      setMapCenter([pos.latitude, pos.longitude]);
+      setMapCenter([latitude, longitude]);
       setMapZoom(16);
       
       if (mapRef.current) {
-        mapRef.current.flyTo([pos.latitude, pos.longitude], 16, { duration: 1 });
+        mapRef.current.flyTo([latitude, longitude], 16, { duration: 1 });
         addMarkerToMap(capturedPosition);
         addAccuracyCircle(capturedPosition, limitedAccuracy);
         
@@ -263,9 +274,10 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       }
     } catch (err) {
       console.error('Error capturing location:', err);
+      const errorMessage = err?.message || 'Failed to get current location';
       setLocationError({
         type: 'error',
-        message: err.message || 'Failed to get current location',
+        message: errorMessage,
         action: {
           label: 'Try Drop Pin Method',
           onClick: () => setSelectedMethod('drop_pin')
@@ -347,42 +359,67 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   }, [position, accuracy]);
 
   const addMarkerToMap = useCallback((position) => {
-    if (!mapRef.current || !position) return;
-    
-    if (markerRef.current) {
-      mapRef.current.removeLayer(markerRef.current);
+    if (!mapRef.current || !position || !position.lat || !position.lng) {
+      console.warn('Cannot add marker: invalid position or map not ready');
+      return;
+    }
+
+    if (isNaN(position.lat) || isNaN(position.lng)) {
+      console.error('Invalid coordinates for marker:', position);
+      return;
     }
     
-    markerRef.current = L.marker([position.lat, position.lng], {
-      icon: createCustomIcon(),
-      draggable: selectedMethod === 'drop_pin'
-    }).addTo(mapRef.current);
-    
-    if (selectedMethod === 'drop_pin') {
-      markerRef.current.on('dragend', (event) => {
-        const newPosition = event.target.getLatLng();
-        setPosition({ lat: newPosition.lat, lng: newPosition.lng });
-        setAccuracy(5); // Manual placement = high confidence
-      });
+    try {
+      if (markerRef.current) {
+        mapRef.current.removeLayer(markerRef.current);
+      }
+      
+      markerRef.current = L.marker([position.lat, position.lng], {
+        icon: createCustomIcon(),
+        draggable: selectedMethod === 'drop_pin'
+      }).addTo(mapRef.current);
+      
+      if (selectedMethod === 'drop_pin') {
+        markerRef.current.on('dragend', (event) => {
+          const newPosition = event.target.getLatLng();
+          if (newPosition && !isNaN(newPosition.lat) && !isNaN(newPosition.lng)) {
+            setPosition({ lat: newPosition.lat, lng: newPosition.lng });
+            setAccuracy(5); // Manual placement = high confidence
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error adding marker to map:', error);
     }
   }, [selectedMethod]);
 
   const addAccuracyCircle = useCallback((position, accuracy) => {
-    if (!mapRef.current || !position || !accuracy) return;
-    
-    if (accuracyCircleRef.current) {
-      mapRef.current.removeLayer(accuracyCircleRef.current);
+    if (!mapRef.current || !position || !position.lat || !position.lng || !accuracy) {
+      return;
+    }
+
+    if (isNaN(position.lat) || isNaN(position.lng) || isNaN(accuracy) || accuracy <= 0) {
+      console.warn('Invalid parameters for accuracy circle:', { position, accuracy });
+      return;
     }
     
-    const limitedAccuracy = Math.min(accuracy, 1000);
-    accuracyCircleRef.current = L.circle([position.lat, position.lng], {
-      radius: limitedAccuracy,
-      color: '#34C759',
-      fillColor: '#34C759',
-      fillOpacity: 0.1,
-      weight: 2,
-      opacity: 0.6
-    }).addTo(mapRef.current);
+    try {
+      if (accuracyCircleRef.current) {
+        mapRef.current.removeLayer(accuracyCircleRef.current);
+      }
+      
+      const limitedAccuracy = Math.min(accuracy, 1000);
+      accuracyCircleRef.current = L.circle([position.lat, position.lng], {
+        radius: limitedAccuracy,
+        color: '#34C759',
+        fillColor: '#34C759',
+        fillOpacity: 0.1,
+        weight: 2,
+        opacity: 0.6
+      }).addTo(mapRef.current);
+    } catch (error) {
+      console.error('Error adding accuracy circle:', error);
+    }
   }, []);
 
   const initializeMapWithUserLocation = useCallback(() => {
@@ -398,13 +435,20 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   }, [userLocation]);
 
   const handleMapClick = useCallback((e) => {
-    if (selectedMethod === 'drop_pin') {
-      const clickedPosition = { lat: e.latlng.lat, lng: e.latlng.lng };
+    if (selectedMethod === 'drop_pin' && e && e.latlng) {
+      const { lat, lng } = e.latlng;
+      
+      if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
+        console.error('Invalid map click coordinates:', e.latlng);
+        return;
+      }
+
+      const clickedPosition = { lat, lng };
       setPosition(clickedPosition);
       setAccuracy(5);
       
       if (mapRef.current) {
-        mapRef.current.flyTo([e.latlng.lat, e.latlng.lng], 16, { duration: 0.5 });
+        mapRef.current.flyTo([lat, lng], 16, { duration: 0.5 });
         addMarkerToMap(clickedPosition);
         addAccuracyCircle(clickedPosition, 5);
       }
