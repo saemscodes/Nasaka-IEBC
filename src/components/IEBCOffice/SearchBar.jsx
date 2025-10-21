@@ -344,7 +344,7 @@ const SearchBar = ({
                 }`}
                 title="Use current location"
               >
-                <IEBCIcon className="w-5 h-5" />
+                <IEBCIcon className="w-8 h-8" />
               </motion.button>
             </div>
           </div>
@@ -407,7 +407,7 @@ const SearchBar = ({
                               : 'hover:bg-ios-light-surface-hover text-ios-light-text-primary'
                           }`}
                         >
-                          <div className="flex items-start space-x-3">
+                          <div className="flex items-start space-x-4">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
                               suggestion.type === 'office' 
                                 ? theme === 'dark'
