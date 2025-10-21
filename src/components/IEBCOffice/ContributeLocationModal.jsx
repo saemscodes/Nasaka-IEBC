@@ -1,5 +1,5 @@
 // src/components/IEBCOffice/ContributeLocationModal.jsx
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { useContributeLocation } from '@/hooks/useContributeLocation';
@@ -10,7 +10,7 @@ import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
 import { supabase } from '@/integrations/supabase/client';
 import L from 'leaflet';
 
-// Complete list of 47 Kenyan counties
+// Complete list of 47 Kenyan counties with constituencies
 const KENYAN_COUNTIES = [
   "Baringo", "Bomet", "Bungoma", "Busia", "Elgeyo-Marakwet",
   "Embu", "Garissa", "Homa Bay", "Isiolo", "Kajiado",
@@ -24,7 +24,15 @@ const KENYAN_COUNTIES = [
   "Vihiga", "Wajir", "West Pokot"
 ];
 
-// Google Maps URL parsing function
+// Common constituencies by county for auto-suggest
+const CONSTITUENCY_SUGGESTIONS = {
+  "Nairobi": ["Westlands", "Dagoretti North", "Dagoretti South", "Langata", "Kibra", "Roysambu", "Kasarani", "Ruaraka", "Embakasi South", "Embakasi North", "Embakasi Central", "Embakasi East", "Embakasi West", "Makadara", "Kamukunji", "Starehe", "Mathare"],
+  "Mombasa": ["Changamwe", "Jomvu", "Kisauni", "Nyali", "Likoni", "Mvita"],
+  "Kisumu": ["Kisumu East", "Kisumu West", "Kisumu Central", "Seme", "Nyando", "Muhoroni", "Nyakach"],
+  "Nakuru": ["Nakuru Town East", "Nakuru Town West", "Naivasha", "Gilgil", "Bahati", "Subukia", "Rongai", "Njoro", "Molo", "Kuresoi North", "Kuresoi South"]
+};
+
+// Enhanced Google Maps URL parsing function
 const parseGoogleMapsInput = (input) => {
   if (!input || typeof input !== 'string') return null;
   
@@ -40,8 +48,8 @@ const parseGoogleMapsInput = (input) => {
     }
   }
   
-  // Pattern 2: @lat,lng,zoom format
-  const atPattern = trimmed.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*),?(\d+\.?\d*)?z?/);
+  // Pattern 2: @lat,lng,zoom format (most common)
+  const atPattern = trimmed.match(/@(-?\d+\.?\d+),(-?\d+\.?\d+),?(\d+\.?\d*)?z?/);
   if (atPattern) {
     const lat = parseFloat(atPattern[1]);
     const lng = parseFloat(atPattern[2]);
@@ -51,7 +59,7 @@ const parseGoogleMapsInput = (input) => {
   }
   
   // Pattern 3: ?q=lat,lng format
-  const qPattern = trimmed.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+  const qPattern = trimmed.match(/[?&]q=(-?\d+\.?\d+),(-?\d+\.?\d+)/);
   if (qPattern) {
     const lat = parseFloat(qPattern[1]);
     const lng = parseFloat(qPattern[2]);
@@ -61,7 +69,7 @@ const parseGoogleMapsInput = (input) => {
   }
   
   // Pattern 4: !3dlat!4dlng format
-  const dataPattern = trimmed.match(/!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/);
+  const dataPattern = trimmed.match(/!3d(-?\d+\.?\d+)!4d(-?\d+\.?\d+)/);
   if (dataPattern) {
     const lat = parseFloat(dataPattern[1]);
     const lng = parseFloat(dataPattern[2]);
@@ -71,23 +79,24 @@ const parseGoogleMapsInput = (input) => {
   }
   
   // Pattern 5: /place/ with coordinates
-  const placePattern = trimmed.match(/\/place\/(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+  const placePattern = trimmed.match(/\/place\/([^/@?]+)\/@(-?\d+\.?\d+),(-?\d+\.?\d+)/);
   if (placePattern) {
-    const lat = parseFloat(placePattern[1]);
-    const lng = parseFloat(placePattern[2]);
+    const lat = parseFloat(placePattern[2]);
+    const lng = parseFloat(placePattern[3]);
     if (isValidCoordinate(lat, lng)) {
-      return { lat, lng, source: 'place_path' };
+      const placeName = decodeURIComponent(placePattern[1]).replace(/\+/g, ' ');
+      return { lat, lng, placeName, source: 'place_path' };
     }
   }
   
-  // Pattern 6: Short URL - we'll handle this client-side by following redirects
+  // Pattern 6: Short URLs
   if (trimmed.match(/goo\.gl\/maps\/|maps\.app\.goo\.gl/)) {
     return { requiresExpansion: true, shortUrl: trimmed, source: 'short_url' };
   }
   
   // Pattern 7: Place name only
   const placeNamePattern = trimmed.match(/\/place\/([^/@?]+)/);
-  if (placeNamePattern) {
+  if (placeNamePattern && !placeNamePattern[1].includes('@')) {
     const placeName = decodeURIComponent(placeNamePattern[1]).replace(/\+/g, ' ');
     return { placeName, requiresGeocoding: true, source: 'place_name' };
   }
@@ -106,19 +115,35 @@ const isValidCoordinate = (lat, lng) => {
           lng >= KENYA_BOUNDS.minLng && lng <= KENYA_BOUNDS.maxLng);
 };
 
-// Client-side URL expansion function
+// Enhanced client-side URL expansion with timeout
 const expandShortUrl = async (shortUrl) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+  
   try {
     const response = await fetch(shortUrl, {
       method: 'HEAD',
-      redirect: 'follow'
+      redirect: 'follow',
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
     return response.url;
   } catch (error) {
+    clearTimeout(timeoutId);
     console.error('Error expanding URL:', error);
-    return shortUrl; // Return original if expansion fails
+    return shortUrl;
   }
 };
+
+// Custom marker icons
+const createCustomIcon = (color = '#34C759') => L.divIcon({
+  className: 'contribution-marker',
+  html: `<div style="width: 24px; height: 24px; background: ${color}; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;">
+           <div style="width: 8px; height: 8px; background: white; border-radius: 50%;"></div>
+         </div>`,
+  iconSize: [24, 24],
+  iconAnchor: [12, 12]
+});
 
 const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) => {
   const [step, setStep] = useState(1);
@@ -131,6 +156,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const [googleMapsInput, setGoogleMapsInput] = useState('');
   const [parseResult, setParseResult] = useState(null);
   const [isExpandingUrl, setIsExpandingUrl] = useState(false);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [formData, setFormData] = useState({
     submitted_office_location: '',
     submitted_county: '',
@@ -145,12 +171,47 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const [locationError, setLocationError] = useState(null);
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
   const [contributionId, setContributionId] = useState(null);
+  const [duplicateOffices, setDuplicateOffices] = useState([]);
+  const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
   
   const mapRef = useRef(null);
   const accuracyCircleRef = useRef(null);
   const markerRef = useRef(null);
+  const fileInputRef = useRef(null);
   
   const { getCurrentPosition, convertImageToWebP, submitContribution, isSubmitting, error } = useContributeLocation();
+
+  // Memoized constituency suggestions based on selected county
+  const constituencySuggestions = useMemo(() => {
+    return CONSTITUENCY_SUGGESTIONS[formData.submitted_county] || [];
+  }, [formData.submitted_county]);
+
+  // Check for duplicate offices when position changes
+  useEffect(() => {
+    const checkDuplicateOffices = async () => {
+      if (!position) return;
+      
+      setIsCheckingDuplicates(true);
+      try {
+        const { data, error } = await supabase.rpc('find_duplicate_offices', {
+          p_lat: position.lat,
+          p_lng: position.lng,
+          p_name: formData.submitted_office_location || '',
+          p_radius_meters: 200
+        });
+        
+        if (!error && data) {
+          setDuplicateOffices(data.filter(office => office.is_likely_duplicate));
+        }
+      } catch (error) {
+        console.error('Error checking duplicates:', error);
+      } finally {
+        setIsCheckingDuplicates(false);
+      }
+    };
+    
+    checkDuplicateOffices();
+  }, [position, formData.submitted_office_location]);
 
   // Method selection handlers
   const handleMethodSelect = (method) => {
@@ -166,6 +227,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
 
   const handleCurrentLocation = async () => {
     setLocationError(null);
+    setIsGettingLocation(true);
+    
     try {
       const pos = await getCurrentPosition();
       const capturedPosition = { lat: pos.latitude, lng: pos.longitude };
@@ -183,14 +246,33 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         
         // Show accuracy guidance
         if (limitedAccuracy > 100) {
-          setLocationError(`GPS accuracy is low (±${Math.round(limitedAccuracy)}m). Please move to an open area or manually adjust the pin.`);
+          setLocationError({
+            type: 'warning',
+            message: `GPS accuracy is low (±${Math.round(limitedAccuracy)}m). Please move to an open area or manually adjust the pin.`,
+            action: {
+              label: 'Adjust Pin Manually',
+              onClick: () => setSelectedMethod('drop_pin')
+            }
+          });
         } else if (limitedAccuracy <= 20) {
-          setLocationError(`✓ Good accuracy (±${Math.round(limitedAccuracy)}m). You're within the recommended 20m range.`);
+          setLocationError({
+            type: 'success', 
+            message: `✓ Good accuracy (±${Math.round(limitedAccuracy)}m). You're within the recommended 20m range.`
+          });
         }
       }
     } catch (err) {
       console.error('Error capturing location:', err);
-      setLocationError(err.message || 'Failed to get current location');
+      setLocationError({
+        type: 'error',
+        message: err.message || 'Failed to get current location',
+        action: {
+          label: 'Try Drop Pin Method',
+          onClick: () => setSelectedMethod('drop_pin')
+        }
+      });
+    } finally {
+      setIsGettingLocation(false);
     }
   };
 
@@ -221,22 +303,34 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
           addAccuracyCircle({ lat: result.lat, lng: result.lng }, 5);
         }
         
-        // Extract place name from URL for auto-fill
-        const placeNameMatch = googleMapsInput.match(/\/place\/([^/@?]+)/);
-        if (placeNameMatch) {
-          const placeName = decodeURIComponent(placeNameMatch[1]).replace(/\+/g, ' ');
-          setFormData(prev => ({ ...prev, submitted_office_location: placeName }));
+        // Auto-fill office name if available
+        if (result.placeName && !formData.submitted_office_location) {
+          setFormData(prev => ({ 
+            ...prev, 
+            submitted_office_location: result.placeName 
+          }));
         }
       } else if (result?.requiresGeocoding) {
-        setLocationError('Could not extract exact coordinates. Please place a pin on the map manually.');
-        setSelectedMethod('drop_pin');
-        initializeMapWithUserLocation();
+        setLocationError({
+          type: 'info',
+          message: 'Could not extract exact coordinates. Please place a pin on the map manually.',
+          action: {
+            label: 'Switch to Drop Pin',
+            onClick: () => setSelectedMethod('drop_pin')
+          }
+        });
       } else {
-        setLocationError('Could not parse input. Please check the format and try again.');
+        setLocationError({
+          type: 'error',
+          message: 'Could not parse input. Please check the format and try again.'
+        });
       }
     } catch (err) {
       console.error('Error parsing Google Maps input:', err);
-      setLocationError('Failed to process the Google Maps link');
+      setLocationError({
+        type: 'error',
+        message: 'Failed to process the Google Maps link'
+      });
     } finally {
       setIsExpandingUrl(false);
     }
@@ -259,17 +353,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       mapRef.current.removeLayer(markerRef.current);
     }
     
-    const customIcon = L.divIcon({
-      className: 'contribution-marker',
-      html: `<div style="width: 24px; height: 24px; background: #34C759; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;">
-               <div style="width: 8px; height: 8px; background: white; border-radius: 50%;"></div>
-             </div>`,
-      iconSize: [24, 24],
-      iconAnchor: [12, 12]
-    });
-    
     markerRef.current = L.marker([position.lat, position.lng], {
-      icon: customIcon,
+      icon: createCustomIcon(),
       draggable: selectedMethod === 'drop_pin'
     }).addTo(mapRef.current);
     
@@ -277,7 +362,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       markerRef.current.on('dragend', (event) => {
         const newPosition = event.target.getLatLng();
         setPosition({ lat: newPosition.lat, lng: newPosition.lng });
-        setAccuracy(5);
+        setAccuracy(5); // Manual placement = high confidence
       });
     }
   }, [selectedMethod]);
@@ -332,10 +417,10 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     
     try {
       if (!file.type.startsWith('image/')) {
-        throw new Error('Please select an image file');
+        throw new Error('Please select an image file (JPEG, PNG, etc.)');
       }
-      if (file.size > 5 * 1024 * 1024) {
-        throw new Error('Image must be smaller than 5MB');
+      if (file.size > 10 * 1024 * 1024) { // Increased to 10MB
+        throw new Error('Image must be smaller than 10MB');
       }
       
       const webpFile = await convertImageToWebP(file);
@@ -345,9 +430,23 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       setImagePreview(previewUrl);
     } catch (err) {
       console.error('Error processing image:', err);
-      setLocationError(err.message);
+      setLocationError({
+        type: 'error',
+        message: err.message
+      });
     }
   }, [convertImageToWebP]);
+
+  const handleRemoveImage = useCallback(() => {
+    setImageFile(null);
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+      setImagePreview(null);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [imagePreview]);
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
@@ -374,7 +473,9 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
           language: navigator.language,
           timestamp: new Date().toISOString(),
           capture_method: selectedMethod,
-          capture_source: parseResult?.source || 'manual'
+          capture_source: parseResult?.source || 'manual',
+          accuracy: accuracy,
+          duplicate_count: duplicateOffices.length
         },
         submitted_timestamp: new Date().toISOString()
       };
@@ -390,7 +491,10 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       setStep(4);
     } catch (err) {
       console.error('Submission error:', err);
-      setLocationError(err.message);
+      setLocationError({
+        type: 'error',
+        message: err.message || 'Failed to submit contribution'
+      });
     }
   };
 
@@ -414,9 +518,20 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     setLocationError(null);
     setSubmissionSuccess(false);
     setContributionId(null);
+    setDuplicateOffices([]);
     
     if (imagePreview) {
       URL.revokeObjectURL(imagePreview);
+    }
+    
+    // Clean up map layers
+    if (markerRef.current && mapRef.current) {
+      mapRef.current.removeLayer(markerRef.current);
+      markerRef.current = null;
+    }
+    if (accuracyCircleRef.current && mapRef.current) {
+      mapRef.current.removeLayer(accuracyCircleRef.current);
+      accuracyCircleRef.current = null;
     }
   }, [imagePreview]);
 
@@ -425,6 +540,16 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     onClose();
   }, [resetForm, onClose]);
 
+  // Auto-advance to details if we have position and method is not current_location
+  useEffect(() => {
+    if (position && selectedMethod !== 'current_location' && step === 2) {
+      const timer = setTimeout(() => {
+        setStep(3);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [position, selectedMethod, step]);
+
   useEffect(() => {
     return () => {
       if (imagePreview) {
@@ -432,6 +557,67 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       }
     };
   }, [imagePreview]);
+
+  // Enhanced error display component
+  const ErrorAlert = ({ error }) => {
+    if (!error) return null;
+    
+    const alertStyles = {
+      error: 'bg-red-50 border-red-200 text-red-700',
+      warning: 'bg-yellow-50 border-yellow-200 text-yellow-700',
+      success: 'bg-green-50 border-green-200 text-green-700',
+      info: 'bg-blue-50 border-blue-200 text-blue-700'
+    };
+    
+    const iconStyles = {
+      error: 'text-red-600',
+      warning: 'text-yellow-600',
+      success: 'text-green-600',
+      info: 'text-blue-600'
+    };
+    
+    const icons = {
+      error: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+        </svg>
+      ),
+      warning: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+        </svg>
+      ),
+      success: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+      ),
+      info: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      )
+    };
+    
+    return (
+      <div className={`mb-4 border rounded-xl p-4 ${alertStyles[error.type]}`}>
+        <div className="flex items-center space-x-3">
+          {icons[error.type]}
+          <div className="flex-1">
+            <p className="text-sm font-medium">{error.message}</p>
+            {error.action && (
+              <button
+                onClick={error.action.onClick}
+                className="mt-2 text-sm font-medium underline hover:no-underline"
+              >
+                {error.action.label}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   if (!isOpen) return null;
 
@@ -445,17 +631,32 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
             exit={{ opacity: 0, scale: 0.9 }}
             className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col"
           >
-            {/* Header */}
+            {/* Header with progress indicator */}
             <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">
-                {step === 1 && 'Contribute IEBC Office Location'}
-                {step === 2 && 'Capture Location'}
-                {step === 3 && 'Office Details'}
-                {step === 4 && 'Submission Complete'}
-              </h2>
+              <div className="flex items-center space-x-4">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {step === 1 && 'Contribute IEBC Office Location'}
+                  {step === 2 && 'Capture Location'}
+                  {step === 3 && 'Office Details'}
+                  {step === 4 && 'Submission Complete'}
+                </h2>
+                {/* Progress indicator */}
+                <div className="flex items-center space-x-1">
+                  {[1, 2, 3, 4].map((stepNum) => (
+                    <div
+                      key={stepNum}
+                      className={`w-2 h-2 rounded-full ${
+                        stepNum === step ? 'bg-green-600' : 
+                        stepNum < step ? 'bg-green-400' : 'bg-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
               <button
                 onClick={handleClose}
                 className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
+                aria-label="Close modal"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -465,16 +666,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-6">
-              {locationError && (
-                <div className="mb-4 bg-red-50 border border-red-200 rounded-xl p-4">
-                  <div className="flex items-center space-x-2">
-                    <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                    </svg>
-                    <span className="text-sm font-medium text-red-700">{locationError}</span>
-                  </div>
-                </div>
-              )}
+              <ErrorAlert error={locationError} />
 
               {error && (
                 <div className="mb-4 bg-red-50 border border-red-200 rounded-xl p-4">
@@ -499,7 +691,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                   <div className="grid grid-cols-1 gap-4">
                     <button
                       onClick={() => handleMethodSelect('current_location')}
-                      className="p-4 border-2 border-gray-200 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all text-left"
+                      className="p-4 border-2 border-gray-200 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all text-left focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                      aria-label="Use my current location"
                     >
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -510,13 +703,15 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                         <div>
                           <h4 className="font-semibold text-gray-900">Use My Current Location</h4>
                           <p className="text-sm text-gray-600">Stand at the IEBC office and capture your GPS coordinates</p>
+                          <p className="text-xs text-green-600 mt-1">✓ Most accurate method</p>
                         </div>
                       </div>
                     </button>
 
                     <button
                       onClick={() => handleMethodSelect('drop_pin')}
-                      className="p-4 border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all text-left"
+                      className="p-4 border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      aria-label="Drop a pin on map"
                     >
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -527,13 +722,15 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                         <div>
                           <h4 className="font-semibold text-gray-900">Drop a Pin on Map</h4>
                           <p className="text-sm text-gray-600">Manually place a pin on the exact office location</p>
+                          <p className="text-xs text-blue-600 mt-1">✓ Good for precise placement</p>
                         </div>
                       </div>
                     </button>
 
                     <button
                       onClick={() => handleMethodSelect('google_maps')}
-                      className="p-4 border-2 border-gray-200 rounded-xl hover:border-red-500 hover:bg-red-50 transition-all text-left"
+                      className="p-4 border-2 border-gray-200 rounded-xl hover:border-red-500 hover:bg-red-50 transition-all text-left focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                      aria-label="Paste Google Maps link"
                     >
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
@@ -544,6 +741,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                         <div>
                           <h4 className="font-semibold text-gray-900">Paste Google Maps Link</h4>
                           <p className="text-sm text-gray-600">Share a Google Maps URL or coordinates</p>
+                          <p className="text-xs text-red-600 mt-1">✓ Quick and convenient</p>
                         </div>
                       </div>
                     </button>
@@ -614,13 +812,21 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                           onChange={(e) => setGoogleMapsInput(e.target.value)}
                           placeholder="https://maps.google.com/place/... or -1.2921,36.8219"
                           className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                          aria-label="Google Maps link or coordinates"
                         />
                         <button
                           onClick={handleGoogleMapsParse}
                           disabled={!googleMapsInput.trim() || isExpandingUrl}
-                          className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50"
+                          className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
                         >
-                          {isExpandingUrl ? 'Processing...' : 'Parse'}
+                          {isExpandingUrl ? (
+                            <div className="flex items-center space-x-2">
+                              <LoadingSpinner size="small" />
+                              <span>Processing...</span>
+                            </div>
+                          ) : (
+                            'Parse'
+                          )}
                         </button>
                       </div>
                       
@@ -668,19 +874,45 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     </div>
                   )}
 
+                  {/* Duplicate Office Warning */}
+                  {duplicateOffices.length > 0 && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <div className="flex items-start space-x-3">
+                        <svg className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                        <div>
+                          <p className="text-sm font-medium text-yellow-800 mb-1">
+                            Possible duplicate office detected
+                          </p>
+                          <p className="text-sm text-yellow-700">
+                            There {duplicateOffices.length === 1 ? 'is' : 'are'} {duplicateOffices.length} verified office{duplicateOffices.length === 1 ? '' : 's'} within 100m. Please confirm this is a new location.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex space-x-3 pt-4">
                     <button
                       onClick={() => setStep(1)}
-                      className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+                      className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-xl font-medium hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                     >
                       Back
                     </button>
                     <button
                       onClick={() => setStep(3)}
-                      disabled={!position}
-                      className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      disabled={!position || isGettingLocation}
+                      className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                     >
-                      Continue to Details
+                      {isGettingLocation ? (
+                        <div className="flex items-center justify-center space-x-2">
+                          <LoadingSpinner size="small" />
+                          <span>Getting Location...</span>
+                        </div>
+                      ) : (
+                        'Continue to Details'
+                      )}
                     </button>
                   </div>
                 </div>
@@ -696,10 +928,11 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
 
                   <div className="grid grid-cols-1 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label htmlFor="office-name" className="block text-sm font-medium text-gray-700 mb-1">
                         Office Name *
                       </label>
                       <input
+                        id="office-name"
                         type="text"
                         required
                         value={formData.submitted_office_location}
@@ -711,10 +944,11 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label htmlFor="county" className="block text-sm font-medium text-gray-700 mb-1">
                           County *
                         </label>
                         <select
+                          id="county"
                           required
                           value={formData.submitted_county}
                           onChange={(e) => setFormData(prev => ({ ...prev, submitted_county: e.target.value }))}
@@ -728,25 +962,40 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label htmlFor="constituency" className="block text-sm font-medium text-gray-700 mb-1">
                           Constituency *
                         </label>
                         <input
+                          id="constituency"
                           type="text"
                           required
                           value={formData.submitted_constituency}
                           onChange={(e) => setFormData(prev => ({ ...prev, submitted_constituency: e.target.value }))}
                           placeholder="e.g., Embakasi West"
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                          list="constituency-suggestions"
                         />
+                        {/* Auto-suggest for constituencies */}
+                        <datalist id="constituency-suggestions">
+                          {constituencySuggestions.map(constituency => (
+                            <option key={constituency} value={constituency} />
+                          ))}
+                        </datalist>
+                        {constituencySuggestions.length > 0 && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Suggestions: {constituencySuggestions.slice(0, 3).join(', ')}
+                            {constituencySuggestions.length > 3 && '...'}
+                          </p>
+                        )}
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label htmlFor="landmark" className="block text-sm font-medium text-gray-700 mb-1">
                         Nearby Landmark (Optional)
                       </label>
                       <input
+                        id="landmark"
                         type="text"
                         value={formData.submitted_landmark}
                         onChange={(e) => setFormData(prev => ({ ...prev, submitted_landmark: e.target.value }))}
@@ -762,6 +1011,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                       <div className="flex items-center space-x-4">
                         <label className="flex-1 cursor-pointer">
                           <input
+                            ref={fileInputRef}
                             type="file"
                             accept="image/*"
                             capture="environment"
@@ -775,11 +1025,22 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                             <p className="text-sm text-gray-600">
                               {imageFile ? 'Photo selected' : 'Take or upload a photo'}
                             </p>
+                            <p className="text-xs text-gray-500 mt-1">Supports JPEG, PNG, WEBP (max 10MB)</p>
                           </div>
                         </label>
                         {imagePreview && (
-                          <div className="flex-shrink-0 w-20 h-20">
-                            <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded-lg" />
+                          <div className="flex-shrink-0 relative">
+                            <img src={imagePreview} alt="Office preview" className="w-20 h-20 object-cover rounded-lg" />
+                            <button
+                              type="button"
+                              onClick={handleRemoveImage}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                              aria-label="Remove photo"
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
                           </div>
                         )}
                       </div>
@@ -789,10 +1050,11 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
                         Additional Notes (Optional)
                       </label>
                       <textarea
+                        id="notes"
                         rows={3}
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
@@ -801,17 +1063,18 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                       />
                     </div>
 
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-start space-x-3">
                       <input
+                        id="agreement"
                         type="checkbox"
                         required
                         checked={agreement}
                         onChange={(e) => setAgreement(e.target.checked)}
-                        className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                        className="rounded border-gray-300 text-green-600 focus:ring-green-500 mt-1"
                       />
-                      <span className="text-sm text-gray-700">
+                      <label htmlFor="agreement" className="text-sm text-gray-700">
                         I confirm this is the correct location of an IEBC office and consent to submitting my approximate location for public benefit
-                      </span>
+                      </label>
                     </div>
                   </div>
 
@@ -819,16 +1082,23 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     <button
                       type="button"
                       onClick={() => setStep(2)}
-                      className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+                      className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-xl font-medium hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                     >
                       Back
                     </button>
                     <button
                       type="submit"
-                      disabled={!agreement}
-                      className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      disabled={!agreement || isSubmitting}
+                      className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                     >
-                      Review Submission
+                      {isSubmitting ? (
+                        <div className="flex items-center justify-center space-x-2">
+                          <LoadingSpinner size="small" />
+                          <span>Submitting...</span>
+                        </div>
+                      ) : (
+                        'Review Submission'
+                      )}
                     </button>
                   </div>
                 </form>
@@ -866,13 +1136,13 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                       <div className="flex space-x-3 pt-2">
                         <button
                           onClick={handleClose}
-                          className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+                          className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-xl font-medium hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                         >
                           Continue Browsing
                         </button>
                         <button
                           onClick={() => window.location.reload()}
-                          className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors"
+                          className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                         >
                           Reload Map & See Updates
                         </button>
