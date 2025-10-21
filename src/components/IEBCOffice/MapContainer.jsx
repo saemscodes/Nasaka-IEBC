@@ -36,32 +36,52 @@ const DoubleTapHandler = ({ onDoubleTap, doubleTapDelay = 300 }) => {
 };
 
 // Map controller component
-const MapController = forwardRef(({ center, zoom, onMapReady, onDoubleTap }, ref) => {
+const MapController = forwardRef(({ center, zoom, onMapReady, onDoubleTap, isModalMap }, ref) => {
   const map = useMap();
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
 
   useImperativeHandle(ref, () => ({
     flyTo: (latLng, zoomLevel, options) => {
+      if (!map || !isMapLoaded) {
+        console.warn('Map not ready for flyTo');
+        return;
+      }
       map.flyTo(latLng, zoomLevel, options);
     },
     setView: (latLng, zoomLevel) => {
+      if (!map || !isMapLoaded) {
+        console.warn('Map not ready for setView');
+        return;
+      }
       map.setView(latLng, zoomLevel);
     },
     getCenter: () => map.getCenter(),
     getZoom: () => map.getZoom(),
     getMap: () => map,
     getBounds: () => map.getBounds()
-  }), [map]);
+  }), [map, isMapLoaded]);
 
   useEffect(() => {
-    if (center) {
+    if (center && map && isMapLoaded) {
       map.setView(center, zoom);
     }
-  }, [center, zoom, map]);
+  }, [center, zoom, map, isMapLoaded]);
 
   useEffect(() => {
-    if (map && onMapReady) {
-      onMapReady(map);
+    const handleMapLoad = () => {
+      setIsMapLoaded(true);
+      if (onMapReady) {
+        onMapReady(map);
+      }
+    };
+
+    if (map) {
+      map.whenReady(handleMapLoad);
     }
+
+    return () => {
+      setIsMapLoaded(false);
+    };
   }, [map, onMapReady]);
 
   return (
@@ -73,23 +93,31 @@ const MapController = forwardRef(({ center, zoom, onMapReady, onDoubleTap }, ref
 
 MapController.displayName = 'MapController';
 
-const MapContainer = forwardRef(({
-  center,
-  zoom,
-  children,
-  className,
-  onMapReady,
-  onDoubleTap,
-  ...props
+const MapContainer = forwardRef(({ 
+  center, 
+  zoom, 
+  children, 
+  className, 
+  onMapReady, 
+  onDoubleTap, 
+  isModalMap = false,
+  onClick,
+  ...props 
 }, ref) => {
   const defaultCenter = [-1.286389, 36.817223]; // Nairobi
-  const defaultZoom = 10;
+  const defaultZoom = isModalMap ? 16 : 10;
 
   const handleDoubleTap = useCallback((latlng) => {
     if (onDoubleTap) {
       onDoubleTap(latlng);
     }
   }, [onDoubleTap]);
+
+  const handleMapClick = useCallback((e) => {
+    if (onClick) {
+      onClick(e);
+    }
+  }, [onClick]);
 
   return (
     <div className="map-wrapper">
@@ -98,30 +126,32 @@ const MapContainer = forwardRef(({
         zoom={zoom || defaultZoom}
         className={`w-full h-full ${className || ''}`}
         style={{ 
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          zIndex: 'var(--z-map-base)'
+          position: 'absolute', 
+          top: 0, 
+          left: 0, 
+          width: '100%', 
+          height: '100%', 
+          zIndex: isModalMap ? 'var(--z-map-modal, 1000)' : 'var(--z-map-base, 1)'
         }}
         zoomControl={true}
         doubleClickZoom={false}
+        eventHandlers={{
+          click: handleMapClick
+        }}
         {...props}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        
-        <MapController
-          ref={ref}
-          center={center}
-          zoom={zoom}
-          onMapReady={onMapReady}
+        <MapController 
+          ref={ref} 
+          center={center} 
+          zoom={zoom} 
+          onMapReady={onMapReady} 
           onDoubleTap={handleDoubleTap}
+          isModalMap={isModalMap}
         />
-        
         {children}
       </LeafletMap>
     </div>
