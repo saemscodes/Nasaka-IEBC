@@ -118,7 +118,7 @@ const isValidCoordinate = (lat, lng) => {
 // Enhanced client-side URL expansion with timeout
 const expandShortUrl = async (shortUrl) => {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
   
   try {
     const response = await fetch(shortUrl, {
@@ -219,6 +219,123 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     }
   };
 
+  // Add marker to map function
+  const addMarkerToMap = useCallback((position, method = selectedMethod) => {
+    if (!mapRef.current || !position || !position.lat || !position.lng) {
+      console.warn('Cannot add marker: invalid position or map not ready');
+      return;
+    }
+
+    if (isNaN(position.lat) || isNaN(position.lng)) {
+      console.error('Invalid coordinates for marker:', position);
+      return;
+    }
+    
+    try {
+      if (markerRef.current) {
+        mapRef.current.removeLayer(markerRef.current);
+      }
+      
+      markerRef.current = L.marker([position.lat, position.lng], {
+        icon: createCustomIcon(),
+        draggable: method === 'drop_pin'
+      }).addTo(mapRef.current);
+      
+      if (method === 'drop_pin') {
+        markerRef.current.on('dragend', (event) => {
+          const newPosition = event.target.getLatLng();
+          if (newPosition && !isNaN(newPosition.lat) && !isNaN(newPosition.lng)) {
+            setPosition({ lat: newPosition.lat, lng: newPosition.lng });
+            setAccuracy(5);
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error adding marker to map:', error);
+    }
+  }, [selectedMethod]);
+
+  // Add accuracy circle function
+  const addAccuracyCircle = useCallback((position, accuracyValue) => {
+    if (!mapRef.current || !position || !position.lat || !position.lng || !accuracyValue) {
+      return;
+    }
+
+    if (isNaN(position.lat) || isNaN(position.lng) || isNaN(accuracyValue) || accuracyValue <= 0) {
+      console.warn('Invalid parameters for accuracy circle:', { position, accuracyValue });
+      return;
+    }
+    
+    try {
+      if (accuracyCircleRef.current) {
+        mapRef.current.removeLayer(accuracyCircleRef.current);
+      }
+      
+      const limitedAccuracy = Math.min(accuracyValue, 1000);
+      accuracyCircleRef.current = L.circle([position.lat, position.lng], {
+        radius: limitedAccuracy,
+        color: '#34C759',
+        fillColor: '#34C759',
+        fillOpacity: 0.1,
+        weight: 2,
+        opacity: 0.6
+      }).addTo(mapRef.current);
+    } catch (error) {
+      console.error('Error adding accuracy circle:', error);
+    }
+  }, []);
+
+  // Handle map click function
+  const handleMapClick = useCallback((e) => {
+    if (selectedMethod === 'drop_pin' && e && e.latlng) {
+      const { lat, lng } = e.latlng;
+      
+      if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
+        console.error('Invalid map click coordinates:', e.latlng);
+        return;
+      }
+
+      const clickedPosition = { lat, lng };
+      setPosition(clickedPosition);
+      setAccuracy(5);
+      
+      if (mapRef.current) {
+        mapRef.current.flyTo([lat, lng], 16, { duration: 0.5 });
+        addMarkerToMap(clickedPosition, 'drop_pin');
+        addAccuracyCircle(clickedPosition, 5);
+      }
+    }
+  }, [selectedMethod, addMarkerToMap, addAccuracyCircle]);
+
+  // Handle map ready function
+  const handleMapReady = useCallback((map) => {
+    mapRef.current = map;
+    setIsMapReady(true);
+    
+    // Ensure click events are captured for drop pin mode
+    if (map && typeof map.on === 'function') {
+      map.on('click', handleMapClick);
+    }
+    
+    if (position) {
+      addMarkerToMap(position);
+      addAccuracyCircle(position, accuracy);
+    }
+  }, [position, accuracy, handleMapClick, addMarkerToMap, addAccuracyCircle]);
+
+  // Initialize map with user location
+  const initializeMapWithUserLocation = useCallback(() => {
+    if (userLocation?.latitude && userLocation?.longitude) {
+      const userPos = { lat: userLocation.latitude, lng: userLocation.longitude };
+      setMapCenter([userLocation.latitude, userLocation.longitude]);
+      setMapZoom(16);
+      
+      if (mapRef.current) {
+        mapRef.current.flyTo([userLocation.latitude, userLocation.longitude], 16, { duration: 1 });
+      }
+    }
+  }, [userLocation]);
+
   // Check for duplicate offices when position changes
   useEffect(() => {
     const checkDuplicateOffices = async () => {
@@ -280,14 +397,14 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         throw new Error('Failed to retrieve valid location data');
       }
 
-      const { latitude, longitude, accuracy = 50 } = pos;
+      const { latitude, longitude, accuracy: posAccuracy = 50 } = pos;
       
       if (isNaN(latitude) || isNaN(longitude)) {
         throw new Error('Invalid coordinates received from GPS');
       }
 
       const capturedPosition = { lat: latitude, lng: longitude };
-      const limitedAccuracy = Math.min(accuracy, 1000);
+      const limitedAccuracy = Math.min(posAccuracy, 1000);
       
       setPosition(capturedPosition);
       setAccuracy(limitedAccuracy);
@@ -392,118 +509,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     }
   };
 
-  const handleMapReady = useCallback((map) => {
-    mapRef.current = map;
-    setIsMapReady(true);
-    
-    // Ensure click events are captured for drop pin mode
-    if (map && typeof map.on === 'function') {
-      map.on('click', handleMapClick);
-    }
-    
-    if (position) {
-      addMarkerToMap(position);
-      addAccuracyCircle(position, accuracy);
-    }
-  }, [position, accuracy, handleMapClick, addMarkerToMap, addAccuracyCircle]);
-
-  const addMarkerToMap = useCallback((position) => {
-    if (!mapRef.current || !position || !position.lat || !position.lng) {
-      console.warn('Cannot add marker: invalid position or map not ready');
-      return;
-    }
-
-    if (isNaN(position.lat) || isNaN(position.lng)) {
-      console.error('Invalid coordinates for marker:', position);
-      return;
-    }
-    
-    try {
-      if (markerRef.current) {
-        mapRef.current.removeLayer(markerRef.current);
-      }
-      
-      markerRef.current = L.marker([position.lat, position.lng], {
-        icon: createCustomIcon(),
-        draggable: selectedMethod === 'drop_pin'
-      }).addTo(mapRef.current);
-      
-      if (selectedMethod === 'drop_pin') {
-        markerRef.current.on('dragend', (event) => {
-          const newPosition = event.target.getLatLng();
-          if (newPosition && !isNaN(newPosition.lat) && !isNaN(newPosition.lng)) {
-            setPosition({ lat: newPosition.lat, lng: newPosition.lng });
-            setAccuracy(5); // Manual placement = high confidence
-          }
-        });
-      }
-    } catch (error) {
-      console.error('Error adding marker to map:', error);
-    }
-  }, [selectedMethod]);
-
-  const addAccuracyCircle = useCallback((position, accuracy) => {
-    if (!mapRef.current || !position || !position.lat || !position.lng || !accuracy) {
-      return;
-    }
-
-    if (isNaN(position.lat) || isNaN(position.lng) || isNaN(accuracy) || accuracy <= 0) {
-      console.warn('Invalid parameters for accuracy circle:', { position, accuracy });
-      return;
-    }
-    
-    try {
-      if (accuracyCircleRef.current) {
-        mapRef.current.removeLayer(accuracyCircleRef.current);
-      }
-      
-      const limitedAccuracy = Math.min(accuracy, 1000);
-      accuracyCircleRef.current = L.circle([position.lat, position.lng], {
-        radius: limitedAccuracy,
-        color: '#34C759',
-        fillColor: '#34C759',
-        fillOpacity: 0.1,
-        weight: 2,
-        opacity: 0.6
-      }).addTo(mapRef.current);
-    } catch (error) {
-      console.error('Error adding accuracy circle:', error);
-    }
-  }, []);
-
-  const initializeMapWithUserLocation = useCallback(() => {
-    if (userLocation?.latitude && userLocation?.longitude) {
-      const userPos = { lat: userLocation.latitude, lng: userLocation.longitude };
-      setMapCenter([userLocation.latitude, userLocation.longitude]);
-      setMapZoom(16);
-      
-      if (mapRef.current) {
-        mapRef.current.flyTo([userLocation.latitude, userLocation.longitude], 16, { duration: 1 });
-      }
-    }
-  }, [userLocation]);
-
-  const handleMapClick = useCallback((e) => {
-    if (selectedMethod === 'drop_pin' && e && e.latlng) {
-      const { lat, lng } = e.latlng;
-      
-      if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
-        console.error('Invalid map click coordinates:', e.latlng);
-        return;
-      }
-
-      const clickedPosition = { lat, lng };
-      setPosition(clickedPosition);
-      setAccuracy(5);
-      
-      if (mapRef.current) {
-        mapRef.current.flyTo([lat, lng], 16, { duration: 0.5 });
-        addMarkerToMap(clickedPosition);
-        addAccuracyCircle(clickedPosition, 5);
-      }
-    }
-  }, [selectedMethod, addMarkerToMap, addAccuracyCircle]);
-
   const handleImageSelect = useCallback(async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -512,7 +517,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       if (!file.type.startsWith('image/')) {
         throw new Error('Please select an image file (JPEG, PNG, etc.)');
       }
-      if (file.size > 10 * 1024 * 1024) { // Increased to 10MB
+      if (file.size > 10 * 1024 * 1024) {
         throw new Error('Image must be smaller than 10MB');
       }
       
@@ -650,13 +655,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       warning: 'bg-yellow-50 border-yellow-200 text-yellow-700',
       success: 'bg-green-50 border-green-200 text-green-700',
       info: 'bg-blue-50 border-blue-200 text-blue-700'
-    };
-    
-    const iconStyles = {
-      error: 'text-red-600',
-      warning: 'text-yellow-600',
-      success: 'text-green-600',
-      info: 'text-blue-600'
     };
     
     const icons = {
