@@ -186,32 +186,76 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     return CONSTITUENCY_SUGGESTIONS[formData.submitted_county] || [];
   }, [formData.submitted_county]);
 
+  // Safe duplicate office check function
+  const safeFindDuplicateOffices = async (lat, lng, name, radius = 200) => {
+    try {
+      if (typeof lat !== 'number' || typeof lng !== 'number') {
+        throw new Error('Invalid coordinates');
+      }
+      
+      // Validate Kenya bounds
+      const KENYA_BOUNDS = {
+        minLat: -4.678, maxLat: 5.506, 
+        minLng: 33.908, maxLng: 41.899
+      };
+      
+      if (lat < KENYA_BOUNDS.minLat || lat > KENYA_BOUNDS.maxLat || 
+          lng < KENYA_BOUNDS.minLng || lng > KENYA_BOUNDS.maxLng) {
+        throw new Error('Coordinates outside Kenya bounds');
+      }
+
+      const { data, error } = await supabase.rpc('find_duplicate_offices', {
+        p_lat: lat,
+        p_lng: lng,
+        p_name: String(name || ''),
+        p_radius_meters: Math.max(50, Math.min(radius, 1000))
+      });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.warn('Safe duplicate check failed:', error.message);
+      return [];
+    }
+  };
+
   // Check for duplicate offices when position changes
   useEffect(() => {
     const checkDuplicateOffices = async () => {
-      if (!position) return;
+      if (!position || typeof position.lat !== 'number' || typeof position.lng !== 'number') {
+        return;
+      }
       
       setIsCheckingDuplicates(true);
       try {
-        const { data, error } = await supabase.rpc('find_duplicate_offices', {
-          p_lat: position.lat,
-          p_lng: position.lng,
-          p_name: formData.submitted_office_location || '',
-          p_radius_meters: 200
-        });
-        
-        if (!error && data) {
-          setDuplicateOffices(data.filter(office => office.is_likely_duplicate));
-        }
+        const results = await safeFindDuplicateOffices(
+          position.lat, 
+          position.lng, 
+          formData.submitted_office_location, 
+          200
+        );
+        setDuplicateOffices(results.filter(office => office.is_likely_duplicate === true));
       } catch (error) {
-        console.error('Error checking duplicates:', error);
+        console.error('Duplicate check failed:', error);
+        setDuplicateOffices([]);
       } finally {
         setIsCheckingDuplicates(false);
       }
     };
-    
-    checkDuplicateOffices();
+
+    const timeoutId = setTimeout(checkDuplicateOffices, 500);
+    return () => clearTimeout(timeoutId);
   }, [position, formData.submitted_office_location]);
+
+  // Auto-advance to details when position is set (for non-GPS methods)
+  useEffect(() => {
+    if (position && selectedMethod !== 'current_location' && step === 2) {
+      const timer = setTimeout(() => {
+        setStep(3);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [position, selectedMethod, step]);
 
   // Method selection handlers
   const handleMethodSelect = (method) => {
@@ -352,11 +396,16 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     mapRef.current = map;
     setIsMapReady(true);
     
+    // Ensure click events are captured for drop pin mode
+    if (map && typeof map.on === 'function') {
+      map.on('click', handleMapClick);
+    }
+    
     if (position) {
       addMarkerToMap(position);
       addAccuracyCircle(position, accuracy);
     }
-  }, [position, accuracy]);
+  }, [position, accuracy, handleMapClick, addMarkerToMap, addAccuracyCircle]);
 
   const addMarkerToMap = useCallback((position) => {
     if (!mapRef.current || !position || !position.lat || !position.lng) {
@@ -583,16 +632,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     resetForm();
     onClose();
   }, [resetForm, onClose]);
-
-  // Auto-advance to details if we have position and method is not current_location
-  useEffect(() => {
-    if (position && selectedMethod !== 'current_location' && step === 2) {
-      const timer = setTimeout(() => {
-        setStep(3);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [position, selectedMethod, step]);
 
   useEffect(() => {
     return () => {
