@@ -189,18 +189,6 @@ const GeoJSONLayerManager = ({
         fillOpacity: 0.1
       }
     },
-    'constituencies': {
-      name: 'Constituency Boundaries',
-      url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/constituencies.geojson',
-      type: 'geojson',
-      style: {
-        color: '#059669',
-        weight: 2,
-        opacity: 0.7,
-        fillColor: '#10b981',
-        fillOpacity: 0.1
-      }
-    },
     'healthcare-facilities': {
       name: 'Healthcare Facilities across the Country',
       url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/healthcare_facilities.geojson',
