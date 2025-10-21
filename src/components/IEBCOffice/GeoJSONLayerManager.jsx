@@ -1,4 +1,3 @@
-// src/components/IEBCOffice/GeoJSONLayerManager.jsx
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { GeoJSON, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -66,6 +65,7 @@ const GeoJSONLayerManager = ({
   const map = useMap();
   const [layerData, setLayerData] = useState({});
   const [loading, setLoading] = useState({});
+  const [layerErrors, setLayerErrors] = useState({});
   const geoJsonLayersRef = useRef({});
 
   const liveOfficesGeoJSON = useMemo(() => {
@@ -204,7 +204,7 @@ const GeoJSONLayerManager = ({
   }), [selectedOffice, liveOfficesGeoJSON]);
 
   const fetchLayerData = useCallback(async (layerId) => {
-    if (layerData[layerId]) return;
+    if (layerData[layerId] || layerErrors[layerId]) return;
     
     if (layerId === 'iebc-offices' && liveOfficesGeoJSON.features.length > 0) {
       setLayerData(prev => ({ ...prev, [layerId]: liveOfficesGeoJSON }));
@@ -214,21 +214,48 @@ const GeoJSONLayerManager = ({
     setLoading(prev => ({ ...prev, [layerId]: true }));
     try {
       const config = layerConfigs[layerId];
+      
       if (layerId === 'iebc-offices' && liveOfficesGeoJSON.features.length > 0) {
         setLayerData(prev => ({ ...prev, [layerId]: liveOfficesGeoJSON }));
         return;
       }
       
+      if (!config?.url) {
+        throw new Error(`No URL configured for layer: ${layerId}`);
+      }
+
       const response = await fetch(config.url);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Invalid content type: Expected JSON');
+      }
+      
       const geojson = await response.json();
+      
+      if (!geojson || !geojson.type) {
+        throw new Error('Invalid GeoJSON format');
+      }
+      
       setLayerData(prev => ({ ...prev, [layerId]: geojson }));
+      setLayerErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[layerId];
+        return newErrors;
+      });
     } catch (error) {
-      console.error(`Error loading GeoJSON for ${layerId}:`, error);
+      console.warn(`Failed to load GeoJSON for ${layerId}:`, error.message);
+      setLayerErrors(prev => ({ 
+        ...prev, 
+        [layerId]: error.message 
+      }));
     } finally {
       setLoading(prev => ({ ...prev, [layerId]: false }));
     }
-  }, [layerData, layerConfigs, liveOfficesGeoJSON]);
+  }, [layerData, layerConfigs, liveOfficesGeoJSON, layerErrors]);
 
   const onEachFeature = useCallback((feature, layer) => {
     if (feature.properties && (feature.properties.id || feature.properties.constituency_code)) {
@@ -311,7 +338,7 @@ const GeoJSONLayerManager = ({
 
   useEffect(() => {
     activeLayers.forEach(layerId => {
-      if (layerConfigs[layerId]) {
+      if (layerConfigs[layerId] && !layerErrors[layerId]) {
         fetchLayerData(layerId);
       }
     });
@@ -322,7 +349,7 @@ const GeoJSONLayerManager = ({
         delete geoJsonLayersRef.current[layerId];
       }
     });
-  }, [activeLayers, fetchLayerData, layerConfigs, map]);
+  }, [activeLayers, fetchLayerData, layerConfigs, map, layerErrors]);
 
   useEffect(() => {
     if (activeLayers.includes('iebc-offices') && liveOfficesGeoJSON.features.length > 0) {
@@ -339,7 +366,6 @@ const GeoJSONLayerManager = ({
     
     const hasValidCoords = lat && lng && !isNaN(lat) && !isNaN(lng);
     
-    // Enhanced styles with dark mode support
     const popupStyles = `
       <style>
         .popup-container { 
@@ -476,21 +502,18 @@ const GeoJSONLayerManager = ({
           height: 16px; 
         }
         
-        /* Light mode specific button colors */
         .nav-button.car { background: #007AFF; }
         .nav-button.walk { background: #34C759; }
         .nav-button.transit { background: #AF52DE; }
         .nav-button.bike { background: #FF9500; }
         .copy-button { background: #8E8E93; }
         
-        /* Dark mode specific button colors - slightly darker for better contrast */
         .dark .nav-button.car { background: #0056CC; }
         .dark .nav-button.walk { background: #2AA44F; }
         .dark .nav-button.transit { background: #8E44CD; }
         .dark .nav-button.bike { background: #E68500; }
         .dark .copy-button { background: #636366; }
         
-        /* SVG icon colors for light mode */
         .nav-button .icon,
         .copy-button .icon {
           fill: #ffffff;
@@ -586,8 +609,10 @@ const GeoJSONLayerManager = ({
       {activeLayers.map(layerId => {
         const config = layerConfigs[layerId];
         const data = layerData[layerId];
+        const error = layerErrors[layerId];
         
-        if (!data || !config) return null;
+        if (!config || error) return null;
+        if (!data) return null;
         
         return (
           <GeoJSON
