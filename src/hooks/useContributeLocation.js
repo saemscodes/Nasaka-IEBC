@@ -8,6 +8,7 @@ export const useContributeLocation = () => {
   const [isFetchingOSM, setIsFetchingOSM] = useState(false);
   const fetchedLocations = useRef(new Set());
 
+  // Move all helper functions to the top to avoid circular dependencies
   const calculateDistance = useCallback((lat1, lon1, lat2, lon2) => {
     const R = 6371000;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -126,173 +127,56 @@ export const useContributeLocation = () => {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }, []);
 
-  const fetchOSMDataForLocation = useCallback(async (latitude, longitude, radiusMeters = 10000) => {
-    const locationKey = generateLocationKey(latitude, longitude, radiusMeters);
-    
-    if (fetchedLocations.current.has(locationKey)) {
-      console.log('OSM data already fetched for this location:', locationKey);
-      return { landmarksAdded: 0, totalProcessed: 0 };
+  const calculateWeightedPosition = useCallback((points) => {
+    if (!points || !Array.isArray(points) || points.length === 0) {
+      console.warn('No points provided for weighted position calculation');
+      return null;
     }
 
-    setIsFetchingOSM(true);
     try {
-      console.log('Fetching OSM data for location:', { latitude, longitude, radiusMeters });
+      let totalWeight = 0;
+      let weightedLat = 0;
+      let weightedLng = 0;
 
-      const { data, error } = await supabase.rpc('fetch_and_store_osm_landmarks', {
-        p_lat: latitude,
-        p_lng: longitude,
-        p_radius_meters: radiusMeters
+      points.forEach(point => {
+        if (!point || !point.latitude || !point.longitude || isNaN(point.latitude) || isNaN(point.longitude)) {
+          console.warn('Invalid point in triangulation data:', point);
+          return;
+        }
+
+        const accuracy = point.accuracy || 50;
+        const weight = 1 / Math.max(accuracy, 1);
+        
+        weightedLat += point.latitude * weight;
+        weightedLng += point.longitude * weight;
+        totalWeight += weight;
       });
 
-      if (error) {
-        console.warn('OSM data fetch failed:', error);
-        return { landmarksAdded: 0, totalProcessed: 0 };
+      if (totalWeight === 0 || isNaN(totalWeight)) {
+        console.warn('Total weight is zero, using first point as fallback');
+        return {
+          latitude: points[0].latitude,
+          longitude: points[0].longitude,
+          accuracy: points[0].accuracy || 50
+        };
       }
 
-      if (data && data.length > 0) {
-        const result = data[0];
-        console.log(`OSM data fetch successful: ${result.landmarks_added} new landmarks added from ${result.total_landmarks} features`);
-        
-        fetchedLocations.current.add(locationKey);
-        
-        return result;
-      }
+      const result = {
+        latitude: weightedLat / totalWeight,
+        longitude: weightedLng / totalWeight,
+        accuracy: Math.min(...points.map(p => p.accuracy || 50))
+      };
 
-      return { landmarksAdded: 0, totalProcessed: 0 };
+      console.log('Weighted position calculated:', result);
+      return result;
 
     } catch (err) {
-      console.error('Error fetching OSM data:', err);
-      return { landmarksAdded: 0, totalProcessed: 0 };
-    } finally {
-      setIsFetchingOSM(false);
+      console.error('Error calculating weighted position:', err);
+      return null;
     }
-  }, [generateLocationKey]);
+  }, []);
 
-  const getCurrentPosition = useCallback(async (options = {}) => {
-    const { enableOSMFetching = true, osmRadius = 10000 } = options;
-    
-    return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        reject(new Error('Geolocation is not supported by this browser'));
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const positionData = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy: position.coords.accuracy,
-            altitude: position.coords.altitude,
-            altitudeAccuracy: position.coords.altitudeAccuracy,
-            heading: position.coords.heading,
-            speed: position.coords.speed,
-            timestamp: position.timestamp
-          };
-
-          if (enableOSMFetching) {
-            try {
-              await fetchOSMDataForLocation(
-                positionData.latitude, 
-                positionData.longitude, 
-                osmRadius
-              );
-            } catch (osmError) {
-              console.warn('Background OSM fetch failed:', osmError);
-            }
-          }
-
-          resolve(positionData);
-        },
-        (error) => {
-          let errorMessage;
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              errorMessage = 'Location access denied. Please enable location permissions in your browser settings.';
-              break;
-            case error.POSITION_UNAVAILABLE:
-              errorMessage = 'Location information is unavailable.';
-              break;
-            case error.TIMEOUT:
-              errorMessage = 'Location request timed out. Please try again.';
-              break;
-            default:
-              errorMessage = 'An unknown error occurred while getting your location.';
-          }
-          reject(new Error(errorMessage));
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 0,
-          ...options
-        }
-      );
-    });
-  }, [fetchOSMDataForLocation]);
-
-  const findOptimalTriangulationLandmarks = useCallback(async (latitude, longitude, radiusMeters = 2000, options = {}) => {
-    const { ensureData = true, maxRetries = 2 } = options;
-    
-    try {
-      console.log('Searching for optimal triangulation landmarks...', { 
-        latitude, 
-        longitude, 
-        radiusMeters,
-        ensureData
-      });
-
-      if (ensureData) {
-        const osmResult = await fetchOSMDataForLocation(latitude, longitude, radiusMeters);
-        console.log('OSM data enrichment result:', osmResult);
-      }
-
-      let landmarks = [];
-      let attempt = 0;
-
-      while (attempt <= maxRetries && landmarks.length === 0) {
-        try {
-          const { data: rpcData, error: rpcError } = await supabase
-            .rpc('get_optimal_triangulation_landmarks', {
-              p_lat: latitude,
-              p_lng: longitude,
-              p_radius_meters: radiusMeters,
-              p_max_landmarks: 8
-            });
-
-          if (!rpcError && rpcData && rpcData.length > 0) {
-            console.log(`Found ${rpcData.length} enhanced triangulation landmarks on attempt ${attempt + 1}`);
-            landmarks = rpcData;
-            break;
-          } else if (rpcError) {
-            console.warn(`RPC attempt ${attempt + 1} failed:`, rpcError);
-          }
-        } catch (rpcError) {
-          console.warn(`RPC call attempt ${attempt + 1} failed:`, rpcError);
-        }
-
-        attempt++;
-        
-        if (attempt <= maxRetries && landmarks.length === 0) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-        }
-      }
-
-      if (landmarks.length === 0) {
-        console.log('Using comprehensive fallback landmark detection...');
-        const fallbackLandmarks = await getFallbackLandmarks(latitude, longitude, radiusMeters);
-        landmarks = fallbackLandmarks;
-      }
-
-      console.log('Final landmarks found:', landmarks.length);
-      return landmarks;
-
-    } catch (err) {
-      console.error('Error in findOptimalTriangulationLandmarks:', err);
-      throw new Error(`Failed to find triangulation landmarks: ${err.message}`);
-    }
-  }, [fetchOSMDataForLocation, calculateDistance, calculateBearing, calculateLandmarkQuality, getDirectionFromBearing, determineSideOfRoad]);
-
+  // Define getFallbackLandmarks before findOptimalTriangulationLandmarks
   const getFallbackLandmarks = useCallback(async (latitude, longitude, radiusMeters) => {
     const fallbackLandmarks = [];
 
@@ -456,54 +340,109 @@ export const useContributeLocation = () => {
       .slice(0, 8);
   }, [calculateDistance, calculateBearing, calculateLandmarkQuality, getDirectionFromBearing, determineSideOfRoad]);
 
-  const calculateWeightedPosition = useCallback((points) => {
-    if (!points || !Array.isArray(points) || points.length === 0) {
-      console.warn('No points provided for weighted position calculation');
-      return null;
+  const fetchOSMDataForLocation = useCallback(async (latitude, longitude, radiusMeters = 10000) => {
+    const locationKey = generateLocationKey(latitude, longitude, radiusMeters);
+    
+    if (fetchedLocations.current.has(locationKey)) {
+      console.log('OSM data already fetched for this location:', locationKey);
+      return { landmarksAdded: 0, totalProcessed: 0 };
     }
 
+    setIsFetchingOSM(true);
     try {
-      let totalWeight = 0;
-      let weightedLat = 0;
-      let weightedLng = 0;
+      console.log('Fetching OSM data for location:', { latitude, longitude, radiusMeters });
 
-      points.forEach(point => {
-        if (!point || !point.latitude || !point.longitude || isNaN(point.latitude) || isNaN(point.longitude)) {
-          console.warn('Invalid point in triangulation data:', point);
-          return;
-        }
-
-        const accuracy = point.accuracy || 50;
-        const weight = 1 / Math.max(accuracy, 1);
-        
-        weightedLat += point.latitude * weight;
-        weightedLng += point.longitude * weight;
-        totalWeight += weight;
+      const { data, error } = await supabase.rpc('fetch_and_store_osm_landmarks', {
+        p_lat: latitude,
+        p_lng: longitude,
+        p_radius_meters: radiusMeters
       });
 
-      if (totalWeight === 0 || isNaN(totalWeight)) {
-        console.warn('Total weight is zero, using first point as fallback');
-        return {
-          latitude: points[0].latitude,
-          longitude: points[0].longitude,
-          accuracy: points[0].accuracy || 50
-        };
+      if (error) {
+        console.warn('OSM data fetch failed:', error);
+        return { landmarksAdded: 0, totalProcessed: 0 };
       }
 
-      const result = {
-        latitude: weightedLat / totalWeight,
-        longitude: weightedLng / totalWeight,
-        accuracy: Math.min(...points.map(p => p.accuracy || 50))
-      };
+      if (data && data.length > 0) {
+        const result = data[0];
+        console.log(`OSM data fetch successful: ${result.landmarks_added} new landmarks added from ${result.total_landmarks} features`);
+        
+        fetchedLocations.current.add(locationKey);
+        
+        return result;
+      }
 
-      console.log('Weighted position calculated:', result);
-      return result;
+      return { landmarksAdded: 0, totalProcessed: 0 };
 
     } catch (err) {
-      console.error('Error calculating weighted position:', err);
-      return null;
+      console.error('Error fetching OSM data:', err);
+      return { landmarksAdded: 0, totalProcessed: 0 };
+    } finally {
+      setIsFetchingOSM(false);
     }
-  }, []);
+  }, [generateLocationKey]);
+
+  const findOptimalTriangulationLandmarks = useCallback(async (latitude, longitude, radiusMeters = 2000, options = {}) => {
+    const { ensureData = true, maxRetries = 2 } = options;
+    
+    try {
+      console.log('Searching for optimal triangulation landmarks...', { 
+        latitude, 
+        longitude, 
+        radiusMeters,
+        ensureData
+      });
+
+      if (ensureData) {
+        const osmResult = await fetchOSMDataForLocation(latitude, longitude, radiusMeters);
+        console.log('OSM data enrichment result:', osmResult);
+      }
+
+      let landmarks = [];
+      let attempt = 0;
+
+      while (attempt <= maxRetries && landmarks.length === 0) {
+        try {
+          const { data: rpcData, error: rpcError } = await supabase
+            .rpc('get_optimal_triangulation_landmarks', {
+              p_lat: latitude,
+              p_lng: longitude,
+              p_radius_meters: radiusMeters,
+              p_max_landmarks: 8
+            });
+
+          if (!rpcError && rpcData && rpcData.length > 0) {
+            console.log(`Found ${rpcData.length} enhanced triangulation landmarks on attempt ${attempt + 1}`);
+            landmarks = rpcData;
+            break;
+          } else if (rpcError) {
+            console.warn(`RPC attempt ${attempt + 1} failed:`, rpcError);
+          }
+        } catch (rpcError) {
+          console.warn(`RPC call attempt ${attempt + 1} failed:`, rpcError);
+        }
+
+        attempt++;
+        
+        if (attempt <= maxRetries && landmarks.length === 0) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
+      }
+
+      if (landmarks.length === 0) {
+        console.log('Using comprehensive fallback landmark detection...');
+        const fallbackLandmarks = await getFallbackLandmarks(latitude, longitude, radiusMeters);
+        landmarks = fallbackLandmarks;
+      }
+
+      console.log('Final landmarks found:', landmarks.length);
+      return landmarks;
+
+    } catch (err) {
+      console.error('Error in findOptimalTriangulationLandmarks:', err);
+      throw new Error(`Failed to find triangulation landmarks: ${err.message}`);
+    }
+  }, [fetchOSMDataForLocation, getFallbackLandmarks]);
 
   const calculateEnhancedTriangulation = useCallback(async (userPosition, landmarks, options = {}) => {
     const { fetchAdditionalData = true } = options;
@@ -582,6 +521,69 @@ export const useContributeLocation = () => {
       return userPosition;
     }
   }, [findOptimalTriangulationLandmarks, calculateWeightedPosition]);
+
+  const getCurrentPosition = useCallback(async (options = {}) => {
+    const { enableOSMFetching = true, osmRadius = 10000 } = options;
+    
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported by this browser'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const positionData = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+            altitude: position.coords.altitude,
+            altitudeAccuracy: position.coords.altitudeAccuracy,
+            heading: position.coords.heading,
+            speed: position.coords.speed,
+            timestamp: position.timestamp
+          };
+
+          if (enableOSMFetching) {
+            try {
+              await fetchOSMDataForLocation(
+                positionData.latitude, 
+                positionData.longitude, 
+                osmRadius
+              );
+            } catch (osmError) {
+              console.warn('Background OSM fetch failed:', osmError);
+            }
+          }
+
+          resolve(positionData);
+        },
+        (error) => {
+          let errorMessage;
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = 'Location access denied. Please enable location permissions in your browser settings.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = 'Location information is unavailable.';
+              break;
+            case error.TIMEOUT:
+              errorMessage = 'Location request timed out. Please try again.';
+              break;
+            default:
+              errorMessage = 'An unknown error occurred while getting your location.';
+          }
+          reject(new Error(errorMessage));
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0,
+          ...options
+        }
+      );
+    });
+  }, [fetchOSMDataForLocation]);
 
   const convertImageToWebP = useCallback((file, quality = 0.8) => {
     return new Promise((resolve, reject) => {
