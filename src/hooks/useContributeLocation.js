@@ -764,7 +764,7 @@ export const useContributeLocation = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, []);
+  }, [generateDeviceFingerprint]);
 
   const manuallyFetchOSMData = useCallback(async (latitude, longitude, radiusMeters = 2000) => {
     return await fetchOSMDataForLocation(latitude, longitude, radiusMeters);
