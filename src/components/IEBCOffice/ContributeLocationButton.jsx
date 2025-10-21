@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import ContributeLocationModal from './ContributeLocationModal';
 
-const ContributeLocationButton = ({ userLocation, onSuccess, variant = "default", showLabel = true, className = "" }) => {
+const ContributeLocationButton = ({ userLocation, onSuccess, variant = "default", showLabel = false, className = "" }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleSuccess = (result) => {
@@ -44,7 +44,7 @@ const ContributeLocationButton = ({ userLocation, onSuccess, variant = "default"
       >
         <div className="flex items-center justify-center">
           <svg
-            className={`${showLabel ? 'w-5 h-5' : 'w-6 h-6'}`}
+            className="w-6 h-6"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
