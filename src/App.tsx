@@ -1,3 +1,4 @@
+// src/App.tsx
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -30,73 +31,21 @@ const queryClient = new QueryClient({
   },
 });
 
-// ✅ Admin Route Protection Component
-const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
-  const [isChecking, setIsChecking] = React.useState(true);
+// ✅ Complete list of 47 Kenyan counties
+const KENYAN_COUNTIES = [
+  "Baringo", "Bomet", "Bungoma", "Busia", "Elgeyo-Marakwet",
+  "Embu", "Garissa", "Homa Bay", "Isiolo", "Kajiado",
+  "Kakamega", "Kericho", "Kiambu", "Kilifi", "Kirinyaga",
+  "Kisii", "Kisumu", "Kitui", "Kwale", "Laikipia",
+  "Lamu", "Machakos", "Makueni", "Mandera", "Marsabit",
+  "Meru", "Migori", "Mombasa", "Murang'a", "Nairobi",
+  "Nakuru", "Nandi", "Narok", "Nyamira", "Nyandarua",
+  "Nyeri", "Samburu", "Siaya", "Taita-Taveta", "Tana River",
+  "Tharaka-Nithi", "Trans Nzoia", "Turkana", "Uasin Gishu",
+  "Vihiga", "Wajir", "West Pokot"
+];
 
-  React.useEffect(() => {
-    // Check if user is already authenticated (from session storage)
-    const checkAuth = () => {
-      const adminAuth = sessionStorage.getItem('admin_authenticated');
-      const authTimestamp = sessionStorage.getItem('admin_auth_timestamp');
-      
-      if (adminAuth === 'true' && authTimestamp) {
-        const timestamp = parseInt(authTimestamp);
-        const now = Date.now();
-        const sessionDuration = 2 * 60 * 60 * 1000; // 2 hours
-        
-        if (now - timestamp < sessionDuration) {
-          setIsAuthenticated(true);
-        } else {
-          // Session expired
-          sessionStorage.removeItem('admin_authenticated');
-          sessionStorage.removeItem('admin_auth_timestamp');
-        }
-      }
-      setIsChecking(false);
-    };
-
-    checkAuth();
-  }, []);
-
-  const handleLogin = (success: boolean) => {
-    if (success) {
-      setIsAuthenticated(true);
-      sessionStorage.setItem('admin_authenticated', 'true');
-      sessionStorage.setItem('admin_auth_timestamp', Date.now().toString());
-    }
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    sessionStorage.removeItem('admin_authenticated');
-    sessionStorage.removeItem('admin_auth_timestamp');
-  };
-
-  if (isChecking) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Verifying admin access...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <AdminLogin onLogin={handleLogin} />
-    );
-  }
-
-  return React.cloneElement(children as React.ReactElement, { 
-    onLogout: handleLogout 
-  });
-};
-
-// ✅ Simple Admin Login Component (can be moved to separate file)
+// ✅ Simple Admin Login Component
 const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
@@ -118,8 +67,7 @@ const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
         onLogin(true);
       } else {
         setError('Invalid admin password');
-        // Log failed attempt (in production, you'd want to track this)
-        console.warn('Failed admin login attempt from IP');
+        console.warn('Failed admin login attempt');
       }
     } catch (err) {
       setError('Authentication failed. Please try again.');
@@ -207,6 +155,72 @@ const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
   );
 };
 
+// ✅ Admin Route Protection Component
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+  const [isChecking, setIsChecking] = React.useState(true);
+
+  React.useEffect(() => {
+    const checkAuth = () => {
+      const adminAuth = sessionStorage.getItem('admin_authenticated');
+      const authTimestamp = sessionStorage.getItem('admin_auth_timestamp');
+      
+      if (adminAuth === 'true' && authTimestamp) {
+        const timestamp = parseInt(authTimestamp);
+        const now = Date.now();
+        const sessionDuration = 2 * 60 * 60 * 1000; // 2 hours
+        
+        if (now - timestamp < sessionDuration) {
+          setIsAuthenticated(true);
+        } else {
+          sessionStorage.removeItem('admin_authenticated');
+          sessionStorage.removeItem('admin_auth_timestamp');
+        }
+      }
+      setIsChecking(false);
+    };
+
+    checkAuth();
+  }, []);
+
+  const handleLogin = (success: boolean) => {
+    if (success) {
+      setIsAuthenticated(true);
+      sessionStorage.setItem('admin_authenticated', 'true');
+      sessionStorage.setItem('admin_auth_timestamp', Date.now().toString());
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    sessionStorage.removeItem('admin_authenticated');
+    sessionStorage.removeItem('admin_auth_timestamp');
+  };
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Verifying admin access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <AdminLogin onLogin={handleLogin} />;
+  }
+
+  return React.cloneElement(children as React.ReactElement, { 
+    onLogout: handleLogout,
+    counties: KENYAN_COUNTIES
+  });
+};
+
+// ✅ Lazy-loaded Contributions Dashboard
+const LazyContributionsDashboard = React.lazy(() => import('@/components/Admin/ContributionsDashboard'));
+
 const AppContent = () => {
   const { lenis } = useLenis();
 
@@ -234,8 +248,16 @@ const AppContent = () => {
           path="/admin/contributions" 
           element={
             <AdminRoute>
-              {/* We'll import this dynamically to reduce bundle size for regular users */}
-              {React.createElement(React.lazy(() => import('@/components/Admin/ContributionsDashboard')))}
+              <React.Suspense fallback={
+                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading Admin Dashboard...</p>
+                  </div>
+                </div>
+              }>
+                <LazyContributionsDashboard />
+              </React.Suspense>
             </AdminRoute>
           } 
         />
