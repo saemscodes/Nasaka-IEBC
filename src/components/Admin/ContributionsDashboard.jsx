@@ -53,6 +53,27 @@ interface ContributionsDashboardProps {
   counties: string[];
 }
 
+// Custom Map Container for Dashboard with Isolated Z-Index
+const DashboardMapContainer: React.FC<{
+  center: [number, number];
+  zoom: number;
+  children: React.ReactNode;
+}> = ({ center, zoom, children }) => {
+  return (
+    <div className="dashboard-map-container" style={{ 
+      position: 'relative',
+      width: '100%',
+      height: '100%',
+      zIndex: 1, // Low z-index for map within dashboard
+      isolation: 'isolate'
+    }}>
+      <MapContainer center={center} zoom={zoom} className="h-full w-full">
+        {children}
+      </MapContainer>
+    </div>
+  );
+};
+
 const ContributionCard: React.FC<{
   contribution: Contribution;
   onVerify: (contribution: Contribution) => void;
@@ -92,11 +113,15 @@ const ContributionCard: React.FC<{
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`rounded-xl border overflow-hidden ${
+      className={`contribution-card relative z-50 rounded-xl border overflow-hidden ${
         theme === 'dark' 
           ? 'bg-ios-dark-surface border-ios-dark-border' 
           : 'bg-white border-gray-200'
       }`}
+      style={{ 
+        position: 'relative',
+        zIndex: 50 // High z-index for card content
+      }}
     >
       {/* Header */}
       <div className={`p-4 border-b ${
@@ -127,11 +152,10 @@ const ContributionCard: React.FC<{
       <div className="p-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
           {/* Map Preview */}
-          <div className="h-48 rounded-lg overflow-hidden border">
-            <MapContainer
+          <div className="h-48 rounded-lg overflow-hidden border relative z-10">
+            <DashboardMapContainer
               center={[contribution.submitted_latitude, contribution.submitted_longitude]}
               zoom={15}
-              className="h-full w-full"
             >
               <GeoJSONLayerManager
                 activeLayers={['iebc-offices']}
@@ -143,11 +167,11 @@ const ContributionCard: React.FC<{
                 accuracy={contribution.submitted_accuracy_meters || 50}
                 color="#34C759"
               />
-            </MapContainer>
+            </DashboardMapContainer>
           </div>
 
           {/* Details */}
-          <div className="space-y-3">
+          <div className="space-y-3 relative z-50">
             <div>
               <label className="text-sm font-medium text-gray-700">Coordinates</label>
               <p className="text-sm text-gray-900 font-mono">
@@ -187,7 +211,7 @@ const ContributionCard: React.FC<{
 
         {/* Evidence Section */}
         {contribution.image_public_url && (
-          <div className="mb-4">
+          <div className="mb-4 relative z-50">
             <label className="text-sm font-medium text-gray-700 mb-2 block">Photo Evidence</label>
             <div className="flex space-x-4">
               <div className="w-32 h-32 rounded-lg overflow-hidden border">
@@ -236,7 +260,7 @@ const ContributionCard: React.FC<{
 
         {/* Warnings */}
         {contribution.duplicate_candidate_ids && contribution.duplicate_candidate_ids.length > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 relative z-50">
             <div className="flex items-center space-x-2">
               <svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
@@ -249,7 +273,7 @@ const ContributionCard: React.FC<{
         )}
 
         {contribution.confirmation_count && contribution.confirmation_count > 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 relative z-50">
             <div className="flex items-center space-x-2">
               <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -264,7 +288,7 @@ const ContributionCard: React.FC<{
         {/* Expandable Device Metadata */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className={`w-full text-left p-2 rounded-lg hover:bg-gray-50 transition-colors ${
+          className={`w-full text-left p-2 rounded-lg hover:bg-gray-50 transition-colors relative z-50 ${
             theme === 'dark' ? 'hover:bg-ios-dark-surface-hover' : ''
           }`}
         >
@@ -287,7 +311,7 @@ const ContributionCard: React.FC<{
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden"
+              className="overflow-hidden relative z-50"
             >
               <div className="mt-2 p-3 bg-gray-50 rounded-lg">
                 <pre className="text-xs text-gray-600 whitespace-pre-wrap">
@@ -300,7 +324,7 @@ const ContributionCard: React.FC<{
       </div>
 
       {/* Action Buttons */}
-      <div className={`p-4 border-t ${
+      <div className={`p-4 border-t relative z-50 ${
         theme === 'dark' ? 'border-ios-dark-border bg-ios-dark-surface' : 'border-gray-200 bg-gray-50'
       }`}>
         <div className="flex flex-wrap gap-2">
@@ -613,16 +637,26 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
 
   if (loading && safeContributions.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-64">
+      <div className="flex items-center justify-center min-h-64 relative z-[10000]">
         <LoadingSpinner size="large" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div 
+      className="contributions-dashboard min-h-screen bg-gray-50 relative"
+      style={{
+        zIndex: 10000, // Extremely high z-index for the entire dashboard
+        position: 'relative',
+        isolation: 'isolate'
+      }}
+    >
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div 
+        className="bg-white shadow-sm border-b relative z-[10001]"
+        style={{ zIndex: 10001 }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
@@ -648,7 +682,10 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
       </div>
 
       {/* Stats */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div 
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-[10001]"
+        style={{ zIndex: 10001 }}
+      >
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-sm border p-6">
             <div className="flex items-center">
@@ -716,7 +753,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6 relative z-[10001]">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
@@ -801,7 +838,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
 
         {/* Contributions Grid */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 relative z-[10001]">
             <div className="flex items-center space-x-2">
               <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -811,7 +848,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
           </div>
         )}
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 relative z-[10001]">
           {safeContributions.map((contribution) => (
             <ContributionCard
               key={contribution.id}
@@ -825,7 +862,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
         </div>
 
         {safeContributions.length === 0 && !loading && (
-          <div className="text-center py-12">
+          <div className="text-center py-12 relative z-[10001]">
             <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -834,6 +871,39 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
           </div>
         )}
       </div>
+
+      {/* CSS for Z-Index Isolation */}
+      <style>{`
+        .contributions-dashboard {
+          z-index: 10000 !important;
+          position: relative !important;
+        }
+        
+        .contributions-dashboard * {
+          position: relative !important;
+          z-index: inherit !important;
+        }
+        
+        .dashboard-map-container .leaflet-container {
+          z-index: 1 !important;
+          position: relative !important;
+        }
+        
+        .dashboard-map-container .leaflet-tile-pane,
+        .dashboard-map-container .leaflet-marker-pane,
+        .dashboard-map-container .leaflet-popup-pane {
+          z-index: 1 !important;
+        }
+        
+        .contribution-card {
+          z-index: 50 !important;
+        }
+        
+        /* Force all dashboard content above map */
+        .contributions-dashboard > * {
+          z-index: 10001 !important;
+        }
+      `}</style>
     </div>
   );
 };
