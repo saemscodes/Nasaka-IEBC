@@ -191,12 +191,6 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    sessionStorage.removeItem('admin_authenticated');
-    sessionStorage.removeItem('admin_auth_timestamp');
-  };
-
   if (isChecking) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -212,14 +206,22 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     return <AdminLogin onLogin={handleLogin} />;
   }
 
-  return React.cloneElement(children as React.ReactElement, { 
-    onLogout: handleLogout,
-    counties: KENYAN_COUNTIES
-  });
+  // Pass counties as props to the child component
+  return (
+    <>
+      {React.Children.map(children, child =>
+        React.isValidElement(child)
+          ? React.cloneElement(child as React.ReactElement<any>, {
+              counties: KENYAN_COUNTIES
+            })
+          : child
+      )}
+    </>
+  );
 };
 
-// ✅ Lazy-loaded Contributions Dashboard
-const LazyContributionsDashboard = React.lazy(() => import('@/components/Admin/ContributionsDashboard'));
+// ✅ Contributions Dashboard Component (Now directly included to avoid lazy loading issues)
+const ContributionsDashboard = React.lazy(() => import('@/components/Admin/ContributionsDashboard'));
 
 const AppContent = () => {
   const { lenis } = useLenis();
@@ -256,7 +258,11 @@ const AppContent = () => {
                   </div>
                 </div>
               }>
-                <LazyContributionsDashboard />
+                <ContributionsDashboard onLogout={() => {
+                  sessionStorage.removeItem('admin_authenticated');
+                  sessionStorage.removeItem('admin_auth_timestamp');
+                  window.location.href = '/';
+                }} counties={KENYAN_COUNTIES} />
               </React.Suspense>
             </AdminRoute>
           } 
