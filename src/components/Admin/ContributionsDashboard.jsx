@@ -64,7 +64,7 @@ const DashboardMapContainer: React.FC<{
       position: 'relative',
       width: '100%',
       height: '100%',
-      zIndex: 1, // Low z-index for map within dashboard
+      zIndex: 1,
       isolation: 'isolate'
     }}>
       <MapContainer center={center} zoom={zoom} className="h-full w-full">
@@ -113,37 +113,35 @@ const ContributionCard: React.FC<{
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`contribution-card relative z-50 rounded-xl border overflow-hidden ${
-        theme === 'dark' 
-          ? 'bg-ios-dark-surface border-ios-dark-border' 
-          : 'bg-white border-gray-200'
-      }`}
+      className="contribution-card relative z-50 rounded-xl border overflow-hidden bg-card text-card-foreground shadow-sm border-border"
       style={{ 
         position: 'relative',
-        zIndex: 50 // High z-index for card content
+        zIndex: 50
       }}
     >
       {/* Header */}
-      <div className={`p-4 border-b ${
-        theme === 'dark' ? 'border-ios-dark-border' : 'border-gray-200'
-      }`}>
+      <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-3">
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${getStatusColor(contribution.status)}-100 text-${getStatusColor(contribution.status)}-800`}>
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              theme === 'dark' 
+                ? `bg-${getStatusColor(contribution.status)}-900 text-${getStatusColor(contribution.status)}-100`
+                : `bg-${getStatusColor(contribution.status)}-100 text-${getStatusColor(contribution.status)}-800`
+            }`}>
               {getStatusText(contribution.status)}
             </span>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-muted-foreground">
               Confidence: {contribution.confidence_score || 0}%
             </span>
           </div>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-muted-foreground">
             {new Date(contribution.created_at).toLocaleDateString()}
           </div>
         </div>
-        <h3 className="font-semibold text-gray-900 truncate">
+        <h3 className="font-semibold text-foreground truncate">
           {contribution.submitted_office_location}
         </h3>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           {contribution.submitted_county} • {contribution.submitted_constituency}
         </p>
       </div>
@@ -152,7 +150,7 @@ const ContributionCard: React.FC<{
       <div className="p-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
           {/* Map Preview */}
-          <div className="h-48 rounded-lg overflow-hidden border relative z-10">
+          <div className="h-48 rounded-lg overflow-hidden border border-border relative z-10">
             <DashboardMapContainer
               center={[contribution.submitted_latitude, contribution.submitted_longitude]}
               zoom={15}
@@ -173,34 +171,34 @@ const ContributionCard: React.FC<{
           {/* Details */}
           <div className="space-y-3 relative z-50">
             <div>
-              <label className="text-sm font-medium text-gray-700">Coordinates</label>
-              <p className="text-sm text-gray-900 font-mono">
+              <label className="text-sm font-medium text-foreground mb-2">Coordinates</label>
+              <p className="text-sm text-foreground font-mono">
                 {contribution.submitted_latitude.toFixed(6)}, {contribution.submitted_longitude.toFixed(6)}
               </p>
             </div>
             
             <div>
-              <label className="text-sm font-medium text-gray-700">GPS Accuracy</label>
-              <p className="text-sm text-gray-900">
+              <label className="text-sm font-medium text-foreground mb-2">GPS Accuracy</label>
+              <p className="text-sm text-foreground">
                 {contribution.submitted_accuracy_meters ? `±${Math.round(contribution.submitted_accuracy_meters)}m` : 'Unknown'}
               </p>
             </div>
 
             {contribution.submitted_landmark && (
               <div>
-                <label className="text-sm font-medium text-gray-700">Landmark</label>
-                <p className="text-sm text-gray-900">{contribution.submitted_landmark}</p>
+                <label className="text-sm font-medium text-foreground mb-2">Landmark</label>
+                <p className="text-sm text-foreground">{contribution.submitted_landmark}</p>
               </div>
             )}
 
             {contribution.google_maps_link && (
               <div>
-                <label className="text-sm font-medium text-gray-700">Google Maps</label>
+                <label className="text-sm font-medium text-foreground mb-2">Google Maps</label>
                 <a 
                   href={contribution.google_maps_link} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:text-blue-800 truncate block"
+                  className="text-sm text-primary hover:text-primary/80 truncate block"
                 >
                   View on Maps
                 </a>
@@ -212,11 +210,11 @@ const ContributionCard: React.FC<{
         {/* Evidence Section */}
         {contribution.image_public_url && (
           <div className="mb-4 relative z-50">
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Photo Evidence</label>
+            <label className="text-sm font-medium text-foreground mb-2 block">Photo Evidence</label>
             <div className="flex space-x-4">
-              <div className="w-32 h-32 rounded-lg overflow-hidden border">
+              <div className="w-32 h-32 rounded-lg overflow-hidden border border-border">
                 {imageLoading && (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                  <div className="w-full h-full flex items-center justify-center bg-muted">
                     <LoadingSpinner size="small" />
                   </div>
                 )}
@@ -234,14 +232,14 @@ const ContributionCard: React.FC<{
                   <div className="flex items-center space-x-2 mb-2">
                     <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
                       contribution.exif_metadata.exif_gps_match 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-yellow-100 text-yellow-800'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' 
+                        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100'
                     }`}>
                       {contribution.exif_metadata.exif_gps_match ? '✓ EXIF GPS Matches' : '⚠ EXIF GPS Mismatch'}
                     </span>
                   </div>
                   
-                  <div className="text-xs text-gray-600 space-y-1">
+                  <div className="text-xs text-muted-foreground space-y-1">
                     <div>Device: {contribution.exif_metadata.exif_device || 'Unknown'}</div>
                     {contribution.exif_metadata.exif_timestamp && (
                       <div>Photo taken: {new Date(contribution.exif_metadata.exif_timestamp).toLocaleString()}</div>
@@ -260,12 +258,12 @@ const ContributionCard: React.FC<{
 
         {/* Warnings */}
         {contribution.duplicate_candidate_ids && contribution.duplicate_candidate_ids.length > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 relative z-50">
+          <div className="bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800 rounded-lg p-3 mb-4 relative z-50">
             <div className="flex items-center space-x-2">
-              <svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
-              <span className="text-sm text-yellow-700">
+              <span className="text-sm text-yellow-700 dark:text-yellow-300">
                 {contribution.duplicate_candidate_ids.length} potential duplicate(s) found within 200m
               </span>
             </div>
@@ -273,12 +271,12 @@ const ContributionCard: React.FC<{
         )}
 
         {contribution.confirmation_count && contribution.confirmation_count > 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 relative z-50">
+          <div className="bg-blue-50 border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800 rounded-lg p-3 mb-4 relative z-50">
             <div className="flex items-center space-x-2">
-              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              <span className="text-sm text-blue-700">
+              <span className="text-sm text-blue-700 dark:text-blue-300">
                 {contribution.confirmation_count} community confirmation{contribution.confirmation_count > 1 ? 's' : ''}
               </span>
             </div>
@@ -288,14 +286,12 @@ const ContributionCard: React.FC<{
         {/* Expandable Device Metadata */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className={`w-full text-left p-2 rounded-lg hover:bg-gray-50 transition-colors relative z-50 ${
-            theme === 'dark' ? 'hover:bg-ios-dark-surface-hover' : ''
-          }`}
+          className="w-full text-left p-2 rounded-lg hover:bg-accent transition-colors relative z-50 text-foreground"
         >
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Device Metadata</span>
+            <span className="text-sm font-medium text-foreground">Device Metadata</span>
             <svg 
-              className={`w-4 h-4 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+              className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`}
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
@@ -313,8 +309,8 @@ const ContributionCard: React.FC<{
               exit={{ opacity: 0, height: 0 }}
               className="overflow-hidden relative z-50"
             >
-              <div className="mt-2 p-3 bg-gray-50 rounded-lg">
-                <pre className="text-xs text-gray-600 whitespace-pre-wrap">
+              <div className="mt-2 p-3 bg-muted rounded-lg">
+                <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
                   {JSON.stringify(contribution.device_metadata, null, 2)}
                 </pre>
               </div>
@@ -324,15 +320,13 @@ const ContributionCard: React.FC<{
       </div>
 
       {/* Action Buttons */}
-      <div className={`p-4 border-t relative z-50 ${
-        theme === 'dark' ? 'border-ios-dark-border bg-ios-dark-surface' : 'border-gray-200 bg-gray-50'
-      }`}>
+      <div className="p-4 border-t border-border relative z-50 bg-muted/50">
         <div className="flex flex-wrap gap-2">
           {contribution.status === 'pending' && (
             <>
               <button
                 onClick={() => onVerify(contribution)}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center space-x-2"
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -343,7 +337,7 @@ const ContributionCard: React.FC<{
               {contribution.duplicate_candidate_ids && contribution.duplicate_candidate_ids.length > 0 && (
                 <button
                   onClick={() => onMerge(contribution)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -354,7 +348,7 @@ const ContributionCard: React.FC<{
 
               <button
                 onClick={() => onRequestInfo(contribution)}
-                className="px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors flex items-center space-x-2"
+                className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
@@ -364,7 +358,7 @@ const ContributionCard: React.FC<{
 
               <button
                 onClick={() => onReject(contribution)}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors flex items-center space-x-2"
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -375,7 +369,7 @@ const ContributionCard: React.FC<{
           )}
 
           {(contribution.status === 'verified' || contribution.status === 'rejected') && (
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-muted-foreground">
               Reviewed by: {contribution.reviewer_id || 'System'} • {contribution.reviewed_at ? new Date(contribution.reviewed_at).toLocaleString() : 'N/A'}
             </div>
           )}
@@ -645,31 +639,31 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
 
   return (
     <div 
-      className="contributions-dashboard min-h-screen bg-gray-50 relative"
+      className="contributions-dashboard min-h-screen bg-background text-foreground relative"
       style={{
-        zIndex: 10000, // Extremely high z-index for the entire dashboard
+        zIndex: 10000,
         position: 'relative',
         isolation: 'isolate'
       }}
     >
       {/* Header */}
       <div 
-        className="bg-white shadow-sm border-b relative z-[10001]"
+        className="bg-card text-card-foreground shadow-sm border-b border-border relative z-[10001]"
         style={{ zIndex: 10001 }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Contributions Dashboard</h1>
-              <p className="text-gray-600">Manage and verify IEBC office location submissions</p>
+              <h1 className="text-2xl font-bold text-foreground">Contributions Dashboard</h1>
+              <p className="text-muted-foreground">Manage and verify IEBC office location submissions</p>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-muted-foreground">
                 Last updated: {new Date().toLocaleString()}
               </div>
               <button
                 onClick={onLogout}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors flex items-center space-x-2"
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -687,80 +681,84 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
         style={{ zIndex: 10001 }}
       >
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          {/* Pending Review Stat */}
+          <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-8 h-8 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Pending Review</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.pending}</p>
+                <p className="text-sm font-medium text-muted-foreground">Pending Review</p>
+                <p className="text-2xl font-semibold text-foreground">{stats.pending}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          {/* Verified Today Stat */}
+          <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Verified Today</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.verified_today}</p>
+                <p className="text-sm font-medium text-muted-foreground">Verified Today</p>
+                <p className="text-2xl font-semibold text-foreground">{stats.verified_today}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          {/* Rejected Stat */}
+          <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </div>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Rejected</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.rejected}</p>
+                <p className="text-sm font-medium text-muted-foreground">Rejected</p>
+                <p className="text-2xl font-semibold text-foreground">{stats.rejected}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          {/* Total Submissions Stat */}
+          <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </div>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Submissions</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.total}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Submissions</p>
+                <p className="text-2xl font-semibold text-foreground">{stats.total}</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6 relative z-[10001]">
+        <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6 mb-6 relative z-[10001]">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Status</label>
               <select
                 value={filters.status}
                 onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-background text-foreground"
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
@@ -773,11 +771,11 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">County</label>
+              <label className="block text-sm font-medium text-foreground mb-2">County</label>
               <select
                 value={filters.county}
                 onChange={(e) => setFilters(prev => ({ ...prev, county: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-background text-foreground"
               >
                 <option value="all">All Counties</option>
                 {safeCounties.map(county => (
@@ -787,11 +785,11 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Confidence</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Confidence</label>
               <select
                 value={filters.confidence}
                 onChange={(e) => setFilters(prev => ({ ...prev, confidence: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-background text-foreground"
               >
                 <option value="all">All Confidence</option>
                 <option value="high">High (80-100%)</option>
@@ -801,11 +799,11 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Photo</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Photo</label>
               <select
                 value={filters.hasPhoto}
                 onChange={(e) => setFilters(prev => ({ ...prev, hasPhoto: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-background text-foreground"
               >
                 <option value="all">All</option>
                 <option value="yes">With Photo</option>
@@ -816,18 +814,18 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
 
           {/* Bulk Actions */}
           {safeContributions.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="mt-4 pt-4 border-t border-border">
               <div className="flex items-center space-x-4">
-                <span className="text-sm font-medium text-gray-700">Bulk Actions:</span>
+                <span className="text-sm font-medium text-foreground">Bulk Actions:</span>
                 <button
                   onClick={() => handleBulkAction('verify', safeContributions.map(c => c.id))}
-                  className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+                  className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors"
                 >
                   Verify All
                 </button>
                 <button
                   onClick={() => handleBulkAction('reject', safeContributions.map(c => c.id))}
-                  className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+                  className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors"
                 >
                   Reject All
                 </button>
@@ -836,18 +834,19 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
           )}
         </div>
 
-        {/* Contributions Grid */}
+        {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 relative z-[10001]">
+          <div className="bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-800 rounded-lg p-4 mb-6 relative z-[10001]">
             <div className="flex items-center space-x-2">
-              <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-red-700">{error}</span>
+              <span className="text-red-700 dark:text-red-300">{error}</span>
             </div>
           </div>
         )}
 
+        {/* Contributions Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 relative z-[10001]">
           {safeContributions.map((contribution) => (
             <ContributionCard
@@ -861,13 +860,14 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
           ))}
         </div>
 
+        {/* Empty State */}
         {safeContributions.length === 0 && !loading && (
           <div className="text-center py-12 relative z-[10001]">
-            <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-12 h-12 text-muted-foreground mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No contributions found</h3>
-            <p className="text-gray-600">No submissions match your current filters.</p>
+            <h3 className="text-lg font-medium text-foreground mb-2">No contributions found</h3>
+            <p className="text-muted-foreground">No submissions match your current filters.</p>
           </div>
         )}
       </div>
