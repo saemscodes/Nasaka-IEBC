@@ -24,7 +24,7 @@ const SearchBar = ({
   const { theme } = useTheme();
 
   // IEBC Icon Component
-  const IEBCIcon = ({ className = "w-5 h-5" }) => (
+  const IEBCIcon = ({ className = "w-8 h-8" }) => (
     <svg
       version="1.0"
       xmlns="http://www.w3.org/2000/svg"
