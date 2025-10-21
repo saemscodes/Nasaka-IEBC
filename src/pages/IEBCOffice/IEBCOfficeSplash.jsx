@@ -259,6 +259,118 @@ const TextShadowLayer = ({ children, className = "" }) => {
   );
 };
 
+// Animated Logo Component with Option 4 Animation
+const AnimatedLogo = () => {
+  const { theme } = useTheme();
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <motion.div
+      className="logo-container relative flex items-center justify-center w-32 h-32 mx-auto mb-2 cursor-pointer"
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      whileTap={{ scale: 0.95 }}
+    >
+      {/* Ping Background */}
+      <div className={`absolute inset-0 rounded-full animate-ping ${
+        theme === 'dark' 
+          ? 'bg-ios-blue/30' 
+          : 'bg-ios-blue/20'
+      }`} />
+      
+      {/* Main Logo Container */}
+      <motion.div
+        className={`absolute inset-4 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+          theme === 'dark'
+            ? 'bg-ios-blue-600 shadow-ios-blue/25'
+            : 'bg-ios-blue shadow-ios-blue/25'
+        } ${
+          isHovered ? 'logo-svg-bounce' : ''
+        }`}
+        animate={{
+          scale: isHovered ? [1, 1.1, 1.05] : 1,
+          boxShadow: isHovered ? [
+            '0 0 20px rgba(0, 122, 255, 0.3)',
+            '0 0 40px rgba(0, 122, 255, 0.6)',
+            '0 0 20px rgba(0, 122, 255, 0.3)'
+          ] : '0 4px 12px rgba(0, 122, 255, 0.25)'
+        }}
+        transition={{
+          duration: 0.5,
+          ease: "easeInOut"
+        }}
+      >
+        <svg
+          version="1.0"
+          xmlns="http://www.w3.org/2000/svg"
+          width="1080.000000pt"
+          height="1080.000000pt"
+          viewBox="0 0 1080.000000 1080.000000"
+          preserveAspectRatio="xMidYMid meet"
+          className="w-16 h-16 mx-auto my-auto transition-all duration-300"
+          fill="#ffffff"
+        >
+          <g
+            transform="translate(0.000000,1080.000000) scale(0.100000,-0.100000)"
+            stroke="none"
+          >
+            <motion.path 
+              d="M5215 10794 c-1281 -58 -2459 -699 -3203 -1743 -414 -581 -667 -1245 -747 -1961 -17 -159 -20 -594 -4 -775 33 -391 130 -800 284 -1205 81 -213 310 -679 437 -890 302 -501 556 -849 1011 -1385 1622 -1913 2394 -2819 2402 -2821 10 -3 2317 2755 2593 3100 501 626 822 1112 1077 1631 264 538 406 1009 461 1528 20 185 14 627 -10 837 -93 795 -399 1528 -898 2148 -118 147 -438 471 -582 590 -628 519 -1402 843 -2211 926 -147 15 -474 26 -610 20z m539 -900 c1104 -122 2064 -793 2565 -1792 88 -175 190 -450 240 -647 27 -108 66 -325 82 -460 21 -170 18 -630 -4 -780 -92 -621 -320 -1152 -694 -1620 -113 -142 -358 -387 -498 -499 -880 -703 -2048 -909 -3105 -547 -477 163 -897 426 -1255 785 -549 551 -876 1253 -944 2026 -16 180 -14 502 3 651 108 901 559 1691 1278 2240 456 348 1025 576 1603 643 170 20 554 20 729 0z"
+              animate={{
+                scale: isHovered ? 1.1 : 1,
+                fill: isHovered ? "#ffffff" : "#ffffff"
+              }}
+              transition={{
+                scale: { duration: 0.3, delay: 0 },
+                fill: { duration: 0.3 }
+              }}
+            />
+            <motion.path 
+              d="M5245 8729 c-789 -74 -1473 -620 -1720 -1374 -80 -244 -90 -311 -90 -625 0 -261 2 -281 28 -403 51 -237 143 -468 265 -665 312 -502 836 -843 1425 -927 138 -20 430 -19 566 1 569 83 1074 402 1393 880 78 117 187 342 232 477 105 315 129 684 66 1010 -21 110 -59 249 -85 311 l-17 39 -167 -168 -168 -167 8 -37 c55 -226 51 -503 -11 -747 -206 -818 -1039 -1335 -1865 -1158 -622 134 -1091 609 -1225 1241 -27 126 -38 395 -21 514 77 538 411 995 895 1225 223 105 384 143 636 151 150 5 193 2 299 -16 294 -50 571 -182 798 -379 46 -40 86 -72 90 -72 5 0 73 65 153 145 l144 144 -24 27 c-40 42 -206 179 -283 232 -376 259 -860 384 -1322 341z"
+              animate={{
+                scale: isHovered ? 1.08 : 1,
+                fill: isHovered ? "#ffffff" : "#ffffff"
+              }}
+              transition={{
+                scale: { duration: 0.3, delay: 0.05 },
+                fill: { duration: 0.3 }
+              }}
+            />
+            <motion.path 
+              d="M7352 8350 c-159 -42 -124 -11 -1007 -891 l-810 -808 -275 273 c-296 293 -334 323 -470 362 -95 27 -234 25 -330 -5 -93 -28 -110 -37 -189 -97 l-63 -47 629 -629 c672 -672 661 -663 734 -639 25 8 344 321 1192 1169 l1159 1159 -49 40 c-138 116 -342 160 -521 113z"
+              animate={{
+                scale: isHovered ? 1.06 : 1,
+                fill: isHovered ? "#ffffff" : "#ffffff"
+              }}
+              transition={{
+                scale: { duration: 0.3, delay: 0.1 },
+                fill: { duration: 0.3 }
+              }}
+            />
+          </g>
+        </svg>
+      </motion.div>
+
+      {/* Glow Effect */}
+      <motion.div
+        className="absolute inset-0 rounded-full pointer-events-none"
+        animate={{
+          opacity: isHovered ? [0.3, 0.8, 0.3] : 0,
+          scale: isHovered ? [1, 1.2, 1] : 1
+        }}
+        transition={{
+          duration: 2,
+          repeat: isHovered ? Infinity : 0,
+          ease: "easeInOut"
+        }}
+        style={{
+          background: `radial-gradient(circle, rgba(0, 122, 255, 0.4) 0%, transparent 70%)`
+        }}
+      />
+    </motion.div>
+  );
+};
+
 const IEBCOfficeSplash = () => {
   const navigate = useNavigate();
   const { location, error, loading, requestLocation } = useGeolocation();
@@ -312,18 +424,6 @@ const IEBCOfficeSplash = () => {
     }
   };
 
-  const iconVariants = {
-    initial: { scale: 1 },
-    animate: { 
-      scale: [1, 1.1, 1],
-      transition: { 
-        duration: 2,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }
-    }
-  };
-
   const headlineVariants = {
     initial: { 
       opacity: 0, 
@@ -373,41 +473,8 @@ const IEBCOfficeSplash = () => {
         <BackgroundLayers />
         
         <div className="relative z-10 text-center max-w-md w-full mb-8">
-          <motion.div
-            className="relative flex items-center justify-center w-32 h-32 mx-auto mb-2"
-            variants={iconVariants}
-            initial="initial"
-            animate="animate"
-          >
-            <div className={`absolute inset-0 rounded-full animate-ping ${
-              theme === 'dark' 
-                ? 'bg-ios-blue/30' 
-                : 'bg-ios-blue/20'
-            }`} />
-            <div
-              className={`absolute inset-4 rounded-full flex items-center justify-center shadow-lg ${
-                theme === 'dark'
-                ? 'bg-ios-blue-600 shadow-ios-blue/25'
-                : 'bg-ios-blue shadow-ios-blue/25'
-              }`}
-              >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 1080 1080"
-                className="w-16 h-16 mx-auto my-auto block transition-all duration-500"
-                fill={theme === 'dark' ? '#ffffff' : '#ffffff'}
-                >
-                <g
-                  transform="translate(0,1080) scale(0.1,-0.1)"
-                  stroke="none"
-                  >
-                  <path d="M5135 9223 c-559 -49 -1092 -260 -1555 -616 -117 -90 -384 -351 -477 -467 -290 -360 -500 -803 -593 -1250 -72 -351 -79 -741 -19 -1089 104 -604 429 -1261 949 -1922 103 -132 1951 -2309 1959 -2308 7 0 1719 2051 1854 2219 560 701 899 1332 1026 1905 50 227 56 288 56 580 0 294 -7 370 -52 595 -254 1267 -1318 2228 -2601 2350 -98 9 -453 11 -547 3z m575 -638 c250 -35 478 -104 692 -208 249 -122 436 -255 633 -452 356 -355 580 -799 657 -1299 31 -204 31 -519 0 -701 -86 -502 -308 -938 -653 -1284 -439 -438 -1025 -681 -1644 -681 -864 0 -1643 471 -2055 1243 -176 330 -261 685 -261 1092 0 476 126 888 394 1290 116 173 289 364 453 497 427 348 970 536 1514 523 85 -2 207 -11 270 -20z"/>
-                  <path d="M5250 7760 c-597 -83 -1055 -488 -1213 -1070 -30 -112 -31 -122 -31 -330 -1 -172 3 -232 17 -300 125 -583 579 -1025 1157 -1125 126 -22 354 -22 485 0 575 96 1033 540 1161 1125 15 67 19 127 19 280 0 209 -10 279 -61 443 l-26 80 -119 -119 -120 -120 16 -88 c69 -397 -86 -810 -399 -1065 -134 -109 -267 -175 -450 -224 -69 -18 -108 -21 -266 -21 -159 0 -196 3 -265 21 -164 45 -307 116 -427 212 -214 170 -351 396 -409 673 -30 148 -23 372 16 503 36 121 74 211 125 292 206 327 541 524 920 540 296 12 569 -85 790 -283 l63 -56 106 107 106 106 -65 60 c-181 166 -432 292 -685 344 -94 19 -352 28 -445 15z"/>
-                  <path d="M6780 7494 c-30 -8 -78 -29 -107 -46 -32 -20 -258 -238 -614 -594 l-563 -564 -196 195 c-170 169 -206 199 -266 227 -66 31 -75 33 -184 33 -105 0 -120 -2 -170 -27 -30 -15 -71 -41 -90 -57 l-35 -30 450 -450 c442 -443 451 -451 490 -451 39 0 49 9 867 827 l827 827 -20 22 c-31 33 -127 80 -187 93 -70 15 -135 13 -202 -5z"/>
-                </g>
-              </svg>
-            </div>            
-          </motion.div>
+          {/* Animated Logo */}
+          <AnimatedLogo />
           
           {/* Enhanced Text Sections with Shadows */}
           <TextShadowLayer className="mb-4">
@@ -550,6 +617,30 @@ const IEBCOfficeSplash = () => {
 
       {/* Footer */}
       <AppFooter />
+
+      {/* Add the CSS for the logo animation */}
+      <style jsx>{`
+        .logo-svg-bounce {
+          animation: bounceGentle 1s ease, glow 2s ease-in-out infinite;
+        }
+
+        @keyframes bounceGentle {
+          0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+          40% { transform: translateY(-8px); }
+          60% { transform: translateY(-4px); }
+        }
+
+        @keyframes glow {
+          0%, 100% { 
+            box-shadow: 0 0 20px rgba(0, 122, 255, 0.3),
+                        0 4px 12px rgba(0, 122, 255, 0.25);
+          }
+          50% { 
+            box-shadow: 0 0 40px rgba(0, 122, 255, 0.6),
+                        0 8px 25px rgba(0, 122, 255, 0.4);
+          }
+        }
+      `}</style>
     </div>
   );
 };
