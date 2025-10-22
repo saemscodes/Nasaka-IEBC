@@ -131,7 +131,7 @@ const MapContainer = forwardRef(({
           left: 0, 
           width: '100%', 
           height: '100%', 
-          zIndex: isModalMap ? 'var(--z-map-modal, 1000)' : 'var(--z-map-base, 1)'
+          zIndex: isModalMap ? 'var(--z-map-modal, 10)' : 'var(--z-map-base, 1)'
         }}
         zoomControl={true}
         doubleClickZoom={false}
