@@ -157,7 +157,9 @@ const SearchBar = ({
     if (suggestion.type === 'office' && onSearch) {
       onSearch(suggestion);
     } else if (suggestion.type === 'search_query' && onSearch) {
+      // FIX: Treat search_query suggestions the same as pressing Enter
       onSearch({ searchQuery: suggestion.query });
+      if (onFocus) onFocus();
     }
     setIsExpanded(false);
     setSuggestions([]);
@@ -449,32 +451,19 @@ const SearchBar = ({
                   })}
                   
                   <div className={`p-4 border-t transition-all duration-300 ${
-                  theme === 'dark' 
-                  ? 'border-ios-dark-border bg-ios-dark-surface/80' 
-                  : 'border-ios-light-border bg-ios-light-surface/90'
-                }`}>
-                    <button
-                      onClick={() => {
-                        if (value.trim() && onSearch) {
-                          onSearch({ searchQuery: value.trim() });
-                          if (onFocus) onFocus();
-                        }
-                        setIsExpanded(false);
-                        setSuggestions([]);
-                        if (inputRef.current) inputRef.current.blur();
-                      }}
-                      className="w-full text-center"
-                      >
-                      <div className={`text-sm text-center transition-colors duration-300 ${
-                        theme === 'dark' ? 'text-ios-dark-text-tertiary' : 'text-ios-light-text-tertiary'
-                      }`}>
-                        Press <kbd className={`px-2 py-1 border rounded text-sm font-mono transition-all duration-300 ${
+                    theme === 'dark' 
+                      ? 'border-ios-dark-border bg-ios-dark-surface/80' 
+                      : 'border-ios-light-border bg-ios-light-surface/90'
+                  }`}>
+                    <div className={`text-sm text-center transition-colors duration-300 ${
+                      theme === 'dark' ? 'text-ios-dark-text-tertiary' : 'text-ios-light-text-tertiary'
+                    }`}>
+                      Press <kbd className={`px-2 py-1 border rounded text-sm font-mono transition-all duration-300 ${
                         theme === 'dark'
-                        ? 'bg-ios-dark-surface border-ios-dark-border text-ios-dark-text-secondary shadow-lg'
-                        : 'bg-white border-ios-light-border text-ios-light-text-secondary shadow-md'
+                          ? 'bg-ios-dark-surface border-ios-dark-border text-ios-dark-text-secondary shadow-lg'
+                          : 'bg-white border-ios-light-border text-ios-light-text-secondary shadow-md'
                       }`}>Enter</kbd> to see all IEBC office results
-                      </div>
-                    </button>
+                    </div>
                   </div>
                 </>
               )}
