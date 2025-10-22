@@ -584,12 +584,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     }
   }, [imagePreview]);
 
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-    // This should advance to review step, not submission
-    handleFinalSubmit();
-  };
-
   const handleFinalSubmit = async () => {
     if (!position || !agreement) {
       setLocationError({
@@ -603,13 +597,16 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       const contributionData = {
         submitted_latitude: position.lat,
         submitted_longitude: position.lng,
-        submitted_accuracy_meters: accuracy,
+        submitted_accuracy_meters: accuracy || 50,
         submitted_office_location: formData.submitted_office_location,
         submitted_county: formData.submitted_county,
         submitted_constituency: formData.submitted_constituency,
         submitted_landmark: formData.submitted_landmark || notes,
         google_maps_link: selectedMethod === 'google_maps' ? googleMapsInput : null,
         imageFile: imageFile,
+        capture_method: selectedMethod,
+        capture_source: parseResult?.source || 'manual',
+        duplicate_count: duplicateOffices.length,
         device_metadata: {
           user_agent: navigator.userAgent,
           platform: navigator.platform,
@@ -617,11 +614,15 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
           timestamp: new Date().toISOString(),
           capture_method: selectedMethod,
           capture_source: parseResult?.source || 'manual',
-          accuracy: accuracy,
-          duplicate_count: duplicateOffices.length
-        },
-        submitted_timestamp: new Date().toISOString()
+          accuracy: accuracy || 50,
+          duplicate_count: duplicateOffices.length,
+          screen_resolution: `${window.screen.width}x${window.screen.height}`,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          has_touch: 'ontouchstart' in window
+        }
       };
+      
+      console.log('Submitting contribution data:', contributionData);
       
       const result = await submitContribution(contributionData);
       setContributionId(result.id);
@@ -636,9 +637,40 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       console.error('Submission error:', err);
       setLocationError({
         type: 'error',
-        message: err.message || 'Failed to submit contribution'
+        message: err.message || 'Failed to submit contribution. Please try again.'
       });
     }
+  };
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.submitted_office_location.trim()) {
+      setLocationError({
+        type: 'error',
+        message: 'Please provide an office name.'
+      });
+      return;
+    }
+    
+    if (!formData.submitted_county) {
+      setLocationError({
+        type: 'error',
+        message: 'Please select a county.'
+      });
+      return;
+    }
+    
+    if (!formData.submitted_constituency.trim()) {
+      setLocationError({
+        type: 'error',
+        message: 'Please provide a constituency.'
+      });
+      return;
+    }
+    
+    handleFinalSubmit();
   };
 
   const resetForm = useCallback(() => {
@@ -1234,7 +1266,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                           <span>Submitting...</span>
                         </div>
                       ) : (
-                        'Review Submission'
+                        'Submit Contribution'
                       )}
                     </button>
                   </div>
