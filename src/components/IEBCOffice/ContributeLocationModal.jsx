@@ -249,7 +249,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     }
   };
 
-  // Add marker to map function - FIXED with map readiness check
+  // FIXED: Enhanced addMarkerToMap with better map readiness handling
   const addMarkerToMap = useCallback((position, method = selectedMethod) => {
     if (!mapRef.current || !position || !position.lat || !position.lng) {
       console.warn('Cannot add marker: invalid position or map not ready');
@@ -261,38 +261,47 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       return;
     }
     
-    try {
-      // Check if map is ready and has addLayer method
-      const mapInstance = mapRef.current;
-      if (!mapInstance || typeof mapInstance.addLayer !== 'function') {
-        console.warn('Map instance not ready for adding marker');
-        return;
+    const addMarker = () => {
+      try {
+        const mapInstance = mapRef.current;
+        if (!mapInstance || typeof mapInstance.addLayer !== 'function') {
+          console.warn('Map instance not ready for adding marker');
+          setTimeout(addMarker, 100); // Retry after 100ms
+          return;
+        }
+        
+        if (markerRef.current) {
+          mapInstance.removeLayer(markerRef.current);
+        }
+        
+        markerRef.current = L.marker([position.lat, position.lng], {
+          icon: createCustomIcon(),
+          draggable: method === 'drop_pin'
+        }).addTo(mapInstance);
+        
+        if (method === 'drop_pin') {
+          markerRef.current.on('dragend', (event) => {
+            const newPosition = event.target.getLatLng();
+            if (newPosition && !isNaN(newPosition.lat) && !isNaN(newPosition.lng)) {
+              setPosition({ lat: newPosition.lat, lng: newPosition.lng });
+              setAccuracy(5);
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error adding marker to map:', error);
       }
-      
-      if (markerRef.current) {
-        mapInstance.removeLayer(markerRef.current);
-      }
-      
-      markerRef.current = L.marker([position.lat, position.lng], {
-        icon: createCustomIcon(),
-        draggable: method === 'drop_pin'
-      }).addTo(mapInstance);
-      
-      if (method === 'drop_pin') {
-        markerRef.current.on('dragend', (event) => {
-          const newPosition = event.target.getLatLng();
-          if (newPosition && !isNaN(newPosition.lat) && !isNaN(newPosition.lng)) {
-            setPosition({ lat: newPosition.lat, lng: newPosition.lng });
-            setAccuracy(5);
-          }
-        });
-      }
-    } catch (error) {
-      console.error('Error adding marker to map:', error);
+    };
+
+    // Use whenReady if available, otherwise try immediately
+    if (mapRef.current.whenReady) {
+      mapRef.current.whenReady(addMarker);
+    } else {
+      addMarker();
     }
   }, [selectedMethod]);
 
-  // Add accuracy circle function - FIXED with proper error handling
+  // FIXED: Enhanced addAccuracyCircle with proper map readiness handling
   const addAccuracyCircle = useCallback((position, accuracyValue) => {
     if (!mapRef.current || !position || !position.lat || !position.lng || !accuracyValue) {
       console.warn('Missing parameters for accuracy circle');
@@ -304,29 +313,38 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       return;
     }
     
-    try {
-      // Check if map is ready and has addLayer method
-      const mapInstance = mapRef.current;
-      if (!mapInstance || typeof mapInstance.addLayer !== 'function') {
-        console.warn('Map instance not ready for adding accuracy circle');
-        return;
+    const addCircle = () => {
+      try {
+        const mapInstance = mapRef.current;
+        if (!mapInstance || typeof mapInstance.addLayer !== 'function') {
+          console.warn('Map instance not ready for adding accuracy circle');
+          setTimeout(addCircle, 100); // Retry after 100ms
+          return;
+        }
+        
+        if (accuracyCircleRef.current) {
+          mapInstance.removeLayer(accuracyCircleRef.current);
+        }
+        
+        const limitedAccuracy = Math.min(accuracyValue, 1000);
+        accuracyCircleRef.current = L.circle([position.lat, position.lng], {
+          radius: limitedAccuracy,
+          color: '#34C759',
+          fillColor: '#34C759',
+          fillOpacity: 0.1,
+          weight: 2,
+          opacity: 0.6
+        }).addTo(mapInstance);
+      } catch (error) {
+        console.error('Error adding accuracy circle:', error);
       }
-      
-      if (accuracyCircleRef.current) {
-        mapInstance.removeLayer(accuracyCircleRef.current);
-      }
-      
-      const limitedAccuracy = Math.min(accuracyValue, 1000);
-      accuracyCircleRef.current = L.circle([position.lat, position.lng], {
-        radius: limitedAccuracy,
-        color: '#34C759',
-        fillColor: '#34C759',
-        fillOpacity: 0.1,
-        weight: 2,
-        opacity: 0.6
-      }).addTo(mapInstance);
-    } catch (error) {
-      console.error('Error adding accuracy circle:', error);
+    };
+
+    // Use whenReady if available, otherwise try immediately
+    if (mapRef.current.whenReady) {
+      mapRef.current.whenReady(addCircle);
+    } else {
+      addCircle();
     }
   }, []);
 
@@ -344,10 +362,14 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       setPosition(clickedPosition);
       setAccuracy(5);
       
-      if (mapRef.current && mapRef.current.isReady && mapRef.current.isReady()) {
+      if (mapRef.current) {
         mapRef.current.flyTo([lat, lng], 16, { duration: 0.5 });
-        addMarkerToMap(clickedPosition, 'drop_pin');
-        addAccuracyCircle(clickedPosition, 5);
+        
+        // Use setTimeout to ensure flyTo completes before adding layers
+        setTimeout(() => {
+          addMarkerToMap(clickedPosition, 'drop_pin');
+          addAccuracyCircle(clickedPosition, 5);
+        }, 300);
       }
     }
   }, [selectedMethod, addMarkerToMap, addAccuracyCircle]);
@@ -367,7 +389,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       setTimeout(() => {
         addMarkerToMap(position);
         addAccuracyCircle(position, accuracy);
-      }, 100);
+      }, 200);
     }
   }, [position, accuracy, handleMapClick, addMarkerToMap, addAccuracyCircle]);
 
@@ -378,7 +400,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       setMapCenter([userLocation.latitude, userLocation.longitude]);
       setMapZoom(16);
       
-      if (mapRef.current && mapRef.current.isReady && mapRef.current.isReady()) {
+      if (mapRef.current) {
         mapRef.current.flyTo([userLocation.latitude, userLocation.longitude], 16, { duration: 1 });
       }
     }
@@ -434,7 +456,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     }
   };
 
-  // FIXED: handleCurrentLocation with proper map readiness checks
+  // FIXED: Enhanced handleCurrentLocation with proper map readiness and auto-proceed to Step 3
   const handleCurrentLocation = async () => {
     setLocationError(null);
     setIsGettingLocation(true);
@@ -462,16 +484,15 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       
       // Wait for map to be ready before adding layers
       if (mapRef.current) {
-        // Use flyTo with callback to ensure map is ready for layer additions
         mapRef.current.flyTo([latitude, longitude], 16, { 
           duration: 1 
-        }, () => {
-          // This callback executes after flyTo completes
-          setTimeout(() => {
-            addMarkerToMap(capturedPosition);
-            addAccuracyCircle(capturedPosition, limitedAccuracy);
-          }, 300);
         });
+        
+        // Use setTimeout to ensure flyTo completes before adding layers
+        setTimeout(() => {
+          addMarkerToMap(capturedPosition);
+          addAccuracyCircle(capturedPosition, limitedAccuracy);
+        }, 500);
         
         // Show accuracy guidance
         if (limitedAccuracy > 100) {
@@ -492,6 +513,12 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       } else {
         console.warn('Map ref not available for location update');
       }
+
+      // AUTO-PROCEED TO STEP 3: Wait a moment then automatically proceed to office details
+      setTimeout(() => {
+        setStep(3);
+      }, 1500);
+      
     } catch (err) {
       console.error('Error capturing location:', err);
       const errorMessage = err?.message || 'Failed to get current location';
@@ -530,16 +557,16 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         setMapCenter([result.lat, result.lng]);
         setMapZoom(16);
         
-        if (mapRef.current && mapRef.current.isReady && mapRef.current.isReady()) {
+        if (mapRef.current) {
           mapRef.current.flyTo([result.lat, result.lng], 16, { 
             duration: 1 
-          }, () => {
-            // Add layers after flyTo completes
-            setTimeout(() => {
-              addMarkerToMap({ lat: result.lat, lng: result.lng });
-              addAccuracyCircle({ lat: result.lat, lng: result.lng }, 5);
-            }, 300);
           });
+          
+          // Use setTimeout to ensure flyTo completes before adding layers
+          setTimeout(() => {
+            addMarkerToMap({ lat: result.lat, lng: result.lng });
+            addAccuracyCircle({ lat: result.lat, lng: result.lng }, 5);
+          }, 500);
         } else {
           console.warn('Map not ready for flyTo operation');
         }
@@ -551,6 +578,11 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
             submitted_office_location: result.placeName 
           }));
         }
+        
+        // Auto-proceed to Step 3 after successful parsing
+        setTimeout(() => {
+          setStep(3);
+        }, 1000);
       } else if (result?.requiresGeocoding) {
         setLocationError({
           type: 'info',
