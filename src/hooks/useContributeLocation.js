@@ -8,7 +8,6 @@ export const useContributeLocation = () => {
   const [isFetchingOSM, setIsFetchingOSM] = useState(false);
   const fetchedLocations = useRef(new Set());
 
-  // Move all helper functions to the top to avoid circular dependencies
   const calculateDistance = useCallback((lat1, lon1, lat2, lon2) => {
     const R = 6371000;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -176,7 +175,6 @@ export const useContributeLocation = () => {
     }
   }, []);
 
-  // Define getFallbackLandmarks before findOptimalTriangulationLandmarks
   const getFallbackLandmarks = useCallback(async (latitude, longitude, radiusMeters) => {
     const fallbackLandmarks = [];
 
@@ -646,6 +644,37 @@ export const useContributeLocation = () => {
     });
   }, []);
 
+  const uploadImage = useCallback(async (file, contributionId) => {
+    if (!file) return null;
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${contributionId}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `office-contributions/${fileName}`;
+
+      console.log('Uploading image to bucket:', 'iebc_contributions', filePath);
+
+      const { error: uploadError } = await supabase.storage
+        .from('iebc_contributions')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('Error uploading image:', uploadError);
+        throw new Error(`Image upload failed: ${uploadError.message}`);
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('iebc_contributions')
+        .getPublicUrl(filePath);
+
+      console.log('Image uploaded successfully:', publicUrl);
+      return publicUrl;
+    } catch (err) {
+      console.error('Error in uploadImage:', err);
+      throw err;
+    }
+  }, []);
+
   const submitContribution = useCallback(async (contributionData) => {
     setIsSubmitting(true);
     setError(null);
@@ -672,48 +701,29 @@ export const useContributeLocation = () => {
       if (contributionData.imageFile) {
         console.log('Uploading contribution image...');
         
-        const fileName = `${Date.now()}_${contributionData.imageFile.name}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('iebc-contributions')
-          .upload(fileName, contributionData.imageFile, {
-            cacheControl: '3600',
-            upsert: false,
-            contentType: 'image/webp'
-          });
-
-        if (uploadError) {
-          console.error('Image upload failed:', uploadError);
-          throw new Error(`Image upload failed: ${uploadError.message}`);
-        }
-
-        const { data: urlData } = supabase.storage
-          .from('iebc-contributions')
-          .getPublicUrl(fileName);
-        
-        imagePublicUrl = urlData.publicUrl;
+        const tempContributionId = `temp_${Date.now()}_${Math.random().toString(36).substring(2)}`;
+        imagePublicUrl = await uploadImage(contributionData.imageFile, tempContributionId);
         console.log('Image uploaded successfully:', imagePublicUrl);
       }
 
-      const deviceMeta = {
+      const deviceMeta = contributionData.device_metadata || {
         accuracy: contributionData.submitted_accuracy_meters || null,
-        altitude: contributionData.altitude || null,
-        altitudeAccuracy: contributionData.altitudeAccuracy || null,
-        heading: contributionData.heading || null,
-        speed: contributionData.speed || null,
-        timestamp: contributionData.timestamp || Date.now(),
         userAgent: navigator.userAgent ? navigator.userAgent.substring(0, 100) : 'unknown',
         platform: navigator.platform || 'unknown',
         screenResolution: `${window.screen.width}x${window.screen.height}`,
         language: navigator.language || 'en',
         hasTouch: 'ontouchstart' in window,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        capture_method: contributionData.capture_method || 'unknown'
+        capture_method: contributionData.capture_method || 'unknown',
+        capture_source: contributionData.capture_source || 'manual',
+        duplicate_count: contributionData.duplicate_count || 0,
+        timestamp: new Date().toISOString()
       };
 
       const contribution = {
         submitted_latitude: contributionData.submitted_latitude,
         submitted_longitude: contributionData.submitted_longitude,
-        submitted_accuracy_meters: contributionData.submitted_accuracy_meters,
+        submitted_accuracy_meters: contributionData.submitted_accuracy_meters || 50,
         submitted_office_location: contributionData.submitted_office_location,
         submitted_county: contributionData.submitted_county,
         submitted_constituency: contributionData.submitted_constituency,
@@ -723,16 +733,18 @@ export const useContributeLocation = () => {
         image_public_url: imagePublicUrl,
         device_metadata: deviceMeta,
         device_fingerprint_hash: deviceFingerprint,
-        status: 'pending',
+        status: 'pending_review',
         submission_source: 'web_contribution',
+        submission_method: contributionData.capture_method || 'unknown',
         original_office_id: contributionData.original_office_id || null,
         nearby_landmarks: contributionData.nearby_landmarks || null,
         confidence_score: contributionData.confidence_score || 0,
         exif_metadata: contributionData.exif_metadata || {},
-        reverse_geocode_result: contributionData.reverse_geocode_result || null
+        reverse_geocode_result: contributionData.reverse_geocode_result || null,
+        submitted_timestamp: new Date().toISOString()
       };
 
-      console.log('Inserting contribution into database...');
+      console.log('Inserting contribution into database...', contribution);
       
       const { data, error: insertError } = await supabase
         .from('iebc_office_contributions')
@@ -766,7 +778,7 @@ export const useContributeLocation = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [generateDeviceFingerprint]);
+  }, [generateDeviceFingerprint, uploadImage]);
 
   const manuallyFetchOSMData = useCallback(async (latitude, longitude, radiusMeters = 2000) => {
     return await fetchOSMDataForLocation(latitude, longitude, radiusMeters);
