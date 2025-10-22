@@ -7,13 +7,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { useLenis } from "./hooks/useLenis";
-import Index from "./pages/Index";
-import SignPetition from "./pages/SignPetition";
+// import Index from "./pages/Index";
+// import SignPetition from "./pages/SignPetition";
 import NotFound from "./pages/NotFound";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsAndConditions from "./pages/TermsAndConditions";
-import VerifySignature from "./pages/VerifySignature";
-import VoterRegistrationPage from "@/pages/VoterRegistration";
+// import PrivacyPolicy from "./pages/PrivacyPolicy";
+// import TermsAndConditions from "./pages/TermsAndConditions";
+// import VerifySignature from "./pages/VerifySignature";
+// import VoterRegistrationPage from "@/pages/VoterRegistration";
 import { IEBCOfficeSplash, IEBCOfficeMap } from './pages/IEBCOffice';
 import './styles/iebc-office.css';
 import { Analytics } from "@vercel/analytics/react";
@@ -229,23 +229,29 @@ const AppContent = () => {
   return (
     <BrowserRouter>
       <Routes>
+        {/* 
+        COMMENTED OUT ROUTES - PRESERVED FOR FUTURE USE
+        
         <Route path="/" element={<Index />} />
         <Route path="/sign/:id" element={<SignPetition />} />
         <Route path="/verify" element={<VerifySignature />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsAndConditions />} />
 
-        {/* ✅ IEBC VOTER REGISTRATION ROUTES */}
+        
+        COMMENTED OUT IEBC VOTER REGISTRATION ROUTES
+        
         <Route path="/voter-registration" element={<VoterRegistrationPage />} />
         <Route path="/iebc-offices" element={<VoterRegistrationPage />} />
         <Route path="/register-to-vote" element={<VoterRegistrationPage />} />
+        */}
 
-        {/* ✅ IEBC OFFICE FINDER ROUTES */}
+        {/* ✅ ACTIVE IEBC OFFICE FINDER ROUTES */}
         <Route path="/iebc-office" element={<IEBCOfficeSplash />} />
         <Route path="/nasaka-iebc" element={<IEBCOfficeSplash />} />
         <Route path="/iebc-office/map" element={<IEBCOfficeMap />} />
 
-        {/* ✅ SECURE ADMIN ROUTES */}
+        {/* ✅ ACTIVE SECURE ADMIN ROUTES */}
         <Route 
           path="/admin/contributions" 
           element={
@@ -268,9 +274,12 @@ const AppContent = () => {
           } 
         />
 
-        {/* ✅ Redirect old admin paths to secure route */}
+        {/* ✅ ACTIVE Redirect old admin paths to secure route */}
         <Route path="/admin" element={<Navigate to="/admin/contributions" replace />} />
         <Route path="/dashboard" element={<Navigate to="/admin/contributions" replace />} />
+
+        {/* ✅ Root path redirects to IEBC Office splash page */}
+        <Route path="/" element={<Navigate to="/iebc-office" replace />} />
 
         {/* ✅ Catch-all */}
         <Route path="*" element={<NotFound />} />
