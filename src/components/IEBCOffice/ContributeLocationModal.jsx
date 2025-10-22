@@ -179,6 +179,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const accuracyCircleRef = useRef(null);
   const markerRef = useRef(null);
   const fileInputRef = useRef(null);
+  const retryCountRef = useRef(0);
   
   const { 
     getCurrentPosition, 
@@ -249,7 +250,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     }
   };
 
-  // FIXED: Enhanced addMarkerToMap with better map readiness handling
+  // FIXED: Enhanced addMarkerToMap with proper retry limits
   const addMarkerToMap = useCallback((position, method = selectedMethod) => {
     if (!mapRef.current || !position || !position.lat || !position.lng) {
       console.warn('Cannot add marker: invalid position or map not ready');
@@ -261,12 +262,17 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       return;
     }
     
-    const addMarker = () => {
+    const addMarker = (retryCount = 0) => {
+      if (retryCount > 3) {
+        console.warn('Max retries exceeded for adding marker');
+        return;
+      }
+      
       try {
         const mapInstance = mapRef.current;
         if (!mapInstance || typeof mapInstance.addLayer !== 'function') {
-          console.warn('Map instance not ready for adding marker');
-          setTimeout(addMarker, 100); // Retry after 100ms
+          console.warn('Map instance not ready for adding marker, retrying...');
+          setTimeout(() => addMarker(retryCount + 1), 200);
           return;
         }
         
@@ -293,15 +299,10 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       }
     };
 
-    // Use whenReady if available, otherwise try immediately
-    if (mapRef.current.whenReady) {
-      mapRef.current.whenReady(addMarker);
-    } else {
-      addMarker();
-    }
+    addMarker(0);
   }, [selectedMethod]);
 
-  // FIXED: Enhanced addAccuracyCircle with proper map readiness handling
+  // FIXED: Enhanced addAccuracyCircle with proper retry limits
   const addAccuracyCircle = useCallback((position, accuracyValue) => {
     if (!mapRef.current || !position || !position.lat || !position.lng || !accuracyValue) {
       console.warn('Missing parameters for accuracy circle');
@@ -313,12 +314,17 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       return;
     }
     
-    const addCircle = () => {
+    const addCircle = (retryCount = 0) => {
+      if (retryCount > 3) {
+        console.warn('Max retries exceeded for adding accuracy circle');
+        return;
+      }
+      
       try {
         const mapInstance = mapRef.current;
         if (!mapInstance || typeof mapInstance.addLayer !== 'function') {
-          console.warn('Map instance not ready for adding accuracy circle');
-          setTimeout(addCircle, 100); // Retry after 100ms
+          console.warn('Map instance not ready for adding accuracy circle, retrying...');
+          setTimeout(() => addCircle(retryCount + 1), 200);
           return;
         }
         
@@ -340,12 +346,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       }
     };
 
-    // Use whenReady if available, otherwise try immediately
-    if (mapRef.current.whenReady) {
-      mapRef.current.whenReady(addCircle);
-    } else {
-      addCircle();
-    }
+    addCircle(0);
   }, []);
 
   // Handle map click function
@@ -460,6 +461,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const handleCurrentLocation = async () => {
     setLocationError(null);
     setIsGettingLocation(true);
+    retryCountRef.current = 0;
     
     try {
       const pos = await getCurrentPosition();
@@ -759,6 +761,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     setContributionId(null);
     setDuplicateOffices([]);
     setConstituencyCode(null);
+    retryCountRef.current = 0;
     
     if (imagePreview) {
       URL.revokeObjectURL(imagePreview);
