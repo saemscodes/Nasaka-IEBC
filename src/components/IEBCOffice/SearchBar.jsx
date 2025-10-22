@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, Filter } from 'lucide-react';
+import { Search, X, Filter, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import Fuse from 'fuse.js';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -12,7 +12,9 @@ const SearchBar = ({
   onSearch,
   onLocationSearch,
   placeholder = "Search IEBC offices by county, constituency, or location...",
-  className = ""
+  className = "",
+  showFullResults = false,
+  onShowFullResults
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
@@ -22,6 +24,10 @@ const SearchBar = ({
   const inputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
   const { theme } = useTheme();
+
+  // Enhanced search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [hasSearchResults, setHasSearchResults] = useState(false);
 
   // IEBC Icon Component
   const IEBCIcon = ({ className = "w-8 h-8" }) => (
@@ -87,6 +93,7 @@ const SearchBar = ({
   const performSearch = useCallback((searchTerm) => {
     if (!searchTerm.trim() || !fuse) {
       setSuggestions([]);
+      setHasSearchResults(false);
       return;
     }
 
@@ -101,14 +108,31 @@ const SearchBar = ({
         type: 'office'
       }));
 
-      // Add search query suggestion
-      if (searchTerm.length > 2) {
+      setHasSearchResults(results.length > 0);
+
+      // Enhanced search query suggestion - always show when there's a search term
+      if (searchTerm.length >= 1) {
         formattedSuggestions.push({
-          id: `search-${searchTerm}`,
+          id: `search-all-${searchTerm}`,
           name: `Search for "${searchTerm}"`,
-          subtitle: 'Find all matching IEBC offices',
-          type: 'search_query',
-          query: searchTerm
+          subtitle: `Find all matching IEBC offices${results.length > 0 ? ` (${results.length}+ found)` : ''}`,
+          type: 'search_all',
+          query: searchTerm,
+          resultCount: results.length,
+          icon: 'search'
+        });
+      }
+
+      // Add current location search option for relevant queries
+      if (searchTerm.toLowerCase().includes('near me') || 
+          searchTerm.toLowerCase().includes('current') ||
+          searchTerm.toLowerCase().includes('location')) {
+        formattedSuggestions.push({
+          id: 'current-location-search',
+          name: 'Search near my current location',
+          subtitle: 'Find IEBC offices around you',
+          type: 'location_search',
+          icon: 'location'
         });
       }
 
@@ -116,6 +140,7 @@ const SearchBar = ({
     } catch (error) {
       console.error('Search error:', error);
       setSuggestions([]);
+      setHasSearchResults(false);
     } finally {
       setIsLoading(false);
     }
@@ -133,6 +158,7 @@ const SearchBar = ({
       }, 300);
     } else {
       setSuggestions([]);
+      setHasSearchResults(false);
     }
 
     return () => {
@@ -143,24 +169,40 @@ const SearchBar = ({
   }, [value, performSearch]);
 
   const handleInputChange = (e) => {
-    onChange(e.target.value);
-    if (e.target.value.trim()) {
+    const newValue = e.target.value;
+    onChange(newValue);
+    setSearchQuery(newValue);
+    if (newValue.trim()) {
       setIsExpanded(true);
     }
   };
 
   const handleInputFocus = () => {
     setIsExpanded(true);
+    if (onFocus) onFocus();
   };
 
+  // Enhanced suggestion selection handler
   const handleSuggestionSelect = (suggestion) => {
     if (suggestion.type === 'office' && onSearch) {
       onSearch(suggestion);
-    } else if (suggestion.type === 'search_query' && onSearch) {
-      // FIX: Treat search_query suggestions the same as pressing Enter
-      onSearch({ searchQuery: suggestion.query });
-      if (onFocus) onFocus();
+    } else if (suggestion.type === 'search_all' && onSearch) {
+      // Trigger full search results for the query
+      const searchPayload = {
+        searchQuery: suggestion.query,
+        resultCount: suggestion.resultCount,
+        type: 'full_search'
+      };
+      onSearch(searchPayload);
+      
+      // Also trigger side panel if callback exists
+      if (onShowFullResults) {
+        onShowFullResults(searchPayload);
+      }
+    } else if (suggestion.type === 'location_search' && onLocationSearch) {
+      onLocationSearch();
     }
+    
     setIsExpanded(false);
     setSuggestions([]);
     if (inputRef.current) {
@@ -168,9 +210,33 @@ const SearchBar = ({
     }
   };
 
+  // Enhanced Enter key handler
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      
+      if (value.trim() && onSearch) {
+        const searchPayload = {
+          searchQuery: value.trim(),
+          resultCount: fuse ? fuse.search(value.trim()).length : 0,
+          type: 'full_search'
+        };
+        onSearch(searchPayload);
+        
+        // Trigger side panel for full results
+        if (onShowFullResults) {
+          onShowFullResults(searchPayload);
+        }
+      }
+      setIsExpanded(false);
+    }
+  };
+
   const handleClear = () => {
     onChange('');
+    setSearchQuery('');
     setSuggestions([]);
+    setHasSearchResults(false);
     setIsExpanded(false);
     if (inputRef.current) {
       inputRef.current.focus();
@@ -182,18 +248,6 @@ const SearchBar = ({
       onLocationSearch();
     }
     setIsExpanded(false);
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      
-      if (value.trim() && onSearch) {
-        onSearch({ searchQuery: value.trim() });
-        if (onFocus) onFocus();
-      }
-      setIsExpanded(false);
-    }
   };
 
   // Enhanced highlightMatches with improved dark mode support
@@ -235,10 +289,11 @@ const SearchBar = ({
   };
 
   const getSuggestionDisplay = (suggestion) => {
-    if (suggestion.type === 'search_query') {
+    if (suggestion.type === 'search_all' || suggestion.type === 'location_search') {
       return {
         primary: suggestion.name,
-        secondary: suggestion.subtitle
+        secondary: suggestion.subtitle,
+        isAction: true
       };
     }
 
@@ -256,8 +311,41 @@ const SearchBar = ({
         suggestion.county,
       tertiary: locationMatch ? 
         highlightMatches(suggestion.office_location, [locationMatch]) : 
-        suggestion.office_location
+        suggestion.office_location,
+      isAction: false
     };
+  };
+
+  // Get icon for suggestion type
+  const getSuggestionIcon = (suggestion) => {
+    switch (suggestion.type) {
+      case 'search_all':
+        return <Search className="w-5 h-5" />;
+      case 'location_search':
+        return <MapPin className="w-5 h-5" />;
+      case 'office':
+      default:
+        return <IEBCIcon className="w-5 h-5" />;
+    }
+  };
+
+  // Get background color for suggestion icon
+  const getIconBackground = (suggestion) => {
+    switch (suggestion.type) {
+      case 'search_all':
+        return theme === 'dark' 
+          ? 'bg-green-500/30 text-green-300 shadow-lg' 
+          : 'bg-green-500/20 text-green-600 shadow-md';
+      case 'location_search':
+        return theme === 'dark'
+          ? 'bg-purple-500/30 text-purple-300 shadow-lg'
+          : 'bg-purple-500/20 text-purple-600 shadow-md';
+      case 'office':
+      default:
+        return theme === 'dark'
+          ? 'bg-ios-blue-dark/30 text-ios-blue-light shadow-lg'
+          : 'bg-ios-blue/20 text-ios-blue-dark shadow-md';
+    }
   };
 
   return (
@@ -382,7 +470,8 @@ const SearchBar = ({
                 </div>
               ) : (
                 <>
-                  {suggestions.map((suggestion, index) => {
+                  {/* Regular Suggestions */}
+                  {suggestions.filter(s => s.type === 'office').map((suggestion, index) => {
                     const display = getSuggestionDisplay(suggestion);
                     return (
                       <motion.div
@@ -410,20 +499,8 @@ const SearchBar = ({
                           }`}
                         >
                           <div className="flex items-start space-x-4">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                              suggestion.type === 'office' 
-                                ? theme === 'dark'
-                                  ? 'bg-ios-blue-dark/30 text-ios-blue-light shadow-lg'
-                                  : 'bg-ios-blue/20 text-ios-blue-dark shadow-md'
-                                : theme === 'dark'
-                                  ? 'bg-green-500/30 text-green-300 shadow-lg'
-                                  : 'bg-green-500/20 text-green-600 shadow-md'
-                            }`}>
-                              {suggestion.type === 'office' ? (
-                                <IEBCIcon className="w-5 h-5" />
-                              ) : (
-                                <Search className="w-5 h-5" />
-                              )}
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${getIconBackground(suggestion)}`}>
+                              {getSuggestionIcon(suggestion)}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className={`font-semibold text-base truncate transition-colors duration-300 ${
@@ -449,20 +526,89 @@ const SearchBar = ({
                       </motion.div>
                     );
                   })}
-                  
+
+                  {/* Action Suggestions (Search All, Location Search) */}
+                  {suggestions.filter(s => s.type !== 'office').map((suggestion, index) => {
+                    const display = getSuggestionDisplay(suggestion);
+                    const officeCount = suggestions.filter(s => s.type === 'office').length;
+                    
+                    return (
+                      <motion.div
+                        key={suggestion.id}
+                        className={`border-t-2 transition-all duration-300 ${
+                          theme === 'dark' 
+                            ? 'border-ios-dark-border-hover bg-ios-dark-surface/80' 
+                            : 'border-ios-light-border-hover bg-ios-light-surface/90'
+                        }`}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ 
+                          delay: (officeCount + index) * 0.03 + 0.1,
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 25
+                        }}
+                      >
+                        <button
+                          onClick={() => handleSuggestionSelect(suggestion)}
+                          className={`w-full text-left p-4 transition-all duration-200 group ${
+                            theme === 'dark'
+                              ? 'hover:bg-ios-dark-surface-hover text-ios-dark-text-primary'
+                              : 'hover:bg-ios-light-surface-hover text-ios-light-text-primary'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-4">
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 ${getIconBackground(suggestion)}`}>
+                              {getSuggestionIcon(suggestion)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className={`font-bold text-lg transition-colors duration-300 ${
+                                theme === 'dark' ? 'text-ios-dark-text-primary' : 'text-ios-light-text-primary'
+                              }`}>
+                                {display.primary}
+                              </div>
+                              <div className={`text-sm mt-1 transition-colors duration-300 ${
+                                theme === 'dark' ? 'text-ios-dark-text-secondary' : 'text-ios-light-text-secondary'
+                              }`}>
+                                {display.secondary}
+                              </div>
+                            </div>
+                            <div className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 group-hover:scale-105 ${
+                              theme === 'dark'
+                                ? 'bg-ios-blue-dark/30 text-ios-blue-light'
+                                : 'bg-ios-blue/20 text-ios-blue-dark'
+                            }`}>
+                              {suggestion.type === 'search_all' ? 'VIEW ALL' : 'FIND NEARBY'}
+                            </div>
+                          </div>
+                        </button>
+                      </motion.div>
+                    );
+                  })}
+
+                  {/* Enhanced Footer with Search Instructions */}
                   <div className={`p-4 border-t transition-all duration-300 ${
                     theme === 'dark' 
                       ? 'border-ios-dark-border bg-ios-dark-surface/80' 
                       : 'border-ios-light-border bg-ios-light-surface/90'
                   }`}>
-                    <div className={`text-sm text-center transition-colors duration-300 ${
-                      theme === 'dark' ? 'text-ios-dark-text-tertiary' : 'text-ios-light-text-tertiary'
-                    }`}>
-                      Press <kbd className={`px-2 py-1 border rounded text-sm font-mono transition-all duration-300 ${
+                    <div className="flex items-center justify-between">
+                      <div className={`text-sm transition-colors duration-300 ${
+                        theme === 'dark' ? 'text-ios-dark-text-tertiary' : 'text-ios-light-text-tertiary'
+                      }`}>
+                        {hasSearchResults ? (
+                          <span>Found {suggestions.filter(s => s.type === 'office').length}+ matching offices</span>
+                        ) : (
+                          <span>Search IEBC offices across Kenya</span>
+                        )}
+                      </div>
+                      <div className={`text-xs px-2 py-1 border rounded font-mono transition-all duration-300 ${
                         theme === 'dark'
                           ? 'bg-ios-dark-surface border-ios-dark-border text-ios-dark-text-secondary shadow-lg'
                           : 'bg-white border-ios-light-border text-ios-light-text-secondary shadow-md'
-                      }`}>Enter</kbd> to see all IEBC office results
+                      }`}>
+                        Enter
+                      </div>
                     </div>
                   </div>
                 </>
