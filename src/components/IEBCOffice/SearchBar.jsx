@@ -101,15 +101,14 @@ const SearchBar = ({
         type: 'office'
       }));
 
-      // Add search query suggestion - ALWAYS show this when there's a search term
-      if (searchTerm.trim().length > 0) {
+      // Add search query suggestion
+      if (searchTerm.length > 2) {
         formattedSuggestions.push({
           id: `search-${searchTerm}`,
           name: `Search for "${searchTerm}"`,
           subtitle: 'Find all matching IEBC offices',
           type: 'search_query',
-          query: searchTerm,
-          isBottomBar: true // Flag to identify the bottom bar suggestion
+          query: searchTerm
         });
       }
 
@@ -152,24 +151,16 @@ const SearchBar = ({
 
   const handleInputFocus = () => {
     setIsExpanded(true);
-    if (onFocus) onFocus();
   };
 
-  // Enhanced suggestion selection handler
   const handleSuggestionSelect = (suggestion) => {
-    console.log('Suggestion selected:', suggestion);
-    
     if (suggestion.type === 'office' && onSearch) {
-      // Individual office selection
       onSearch(suggestion);
     } else if (suggestion.type === 'search_query' && onSearch) {
-      // Bottom bar search - trigger full search with the specific query
-      onSearch({ 
-        searchQuery: suggestion.query,
-        triggerType: 'bottom_bar_search'
-      });
+      // FIX: Treat search_query suggestions the same as pressing Enter
+      onSearch({ searchQuery: suggestion.query });
+      if (onFocus) onFocus();
     }
-    
     setIsExpanded(false);
     setSuggestions([]);
     if (inputRef.current) {
@@ -198,11 +189,7 @@ const SearchBar = ({
       e.preventDefault();
       
       if (value.trim() && onSearch) {
-        // Enter key search - trigger full search
-        onSearch({ 
-          searchQuery: value.trim(),
-          triggerType: 'enter_key'
-        });
+        onSearch({ searchQuery: value.trim() });
         if (onFocus) onFocus();
       }
       setIsExpanded(false);
@@ -251,8 +238,7 @@ const SearchBar = ({
     if (suggestion.type === 'search_query') {
       return {
         primary: suggestion.name,
-        secondary: suggestion.subtitle,
-        isBottomBar: true
+        secondary: suggestion.subtitle
       };
     }
 
@@ -270,15 +256,9 @@ const SearchBar = ({
         suggestion.county,
       tertiary: locationMatch ? 
         highlightMatches(suggestion.office_location, [locationMatch]) : 
-        suggestion.office_location,
-      isBottomBar: false
+        suggestion.office_location
     };
   };
-
-  // Check if we have bottom bar suggestion
-  const hasBottomBarSuggestion = suggestions.some(s => s.isBottomBar);
-  const officeSuggestions = suggestions.filter(s => !s.isBottomBar);
-  const bottomBarSuggestion = suggestions.find(s => s.isBottomBar);
 
   return (
     <div className={`relative ${className}`}>
@@ -402,8 +382,7 @@ const SearchBar = ({
                 </div>
               ) : (
                 <>
-                  {/* Office Suggestions */}
-                  {officeSuggestions.map((suggestion, index) => {
+                  {suggestions.map((suggestion, index) => {
                     const display = getSuggestionDisplay(suggestion);
                     return (
                       <motion.div
@@ -470,66 +449,7 @@ const SearchBar = ({
                       </motion.div>
                     );
                   })}
-
-                  {/* Bottom Bar Search Suggestion - ALWAYS VISIBLE when there's a search term */}
-                  {bottomBarSuggestion && (
-                    <motion.div
-                      key="bottom-bar-search"
-                      className={`border-t transition-all duration-300 ${
-                        theme === 'dark' 
-                          ? 'border-ios-dark-border bg-ios-dark-surface/80' 
-                          : 'border-ios-light-border bg-ios-light-surface/90'
-                      }`}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ 
-                        delay: (officeSuggestions.length * 0.03) + 0.1,
-                        type: "spring",
-                        stiffness: 400,
-                        damping: 25
-                      }}
-                    >
-                      <button
-                        onClick={() => handleSuggestionSelect(bottomBarSuggestion)}
-                        className={`w-full text-left p-4 transition-all duration-200 group ${
-                          theme === 'dark'
-                            ? 'hover:bg-ios-dark-surface-hover text-ios-dark-text-primary'
-                            : 'hover:bg-ios-light-surface-hover text-ios-light-text-primary'
-                        }`}
-                      >
-                        <div className="flex items-center space-x-4">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 ${
-                            theme === 'dark'
-                              ? 'bg-green-500/30 text-green-300 shadow-lg group-hover:bg-green-500/40'
-                              : 'bg-green-500/20 text-green-600 shadow-md group-hover:bg-green-500/30'
-                          }`}>
-                            <Search className="w-5 h-5" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className={`font-semibold text-base transition-colors duration-300 ${
-                              theme === 'dark' ? 'text-ios-dark-text-primary' : 'text-ios-light-text-primary'
-                            }`}>
-                              {bottomBarSuggestion.name}
-                            </div>
-                            <div className={`text-sm mt-1 transition-colors duration-300 ${
-                              theme === 'dark' ? 'text-ios-dark-text-secondary' : 'text-ios-light-text-secondary'
-                            }`}>
-                              {bottomBarSuggestion.subtitle}
-                            </div>
-                          </div>
-                          <div className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-300 group-hover:scale-105 ${
-                            theme === 'dark'
-                              ? 'bg-green-500/20 text-green-300 border border-green-500/30'
-                              : 'bg-green-500/15 text-green-600 border border-green-500/20'
-                          }`}>
-                            Search All
-                          </div>
-                        </div>
-                      </button>
-                    </motion.div>
-                  )}
                   
-                  {/* Footer Instructions */}
                   <div className={`p-4 border-t transition-all duration-300 ${
                     theme === 'dark' 
                       ? 'border-ios-dark-border bg-ios-dark-surface/80' 
