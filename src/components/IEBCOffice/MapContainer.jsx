@@ -126,7 +126,7 @@ const MapContainer = forwardRef(({
         zoom={zoom || defaultZoom}
         className={`w-full h-full ${className || ''}`}
         style={{ 
-          position: 'relative', 
+          position: 'absolute', 
           top: 0, 
           left: 0, 
           width: '100%', 
