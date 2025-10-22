@@ -1,1387 +1,1395 @@
-// src/components/IEBCOffice/ContributeLocationModal.jsx
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+// src/components/Admin/ContributionsDashboard.tsx
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { createPortal } from 'react-dom';
-import { useContributeLocation } from '@/hooks/useContributeLocation';
-import MapContainer from '@/components/IEBCOffice/MapContainer';
-import UserLocationMarker from '@/components/IEBCOffice/UserLocationMarker';
-import GeoJSONLayerManager from '@/components/IEBCOffice/GeoJSONLayerManager';
-import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
 import { supabase } from '@/integrations/supabase/client';
-import L from 'leaflet';
+import MapContainer from '@/components/IEBCOffice/MapContainer';
+import GeoJSONLayerManager from '@/components/IEBCOffice/GeoJSONLayerManager';
+import UserLocationMarker from '@/components/IEBCOffice/UserLocationMarker';
+import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useContributeLocation } from '@/hooks/useContributeLocation';
 
-// Complete list of 47 Kenyan counties with constituencies
-const KENYAN_COUNTIES = [
-  "Baringo", "Bomet", "Bungoma", "Busia", "Elgeyo-Marakwet",
-  "Embu", "Garissa", "Homa Bay", "Isiolo", "Kajiado",
-  "Kakamega", "Kericho", "Kiambu", "Kilifi", "Kirinyaga",
-  "Kisii", "Kisumu", "Kitui", "Kwale", "Laikipia",
-  "Lamu", "Machakos", "Makueni", "Mandera", "Marsabit",
-  "Meru", "Migori", "Mombasa", "Murang'a", "Nairobi",
-  "Nakuru", "Nandi", "Narok", "Nyamira", "Nyandarua",
-  "Nyeri", "Samburu", "Siaya", "Taita-Taveta", "Tana River",
-  "Tharaka-Nithi", "Trans Nzoia", "Turkana", "Uasin Gishu",
-  "Vihiga", "Wajir", "West Pokot"
-];
+interface DeviceMetadata {
+  user_agent?: string;
+  platform?: string;
+  language?: string;
+  timestamp?: string;
+  capture_method?: string;
+  capture_source?: string;
+  accuracy?: number;
+  screen_resolution?: string;
+  timezone?: string;
+  has_touch?: boolean;
+  confidence_score?: number;
+  duplicate_count?: number;
+  constituency_code?: number;
+}
 
-// Common constituencies by county for auto-suggest
-const CONSTITUENCY_SUGGESTIONS = {
-  "Nairobi": ["Westlands", "Dagoretti North", "Dagoretti South", "Langata", "Kibra", "Roysambu", "Kasarani", "Ruaraka", "Embakasi South", "Embakasi North", "Embakasi Central", "Embakasi East", "Embakasi West", "Makadara", "Kamukunji", "Starehe", "Mathare"],
-  "Mombasa": ["Changamwe", "Jomvu", "Kisauni", "Nyali", "Likoni", "Mvita"],
-  "Kisumu": ["Kisumu East", "Kisumu West", "Kisumu Central", "Seme", "Nyando", "Muhoroni", "Nyakach"],
-  "Nakuru": ["Nakuru Town East", "Nakuru Town West", "Naivasha", "Gilgil", "Bahati", "Subukia", "Rongai", "Njoro", "Molo", "Kuresoi North", "Kuresoi South"]
-};
+interface ExifMetadata {
+  has_exif?: boolean;
+  file_size?: number;
+  file_type?: string;
+  last_modified?: number;
+  file_name?: string;
+}
 
-// Enhanced Google Maps URL parsing function
-const parseGoogleMapsInput = (input) => {
-  if (!input || typeof input !== 'string') return null;
-  
-  const trimmed = input.trim();
-  
-  // Pattern 1: Direct coordinates (e.g., "-1.2921,36.8219")
-  const directCoords = trimmed.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);
-  if (directCoords) {
-    const lat = parseFloat(directCoords[1]);
-    const lng = parseFloat(directCoords[2]);
-    if (isValidCoordinate(lat, lng)) {
-      return { lat, lng, source: 'direct_paste' };
-    }
-  }
-  
-  // Pattern 2: @lat,lng,zoom format (most common)
-  const atPattern = trimmed.match(/@(-?\d+\.?\d+),(-?\d+\.?\d+),?(\d+\.?\d*)?z?/);
-  if (atPattern) {
-    const lat = parseFloat(atPattern[1]);
-    const lng = parseFloat(atPattern[2]);
-    if (isValidCoordinate(lat, lng)) {
-      return { lat, lng, source: 'at_pattern', zoom: parseFloat(atPattern[3]) };
-    }
-  }
-  
-  // Pattern 3: ?q=lat,lng format
-  const qPattern = trimmed.match(/[?&]q=(-?\d+\.?\d+),(-?\d+\.?\d+)/);
-  if (qPattern) {
-    const lat = parseFloat(qPattern[1]);
-    const lng = parseFloat(qPattern[2]);
-    if (isValidCoordinate(lat, lng)) {
-      return { lat, lng, source: 'q_parameter' };
-    }
-  }
-  
-  // Pattern 4: !3dlat!4dlng format
-  const dataPattern = trimmed.match(/!3d(-?\d+\.?\d+)!4d(-?\d+\.?\d+)/);
-  if (dataPattern) {
-    const lat = parseFloat(dataPattern[1]);
-    const lng = parseFloat(dataPattern[2]);
-    if (isValidCoordinate(lat, lng)) {
-      return { lat, lng, source: 'data_parameter' };
-    }
-  }
-  
-  // Pattern 5: /place/ with coordinates
-  const placePattern = trimmed.match(/\/place\/([^/@?]+)\/@(-?\d+\.?\d+),(-?\d+\.?\d+)/);
-  if (placePattern) {
-    const lat = parseFloat(placePattern[2]);
-    const lng = parseFloat(placePattern[3]);
-    if (isValidCoordinate(lat, lng)) {
-      const placeName = decodeURIComponent(placePattern[1]).replace(/\+/g, ' ');
-      return { lat, lng, placeName, source: 'place_path' };
-    }
-  }
-  
-  // Pattern 6: Short URLs
-  if (trimmed.match(/goo\.gl\/maps\/|maps\.app\.goo\.gl/)) {
-    return { requiresExpansion: true, shortUrl: trimmed, source: 'short_url' };
-  }
-  
-  // Pattern 7: Place name only
-  const placeNamePattern = trimmed.match(/\/place\/([^/@?]+)/);
-  if (placeNamePattern && !placeNamePattern[1].includes('@')) {
-    const placeName = decodeURIComponent(placeNamePattern[1]).replace(/\+/g, ' ');
-    return { placeName, requiresGeocoding: true, source: 'place_name' };
-  }
-  
-  return null;
-};
-
-const isValidCoordinate = (lat, lng) => {
-  const KENYA_BOUNDS = {
-    minLat: -4.678, maxLat: 5.506,
-    minLng: 33.908, maxLng: 41.899
+interface ReverseGeocodeResult {
+  display_name?: string;
+  address?: {
+    county?: string;
+    state?: string;
+    state_district?: string;
+    road?: string;
+    neighbourhood?: string;
+    suburb?: string;
+    [key: string]: any;
   };
-  
-  return (!isNaN(lat) && !isNaN(lng) &&
-          lat >= KENYA_BOUNDS.minLat && lat <= KENYA_BOUNDS.maxLat &&
-          lng >= KENYA_BOUNDS.minLng && lng <= KENYA_BOUNDS.maxLng);
-};
-
-// Enhanced client-side URL expansion with timeout
-const expandShortUrl = async (shortUrl) => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000);
-  
-  try {
-    const response = await fetch(shortUrl, {
-      method: 'HEAD',
-      redirect: 'follow',
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-    return response.url;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    console.error('Error expanding URL:', error);
-    return shortUrl;
-  }
-};
-
-// Custom marker icons
-const createCustomIcon = (color = '#34C759') => L.divIcon({
-  className: 'contribution-marker',
-  html: `<div style="width: 24px; height: 24px; background: ${color}; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;">
-           <div style="width: 8px; height: 8px; background: white; border-radius: 50%;"></div>
-         </div>`,
-  iconSize: [24, 24],
-  iconAnchor: [12, 12]
-});
-
-const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) => {
-  const [step, setStep] = useState(1);
-  const [selectedMethod, setSelectedMethod] = useState(null);
-  const [position, setPosition] = useState(null);
-  const [accuracy, setAccuracy] = useState(null);
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [notes, setNotes] = useState('');
-  const [googleMapsInput, setGoogleMapsInput] = useState('');
-  const [parseResult, setParseResult] = useState(null);
-  const [isExpandingUrl, setIsExpandingUrl] = useState(false);
-  const [isGettingLocation, setIsGettingLocation] = useState(false);
-  const [formData, setFormData] = useState({
-    submitted_office_location: '',
-    submitted_county: '',
-    submitted_constituency: '',
-    submitted_landmark: ''
-  });
-  
-  const [agreement, setAgreement] = useState(false);
-  const [mapCenter, setMapCenter] = useState([-1.286389, 36.817223]);
-  const [mapZoom, setMapZoom] = useState(6);
-  const [isMapReady, setIsMapReady] = useState(false);
-  const [locationError, setLocationError] = useState(null);
-  const [submissionSuccess, setSubmissionSuccess] = useState(false);
-  const [contributionId, setContributionId] = useState(null);
-  const [duplicateOffices, setDuplicateOffices] = useState([]);
-  const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
-  const [constituencyCode, setConstituencyCode] = useState(null);
-  
-  const mapRef = useRef(null);
-  const accuracyCircleRef = useRef(null);
-  const markerRef = useRef(null);
-  const fileInputRef = useRef(null);
-  
-  const { 
-    getCurrentPosition, 
-    convertImageToWebP, 
-    submitContribution, 
-    isSubmitting, 
-    error,
-    getConstituencyCode
-  } = useContributeLocation();
-
-  // Memoized constituency suggestions based on selected county
-  const constituencySuggestions = useMemo(() => {
-    return CONSTITUENCY_SUGGESTIONS[formData.submitted_county] || [];
-  }, [formData.submitted_county]);
-
-  // Enhanced: Auto-fetch constituency code when constituency and county are selected
-  useEffect(() => {
-    const fetchConstituencyCode = async () => {
-      if (formData.submitted_constituency && formData.submitted_county) {
-        try {
-          console.log('Fetching constituency code for:', formData.submitted_constituency, formData.submitted_county);
-          const code = await getConstituencyCode(formData.submitted_constituency, formData.submitted_county);
-          setConstituencyCode(code);
-          console.log('Constituency code found:', code);
-        } catch (error) {
-          console.warn('Failed to fetch constituency code:', error);
-          setConstituencyCode(null);
-        }
-      } else {
-        setConstituencyCode(null);
-      }
-    };
-
-    const timeoutId = setTimeout(fetchConstituencyCode, 500);
-    return () => clearTimeout(timeoutId);
-  }, [formData.submitted_constituency, formData.submitted_county, getConstituencyCode]);
-
-  // Safe duplicate office check function
-  const safeFindDuplicateOffices = async (lat, lng, name, radius = 200) => {
-    try {
-      if (typeof lat !== 'number' || typeof lng !== 'number') {
-        throw new Error('Invalid coordinates');
-      }
-      
-      // Validate Kenya bounds
-      const KENYA_BOUNDS = {
-        minLat: -4.678, maxLat: 5.506, 
-        minLng: 33.908, maxLng: 41.899
-      };
-      
-      if (lat < KENYA_BOUNDS.minLat || lat > KENYA_BOUNDS.maxLat || 
-          lng < KENYA_BOUNDS.minLng || lng > KENYA_BOUNDS.maxLng) {
-        throw new Error('Coordinates outside Kenya bounds');
-      }
-
-      const { data, error } = await supabase.rpc('find_duplicate_offices', {
-        p_lat: lat,
-        p_lng: lng,
-        p_name: String(name || ''),
-        p_radius_meters: Math.max(50, Math.min(radius, 1000))
-      });
-
-      if (error) throw error;
-      return data || [];
-    } catch (error) {
-      console.warn('Safe duplicate check failed:', error.message);
-      return [];
-    }
+  boundingbox?: string[];
+  full_result?: any;
+  constituency_info?: {
+    name?: string;
+    county?: string;
+    id?: number;
   };
+}
 
-  // Add marker to map function - FIXED with map readiness check
-  const addMarkerToMap = useCallback((position, method = selectedMethod) => {
-    if (!mapRef.current || !position || !position.lat || !position.lng) {
-      console.warn('Cannot add marker: invalid position or map not ready');
-      return;
-    }
+interface Contribution {
+  id: number;
+  submitted_office_location: string;
+  submitted_county: string;
+  submitted_constituency: string;
+  submitted_constituency_code?: number;
+  submitted_landmark?: string;
+  submitted_latitude: number;
+  submitted_longitude: number;
+  submitted_accuracy_meters?: number;
+  google_maps_link?: string;
+  image_public_url?: string;
+  device_metadata: DeviceMetadata;
+  exif_metadata?: ExifMetadata;
+  reverse_geocode_result?: ReverseGeocodeResult;
+  confidence_score: number;
+  duplicate_candidate_ids?: number[];
+  confirmation_count?: number;
+  status: string;
+  created_at: string;
+  reviewed_at?: string;
+  review_notes?: string;
+  reviewer_id?: string;
+  submission_source?: string;
+  submission_method?: string;
+  nearby_landmarks?: any[];
+  submitted_timestamp?: string;
+}
 
-    if (isNaN(position.lat) || isNaN(position.lng)) {
-      console.error('Invalid coordinates for marker:', position);
-      return;
-    }
-    
-    try {
-      // Check if map is ready and has addLayer method
-      const mapInstance = mapRef.current;
-      if (!mapInstance || typeof mapInstance.addLayer !== 'function') {
-        console.warn('Map instance not ready for adding marker');
-        return;
-      }
-      
-      if (markerRef.current) {
-        mapInstance.removeLayer(markerRef.current);
-      }
-      
-      markerRef.current = L.marker([position.lat, position.lng], {
-        icon: createCustomIcon(),
-        draggable: method === 'drop_pin'
-      }).addTo(mapInstance);
-      
-      if (method === 'drop_pin') {
-        markerRef.current.on('dragend', (event) => {
-          const newPosition = event.target.getLatLng();
-          if (newPosition && !isNaN(newPosition.lat) && !isNaN(newPosition.lng)) {
-            setPosition({ lat: newPosition.lat, lng: newPosition.lng });
-            setAccuracy(5);
-          }
-        });
-      }
-    } catch (error) {
-      console.error('Error adding marker to map:', error);
-    }
-  }, [selectedMethod]);
+interface ContributionsDashboardProps {
+  onLogout: () => void;
+  counties: string[];
+}
 
-  // Add accuracy circle function - FIXED with proper error handling
-  const addAccuracyCircle = useCallback((position, accuracyValue) => {
-    if (!mapRef.current || !position || !position.lat || !position.lng || !accuracyValue) {
-      console.warn('Missing parameters for accuracy circle');
-      return;
-    }
-
-    if (isNaN(position.lat) || isNaN(position.lng) || isNaN(accuracyValue) || accuracyValue <= 0) {
-      console.warn('Invalid parameters for accuracy circle:', { position, accuracyValue });
-      return;
-    }
-    
-    try {
-      // Check if map is ready and has addLayer method
-      const mapInstance = mapRef.current;
-      if (!mapInstance || typeof mapInstance.addLayer !== 'function') {
-        console.warn('Map instance not ready for adding accuracy circle');
-        return;
-      }
-      
-      if (accuracyCircleRef.current) {
-        mapInstance.removeLayer(accuracyCircleRef.current);
-      }
-      
-      const limitedAccuracy = Math.min(accuracyValue, 1000);
-      accuracyCircleRef.current = L.circle([position.lat, position.lng], {
-        radius: limitedAccuracy,
-        color: '#34C759',
-        fillColor: '#34C759',
-        fillOpacity: 0.1,
-        weight: 2,
-        opacity: 0.6
-      }).addTo(mapInstance);
-    } catch (error) {
-      console.error('Error adding accuracy circle:', error);
-    }
-  }, []);
-
-  // Handle map click function
-  const handleMapClick = useCallback((e) => {
-    if (selectedMethod === 'drop_pin' && e && e.latlng) {
-      const { lat, lng } = e.latlng;
-      
-      if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
-        console.error('Invalid map click coordinates:', e.latlng);
-        return;
-      }
-
-      const clickedPosition = { lat, lng };
-      setPosition(clickedPosition);
-      setAccuracy(5);
-      
-      if (mapRef.current && mapRef.current.isReady && mapRef.current.isReady()) {
-        mapRef.current.flyTo([lat, lng], 16, { duration: 0.5 });
-        addMarkerToMap(clickedPosition, 'drop_pin');
-        addAccuracyCircle(clickedPosition, 5);
-      }
-    }
-  }, [selectedMethod, addMarkerToMap, addAccuracyCircle]);
-
-  // Handle map ready function - FIXED to properly handle map instance
-  const handleMapReady = useCallback((map) => {
-    console.log('Map is ready:', map);
-    setIsMapReady(true);
-    
-    // Ensure click events are captured for drop pin mode
-    if (map && typeof map.on === 'function') {
-      map.on('click', handleMapClick);
-    }
-    
-    if (position) {
-      // Use setTimeout to ensure map layers are fully initialized
-      setTimeout(() => {
-        addMarkerToMap(position);
-        addAccuracyCircle(position, accuracy);
-      }, 100);
-    }
-  }, [position, accuracy, handleMapClick, addMarkerToMap, addAccuracyCircle]);
-
-  // Initialize map with user location
-  const initializeMapWithUserLocation = useCallback(() => {
-    if (userLocation?.latitude && userLocation?.longitude) {
-      const userPos = { lat: userLocation.latitude, lng: userLocation.longitude };
-      setMapCenter([userLocation.latitude, userLocation.longitude]);
-      setMapZoom(16);
-      
-      if (mapRef.current && mapRef.current.isReady && mapRef.current.isReady()) {
-        mapRef.current.flyTo([userLocation.latitude, userLocation.longitude], 16, { duration: 1 });
-      }
-    }
-  }, [userLocation]);
-
-  // Check for duplicate offices when position changes
-  useEffect(() => {
-    const checkDuplicateOffices = async () => {
-      if (!position || typeof position.lat !== 'number' || typeof position.lng !== 'number') {
-        return;
-      }
-      
-      setIsCheckingDuplicates(true);
-      try {
-        const results = await safeFindDuplicateOffices(
-          position.lat, 
-          position.lng, 
-          formData.submitted_office_location, 
-          200
-        );
-        setDuplicateOffices(results.filter(office => office.is_likely_duplicate === true));
-      } catch (error) {
-        console.error('Duplicate check failed:', error);
-        setDuplicateOffices([]);
-      } finally {
-        setIsCheckingDuplicates(false);
-      }
-    };
-
-    const timeoutId = setTimeout(checkDuplicateOffices, 500);
-    return () => clearTimeout(timeoutId);
-  }, [position, formData.submitted_office_location]);
-
-  // Auto-advance to details when position is set (for non-GPS methods)
-  useEffect(() => {
-    if (position && selectedMethod !== 'current_location' && step === 2) {
-      const timer = setTimeout(() => {
-        setStep(3);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [position, selectedMethod, step]);
-
-  // Method selection handlers
-  const handleMethodSelect = (method) => {
-    setSelectedMethod(method);
-    setStep(2);
-    
-    if (method === 'current_location') {
-      handleCurrentLocation();
-    } else if (method === 'drop_pin') {
-      initializeMapWithUserLocation();
-    }
-  };
-
-  // FIXED: handleCurrentLocation with proper map readiness checks
-  const handleCurrentLocation = async () => {
-    setLocationError(null);
-    setIsGettingLocation(true);
-    
-    try {
-      const pos = await getCurrentPosition();
-      
-      if (!pos || !pos.latitude || !pos.longitude) {
-        throw new Error('Failed to retrieve valid location data');
-      }
-
-      const { latitude, longitude, accuracy: posAccuracy = 50 } = pos;
-      
-      if (isNaN(latitude) || isNaN(longitude)) {
-        throw new Error('Invalid coordinates received from GPS');
-      }
-
-      const capturedPosition = { lat: latitude, lng: longitude };
-      const limitedAccuracy = Math.min(posAccuracy, 1000);
-      
-      setPosition(capturedPosition);
-      setAccuracy(limitedAccuracy);
-      setMapCenter([latitude, longitude]);
-      setMapZoom(16);
-      
-      // Wait for map to be ready before adding layers
-      if (mapRef.current) {
-        // Use flyTo with callback to ensure map is ready for layer additions
-        mapRef.current.flyTo([latitude, longitude], 16, { 
-          duration: 1 
-        }, () => {
-          // This callback executes after flyTo completes
-          setTimeout(() => {
-            addMarkerToMap(capturedPosition);
-            addAccuracyCircle(capturedPosition, limitedAccuracy);
-          }, 300);
-        });
-        
-        // Show accuracy guidance
-        if (limitedAccuracy > 100) {
-          setLocationError({
-            type: 'warning',
-            message: `GPS accuracy is low (±${Math.round(limitedAccuracy)}m). Please move to an open area or manually adjust the pin.`,
-            action: {
-              label: 'Adjust Pin Manually',
-              onClick: () => setSelectedMethod('drop_pin')
-            }
-          });
-        } else if (limitedAccuracy <= 20) {
-          setLocationError({
-            type: 'success', 
-            message: `✓ Good accuracy (±${Math.round(limitedAccuracy)}m). You're within the recommended 20m range.`
-          });
-        }
-      } else {
-        console.warn('Map ref not available for location update');
-      }
-    } catch (err) {
-      console.error('Error capturing location:', err);
-      const errorMessage = err?.message || 'Failed to get current location';
-      setLocationError({
-        type: 'error',
-        message: errorMessage,
-        action: {
-          label: 'Try Drop Pin Method',
-          onClick: () => setSelectedMethod('drop_pin')
-        }
-      });
-    } finally {
-      setIsGettingLocation(false);
-    }
-  };
-
-  // FIXED: handleGoogleMapsParse with proper map readiness
-  const handleGoogleMapsParse = async () => {
-    if (!googleMapsInput.trim()) return;
-    
-    setIsExpandingUrl(true);
-    setLocationError(null);
-    
-    try {
-      let result = parseGoogleMapsInput(googleMapsInput);
-      
-      // Handle short URL expansion
-      if (result?.requiresExpansion) {
-        const expandedUrl = await expandShortUrl(result.shortUrl);
-        result = parseGoogleMapsInput(expandedUrl);
-      }
-      
-      if (result?.lat && result?.lng) {
-        setParseResult(result);
-        setPosition({ lat: result.lat, lng: result.lng });
-        setMapCenter([result.lat, result.lng]);
-        setMapZoom(16);
-        
-        if (mapRef.current && mapRef.current.isReady && mapRef.current.isReady()) {
-          mapRef.current.flyTo([result.lat, result.lng], 16, { 
-            duration: 1 
-          }, () => {
-            // Add layers after flyTo completes
-            setTimeout(() => {
-              addMarkerToMap({ lat: result.lat, lng: result.lng });
-              addAccuracyCircle({ lat: result.lat, lng: result.lng }, 5);
-            }, 300);
-          });
-        } else {
-          console.warn('Map not ready for flyTo operation');
-        }
-        
-        // Auto-fill office name if available
-        if (result.placeName && !formData.submitted_office_location) {
-          setFormData(prev => ({ 
-            ...prev, 
-            submitted_office_location: result.placeName 
-          }));
-        }
-      } else if (result?.requiresGeocoding) {
-        setLocationError({
-          type: 'info',
-          message: 'Could not extract exact coordinates. Please place a pin on the map manually.',
-          action: {
-            label: 'Switch to Drop Pin',
-            onClick: () => setSelectedMethod('drop_pin')
-          }
-        });
-      } else {
-        setLocationError({
-          type: 'error',
-          message: 'Could not parse input. Please check the format and try again.'
-        });
-      }
-    } catch (err) {
-      console.error('Error parsing Google Maps input:', err);
-      setLocationError({
-        type: 'error',
-        message: 'Failed to process the Google Maps link'
-      });
-    } finally {
-      setIsExpandingUrl(false);
-    }
-  };
-
-  const handleImageSelect = useCallback(async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    try {
-      if (!file.type.startsWith('image/')) {
-        throw new Error('Please select an image file (JPEG, PNG, etc.)');
-      }
-      if (file.size > 10 * 1024 * 1024) {
-        throw new Error('Image must be smaller than 10MB');
-      }
-      
-      const webpFile = await convertImageToWebP(file);
-      setImageFile(webpFile);
-      
-      const previewUrl = URL.createObjectURL(webpFile);
-      setImagePreview(previewUrl);
-    } catch (err) {
-      console.error('Error processing image:', err);
-      setLocationError({
-        type: 'error',
-        message: err.message
-      });
-    }
-  }, [convertImageToWebP]);
-
-  const handleRemoveImage = useCallback(() => {
-    setImageFile(null);
-    if (imagePreview) {
-      URL.revokeObjectURL(imagePreview);
-      setImagePreview(null);
-    }
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }, [imagePreview]);
-
-  const handleFinalSubmit = async () => {
-    if (!position || !agreement) {
-      setLocationError({
-        type: 'error',
-        message: 'Please confirm your agreement and ensure location is set.'
-      });
-      return;
-    }
-    
-    try {
-      const contributionData = {
-        submitted_latitude: position.lat,
-        submitted_longitude: position.lng,
-        submitted_accuracy_meters: accuracy || 50,
-        submitted_office_location: formData.submitted_office_location,
-        submitted_county: formData.submitted_county,
-        submitted_constituency: formData.submitted_constituency,
-        submitted_constituency_code: constituencyCode, // Use the fetched constituency code
-        submitted_landmark: formData.submitted_landmark || notes,
-        google_maps_link: selectedMethod === 'google_maps' ? googleMapsInput : null,
-        imageFile: imageFile,
-        capture_method: selectedMethod,
-        capture_source: parseResult?.source || 'manual',
-        duplicate_count: duplicateOffices.length,
-        device_metadata: {
-          user_agent: navigator.userAgent,
-          platform: navigator.platform,
-          language: navigator.language,
-          timestamp: new Date().toISOString(),
-          capture_method: selectedMethod,
-          capture_source: parseResult?.source || 'manual',
-          accuracy: accuracy || 50,
-          duplicate_count: duplicateOffices.length,
-          screen_resolution: `${window.screen.width}x${window.screen.height}`,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          has_touch: 'ontouchstart' in window,
-          constituency_code: constituencyCode // Include in device metadata too
-        }
-      };
-      
-      console.log('Submitting contribution data with constituency code:', constituencyCode, contributionData);
-      
-      const result = await submitContribution(contributionData);
-      setContributionId(result.id);
-      setSubmissionSuccess(true);
-      
-      if (onSuccess) {
-        onSuccess(result);
-      }
-      
-      setStep(4);
-    } catch (err) {
-      console.error('Submission error:', err);
-      setLocationError({
-        type: 'error',
-        message: err.message || 'Failed to submit contribution. Please try again.'
-      });
-    }
-  };
-
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-    
-    // Validate required fields
-    if (!formData.submitted_office_location.trim()) {
-      setLocationError({
-        type: 'error',
-        message: 'Please provide an office name.'
-      });
-      return;
-    }
-    
-    if (!formData.submitted_county) {
-      setLocationError({
-        type: 'error',
-        message: 'Please select a county.'
-      });
-      return;
-    }
-    
-    if (!formData.submitted_constituency.trim()) {
-      setLocationError({
-        type: 'error',
-        message: 'Please provide a constituency.'
-      });
-      return;
-    }
-    
-    handleFinalSubmit();
-  };
-
-  const resetForm = useCallback(() => {
-    setStep(1);
-    setSelectedMethod(null);
-    setPosition(null);
-    setAccuracy(null);
-    setImageFile(null);
-    setImagePreview(null);
-    setNotes('');
-    setGoogleMapsInput('');
-    setParseResult(null);
-    setFormData({
-      submitted_office_location: '',
-      submitted_county: '',
-      submitted_constituency: '',
-      submitted_landmark: ''
-    });
-    setAgreement(false);
-    setLocationError(null);
-    setSubmissionSuccess(false);
-    setContributionId(null);
-    setDuplicateOffices([]);
-    setConstituencyCode(null);
-    
-    if (imagePreview) {
-      URL.revokeObjectURL(imagePreview);
-    }
-    
-    // Clean up map layers
-    if (markerRef.current && mapRef.current && typeof mapRef.current.removeLayer === 'function') {
-      try {
-        mapRef.current.removeLayer(markerRef.current);
-      } catch (e) {
-        console.warn('Error removing marker:', e);
-      }
-      markerRef.current = null;
-    }
-    if (accuracyCircleRef.current && mapRef.current && typeof mapRef.current.removeLayer === 'function') {
-      try {
-        mapRef.current.removeLayer(accuracyCircleRef.current);
-      } catch (e) {
-        console.warn('Error removing accuracy circle:', e);
-      }
-      accuracyCircleRef.current = null;
-    }
-  }, [imagePreview]);
-
-  const handleClose = useCallback(() => {
-    resetForm();
-    onClose();
-  }, [resetForm, onClose]);
-
-  useEffect(() => {
-    return () => {
-      if (imagePreview) {
-        URL.revokeObjectURL(imagePreview);
-      }
-    };
-  }, [imagePreview]);
-
-  // Enhanced error display component
-  const ErrorAlert = ({ error }) => {
-    if (!error) return null;
-    
-    const alertStyles = {
-      error: 'bg-red-50 border-red-200 text-red-700',
-      warning: 'bg-yellow-50 border-yellow-200 text-yellow-700',
-      success: 'bg-green-50 border-green-200 text-green-700',
-      info: 'bg-blue-50 border-blue-200 text-blue-700'
-    };
-    
-    const icons = {
-      error: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-        </svg>
-      ),
-      warning: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-        </svg>
-      ),
-      success: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
-      ),
-      info: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      )
-    };
-    
-    return (
-      <div className={`mb-4 border rounded-xl p-4 ${alertStyles[error.type]}`}>
-        <div className="flex items-center space-x-3">
-          {icons[error.type]}
-          <div className="flex-1">
-            <p className="text-sm font-medium">{error.message}</p>
-            {error.action && (
-              <button
-                onClick={error.action.onClick}
-                className="mt-2 text-sm font-medium underline hover:no-underline"
-              >
-                {error.action.label}
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  if (!isOpen) return null;
-
-  return createPortal(
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col"
-          >
-            {/* Header with progress indicator */}
-            <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-200">
-              <div className="flex items-center space-x-4">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  {step === 1 && 'Contribute IEBC Office Location'}
-                  {step === 2 && 'Capture Location'}
-                  {step === 3 && 'Office Details'}
-                  {step === 4 && 'Submission Complete'}
-                </h2>
-                {/* Progress indicator */}
-                <div className="flex items-center space-x-1">
-                  {[1, 2, 3, 4].map((stepNum) => (
-                    <div
-                      key={stepNum}
-                      className={`w-2 h-2 rounded-full ${
-                        stepNum === step ? 'bg-green-600' : 
-                        stepNum < step ? 'bg-green-400' : 'bg-gray-300'
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
-              <button
-                onClick={handleClose}
-                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
-                aria-label="Close modal"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <ErrorAlert error={locationError} />
-
-              {error && (
-                <div className="mb-4 bg-red-50 border border-red-200 rounded-xl p-4">
-                  <p className="text-sm text-red-700">{error}</p>
-                </div>
-              )}
-
-              {/* Step 1: Method Selection */}
-              {step === 1 && (
-                <div className="space-y-6">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">How would you like to contribute?</h3>
-                    <p className="text-gray-600">Choose your preferred method to capture the IEBC office location</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4">
-                    <button
-                      onClick={() => handleMethodSelect('current_location')}
-                      className="p-4 border-2 border-gray-200 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all text-left focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                      aria-label="Use my current location"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                          <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-900">Use My Current Location</h4>
-                          <p className="text-sm text-gray-600">Stand at the IEBC office and capture your GPS coordinates</p>
-                          <p className="text-xs text-green-600 mt-1">✓ Most accurate method</p>
-                        </div>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => handleMethodSelect('drop_pin')}
-                      className="p-4 border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                      aria-label="Drop a pin on map"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-900">Drop a Pin on Map</h4>
-                          <p className="text-sm text-gray-600">Manually place a pin on the exact office location</p>
-                          <p className="text-xs text-blue-600 mt-1">✓ Good for precise placement</p>
-                        </div>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => handleMethodSelect('google_maps')}
-                      className="p-4 border-2 border-gray-200 rounded-xl hover:border-red-500 hover:bg-red-50 transition-all text-left focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                      aria-label="Paste Google Maps link"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                          <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                          </svg>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-900">Paste Google Maps Link</h4>
-                          <p className="text-sm text-gray-600">Share a Google Maps URL or coordinates</p>
-                          <p className="text-xs text-red-600 mt-1">✓ Quick and convenient</p>
-                        </div>
-                      </div>
-                    </button>
-                  </div>
-
-                  <div className="bg-green-50 rounded-lg p-4">
-                    <div className="flex items-start space-x-3">
-                      <div className="flex-shrink-0">
-                        <svg className="w-5 h-5 text-green-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div className="text-sm text-green-700">
-                        <p className="font-medium">Privacy Notice</p>
-                        <p>We only collect location data pertaining to IEBC offices for public benefit. No personal information is stored. All submissions are moderated before being published.</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 2: Location Capture */}
-              {step === 2 && (
-                <div className="space-y-6">
-                  {selectedMethod === 'current_location' && (
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">Capture Your Current Location</h3>
-                      <p className="text-gray-600 mb-4">Stand within 20 meters of the IEBC office entrance for best accuracy</p>
-                      
-                      {position && accuracy && (
-                        <div className="bg-blue-50 rounded-lg p-4 mb-4">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-blue-700">
-                              Accuracy: ±{Math.round(accuracy)} meters
-                            </span>
-                            {accuracy <= 20 && (
-                              <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                                ✓ Good Accuracy
-                              </span>
-                            )}
-                          </div>
-                          {accuracy > 100 && (
-                            <p className="text-sm text-blue-600 mt-1">
-                              Move to an open area for better GPS accuracy
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {selectedMethod === 'drop_pin' && (
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">Drop a Pin on the Map</h3>
-                      <p className="text-gray-600">Click on the exact location of the IEBC office. Drag the pin to adjust.</p>
-                    </div>
-                  )}
-
-                  {selectedMethod === 'google_maps' && (
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">Paste Google Maps Link</h3>
-                      <p className="text-gray-600 mb-4">Paste a Google Maps URL or coordinates in format: -1.2921,36.8219</p>
-                      
-                      <div className="flex space-x-2">
-                        <input
-                          type="text"
-                          value={googleMapsInput}
-                          onChange={(e) => setGoogleMapsInput(e.target.value)}
-                          placeholder="https://maps.google.com/place/... or -1.2921,36.8219"
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                          aria-label="Google Maps link or coordinates"
-                        />
-                        <button
-                          onClick={handleGoogleMapsParse}
-                          disabled={!googleMapsInput.trim() || isExpandingUrl}
-                          className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
-                        >
-                          {isExpandingUrl ? (
-                            <div className="flex items-center space-x-2">
-                              <LoadingSpinner size="small" />
-                              <span>Processing...</span>
-                            </div>
-                          ) : (
-                            'Parse'
-                          )}
-                        </button>
-                      </div>
-                      
-                      {parseResult && (
-                        <div className="bg-green-50 rounded-lg p-3 mt-2">
-                          <p className="text-sm text-green-700">
-                            ✓ Coordinates extracted: {parseResult.lat.toFixed(6)}, {parseResult.lng.toFixed(6)}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Map Preview */}
-                  {(selectedMethod === 'current_location' || selectedMethod === 'drop_pin' || parseResult) && (
-                    <div className="h-64 rounded-lg overflow-hidden border border-gray-300 bg-gray-100">
-                      <MapContainer
-                        center={mapCenter}
-                        zoom={mapZoom}
-                        className="h-full w-full"
-                        onMapReady={handleMapReady}
-                        onClick={handleMapClick}
-                        isModalMap={true}
-                        ref={mapRef}
-                      >
-                        <GeoJSONLayerManager
-                          activeLayers={['iebc-offices']}
-                          onOfficeSelect={() => {}}
-                          selectedOffice={null}
-                          onNearbyOfficesFound={() => {}}
-                          baseMap="standard"
-                          isModalMap={true}
-                        />
-                        {userLocation && (
-                          <UserLocationMarker
-                            position={[userLocation.latitude, userLocation.longitude]}
-                            accuracy={Math.min(userLocation.accuracy, 1000)}
-                          />
-                        )}
-                        {position && (
-                          <UserLocationMarker
-                            position={[position.lat, position.lng]}
-                            accuracy={accuracy}
-                            color="#34C759"
-                          />
-                        )}
-                      </MapContainer>
-                    </div>
-                  )}
-
-                  {/* Duplicate Office Warning */}
-                  {duplicateOffices.length > 0 && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <div className="flex items-start space-x-3">
-                        <svg className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                        </svg>
-                        <div>
-                          <p className="text-sm font-medium text-yellow-800 mb-1">
-                            Possible duplicate office detected
-                          </p>
-                          <p className="text-sm text-yellow-700">
-                            There {duplicateOffices.length === 1 ? 'is' : 'are'} {duplicateOffices.length} verified office{duplicateOffices.length === 1 ? '' : 's'} within 100m. Please confirm this is a new location.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex space-x-3 pt-4">
-                    <button
-                      onClick={() => setStep(1)}
-                      className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-xl font-medium hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                    >
-                      Back
-                    </button>
-                    <button
-                      onClick={() => setStep(3)}
-                      disabled={!position || isGettingLocation}
-                      className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                    >
-                      {isGettingLocation ? (
-                        <div className="flex items-center justify-center space-x-2">
-                          <LoadingSpinner size="small" />
-                          <span>Getting Location...</span>
-                        </div>
-                      ) : (
-                        'Continue to Details'
-                      )}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 3: Office Details Form */}
-              {step === 3 && (
-                <form onSubmit={handleFormSubmit} className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Office Information</h3>
-                    <p className="text-gray-600">Provide details about the IEBC office</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4">
-                    <div>
-                      <label htmlFor="office-name" className="block text-sm font-medium text-gray-700 mb-1">
-                        Office Name *
-                      </label>
-                      <input
-                        id="office-name"
-                        type="text"
-                        required
-                        value={formData.submitted_office_location}
-                        onChange={(e) => setFormData(prev => ({ ...prev, submitted_office_location: e.target.value }))}
-                        placeholder="e.g., IEBC Eldoret County Office"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="county" className="block text-sm font-medium text-gray-700 mb-1">
-                          County *
-                        </label>
-                        <select
-                          id="county"
-                          required
-                          value={formData.submitted_county}
-                          onChange={(e) => setFormData(prev => ({ ...prev, submitted_county: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                        >
-                          <option value="">Select County</option>
-                          {KENYAN_COUNTIES.map(county => (
-                            <option key={county} value={county}>{county}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label htmlFor="constituency" className="block text-sm font-medium text-gray-700 mb-1">
-                          Constituency *
-                        </label>
-                        <input
-                          id="constituency"
-                          type="text"
-                          required
-                          value={formData.submitted_constituency}
-                          onChange={(e) => setFormData(prev => ({ ...prev, submitted_constituency: e.target.value }))}
-                          placeholder="e.g., Embakasi West"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                          list="constituency-suggestions"
-                        />
-                        {/* Auto-suggest for constituencies */}
-                        <datalist id="constituency-suggestions">
-                          {constituencySuggestions.map(constituency => (
-                            <option key={constituency} value={constituency} />
-                          ))}
-                        </datalist>
-                        {constituencySuggestions.length > 0 && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            Suggestions: {constituencySuggestions.slice(0, 3).join(', ')}
-                            {constituencySuggestions.length > 3 && '...'}
-                          </p>
-                        )}
-                        
-                        {/* Enhanced: Show constituency code status */}
-                        {constituencyCode && (
-                          <p className="text-xs text-green-600 mt-1">
-                            ✓ Constituency code mapped: {constituencyCode}
-                          </p>
-                        )}
-                        {formData.submitted_constituency && formData.submitted_county && !constituencyCode && (
-                          <p className="text-xs text-yellow-600 mt-1">
-                            ⚠ No constituency code found for this combination
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label htmlFor="landmark" className="block text-sm font-medium text-gray-700 mb-1">
-                        Nearby Landmark (Optional)
-                      </label>
-                      <input
-                        id="landmark"
-                        type="text"
-                        value={formData.submitted_landmark}
-                        onChange={(e) => setFormData(prev => ({ ...prev, submitted_landmark: e.target.value }))}
-                        placeholder="e.g., Next to Eldoret Post Office"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Photo of the Office (Optional but Recommended)
-                      </label>
-                      <div className="flex items-center space-x-4">
-                        <label className="flex-1 cursor-pointer">
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            capture="environment"
-                            onChange={handleImageSelect}
-                            className="hidden"
-                          />
-                          <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-gray-400 transition-colors">
-                            <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <p className="text-sm text-gray-600">
-                              {imageFile ? 'Photo selected' : 'Take or upload a photo'}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">Supports JPEG, PNG, WEBP (max 10MB)</p>
-                          </div>
-                        </label>
-                        {imagePreview && (
-                          <div className="flex-shrink-0 relative">
-                            <img src={imagePreview} alt="Office preview" className="w-20 h-20 object-cover rounded-lg" />
-                            <button
-                              type="button"
-                              onClick={handleRemoveImage}
-                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
-                              aria-label="Remove photo"
-                            >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        📸 Photos with GPS data are prioritized for fast verification
-                      </p>
-                    </div>
-
-                    <div>
-                      <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
-                        Additional Notes (Optional)
-                      </label>
-                      <textarea
-                        id="notes"
-                        rows={3}
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Any landmarks, building details, or other information..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                      />
-                    </div>
-
-                    <div className="flex items-start space-x-3">
-                      <input
-                        id="agreement"
-                        type="checkbox"
-                        required
-                        checked={agreement}
-                        onChange={(e) => setAgreement(e.target.checked)}
-                        className="rounded border-gray-300 text-green-600 focus:ring-green-500 mt-1"
-                      />
-                      <label htmlFor="agreement" className="text-sm text-gray-700">
-                        I confirm this is the correct location of an IEBC office and consent to submitting my approximate location for public benefit
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="flex space-x-3 pt-4">
-                    <button
-                      type="button"
-                      onClick={() => setStep(2)}
-                      className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-xl font-medium hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                    >
-                      Back
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={!agreement || isSubmitting}
-                      className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                    >
-                      {isSubmitting ? (
-                        <div className="flex items-center justify-center space-x-2">
-                          <LoadingSpinner size="small" />
-                          <span>Submitting...</span>
-                        </div>
-                      ) : (
-                        'Submit Contribution'
-                      )}
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {/* Step 4: Submission Complete */}
-              {step === 4 && (
-                <div className="text-center space-y-6">
-                  {submissionSuccess ? (
-                    <>
-                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">Contribution Successfully Submitted!</h3>
-                        <p className="text-gray-600 mb-4">Your location data has been submitted and is now in our moderation queue.</p>
-                      </div>
-                      <div className="bg-green-50 rounded-xl p-4 border border-green-200">
-                        <p className="text-sm text-green-700 text-left">
-                          <strong className="block mb-2">What happens next:</strong>
-                          <span className="block mb-1">✓ Your submission enters our moderation queue</span>
-                          <span className="block mb-1">✓ Our team will verify the location data for accuracy</span>
-                          <span className="block mb-1">✓ Once approved, it will be added to the official database</span>
-                          <span className="block">✓ You'll be helping thousands of Kenyans find accurate IEBC office locations</span>
-                        </p>
-                      </div>
-                      <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-                        <p className="text-sm text-blue-700 text-left">
-                          <strong className="block mb-1">Contribution ID: #{contributionId}</strong>
-                          <span>Keep this reference number for any inquiries about your submission.</span>
-                          {constituencyCode && (
-                            <span className="block mt-1">
-                              <strong>Constituency Code:</strong> {constituencyCode}
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                      <div className="flex space-x-3 pt-2">
-                        <button
-                          onClick={handleClose}
-                          className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-xl font-medium hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                        >
-                          Continue Browsing
-                        </button>
-                        <button
-                          onClick={() => window.location.reload()}
-                          className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                        >
-                          Reload Map & See Updates
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="py-8">
-                      <LoadingSpinner size="large" />
-                      <p className="text-gray-600 mt-4">Processing your contribution...</p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>,
-    document.body
+// Custom Map Container for Dashboard with Isolated Z-Index
+const DashboardMapContainer: React.FC<{
+  center: [number, number];
+  zoom: number;
+  children: React.ReactNode;
+}> = ({ center, zoom, children }) => {
+  return (
+    <div className="dashboard-map-container" style={{ 
+      position: 'relative',
+      width: '100%',
+      height: '100%',
+      zIndex: 1,
+      isolation: 'isolate'
+    }}>
+      <MapContainer center={center} zoom={zoom} className="h-full w-full">
+        {children}
+      </MapContainer>
+    </div>
   );
 };
 
-export default ContributeLocationModal;
+const ContributionCard: React.FC<{
+  contribution: Contribution;
+  onVerify: (contribution: Contribution) => void;
+  onReject: (contribution: Contribution) => void;
+  onRequestInfo: (contribution: Contribution) => void;
+  onMerge: (contribution: Contribution) => void;
+}> = ({ contribution, onVerify, onReject, onRequestInfo, onMerge }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+  const [showReverseGeocode, setShowReverseGeocode] = useState(false);
+  const { theme } = useTheme();
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'yellow';
+      case 'pending_review': return 'yellow';
+      case 'auto_verified': return 'green';
+      case 'more_info_requested': return 'blue';
+      case 'flagged_suspicious': return 'red';
+      case 'verified': return 'green';
+      case 'rejected': return 'red';
+      default: return 'gray';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'pending': return 'Pending Review';
+      case 'pending_review': return 'Pending Review';
+      case 'auto_verified': return 'Auto-Verified';
+      case 'more_info_requested': return 'More Info Requested';
+      case 'flagged_suspicious': return 'Flagged Suspicious';
+      case 'verified': return 'Verified';
+      case 'rejected': return 'Rejected';
+      default: return status;
+    }
+  };
+
+  const getConfidenceColor = (score: number) => {
+    if (score >= 80) return 'green';
+    if (score >= 60) return 'blue';
+    if (score >= 40) return 'yellow';
+    return 'red';
+  };
+
+  const getConfidenceText = (score: number) => {
+    if (score >= 80) return 'High';
+    if (score >= 60) return 'Good';
+    if (score >= 40) return 'Medium';
+    return 'Low';
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="contribution-card relative z-50 rounded-xl border overflow-hidden bg-card text-card-foreground shadow-sm border-border"
+      style={{ 
+        position: 'relative',
+        zIndex: 50
+      }}
+    >
+      {/* Header */}
+      <div className="p-4 border-b border-border">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center space-x-3">
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              theme === 'dark' 
+                ? `bg-${getStatusColor(contribution.status)}-900 text-${getStatusColor(contribution.status)}-100`
+                : `bg-${getStatusColor(contribution.status)}-100 text-${getStatusColor(contribution.status)}-800`
+            }`}>
+              {getStatusText(contribution.status)}
+            </span>
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              theme === 'dark'
+                ? `bg-${getConfidenceColor(contribution.confidence_score)}-900 text-${getConfidenceColor(contribution.confidence_score)}-100`
+                : `bg-${getConfidenceColor(contribution.confidence_score)}-100 text-${getConfidenceColor(contribution.confidence_score)}-800`
+            }`}>
+              {getConfidenceText(contribution.confidence_score)} Confidence: {contribution.confidence_score || 0}%
+            </span>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {new Date(contribution.created_at).toLocaleDateString()}
+          </div>
+        </div>
+        <h3 className="font-semibold text-foreground truncate">
+          {contribution.submitted_office_location}
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          {contribution.submitted_county} • {contribution.submitted_constituency}
+          {contribution.submitted_constituency_code && ` • Code: ${contribution.submitted_constituency_code}`}
+        </p>
+        <div className="flex items-center space-x-2 mt-1">
+          <span className="text-xs text-muted-foreground">
+            Method: {contribution.submission_method || 'Unknown'}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            Source: {contribution.submission_source || 'Unknown'}
+          </span>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          {/* Map Preview */}
+          <div className="h-48 rounded-lg overflow-hidden border border-border relative z-10">
+            <DashboardMapContainer
+              center={[contribution.submitted_latitude, contribution.submitted_longitude]}
+              zoom={15}
+            >
+              <GeoJSONLayerManager
+                activeLayers={['iebc-offices']}
+                onOfficeSelect={() => {}}
+                selectedOffice={null}
+              />
+              <UserLocationMarker
+                position={[contribution.submitted_latitude, contribution.submitted_longitude]}
+                accuracy={contribution.submitted_accuracy_meters || 50}
+                color="#34C759"
+              />
+            </DashboardMapContainer>
+          </div>
+
+          {/* Enhanced Details */}
+          <div className="space-y-3 relative z-50">
+            <div>
+              <label className="text-sm font-medium text-foreground mb-2">Coordinates</label>
+              <p className="text-sm text-foreground font-mono">
+                {contribution.submitted_latitude.toFixed(6)}, {contribution.submitted_longitude.toFixed(6)}
+              </p>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium text-foreground mb-2">GPS Accuracy</label>
+              <p className="text-sm text-foreground">
+                {contribution.submitted_accuracy_meters ? `±${Math.round(contribution.submitted_accuracy_meters)}m` : 'Unknown'}
+              </p>
+            </div>
+
+            {contribution.submitted_landmark && (
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2">Landmark</label>
+                <p className="text-sm text-foreground">{contribution.submitted_landmark}</p>
+              </div>
+            )}
+
+            {contribution.google_maps_link && (
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2">Google Maps</label>
+                <a 
+                  href={contribution.google_maps_link} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary hover:text-primary/80 truncate block"
+                >
+                  View on Maps
+                </a>
+              </div>
+            )}
+
+            {/* Enhanced: Show constituency code mapping status */}
+            {contribution.submitted_constituency_code && (
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2">Constituency Code</label>
+                <p className="text-sm text-foreground font-mono bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded">
+                  {contribution.submitted_constituency_code} ✓ Mapped
+                </p>
+              </div>
+            )}
+
+            {/* Reverse Geocode Information */}
+            {contribution.reverse_geocode_result && (
+              <div>
+                <button
+                  onClick={() => setShowReverseGeocode(!showReverseGeocode)}
+                  className="text-sm font-medium text-foreground mb-2 flex items-center space-x-1 hover:text-primary transition-colors"
+                >
+                  <span>Location Details</span>
+                  <svg 
+                    className={`w-4 h-4 transition-transform ${showReverseGeocode ? 'rotate-180' : ''}`}
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <AnimatePresence>
+                  {showReverseGeocode && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="bg-muted rounded-lg p-2">
+                        <p className="text-xs text-muted-foreground">
+                          {contribution.reverse_geocode_result.display_name}
+                        </p>
+                        {contribution.reverse_geocode_result.address && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            <div>Road: {contribution.reverse_geocode_result.address.road || 'N/A'}</div>
+                            <div>Neighborhood: {contribution.reverse_geocode_result.address.neighbourhood || 'N/A'}</div>
+                            <div>Suburb: {contribution.reverse_geocode_result.address.suburb || 'N/A'}</div>
+                          </div>
+                        )}
+                        {contribution.reverse_geocode_result.constituency_info && (
+                          <div className="text-xs text-green-600 dark:text-green-400 mt-1">
+                            <div>Auto-detected Constituency: {contribution.reverse_geocode_result.constituency_info.name}</div>
+                            <div>County: {contribution.reverse_geocode_result.constituency_info.county}</div>
+                            <div>ID: {contribution.reverse_geocode_result.constituency_info.id}</div>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Enhanced Evidence Section */}
+        {contribution.image_public_url && (
+          <div className="mb-4 relative z-50">
+            <label className="text-sm font-medium text-foreground mb-2 block">Photo Evidence</label>
+            <div className="flex space-x-4">
+              <div className="w-32 h-32 rounded-lg overflow-hidden border border-border">
+                {imageLoading && (
+                  <div className="w-full h-full flex items-center justify-center bg-muted">
+                    <LoadingSpinner size="small" />
+                  </div>
+                )}
+                <img
+                  src={contribution.image_public_url}
+                  alt="Office evidence"
+                  className="w-full h-full object-cover"
+                  onLoad={() => setImageLoading(false)}
+                  onError={() => setImageLoading(false)}
+                />
+              </div>
+              
+              <div className="flex-1">
+                {/* EXIF Data */}
+                {contribution.exif_metadata && (
+                  <div className="mb-3">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                        contribution.exif_metadata.has_exif 
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' 
+                          : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100'
+                      }`}>
+                        {contribution.exif_metadata.has_exif ? '✓ EXIF Data Available' : '⚠ No EXIF Data'}
+                      </span>
+                    </div>
+                    
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      <div>File: {contribution.exif_metadata.file_name || 'Unknown'}</div>
+                      <div>Size: {contribution.exif_metadata.file_size ? `${(contribution.exif_metadata.file_size / 1024 / 1024).toFixed(2)} MB` : 'Unknown'}</div>
+                      <div>Type: {contribution.exif_metadata.file_type || 'Unknown'}</div>
+                      {contribution.exif_metadata.last_modified && (
+                        <div>Modified: {new Date(contribution.exif_metadata.last_modified).toLocaleString()}</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Nearby Landmarks */}
+                {contribution.nearby_landmarks && contribution.nearby_landmarks.length > 0 && (
+                  <div>
+                    <label className="text-xs font-medium text-foreground mb-1 block">Nearby Landmarks ({contribution.nearby_landmarks.length})</label>
+                    <div className="text-xs text-muted-foreground space-y-1 max-h-20 overflow-y-auto">
+                      {contribution.nearby_landmarks.slice(0, 3).map((landmark, index) => (
+                        <div key={index} className="flex justify-between">
+                          <span>{landmark.name || landmark.landmark_name}</span>
+                          <span>{landmark.distance_meters ? `${Math.round(landmark.distance_meters)}m` : ''}</span>
+                        </div>
+                      ))}
+                      {contribution.nearby_landmarks.length > 3 && (
+                        <div className="text-xs text-muted-foreground italic">
+                          +{contribution.nearby_landmarks.length - 3} more landmarks
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Enhanced Warnings Section */}
+        <div className="space-y-3 mb-4">
+          {/* Duplicate Warning */}
+          {contribution.duplicate_candidate_ids && contribution.duplicate_candidate_ids.length > 0 && (
+            <div className="bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800 rounded-lg p-3 relative z-50">
+              <div className="flex items-start space-x-3">
+                <svg className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <div>
+                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-1">
+                    Potential Duplicate Office Detected
+                  </p>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                    {contribution.duplicate_candidate_ids.length} verified office{contribution.duplicate_candidate_ids.length === 1 ? '' : 's'} within 100m radius.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Enhanced: Constituency Code Status */}
+          {contribution.submitted_constituency_code ? (
+            <div className="bg-green-50 border border-green-200 dark:bg-green-900/20 dark:border-green-800 rounded-lg p-3 relative z-50">
+              <div className="flex items-center space-x-2">
+                <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span className="text-sm font-medium text-green-800 dark:text-green-300">Constituency Code Mapped</span>
+              </div>
+              <div className="text-xs text-green-700 dark:text-green-400 mt-1">
+                <div>Code: <strong>{contribution.submitted_constituency_code}</strong></div>
+                <div>This constituency is properly mapped to the constituencies table</div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800 rounded-lg p-3 relative z-50">
+              
+                <div className="flex items-start space-x-3">
+                <svg className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <div>
+                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-1">
+                    Constituency Code Not Mapped
+                  </p>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                    This constituency name couldn't be mapped to a code in the constituencies table.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Confidence Score Breakdown */}
+          <div className="bg-blue-50 border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800 rounded-lg p-3 relative z-50">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Confidence Analysis</span>
+              </div>
+              <span className={`text-sm font-medium ${
+                contribution.confidence_score >= 80 ? 'text-green-600 dark:text-green-400' :
+                contribution.confidence_score >= 60 ? 'text-blue-600 dark:text-blue-400' :
+                contribution.confidence_score >= 40 ? 'text-yellow-600 dark:text-yellow-400' :
+                'text-red-600 dark:text-red-400'
+              }`}>
+                {contribution.confidence_score}%
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+              <div 
+                className={`h-2 rounded-full ${
+                  contribution.confidence_score >= 80 ? 'bg-green-600' :
+                  contribution.confidence_score >= 60 ? 'bg-blue-600' :
+                  contribution.confidence_score >= 40 ? 'bg-yellow-600' :
+                  'bg-red-600'
+                }`}
+                style={{ width: `${contribution.confidence_score}%` }}
+              ></div>
+            </div>
+            <div className="text-xs text-blue-700 dark:text-blue-400 mt-2 space-y-1">
+              <div>✓ GPS Accuracy: {contribution.submitted_accuracy_meters ? `±${Math.round(contribution.submitted_accuracy_meters)}m` : 'Unknown'}</div>
+              <div>✓ Photo Evidence: {contribution.image_public_url ? 'Available' : 'Not Available'}</div>
+              <div>✓ Location Data: {contribution.reverse_geocode_result ? 'Verified' : 'Not Verified'}</div>
+              <div>✓ Duplicates Checked: {contribution.duplicate_candidate_ids?.length || 0} found</div>
+              <div>✓ Constituency Code: {contribution.submitted_constituency_code ? 'Mapped' : 'Not Mapped'}</div>
+            </div>
+          </div>
+
+          {/* Submission Method Info */}
+          <div className="bg-gray-50 border border-gray-200 dark:bg-gray-900/20 dark:border-gray-800 rounded-lg p-3 relative z-50">
+            <div className="flex items-center space-x-2">
+              <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-sm font-medium text-gray-800 dark:text-gray-300">Submission Details</span>
+            </div>
+            <div className="text-xs text-gray-700 dark:text-gray-400 mt-1 space-y-1">
+              <div>Method: {contribution.submission_method || 'Unknown'}</div>
+              <div>Source: {contribution.submission_source || 'Web'}</div>
+              <div>Submitted: {contribution.submitted_timestamp ? new Date(contribution.submitted_timestamp).toLocaleString() : new Date(contribution.created_at).toLocaleString()}</div>
+              {contribution.confirmation_count && contribution.confirmation_count > 0 && (
+                <div>Confirmations: {contribution.confirmation_count}</div>
+              )}
+              {contribution.device_metadata?.constituency_code && (
+                <div>Device Constituency Code: {contribution.device_metadata.constituency_code}</div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Expandable Device Metadata */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-full text-left p-2 rounded-lg hover:bg-accent transition-colors relative z-50 text-foreground"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-foreground">Device & Technical Metadata</span>
+            <svg 
+              className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </button>
+
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden relative z-50"
+            >
+              <div className="mt-2 p-3 bg-muted rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-foreground mb-2">Device Information</h4>
+                    <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
+                      {JSON.stringify({
+                        platform: contribution.device_metadata.platform,
+                        user_agent: contribution.device_metadata.user_agent?.substring(0, 100) + '...',
+                        language: contribution.device_metadata.language,
+                        screen_resolution: contribution.device_metadata.screen_resolution,
+                        timezone: contribution.device_metadata.timezone,
+                        has_touch: contribution.device_metadata.has_touch,
+                        constituency_code: contribution.device_metadata.constituency_code
+                      }, null, 2)}
+                    </pre>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-foreground mb-2">Capture Details</h4>
+                    <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
+                      {JSON.stringify({
+                        capture_method: contribution.device_metadata.capture_method,
+                        capture_source: contribution.device_metadata.capture_source,
+                        accuracy: contribution.device_metadata.accuracy,
+                        duplicate_count: contribution.device_metadata.duplicate_count,
+                        confidence_score: contribution.device_metadata.confidence_score,
+                        timestamp: contribution.device_metadata.timestamp
+                      }, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="p-4 border-t border-border relative z-50 bg-muted/50">
+        <div className="flex flex-wrap gap-2">
+          {(contribution.status === 'pending' || contribution.status === 'pending_review') && (
+            <>
+              <button
+                onClick={() => onVerify(contribution)}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Verify & Publish</span>
+              </button>
+
+              {contribution.duplicate_candidate_ids && contribution.duplicate_candidate_ids.length > 0 && (
+                <button
+                  onClick={() => onMerge(contribution)}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  <span>Merge with Existing</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => onRequestInfo(contribution)}
+                className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                <span>Request Info</span>
+              </button>
+
+              <button
+                onClick={() => onReject(contribution)}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span>Reject</span>
+              </button>
+            </>
+          )}
+
+          {(contribution.status === 'verified' || contribution.status === 'rejected') && (
+            <div className="text-sm text-muted-foreground">
+              Reviewed by: {contribution.reviewer_id || 'System'} • {contribution.reviewed_at ? new Date(contribution.reviewed_at).toLocaleString() : 'N/A'}
+              {contribution.review_notes && (
+                <div className="mt-1 text-xs">
+                  Notes: {contribution.review_notes}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogout, counties = [] }) => {
+  const [contributions, setContributions] = useState<Contribution[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState({
+    status: 'all',
+    county: 'all',
+    confidence: 'all',
+    hasPhoto: 'all',
+    hasConstituencyCode: 'all'
+  });
+  const [stats, setStats] = useState({
+    pending: 0,
+    verified_today: 0,
+    rejected: 0,
+    total: 0,
+    high_confidence: 0,
+    with_constituency_codes: 0
+  });
+  const { theme } = useTheme();
+  const { updateExistingConstituencyCodes, updateOfficeConstituencyCodes } = useContributeLocation();
+
+  const safeCounties = Array.isArray(counties) ? counties : [];
+  const safeContributions = Array.isArray(contributions) ? contributions : [];
+
+  const fetchContributions = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      let query = supabase
+        .from('iebc_office_contributions')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (filters.status !== 'all') {
+        query = query.eq('status', filters.status);
+      }
+      if (filters.county !== 'all') {
+        query = query.eq('submitted_county', filters.county);
+      }
+      if (filters.hasPhoto !== 'all') {
+        if (filters.hasPhoto === 'yes') {
+          query = query.not('image_public_url', 'is', null);
+        } else {
+          query = query.is('image_public_url', null);
+        }
+      }
+      if (filters.confidence !== 'all') {
+        if (filters.confidence === 'high') {
+          query = query.gte('confidence_score', 80);
+        } else if (filters.confidence === 'medium') {
+          query = query.gte('confidence_score', 50).lt('confidence_score', 80);
+        } else if (filters.confidence === 'low') {
+          query = query.lt('confidence_score', 50);
+        }
+      }
+      if (filters.hasConstituencyCode !== 'all') {
+        if (filters.hasConstituencyCode === 'yes') {
+          query = query.not('submitted_constituency_code', 'is', null);
+        } else {
+          query = query.is('submitted_constituency_code', null);
+        }
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      setContributions(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      console.error('Error fetching contributions:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [filters]);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const { data: pendingData } = await supabase
+        .from('iebc_office_contributions')
+        .select('id')
+        .eq('status', 'pending_review');
+
+      const today = new Date().toISOString().split('T')[0];
+      const { data: todayData } = await supabase
+        .from('iebc_office_contributions')
+        .select('id')
+        .eq('status', 'verified')
+        .gte('reviewed_at', today);
+
+      const { data: rejectedData } = await supabase
+        .from('iebc_office_contributions')
+        .select('id')
+        .eq('status', 'rejected');
+
+      const { data: totalData } = await supabase
+        .from('iebc_office_contributions')
+        .select('id');
+
+      const { data: highConfidenceData } = await supabase
+        .from('iebc_office_contributions')
+        .select('id')
+        .gte('confidence_score', 80)
+        .eq('status', 'pending_review');
+
+      const { data: constituencyCodeData } = await supabase
+        .from('iebc_office_contributions')
+        .select('id')
+        .not('submitted_constituency_code', 'is', null)
+        .eq('status', 'pending_review');
+
+      setStats({
+        pending: pendingData?.length || 0,
+        verified_today: todayData?.length || 0,
+        rejected: rejectedData?.length || 0,
+        total: totalData?.length || 0,
+        high_confidence: highConfidenceData?.length || 0,
+        with_constituency_codes: constituencyCodeData?.length || 0
+      });
+    } catch (err) {
+      console.error('Error fetching stats:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchContributions();
+    fetchStats();
+
+    const interval = setInterval(fetchStats, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [fetchContributions, fetchStats]);
+
+  // Enhanced verification function with proper constituency code handling
+  const handleVerify = async (contribution: Contribution) => {
+    try {
+      console.log('Verifying contribution:', contribution.id);
+      
+      // Check if this should be merged with an existing office
+      const shouldMerge = contribution.duplicate_candidate_ids && contribution.duplicate_candidate_ids.length > 0;
+      
+      if (shouldMerge) {
+        const confirmMerge = confirm(
+          `This contribution has ${contribution.duplicate_candidate_ids.length} potential duplicate(s). Do you want to merge with an existing office instead of creating a new one?`
+        );
+        
+        if (confirmMerge) {
+          await handleMerge(contribution);
+          return;
+        }
+      }
+
+      // Create new office in iebc_offices table with constituency code
+      const { data: newOffice, error: officeError } = await supabase
+        .from('iebc_offices')
+        .insert({
+          county: contribution.submitted_county,
+          constituency: contribution.submitted_constituency,
+          constituency_code: contribution.submitted_constituency_code,
+          office_location: contribution.submitted_office_location,
+          landmark: contribution.submitted_landmark,
+          latitude: contribution.submitted_latitude,
+          longitude: contribution.submitted_longitude,
+          verification_source: 'admin_manual',
+          verified_by: 'admin_dashboard',
+          verified_at: new Date().toISOString(),
+          created_from_contribution_id: contribution.id,
+          confidence_score: contribution.confidence_score,
+          submission_method: contribution.submission_method,
+          image_url: contribution.image_public_url
+        })
+        .select()
+        .single();
+
+      if (officeError) {
+        console.error('Error creating office:', officeError);
+        throw new Error(`Failed to create office: ${officeError.message}`);
+      }
+
+      // Update contribution status
+      const { error: updateError } = await supabase
+        .from('iebc_office_contributions')
+        .update({
+          status: 'verified',
+          reviewer_id: 'admin_dashboard',
+          reviewed_at: new Date().toISOString(),
+          original_office_id: newOffice.id,
+          review_notes: 'Verified and published as new IEBC office'
+        })
+        .eq('id', contribution.id);
+
+      if (updateError) {
+        console.error('Error updating contribution:', updateError);
+        throw new Error(`Failed to update contribution: ${updateError.message}`);
+      }
+
+      // Log the verification
+      await supabase.from('verification_log').insert({
+        contribution_id: contribution.id,
+        office_id: newOffice.id,
+        action: 'verified_new',
+        actor: 'admin:dashboard',
+        details: {
+          confidence_score: contribution.confidence_score,
+          submission_method: contribution.submission_method,
+          has_image: !!contribution.image_public_url,
+          constituency_code: contribution.submitted_constituency_code
+        }
+      });
+
+      await fetchContributions();
+      await fetchStats();
+      
+      alert(`Contribution verified successfully! New office created with ID: ${newOffice.id}`);
+    } catch (err: any) {
+      console.error('Error verifying contribution:', err);
+      alert('Failed to verify contribution: ' + err.message);
+    }
+  };
+
+  const handleReject = async (contribution: Contribution) => {
+    const reason = prompt('Enter rejection reason:');
+    if (!reason) return;
+
+    try {
+      const { error } = await supabase
+        .from('iebc_office_contributions')
+        .update({
+          status: 'rejected',
+          review_notes: reason,
+          reviewer_id: 'admin_dashboard',
+          reviewed_at: new Date().toISOString()
+        })
+        .eq('id', contribution.id);
+
+      if (error) throw error;
+
+      await supabase.from('verification_log').insert({
+        contribution_id: contribution.id,
+        action: 'rejected',
+        actor: 'admin:dashboard',
+        details: { 
+          reason,
+          confidence_score: contribution.confidence_score,
+          constituency_code: contribution.submitted_constituency_code
+        }
+      });
+
+      await fetchContributions();
+      await fetchStats();
+      
+      alert('Contribution rejected successfully!');
+    } catch (err: any) {
+      console.error('Error rejecting contribution:', err);
+      alert('Failed to reject contribution: ' + err.message);
+    }
+  };
+
+  const handleRequestInfo = async (contribution: Contribution) => {
+    const message = prompt('Enter information request:');
+    if (!message) return;
+
+    try {
+      const { error } = await supabase
+        .from('iebc_office_contributions')
+        .update({
+          status: 'more_info_requested',
+          review_notes: message,
+          reviewed_at: new Date().toISOString()
+        })
+        .eq('id', contribution.id);
+
+      if (error) throw error;
+
+      await fetchContributions();
+      alert('Information request sent successfully!');
+    } catch (err: any) {
+      console.error('Error requesting information:', err);
+      alert('Failed to send information request: ' + err.message);
+    }
+  };
+
+  // Enhanced merge function with constituency code preservation
+  const handleMerge = async (contribution: Contribution) => {
+    try {
+      // Get duplicate candidates with full details
+      const { data: duplicates, error: dupError } = await supabase
+        .rpc('find_duplicate_offices', {
+          p_lat: contribution.submitted_latitude,
+          p_lng: contribution.submitted_longitude,
+          p_name: contribution.submitted_office_location,
+          p_radius_meters: 200
+        });
+
+      if (dupError) throw dupError;
+
+      if (duplicates && duplicates.length > 0) {
+        const duplicateList = duplicates.map((d: any) => 
+          `${d.office_name} (ID: ${d.id}, ${Math.round(d.distance_meters)}m away)`
+        ).join('\n');
+
+        const selectedId = prompt(
+          `Merge this contribution with which existing office?\n\nPotential duplicates:\n${duplicateList}\n\nEnter the Office ID to merge with:`
+        );
+
+        if (selectedId) {
+          const officeId = parseInt(selectedId);
+          const selectedOffice = duplicates.find((d: any) => d.id === officeId);
+          
+          if (selectedOffice) {
+            // Update contribution to mark it as merged
+            const { error: updateError } = await supabase
+              .from('iebc_office_contributions')
+              .update({
+                status: 'verified',
+                reviewer_id: 'admin_dashboard',
+                reviewed_at: new Date().toISOString(),
+                original_office_id: officeId,
+                review_notes: `Merged with existing office: ${selectedOffice.office_name}`
+              })
+              .eq('id', contribution.id);
+
+            if (updateError) throw updateError;
+
+            // Update the existing office with constituency code if available
+            if (contribution.submitted_constituency_code) {
+              const { error: updateOfficeError } = await supabase
+                .from('iebc_offices')
+                .update({
+                  constituency_code: contribution.submitted_constituency_code,
+                  updated_at: new Date().toISOString()
+                })
+                .eq('id', officeId);
+
+              if (updateOfficeError) {
+                console.warn('Failed to update office constituency code:', updateOfficeError);
+              }
+            }
+
+            // Log the merge action
+            await supabase.from('verification_log').insert({
+              contribution_id: contribution.id,
+              office_id: officeId,
+              action: 'merged_existing',
+              actor: 'admin:dashboard',
+              details: {
+                existing_office: selectedOffice.office_name,
+                distance: selectedOffice.distance_meters,
+                confidence_score: contribution.confidence_score,
+                constituency_code_added: !!contribution.submitted_constituency_code
+              }
+            });
+
+            await fetchContributions();
+            await fetchStats();
+            
+            alert(`Contribution merged successfully with office: ${selectedOffice.office_name}`);
+          } else {
+            alert('Invalid office ID selected.');
+          }
+        }
+      } else {
+        alert('No suitable duplicates found for merging.');
+      }
+    } catch (err: any) {
+      console.error('Error merging contribution:', err);
+      alert('Failed to merge contribution: ' + err.message);
+    }
+  };
+
+  // NEW: Function to update constituency codes for all contributions
+  const handleUpdateAllConstituencyCodes = async () => {
+    try {
+      const result = confirm('This will update constituency codes for ALL contributions. Continue?');
+      if (!result) return;
+
+      const updateResult = await updateExistingConstituencyCodes();
+      alert(`Updated constituency codes for ${updateResult?.[0]?.updated_count || 0} contributions`);
+      await fetchContributions();
+      await fetchStats();
+    } catch (err: any) {
+      console.error('Error updating constituency codes:', err);
+      alert('Failed to update constituency codes: ' + err.message);
+    }
+  };
+
+  // NEW: Function to update constituency codes for offices
+  const handleUpdateOfficeConstituencyCodes = async () => {
+    try {
+      const result = confirm('This will update constituency codes for ALL IEBC offices. Continue?');
+      if (!result) return;
+
+      const updateResult = await updateOfficeConstituencyCodes();
+      alert(`Updated constituency codes for ${updateResult?.[0]?.updated_count || 0} offices`);
+    } catch (err: any) {
+      console.error('Error updating office constituency codes:', err);
+      alert('Failed to update office constituency codes: ' + err.message);
+    }
+  };
+
+  const handleBulkAction = async (action: 'verify' | 'reject', contributionIds: number[]) => {
+    const confirmMessage = action === 'verify' 
+      ? `Are you sure you want to verify ${contributionIds.length} contributions?`
+      : `Are you sure you want to reject ${contributionIds.length} contributions?`;
+
+    if (!confirm(confirmMessage)) return;
+
+    try {
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const id of contributionIds) {
+        try {
+          const contribution = safeContributions.find(c => c.id === id);
+          if (contribution) {
+            if (action === 'verify') {
+              await handleVerify(contribution);
+            } else {
+              await handleReject(contribution);
+            }
+            successCount++;
+          }
+        } catch (err) {
+          console.error(`Error processing contribution ${id}:`, err);
+          errorCount++;
+        }
+      }
+      
+      if (errorCount > 0) {
+        alert(`Processed ${successCount} contributions successfully. ${errorCount} failed.`);
+      } else {
+        alert(`Successfully processed ${successCount} contributions!`);
+      }
+    } catch (err: any) {
+      console.error('Error in bulk action:', err);
+      alert('Failed to process bulk action: ' + err.message);
+    }
+  };
+
+  if (loading && safeContributions.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-64 relative z-[10000]">
+        <LoadingSpinner size="large" />
+      </div>
+    );
+  }
+
+  return (
+    <div 
+      className="contributions-dashboard min-h-screen bg-background text-foreground relative"
+      style={{
+        zIndex: 10000,
+        position: 'relative',
+        isolation: 'isolate'
+      }}
+    >
+      {/* Header */}
+      <div 
+        className="bg-card text-card-foreground shadow-sm border-b border-border relative z-[10001]"
+        style={{ zIndex: 10001 }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Contributions Dashboard</h1>
+              <p className="text-muted-foreground">Manage and verify IEBC office location submissions</p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-muted-foreground">
+                Last updated: {new Date().toLocaleString()}
+              </div>
+              <button
+                onClick={onLogout}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Enhanced Stats */}
+      <div 
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-[10001]"
+        style={{ zIndex: 10001 }}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 mb-8">
+          {/* Pending Review Stat */}
+          <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-muted-foreground">Pending Review</p>
+                <p className="text-2xl font-semibold text-foreground">{stats.pending}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* High Confidence Stat */}
+          <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-muted-foreground">High Confidence</p>
+                <p className="text-2xl font-semibold text-foreground">{stats.high_confidence}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* With Constituency Codes Stat */}
+          <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-muted-foreground">With Codes</p>
+                <p className="text-2xl font-semibold text-foreground">{stats.with_constituency_codes}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Verified Today Stat */}
+          <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-muted-foreground">Verified Today</p>
+                <p className="text-2xl font-semibold text-foreground">{stats.verified_today}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Rejected Stat */}
+          <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-muted-foreground">Rejected</p>
+                <p className="text-2xl font-semibold text-foreground">{stats.rejected}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Total Submissions Stat */}
+          <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-gray-100 dark:bg-gray-900 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-muted-foreground">Total Submissions</p>
+                <p className="text-2xl font-semibold text-foreground">{stats.total}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced Filters */}
+        <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6 mb-6 relative z-[10001]">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Status</label>
+              <select
+                value={filters.status}
+                onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+                className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-background text-foreground"
+              >
+                <option value="all">All Status</option>
+                <option value="pending_review">Pending Review</option>
+                <option value="verified">Verified</option>
+                <option value="rejected">Rejected</option>
+                <option value="auto_verified">Auto-Verified</option>
+                <option value="more_info_requested">Info Requested</option>
+                <option value="flagged_suspicious">Flagged</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">County</label>
+              <select
+                value={filters.county}
+                onChange={(e) => setFilters(prev => ({ ...prev, county: e.target.value }))}
+                className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-background text-foreground"
+              >
+                <option value="all">All Counties</option>
+                {safeCounties.map(county => (
+                  <option key={county} value={county}>{county}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Confidence</label>
+              <select
+                value={filters.confidence}
+                onChange={(e) => setFilters(prev => ({ ...prev, confidence: e.target.value }))}
+                className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-background text-foreground"
+              >
+                <option value="all">All Confidence</option>
+                <option value="high">High (80-100%)</option>
+                <option value="medium">Medium (50-79%)</option>
+                <option value="low">Low (0-49%)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Photo</label>
+              <select
+                value={filters.hasPhoto}
+                onChange={(e) => setFilters(prev => ({ ...prev, hasPhoto: e.target.value }))}
+                className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-background text-foreground"
+              >
+                <option value="all">All</option>
+                <option value="yes">With Photo</option>
+                <option value="no">Without Photo</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Constituency Code</label>
+              <select
+                value={filters.hasConstituencyCode}
+                onChange={(e) => setFilters(prev => ({ ...prev, hasConstituencyCode: e.target.value }))}
+                className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-background text-foreground"
+              >
+                <option value="all">All</option>
+                <option value="yes">With Code</option>
+                <option value="no">Without Code</option>
+              </select>
+            </div>
+          </div>
+
+          {/* NEW: Bulk Actions and Code Management */}
+          <div className="flex flex-wrap gap-2 mt-4">
+            <button
+              onClick={handleUpdateAllConstituencyCodes}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>Update All Constituency Codes</span>
+            </button>
+
+            <button
+              onClick={handleUpdateOfficeConstituencyCodes}
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>Update Office Codes</span>
+            </button>
+
+            <button
+              onClick={() => handleBulkAction('verify', safeContributions.map(c => c.id))}
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Bulk Verify All</span>
+            </button>
+
+            <button
+              onClick={() => handleBulkAction('reject', safeContributions.map(c => c.id))}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              <span>Bulk Reject All</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Contributions List */}
+        <div className="space-y-6 relative z-[10000]">
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+
+          {safeContributions.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-foreground mb-2">No contributions found</h3>
+              <p className="text-muted-foreground">Try adjusting your filters or check back later for new submissions.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {safeContributions.map((contribution) => (
+                <ContributionCard
+                  key={contribution.id}
+                  contribution={contribution}
+                  onVerify={handleVerify}
+                  onReject={handleReject}
+                  onRequestInfo={handleRequestInfo}
+                  onMerge={handleMerge}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ContributionsDashboard;
+
