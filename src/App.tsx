@@ -1,4 +1,4 @@
-// src/App.tsx - UPDATED WITH ALL COMPONENTS
+// src/App.tsx
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -220,110 +220,6 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// ✅ IEBC Office Locator Component (Main Component)
-const IEBCOfficeLocator: React.FC = () => {
-  const [userLocation, setUserLocation] = React.useState<{latitude: number; longitude: number; accuracy: number} | null>(null);
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
-
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">IEBC Office Finder</h1>
-                <p className="text-sm text-gray-600">Find and contribute IEBC office locations</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              <span>Contribute Location</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Map Content */}
-      <main className="flex-1">
-        <div className="h-[calc(100vh-80px)]">
-          {/* MapContainer and other map components would go here */}
-          <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-semibold text-gray-700 mb-2">IEBC Office Map</h2>
-              <p className="text-gray-500 mb-4">Interactive map showing all verified IEBC offices</p>
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-              >
-                Start Contributing
-              </button>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      {/* Contribute Location Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50">
-          {/* This would render the ContributeLocationModal component */}
-          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-semibold">Contribute IEBC Office Location</h2>
-                  <button
-                    onClick={() => setIsModalOpen(false)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <p className="text-gray-600 mb-6">
-                  Use this form to contribute the location of an IEBC office. Your submission will be reviewed and added to the public database.
-                </p>
-                <div className="space-y-4">
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <div className="flex items-start space-x-3">
-                      <svg className="w-5 h-5 text-yellow-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                      </svg>
-                      <div className="text-sm text-yellow-700">
-                        <p className="font-medium">Important Notice</p>
-                        <p>Only contribute locations you have personally verified. False submissions will be rejected.</p>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Modal content would continue here */}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
 // ✅ Contributions Dashboard Component (Now directly included to avoid lazy loading issues)
 const ContributionsDashboard = React.lazy(() => import('@/components/Admin/ContributionsDashboard'));
 
@@ -348,10 +244,6 @@ const AppContent = () => {
         <Route path="/iebc-office" element={<IEBCOfficeSplash />} />
         <Route path="/nasaka-iebc" element={<IEBCOfficeSplash />} />
         <Route path="/iebc-office/map" element={<IEBCOfficeMap />} />
-
-        {/* ✅ IEBC OFFICE LOCATOR ROUTES */}
-        <Route path="/office-locator" element={<IEBCOfficeLocator />} />
-        <Route path="/find-office" element={<IEBCOfficeLocator />} />
 
         {/* ✅ SECURE ADMIN ROUTES */}
         <Route 
