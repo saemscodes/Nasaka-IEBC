@@ -173,18 +173,48 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const [contributionId, setContributionId] = useState(null);
   const [duplicateOffices, setDuplicateOffices] = useState([]);
   const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
+  const [constituencyCode, setConstituencyCode] = useState(null);
   
   const mapRef = useRef(null);
   const accuracyCircleRef = useRef(null);
   const markerRef = useRef(null);
   const fileInputRef = useRef(null);
   
-  const { getCurrentPosition, convertImageToWebP, submitContribution, isSubmitting, error } = useContributeLocation();
+  const { 
+    getCurrentPosition, 
+    convertImageToWebP, 
+    submitContribution, 
+    isSubmitting, 
+    error,
+    getConstituencyCode
+  } = useContributeLocation();
 
   // Memoized constituency suggestions based on selected county
   const constituencySuggestions = useMemo(() => {
     return CONSTITUENCY_SUGGESTIONS[formData.submitted_county] || [];
   }, [formData.submitted_county]);
+
+  // Enhanced: Auto-fetch constituency code when constituency and county are selected
+  useEffect(() => {
+    const fetchConstituencyCode = async () => {
+      if (formData.submitted_constituency && formData.submitted_county) {
+        try {
+          console.log('Fetching constituency code for:', formData.submitted_constituency, formData.submitted_county);
+          const code = await getConstituencyCode(formData.submitted_constituency, formData.submitted_county);
+          setConstituencyCode(code);
+          console.log('Constituency code found:', code);
+        } catch (error) {
+          console.warn('Failed to fetch constituency code:', error);
+          setConstituencyCode(null);
+        }
+      } else {
+        setConstituencyCode(null);
+      }
+    };
+
+    const timeoutId = setTimeout(fetchConstituencyCode, 500);
+    return () => clearTimeout(timeoutId);
+  }, [formData.submitted_constituency, formData.submitted_county, getConstituencyCode]);
 
   // Safe duplicate office check function
   const safeFindDuplicateOffices = async (lat, lng, name, radius = 200) => {
@@ -601,6 +631,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         submitted_office_location: formData.submitted_office_location,
         submitted_county: formData.submitted_county,
         submitted_constituency: formData.submitted_constituency,
+        submitted_constituency_code: constituencyCode, // Use the fetched constituency code
         submitted_landmark: formData.submitted_landmark || notes,
         google_maps_link: selectedMethod === 'google_maps' ? googleMapsInput : null,
         imageFile: imageFile,
@@ -618,11 +649,12 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
           duplicate_count: duplicateOffices.length,
           screen_resolution: `${window.screen.width}x${window.screen.height}`,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          has_touch: 'ontouchstart' in window
+          has_touch: 'ontouchstart' in window,
+          constituency_code: constituencyCode // Include in device metadata too
         }
       };
       
-      console.log('Submitting contribution data:', contributionData);
+      console.log('Submitting contribution data with constituency code:', constituencyCode, contributionData);
       
       const result = await submitContribution(contributionData);
       setContributionId(result.id);
@@ -694,6 +726,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     setSubmissionSuccess(false);
     setContributionId(null);
     setDuplicateOffices([]);
+    setConstituencyCode(null);
     
     if (imagePreview) {
       URL.revokeObjectURL(imagePreview);
@@ -1156,6 +1189,18 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                             {constituencySuggestions.length > 3 && '...'}
                           </p>
                         )}
+                        
+                        {/* Enhanced: Show constituency code status */}
+                        {constituencyCode && (
+                          <p className="text-xs text-green-600 mt-1">
+                            ✓ Constituency code mapped: {constituencyCode}
+                          </p>
+                        )}
+                        {formData.submitted_constituency && formData.submitted_county && !constituencyCode && (
+                          <p className="text-xs text-yellow-600 mt-1">
+                            ⚠ No constituency code found for this combination
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -1300,6 +1345,11 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                         <p className="text-sm text-blue-700 text-left">
                           <strong className="block mb-1">Contribution ID: #{contributionId}</strong>
                           <span>Keep this reference number for any inquiries about your submission.</span>
+                          {constituencyCode && (
+                            <span className="block mt-1">
+                              <strong>Constituency Code:</strong> {constituencyCode}
+                            </span>
+                          )}
                         </p>
                       </div>
                       <div className="flex space-x-3 pt-2">
