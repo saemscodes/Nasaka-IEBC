@@ -15,14 +15,35 @@ interface DeviceMetadata {
   timestamp?: string;
   capture_method?: string;
   capture_source?: string;
+  accuracy?: number;
+  screen_resolution?: string;
+  timezone?: string;
+  has_touch?: boolean;
+  confidence_score?: number;
+  duplicate_count?: number;
 }
 
 interface ExifMetadata {
-  exif_gps_match?: boolean;
-  exif_device?: string;
-  exif_timestamp?: string;
-  exif_latitude?: number;
-  exif_longitude?: number;
+  has_exif?: boolean;
+  file_size?: number;
+  file_type?: string;
+  last_modified?: number;
+  file_name?: string;
+}
+
+interface ReverseGeocodeResult {
+  display_name?: string;
+  address?: {
+    county?: string;
+    state?: string;
+    state_district?: string;
+    road?: string;
+    neighbourhood?: string;
+    suburb?: string;
+    [key: string]: any;
+  };
+  boundingbox?: string[];
+  full_result?: any;
 }
 
 interface Contribution {
@@ -30,6 +51,7 @@ interface Contribution {
   submitted_office_location: string;
   submitted_county: string;
   submitted_constituency: string;
+  submitted_constituency_code?: number;
   submitted_landmark?: string;
   submitted_latitude: number;
   submitted_longitude: number;
@@ -38,6 +60,7 @@ interface Contribution {
   image_public_url?: string;
   device_metadata: DeviceMetadata;
   exif_metadata?: ExifMetadata;
+  reverse_geocode_result?: ReverseGeocodeResult;
   confidence_score: number;
   duplicate_candidate_ids?: number[];
   confirmation_count?: number;
@@ -46,6 +69,10 @@ interface Contribution {
   reviewed_at?: string;
   review_notes?: string;
   reviewer_id?: string;
+  submission_source?: string;
+  submission_method?: string;
+  nearby_landmarks?: any[];
+  submitted_timestamp?: string;
 }
 
 interface ContributionsDashboardProps {
@@ -83,11 +110,13 @@ const ContributionCard: React.FC<{
 }> = ({ contribution, onVerify, onReject, onRequestInfo, onMerge }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
+  const [showReverseGeocode, setShowReverseGeocode] = useState(false);
   const { theme } = useTheme();
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'yellow';
+      case 'pending_review': return 'yellow';
       case 'auto_verified': return 'green';
       case 'more_info_requested': return 'blue';
       case 'flagged_suspicious': return 'red';
@@ -100,6 +129,7 @@ const ContributionCard: React.FC<{
   const getStatusText = (status: string) => {
     switch (status) {
       case 'pending': return 'Pending Review';
+      case 'pending_review': return 'Pending Review';
       case 'auto_verified': return 'Auto-Verified';
       case 'more_info_requested': return 'More Info Requested';
       case 'flagged_suspicious': return 'Flagged Suspicious';
@@ -107,6 +137,20 @@ const ContributionCard: React.FC<{
       case 'rejected': return 'Rejected';
       default: return status;
     }
+  };
+
+  const getConfidenceColor = (score: number) => {
+    if (score >= 80) return 'green';
+    if (score >= 60) return 'blue';
+    if (score >= 40) return 'yellow';
+    return 'red';
+  };
+
+  const getConfidenceText = (score: number) => {
+    if (score >= 80) return 'High';
+    if (score >= 60) return 'Good';
+    if (score >= 40) return 'Medium';
+    return 'Low';
   };
 
   return (
@@ -130,8 +174,12 @@ const ContributionCard: React.FC<{
             }`}>
               {getStatusText(contribution.status)}
             </span>
-            <span className="text-sm text-muted-foreground">
-              Confidence: {contribution.confidence_score || 0}%
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              theme === 'dark'
+                ? `bg-${getConfidenceColor(contribution.confidence_score)}-900 text-${getConfidenceColor(contribution.confidence_score)}-100`
+                : `bg-${getConfidenceColor(contribution.confidence_score)}-100 text-${getConfidenceColor(contribution.confidence_score)}-800`
+            }`}>
+              {getConfidenceText(contribution.confidence_score)} Confidence: {contribution.confidence_score || 0}%
             </span>
           </div>
           <div className="text-sm text-muted-foreground">
@@ -143,7 +191,16 @@ const ContributionCard: React.FC<{
         </h3>
         <p className="text-sm text-muted-foreground">
           {contribution.submitted_county} • {contribution.submitted_constituency}
+          {contribution.submitted_constituency_code && ` • Code: ${contribution.submitted_constituency_code}`}
         </p>
+        <div className="flex items-center space-x-2 mt-1">
+          <span className="text-xs text-muted-foreground">
+            Method: {contribution.submission_method || 'Unknown'}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            Source: {contribution.submission_source || 'Unknown'}
+          </span>
+        </div>
       </div>
 
       {/* Main Content */}
@@ -168,7 +225,7 @@ const ContributionCard: React.FC<{
             </DashboardMapContainer>
           </div>
 
-          {/* Details */}
+          {/* Enhanced Details */}
           <div className="space-y-3 relative z-50">
             <div>
               <label className="text-sm font-medium text-foreground mb-2">Coordinates</label>
@@ -204,10 +261,53 @@ const ContributionCard: React.FC<{
                 </a>
               </div>
             )}
+
+            {/* Reverse Geocode Information */}
+            {contribution.reverse_geocode_result && (
+              <div>
+                <button
+                  onClick={() => setShowReverseGeocode(!showReverseGeocode)}
+                  className="text-sm font-medium text-foreground mb-2 flex items-center space-x-1 hover:text-primary transition-colors"
+                >
+                  <span>Location Details</span>
+                  <svg 
+                    className={`w-4 h-4 transition-transform ${showReverseGeocode ? 'rotate-180' : ''}`}
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <AnimatePresence>
+                  {showReverseGeocode && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="bg-muted rounded-lg p-2">
+                        <p className="text-xs text-muted-foreground">
+                          {contribution.reverse_geocode_result.display_name}
+                        </p>
+                        {contribution.reverse_geocode_result.address && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            <div>Road: {contribution.reverse_geocode_result.address.road || 'N/A'}</div>
+                            <div>Neighborhood: {contribution.reverse_geocode_result.address.neighbourhood || 'N/A'}</div>
+                            <div>Suburb: {contribution.reverse_geocode_result.address.suburb || 'N/A'}</div>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Evidence Section */}
+        {/* Enhanced Evidence Section */}
         {contribution.image_public_url && (
           <div className="mb-4 relative z-50">
             <label className="text-sm font-medium text-foreground mb-2 block">Photo Evidence</label>
@@ -227,61 +327,131 @@ const ContributionCard: React.FC<{
                 />
               </div>
               
-              {contribution.exif_metadata && (
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
-                      contribution.exif_metadata.exif_gps_match 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' 
-                        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100'
-                    }`}>
-                      {contribution.exif_metadata.exif_gps_match ? '✓ EXIF GPS Matches' : '⚠ EXIF GPS Mismatch'}
-                    </span>
+              <div className="flex-1">
+                {/* EXIF Data */}
+                {contribution.exif_metadata && (
+                  <div className="mb-3">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                        contribution.exif_metadata.has_exif 
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' 
+                          : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100'
+                      }`}>
+                        {contribution.exif_metadata.has_exif ? '✓ EXIF Data Available' : '⚠ No EXIF Data'}
+                      </span>
+                    </div>
+                    
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      <div>File: {contribution.exif_metadata.file_name || 'Unknown'}</div>
+                      <div>Size: {contribution.exif_metadata.file_size ? `${(contribution.exif_metadata.file_size / 1024 / 1024).toFixed(2)} MB` : 'Unknown'}</div>
+                      <div>Type: {contribution.exif_metadata.file_type || 'Unknown'}</div>
+                      {contribution.exif_metadata.last_modified && (
+                        <div>Modified: {new Date(contribution.exif_metadata.last_modified).toLocaleString()}</div>
+                      )}
+                    </div>
                   </div>
-                  
-                  <div className="text-xs text-muted-foreground space-y-1">
-                    <div>Device: {contribution.exif_metadata.exif_device || 'Unknown'}</div>
-                    {contribution.exif_metadata.exif_timestamp && (
-                      <div>Photo taken: {new Date(contribution.exif_metadata.exif_timestamp).toLocaleString()}</div>
-                    )}
-                    {contribution.exif_metadata.exif_latitude && (
-                      <div>
-                        EXIF coords: {contribution.exif_metadata.exif_latitude.toFixed(6)}, {contribution.exif_metadata.exif_longitude.toFixed(6)}
-                      </div>
-                    )}
+                )}
+
+                {/* Nearby Landmarks */}
+                {contribution.nearby_landmarks && contribution.nearby_landmarks.length > 0 && (
+                  <div>
+                    <label className="text-xs font-medium text-foreground mb-1 block">Nearby Landmarks ({contribution.nearby_landmarks.length})</label>
+                    <div className="text-xs text-muted-foreground space-y-1 max-h-20 overflow-y-auto">
+                      {contribution.nearby_landmarks.slice(0, 3).map((landmark, index) => (
+                        <div key={index} className="flex justify-between">
+                          <span>{landmark.name || landmark.landmark_name}</span>
+                          <span>{landmark.distance_meters ? `${Math.round(landmark.distance_meters)}m` : ''}</span>
+                        </div>
+                      ))}
+                      {contribution.nearby_landmarks.length > 3 && (
+                        <div className="text-xs text-muted-foreground italic">
+                          +{contribution.nearby_landmarks.length - 3} more landmarks
+                        </div>
+                      )}
+                    </div>
                   </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Enhanced Warnings Section */}
+        <div className="space-y-3 mb-4">
+          {/* Duplicate Warning */}
+          {contribution.duplicate_candidate_ids && contribution.duplicate_candidate_ids.length > 0 && (
+            <div className="bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800 rounded-lg p-3 relative z-50">
+              <div className="flex items-start space-x-3">
+                <svg className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <div>
+                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-1">
+                    Potential Duplicate Office Detected
+                  </p>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                    {contribution.duplicate_candidate_ids.length} verified office{contribution.duplicate_candidate_ids.length === 1 ? '' : 's'} within 100m radius.
+                  </p>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Confidence Score Breakdown */}
+          <div className="bg-blue-50 border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800 rounded-lg p-3 relative z-50">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Confidence Analysis</span>
+              </div>
+              <span className={`text-sm font-medium ${
+                contribution.confidence_score >= 80 ? 'text-green-600 dark:text-green-400' :
+                contribution.confidence_score >= 60 ? 'text-blue-600 dark:text-blue-400' :
+                contribution.confidence_score >= 40 ? 'text-yellow-600 dark:text-yellow-400' :
+                'text-red-600 dark:text-red-400'
+              }`}>
+                {contribution.confidence_score}%
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+              <div 
+                className={`h-2 rounded-full ${
+                  contribution.confidence_score >= 80 ? 'bg-green-600' :
+                  contribution.confidence_score >= 60 ? 'bg-blue-600' :
+                  contribution.confidence_score >= 40 ? 'bg-yellow-600' :
+                  'bg-red-600'
+                }`}
+                style={{ width: `${contribution.confidence_score}%` }}
+              ></div>
+            </div>
+            <div className="text-xs text-blue-700 dark:text-blue-400 mt-2 space-y-1">
+              <div>✓ GPS Accuracy: {contribution.submitted_accuracy_meters ? `±${Math.round(contribution.submitted_accuracy_meters)}m` : 'Unknown'}</div>
+              <div>✓ Photo Evidence: {contribution.image_public_url ? 'Available' : 'Not Available'}</div>
+              <div>✓ Location Data: {contribution.reverse_geocode_result ? 'Verified' : 'Not Verified'}</div>
+              <div>✓ Duplicates Checked: {contribution.duplicate_candidate_ids?.length || 0} found</div>
+            </div>
+          </div>
+
+          {/* Submission Method Info */}
+          <div className="bg-gray-50 border border-gray-200 dark:bg-gray-900/20 dark:border-gray-800 rounded-lg p-3 relative z-50">
+            <div className="flex items-center space-x-2">
+              <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-sm font-medium text-gray-800 dark:text-gray-300">Submission Details</span>
+            </div>
+            <div className="text-xs text-gray-700 dark:text-gray-400 mt-1 space-y-1">
+              <div>Method: {contribution.submission_method || 'Unknown'}</div>
+              <div>Source: {contribution.submission_source || 'Web'}</div>
+              <div>Submitted: {contribution.submitted_timestamp ? new Date(contribution.submitted_timestamp).toLocaleString() : new Date(contribution.created_at).toLocaleString()}</div>
+              {contribution.confirmation_count && contribution.confirmation_count > 0 && (
+                <div>Confirmations: {contribution.confirmation_count}</div>
               )}
             </div>
           </div>
-        )}
-
-        {/* Warnings */}
-        {contribution.duplicate_candidate_ids && contribution.duplicate_candidate_ids.length > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800 rounded-lg p-3 mb-4 relative z-50">
-            <div className="flex items-center space-x-2">
-              <svg className="w-4 h-4 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-              <span className="text-sm text-yellow-700 dark:text-yellow-300">
-                {contribution.duplicate_candidate_ids.length} potential duplicate(s) found within 200m
-              </span>
-            </div>
-          </div>
-        )}
-
-        {contribution.confirmation_count && contribution.confirmation_count > 0 && (
-          <div className="bg-blue-50 border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800 rounded-lg p-3 mb-4 relative z-50">
-            <div className="flex items-center space-x-2">
-              <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              <span className="text-sm text-blue-700 dark:text-blue-300">
-                {contribution.confirmation_count} community confirmation{contribution.confirmation_count > 1 ? 's' : ''}
-              </span>
-            </div>
-          </div>
-        )}
+        </div>
 
         {/* Expandable Device Metadata */}
         <button
@@ -289,7 +459,7 @@ const ContributionCard: React.FC<{
           className="w-full text-left p-2 rounded-lg hover:bg-accent transition-colors relative z-50 text-foreground"
         >
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-foreground">Device Metadata</span>
+            <span className="text-sm font-medium text-foreground">Device & Technical Metadata</span>
             <svg 
               className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`}
               fill="none" 
@@ -310,9 +480,34 @@ const ContributionCard: React.FC<{
               className="overflow-hidden relative z-50"
             >
               <div className="mt-2 p-3 bg-muted rounded-lg">
-                <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
-                  {JSON.stringify(contribution.device_metadata, null, 2)}
-                </pre>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-foreground mb-2">Device Information</h4>
+                    <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
+                      {JSON.stringify({
+                        platform: contribution.device_metadata.platform,
+                        user_agent: contribution.device_metadata.user_agent?.substring(0, 100) + '...',
+                        language: contribution.device_metadata.language,
+                        screen_resolution: contribution.device_metadata.screen_resolution,
+                        timezone: contribution.device_metadata.timezone,
+                        has_touch: contribution.device_metadata.has_touch
+                      }, null, 2)}
+                    </pre>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-foreground mb-2">Capture Details</h4>
+                    <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
+                      {JSON.stringify({
+                        capture_method: contribution.device_metadata.capture_method,
+                        capture_source: contribution.device_metadata.capture_source,
+                        accuracy: contribution.device_metadata.accuracy,
+                        duplicate_count: contribution.device_metadata.duplicate_count,
+                        confidence_score: contribution.device_metadata.confidence_score,
+                        timestamp: contribution.device_metadata.timestamp
+                      }, null, 2)}
+                    </pre>
+                  </div>
+                </div>
               </div>
             </motion.div>
           )}
@@ -322,7 +517,7 @@ const ContributionCard: React.FC<{
       {/* Action Buttons */}
       <div className="p-4 border-t border-border relative z-50 bg-muted/50">
         <div className="flex flex-wrap gap-2">
-          {contribution.status === 'pending' && (
+          {(contribution.status === 'pending' || contribution.status === 'pending_review') && (
             <>
               <button
                 onClick={() => onVerify(contribution)}
@@ -331,7 +526,7 @@ const ContributionCard: React.FC<{
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Verify</span>
+                <span>Verify & Publish</span>
               </button>
 
               {contribution.duplicate_candidate_ids && contribution.duplicate_candidate_ids.length > 0 && (
@@ -342,7 +537,7 @@ const ContributionCard: React.FC<{
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                   </svg>
-                  <span>Merge</span>
+                  <span>Merge with Existing</span>
                 </button>
               )}
 
@@ -371,6 +566,11 @@ const ContributionCard: React.FC<{
           {(contribution.status === 'verified' || contribution.status === 'rejected') && (
             <div className="text-sm text-muted-foreground">
               Reviewed by: {contribution.reviewer_id || 'System'} • {contribution.reviewed_at ? new Date(contribution.reviewed_at).toLocaleString() : 'N/A'}
+              {contribution.review_notes && (
+                <div className="mt-1 text-xs">
+                  Notes: {contribution.review_notes}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -393,11 +593,11 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
     pending: 0,
     verified_today: 0,
     rejected: 0,
-    total: 0
+    total: 0,
+    high_confidence: 0
   });
   const { theme } = useTheme();
 
-  // Safe array access with fallbacks
   const safeCounties = Array.isArray(counties) ? counties : [];
   const safeContributions = Array.isArray(contributions) ? contributions : [];
 
@@ -410,7 +610,6 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
         .select('*')
         .order('created_at', { ascending: false });
 
-      // Apply filters
       if (filters.status !== 'all') {
         query = query.eq('status', filters.status);
       }
@@ -422,6 +621,15 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
           query = query.not('image_public_url', 'is', null);
         } else {
           query = query.is('image_public_url', null);
+        }
+      }
+      if (filters.confidence !== 'all') {
+        if (filters.confidence === 'high') {
+          query = query.gte('confidence_score', 80);
+        } else if (filters.confidence === 'medium') {
+          query = query.gte('confidence_score', 50).lt('confidence_score', 80);
+        } else if (filters.confidence === 'low') {
+          query = query.lt('confidence_score', 50);
         }
       }
 
@@ -442,7 +650,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
       const { data: pendingData } = await supabase
         .from('iebc_office_contributions')
         .select('id')
-        .eq('status', 'pending');
+        .eq('status', 'pending_review');
 
       const today = new Date().toISOString().split('T')[0];
       const { data: todayData } = await supabase
@@ -460,11 +668,18 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
         .from('iebc_office_contributions')
         .select('id');
 
+      const { data: highConfidenceData } = await supabase
+        .from('iebc_office_contributions')
+        .select('id')
+        .gte('confidence_score', 80)
+        .eq('status', 'pending_review');
+
       setStats({
         pending: pendingData?.length || 0,
         verified_today: todayData?.length || 0,
         rejected: rejectedData?.length || 0,
-        total: totalData?.length || 0
+        total: totalData?.length || 0,
+        high_confidence: highConfidenceData?.length || 0
       });
     } catch (err) {
       console.error('Error fetching stats:', err);
@@ -475,33 +690,90 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
     fetchContributions();
     fetchStats();
 
-    // Refresh stats every 5 minutes
     const interval = setInterval(fetchStats, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [fetchContributions, fetchStats]);
 
+  // NEW: Enhanced verification function with proper promotion to iebc_offices
   const handleVerify = async (contribution: Contribution) => {
     try {
-      const { data, error } = await supabase
-        .rpc('promote_contribution_to_office', {
-          p_contribution_id: contribution.id,
-          p_admin_id: 'admin_dashboard',
-          p_office_data: {
-            county: contribution.submitted_county,
-            constituency: contribution.submitted_constituency,
-            office_location: contribution.submitted_office_location,
-            landmark: contribution.submitted_landmark,
-            verification_source: 'admin_manual'
-          }
-        });
-
-      if (error) throw error;
+      console.log('Verifying contribution:', contribution.id);
       
-      // Refresh data
+      // First, check if this should be merged with an existing office
+      const shouldMerge = contribution.duplicate_candidate_ids && contribution.duplicate_candidate_ids.length > 0;
+      
+      if (shouldMerge) {
+        const confirmMerge = confirm(
+          `This contribution has ${contribution.duplicate_candidate_ids.length} potential duplicate(s). Do you want to merge with an existing office instead of creating a new one?`
+        );
+        
+        if (confirmMerge) {
+          await handleMerge(contribution);
+          return;
+        }
+      }
+
+      // Create new office in iebc_offices table
+      const { data: newOffice, error: officeError } = await supabase
+        .from('iebc_offices')
+        .insert({
+          county: contribution.submitted_county,
+          constituency: contribution.submitted_constituency,
+          constituency_code: contribution.submitted_constituency_code,
+          office_location: contribution.submitted_office_location,
+          landmark: contribution.submitted_landmark,
+          latitude: contribution.submitted_latitude,
+          longitude: contribution.submitted_longitude,
+          verification_source: 'admin_manual',
+          verified_by: 'admin_dashboard',
+          verified_at: new Date().toISOString(),
+          created_from_contribution_id: contribution.id,
+          confidence_score: contribution.confidence_score,
+          submission_method: contribution.submission_method,
+          image_url: contribution.image_public_url
+        })
+        .select()
+        .single();
+
+      if (officeError) {
+        console.error('Error creating office:', officeError);
+        throw new Error(`Failed to create office: ${officeError.message}`);
+      }
+
+      // Update contribution status
+      const { error: updateError } = await supabase
+        .from('iebc_office_contributions')
+        .update({
+          status: 'verified',
+          reviewer_id: 'admin_dashboard',
+          reviewed_at: new Date().toISOString(),
+          original_office_id: newOffice.id,
+          review_notes: 'Verified and published as new IEBC office'
+        })
+        .eq('id', contribution.id);
+
+      if (updateError) {
+        console.error('Error updating contribution:', updateError);
+        throw new Error(`Failed to update contribution: ${updateError.message}`);
+      }
+
+      // Log the verification
+      await supabase.from('verification_log').insert({
+        contribution_id: contribution.id,
+        office_id: newOffice.id,
+        action: 'verified_new',
+        actor: 'admin:dashboard',
+        details: {
+          confidence_score: contribution.confidence_score,
+          submission_method: contribution.submission_method,
+          has_image: !!contribution.image_public_url
+        }
+      });
+
       await fetchContributions();
       await fetchStats();
       
-      alert('Contribution verified successfully!');
+      alert(`Contribution verified successfully! New office created with ID: ${newOffice.id}`);
     } catch (err: any) {
       console.error('Error verifying contribution:', err);
       alert('Failed to verify contribution: ' + err.message);
@@ -525,12 +797,14 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
 
       if (error) throw error;
 
-      // Log rejection
       await supabase.from('verification_log').insert({
         contribution_id: contribution.id,
         action: 'rejected',
         actor: 'admin:dashboard',
-        details: { reason }
+        details: { 
+          reason,
+          confidence_score: contribution.confidence_score
+        }
       });
 
       await fetchContributions();
@@ -567,10 +841,11 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
     }
   };
 
+  // NEW: Enhanced merge function
   const handleMerge = async (contribution: Contribution) => {
     try {
-      // Get duplicate candidates
-      const { data: duplicates } = await supabase
+      // Get duplicate candidates with full details
+      const { data: duplicates, error: dupError } = await supabase
         .rpc('find_duplicate_offices', {
           p_lat: contribution.submitted_latitude,
           p_lng: contribution.submitted_longitude,
@@ -578,18 +853,56 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
           p_radius_meters: 200
         });
 
+      if (dupError) throw dupError;
+
       if (duplicates && duplicates.length > 0) {
         const duplicateList = duplicates.map((d: any) => 
-          `${d.office_name} (${Math.round(d.distance_meters)}m away)`
+          `${d.office_name} (ID: ${d.id}, ${Math.round(d.distance_meters)}m away)`
         ).join('\n');
 
-        const confirmMerge = confirm(
-          `Merge this contribution with existing office?\n\nPotential duplicates:\n${duplicateList}\n\nClick OK to merge, Cancel to keep separate.`
+        const selectedId = prompt(
+          `Merge this contribution with which existing office?\n\nPotential duplicates:\n${duplicateList}\n\nEnter the Office ID to merge with:`
         );
 
-        if (confirmMerge) {
-          // For now, just verify the contribution
-          await handleVerify(contribution);
+        if (selectedId) {
+          const officeId = parseInt(selectedId);
+          const selectedOffice = duplicates.find((d: any) => d.id === officeId);
+          
+          if (selectedOffice) {
+            // Update contribution to mark it as merged
+            const { error: updateError } = await supabase
+              .from('iebc_office_contributions')
+              .update({
+                status: 'verified',
+                reviewer_id: 'admin_dashboard',
+                reviewed_at: new Date().toISOString(),
+                original_office_id: officeId,
+                review_notes: `Merged with existing office: ${selectedOffice.office_name}`
+              })
+              .eq('id', contribution.id);
+
+            if (updateError) throw updateError;
+
+            // Log the merge action
+            await supabase.from('verification_log').insert({
+              contribution_id: contribution.id,
+              office_id: officeId,
+              action: 'merged_existing',
+              actor: 'admin:dashboard',
+              details: {
+                existing_office: selectedOffice.office_name,
+                distance: selectedOffice.distance_meters,
+                confidence_score: contribution.confidence_score
+              }
+            });
+
+            await fetchContributions();
+            await fetchStats();
+            
+            alert(`Contribution merged successfully with office: ${selectedOffice.office_name}`);
+          } else {
+            alert('Invalid office ID selected.');
+          }
         }
       } else {
         alert('No suitable duplicates found for merging.');
@@ -608,21 +921,31 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
     if (!confirm(confirmMessage)) return;
 
     try {
+      let successCount = 0;
+      let errorCount = 0;
+
       for (const id of contributionIds) {
-        if (action === 'verify') {
+        try {
           const contribution = safeContributions.find(c => c.id === id);
           if (contribution) {
-            await handleVerify(contribution);
+            if (action === 'verify') {
+              await handleVerify(contribution);
+            } else {
+              await handleReject(contribution);
+            }
+            successCount++;
           }
-        } else {
-          const contribution = safeContributions.find(c => c.id === id);
-          if (contribution) {
-            await handleReject(contribution);
-          }
+        } catch (err) {
+          console.error(`Error processing contribution ${id}:`, err);
+          errorCount++;
         }
       }
       
-      alert(`Successfully processed ${contributionIds.length} contributions!`);
+      if (errorCount > 0) {
+        alert(`Processed ${successCount} contributions successfully. ${errorCount} failed.`);
+      } else {
+        alert(`Successfully processed ${successCount} contributions!`);
+      }
     } catch (err: any) {
       console.error('Error in bulk action:', err);
       alert('Failed to process bulk action: ' + err.message);
@@ -675,12 +998,12 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Enhanced Stats */}
       <div 
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-[10001]"
         style={{ zIndex: 10001 }}
       >
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
           {/* Pending Review Stat */}
           <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
             <div className="flex items-center">
@@ -698,12 +1021,29 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
             </div>
           </div>
 
-          {/* Verified Today Stat */}
+          {/* High Confidence Stat */}
           <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
                   <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-muted-foreground">High Confidence</p>
+                <p className="text-2xl font-semibold text-foreground">{stats.high_confidence}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Verified Today Stat */}
+          <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
@@ -736,8 +1076,8 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
           <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                  <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </div>
@@ -750,7 +1090,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
           </div>
         </div>
 
-        {/* Filters */}
+        {/* Enhanced Filters */}
         <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6 mb-6 relative z-[10001]">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
@@ -761,7 +1101,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
                 className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-background text-foreground"
               >
                 <option value="all">All Status</option>
-                <option value="pending">Pending</option>
+                <option value="pending_review">Pending Review</option>
                 <option value="verified">Verified</option>
                 <option value="rejected">Rejected</option>
                 <option value="auto_verified">Auto-Verified</option>
@@ -812,7 +1152,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
             </div>
           </div>
 
-          {/* Bulk Actions */}
+          {/* Enhanced Bulk Actions */}
           {safeContributions.length > 0 && (
             <div className="mt-4 pt-4 border-t border-border">
               <div className="flex items-center space-x-4">
@@ -829,6 +1169,9 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
                 >
                   Reject All
                 </button>
+                <span className="text-sm text-muted-foreground">
+                  Showing {safeContributions.length} contribution{safeContributions.length === 1 ? '' : 's'}
+                </span>
               </div>
             </div>
           )}
@@ -846,7 +1189,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
           </div>
         )}
 
-        {/* Contributions Grid */}
+        {/* Enhanced Contributions Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 relative z-[10001]">
           {safeContributions.map((contribution) => (
             <ContributionCard
