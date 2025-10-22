@@ -8,6 +8,7 @@ export const useContributeLocation = () => {
   const [isFetchingOSM, setIsFetchingOSM] = useState(false);
   const fetchedLocations = useRef(new Set());
 
+  // Calculate distance between two coordinates
   const calculateDistance = useCallback((lat1, lon1, lat2, lon2) => {
     const R = 6371000;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -174,6 +175,288 @@ export const useContributeLocation = () => {
       return null;
     }
   }, []);
+
+  // NEW: Reverse geocoding function
+  const reverseGeocode = useCallback(async (latitude, longitude) => {
+    try {
+      console.log('Reverse geocoding coordinates:', { latitude, longitude });
+      
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
+      );
+      
+      if (!response.ok) {
+        throw new Error('Reverse geocoding failed');
+      }
+      
+      const data = await response.json();
+      console.log('Reverse geocode result:', data);
+      
+      return {
+        display_name: data.display_name,
+        address: data.address,
+        boundingbox: data.boundingbox,
+        full_result: data
+      };
+    } catch (error) {
+      console.warn('Reverse geocoding failed:', error);
+      return null;
+    }
+  }, []);
+
+  // NEW: Extract EXIF data from image
+  const extractExifData = useCallback(async (file) => {
+    return new Promise((resolve) => {
+      if (!file) {
+        resolve({});
+        return;
+      }
+
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        const view = new DataView(e.target.result);
+        
+        let exifData = {
+          has_exif: false,
+          file_size: file.size,
+          file_type: file.type,
+          last_modified: file.lastModified,
+          file_name: file.name
+        };
+        
+        let offset = 0;
+        
+        if (view.getUint16(0) !== 0xFFD8) {
+          resolve(exifData);
+          return;
+        }
+        
+        offset += 2;
+        
+        while (offset < view.byteLength - 1) {
+          if (view.getUint16(offset) === 0xFFE1) {
+            exifData.has_exif = true;
+            break;
+          }
+          offset++;
+        }
+        
+        resolve(exifData);
+      };
+      
+      reader.onerror = () => resolve({});
+      reader.readAsArrayBuffer(file.slice(0, 65536));
+    });
+  }, []);
+
+  // NEW: Find nearby features for enrichment
+  const findNearbyFeatures = useCallback(async (latitude, longitude, radiusMeters = 500) => {
+    try {
+      console.log('Finding nearby features for enrichment...');
+      
+      const nearbyData = {
+        offices: [],
+        landmarks: [],
+        constituencies: []
+      };
+
+      try {
+        const { data: officesData, error: officesError } = await supabase
+          .rpc('find_nearby_offices', {
+            p_lat: latitude,
+            p_lng: longitude,
+            p_radius: radiusMeters
+          });
+
+        if (!officesError && officesData) {
+          nearbyData.offices = officesData.map(office => ({
+            id: office.id,
+            office_name: office.office_name,
+            office_location: office.office_location,
+            distance: calculateDistance(latitude, longitude, office.latitude, office.longitude),
+            is_duplicate_candidate: calculateDistance(latitude, longitude, office.latitude, office.longitude) < 100
+          }));
+        }
+      } catch (officeError) {
+        console.warn('Nearby offices search failed:', officeError);
+      }
+
+      try {
+        const { data: landmarksData, error: landmarksError } = await supabase
+          .rpc('get_nearby_landmarks', {
+            p_lat: latitude,
+            p_lng: longitude,
+            p_radius_meters: radiusMeters
+          });
+
+        if (!landmarksError && landmarksData) {
+          nearbyData.landmarks = landmarksData;
+        }
+      } catch (landmarkError) {
+        console.warn('Nearby landmarks search failed:', landmarkError);
+      }
+
+      try {
+        const { data: constituencyData, error: constituencyError } = await supabase
+          .rpc('get_constituency_from_coords', {
+            p_lat: latitude,
+            p_lng: longitude
+          });
+
+        if (!constituencyError && constituencyData) {
+          nearbyData.constituencies = Array.isArray(constituencyData) ? constituencyData : [constituencyData];
+        }
+      } catch (constituencyError) {
+        console.warn('Constituency lookup failed:', constituencyError);
+      }
+
+      console.log('Nearby features found:', nearbyData);
+      return nearbyData;
+
+    } catch (error) {
+      console.error('Error finding nearby features:', error);
+      return { offices: [], landmarks: [], constituencies: [] };
+    }
+  }, [calculateDistance]);
+
+  // NEW: Calculate confidence score
+  const calculateConfidenceScore = useCallback((contributionData, nearbyFeatures, exifData, reverseGeocodeResult) => {
+    let score = 50;
+    
+    console.log('Calculating confidence score with data:', {
+      contributionData,
+      nearbyFeaturesCount: nearbyFeatures.offices.length,
+      hasExif: !!exifData?.has_exif,
+      hasReverseGeocode: !!reverseGeocodeResult
+    });
+
+    const accuracy = contributionData.submitted_accuracy_meters || 50;
+    if (accuracy <= 10) score += 20;
+    else if (accuracy <= 20) score += 15;
+    else if (accuracy <= 50) score += 10;
+    else if (accuracy <= 100) score += 5;
+
+    if (contributionData.imageFile) {
+      score += 10;
+      if (exifData?.has_exif) score += 5;
+    }
+
+    if (reverseGeocodeResult) {
+      score += 10;
+      const reverseCounty = reverseGeocodeResult.address?.county || reverseGeocodeResult.address?.state;
+      if (reverseCounty && contributionData.submitted_county && 
+          reverseCounty.toLowerCase().includes(contributionData.submitted_county.toLowerCase())) {
+        score += 5;
+      }
+    }
+
+    const duplicateCount = nearbyFeatures.offices.filter(o => o.is_duplicate_candidate).length;
+    if (duplicateCount === 0) score += 20;
+    else if (duplicateCount === 1) score += 10;
+    else if (duplicateCount <= 3) score += 5;
+
+    let completeness = 0;
+    if (contributionData.submitted_office_location) completeness += 3;
+    if (contributionData.submitted_county) completeness += 3;
+    if (contributionData.submitted_constituency) completeness += 2;
+    if (contributionData.submitted_landmark) completeness += 2;
+    score += completeness;
+
+    score = Math.min(100, Math.max(0, score));
+    
+    console.log('Final confidence score:', score);
+    return score;
+  }, []);
+
+  // NEW: Get constituency code from name
+  const getConstituencyCode = useCallback(async (constituencyName, countyName) => {
+    if (!constituencyName) return null;
+    
+    try {
+      const { data, error } = await supabase
+        .rpc('get_constituency_code', {
+          p_constituency_name: constituencyName,
+          p_county_name: countyName
+        });
+
+      if (!error && data) {
+        return data.code || null;
+      }
+    } catch (error) {
+      console.warn('Constituency code lookup failed:', error);
+    }
+
+    return null;
+  }, []);
+
+  // NEW: Main data enrichment function
+  const enrichContributionData = useCallback(async (contributionData) => {
+    console.log('Starting data enrichment process...');
+    
+    const enrichedData = { ...contributionData };
+    const latitude = contributionData.submitted_latitude;
+    const longitude = contributionData.submitted_longitude;
+
+    const [
+      exifData,
+      reverseGeocodeResult,
+      nearbyFeatures
+    ] = await Promise.all([
+      extractExifData(contributionData.imageFile),
+      reverseGeocode(latitude, longitude),
+      findNearbyFeatures(latitude, longitude, 500)
+    ]);
+
+    enrichedData.exif_metadata = exifData;
+    enrichedData.reverse_geocode_result = reverseGeocodeResult;
+    enrichedData.nearby_landmarks = nearbyFeatures.landmarks;
+    
+    if (reverseGeocodeResult?.address) {
+      const address = reverseGeocodeResult.address;
+      
+      if (!enrichedData.submitted_county) {
+        enrichedData.submitted_county = address.county || address.state || null;
+      }
+      
+      if (!enrichedData.submitted_constituency && address.state_district) {
+        enrichedData.submitted_constituency = address.state_district;
+      }
+      
+      if (!enrichedData.submitted_landmark) {
+        const landmark = address.road || address.neighbourhood || address.suburb;
+        if (landmark) {
+          enrichedData.submitted_landmark = `Near ${landmark}`;
+        }
+      }
+    }
+
+    if (enrichedData.submitted_constituency && enrichedData.submitted_county) {
+      enrichedData.submitted_constituency_code = await getConstituencyCode(
+        enrichedData.submitted_constituency,
+        enrichedData.submitted_county
+      );
+    }
+
+    enrichedData.duplicate_candidate_ids = nearbyFeatures.offices
+      .filter(office => office.is_duplicate_candidate)
+      .map(office => office.id);
+
+    enrichedData.confidence_score = calculateConfidenceScore(
+      enrichedData,
+      nearbyFeatures,
+      exifData,
+      reverseGeocodeResult
+    );
+
+    enrichedData.confirmation_count = 0;
+    enrichedData.submission_source = 'web_contribution';
+    enrichedData.submission_method = contributionData.capture_method || 'unknown';
+    enrichedData.submitted_timestamp = new Date().toISOString();
+
+    console.log('Data enrichment completed:', enrichedData);
+    return enrichedData;
+  }, [extractExifData, reverseGeocode, findNearbyFeatures, getConstituencyCode, calculateConfidenceScore]);
 
   const getFallbackLandmarks = useCallback(async (latitude, longitude, radiusMeters) => {
     const fallbackLandmarks = [];
@@ -675,16 +958,16 @@ export const useContributeLocation = () => {
     }
   }, []);
 
+  // UPDATED: Enhanced submit function with data enrichment
   const submitContribution = useCallback(async (contributionData) => {
     setIsSubmitting(true);
     setError(null);
 
     try {
-      console.log('Starting contribution submission process...', {
+      console.log('Starting enhanced contribution submission...', {
         latitude: contributionData.submitted_latitude,
         longitude: contributionData.submitted_longitude,
-        hasImage: !!contributionData.imageFile,
-        notesLength: contributionData.submitted_landmark?.length || 0
+        hasImage: !!contributionData.imageFile
       });
 
       if (!contributionData.submitted_latitude || !contributionData.submitted_longitude) {
@@ -697,54 +980,59 @@ export const useContributeLocation = () => {
 
       const deviceFingerprint = await generateDeviceFingerprint();
       
+      console.log('Enriching contribution data...');
+      const enrichedData = await enrichContributionData(contributionData);
+      
       let imagePublicUrl = null;
-      if (contributionData.imageFile) {
+      if (enrichedData.imageFile) {
         console.log('Uploading contribution image...');
-        
         const tempContributionId = `temp_${Date.now()}_${Math.random().toString(36).substring(2)}`;
-        imagePublicUrl = await uploadImage(contributionData.imageFile, tempContributionId);
+        imagePublicUrl = await uploadImage(enrichedData.imageFile, tempContributionId);
         console.log('Image uploaded successfully:', imagePublicUrl);
       }
 
-      const deviceMeta = contributionData.device_metadata || {
-        accuracy: contributionData.submitted_accuracy_meters || null,
+      const deviceMeta = enrichedData.device_metadata || {
+        accuracy: enrichedData.submitted_accuracy_meters || null,
         userAgent: navigator.userAgent ? navigator.userAgent.substring(0, 100) : 'unknown',
         platform: navigator.platform || 'unknown',
         screenResolution: `${window.screen.width}x${window.screen.height}`,
         language: navigator.language || 'en',
         hasTouch: 'ontouchstart' in window,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        capture_method: contributionData.capture_method || 'unknown',
-        capture_source: contributionData.capture_source || 'manual',
-        duplicate_count: contributionData.duplicate_count || 0,
-        timestamp: new Date().toISOString()
+        capture_method: enrichedData.capture_method || 'unknown',
+        capture_source: enrichedData.capture_source || 'manual',
+        duplicate_count: enrichedData.duplicate_candidate_ids?.length || 0,
+        timestamp: new Date().toISOString(),
+        confidence_score: enrichedData.confidence_score
       };
 
       const contribution = {
-        submitted_latitude: contributionData.submitted_latitude,
-        submitted_longitude: contributionData.submitted_longitude,
-        submitted_accuracy_meters: contributionData.submitted_accuracy_meters || 50,
-        submitted_office_location: contributionData.submitted_office_location,
-        submitted_county: contributionData.submitted_county,
-        submitted_constituency: contributionData.submitted_constituency,
-        submitted_constituency_code: contributionData.submitted_constituency_code || null,
-        submitted_landmark: contributionData.submitted_landmark,
-        google_maps_link: contributionData.google_maps_link,
+        submitted_latitude: enrichedData.submitted_latitude,
+        submitted_longitude: enrichedData.submitted_longitude,
+        submitted_accuracy_meters: enrichedData.submitted_accuracy_meters || 50,
+        submitted_office_location: enrichedData.submitted_office_location,
+        submitted_county: enrichedData.submitted_county,
+        submitted_constituency: enrichedData.submitted_constituency,
+        submitted_constituency_code: enrichedData.submitted_constituency_code || null,
+        submitted_landmark: enrichedData.submitted_landmark,
+        google_maps_link: enrichedData.google_maps_link,
         image_public_url: imagePublicUrl,
         device_metadata: deviceMeta,
         device_fingerprint_hash: deviceFingerprint,
         status: 'pending_review',
-        submission_source: 'web_contribution',
-        submission_method: contributionData.capture_method || 'unknown',
-        original_office_id: contributionData.original_office_id || null,
-        nearby_landmarks: contributionData.nearby_landmarks || null,
-        confidence_score: contributionData.confidence_score || 0,
-        exif_metadata: contributionData.exif_metadata || {},
-        reverse_geocode_result: contributionData.reverse_geocode_result || null,
-        submitted_timestamp: new Date().toISOString()
+        submission_source: enrichedData.submission_source,
+        submission_method: enrichedData.submission_method,
+        original_office_id: enrichedData.original_office_id || null,
+        nearby_landmarks: enrichedData.nearby_landmarks || null,
+        confidence_score: enrichedData.confidence_score || 0,
+        exif_metadata: enrichedData.exif_metadata || {},
+        reverse_geocode_result: enrichedData.reverse_geocode_result || null,
+        duplicate_candidate_ids: enrichedData.duplicate_candidate_ids || [],
+        confirmation_count: enrichedData.confirmation_count || 0,
+        submitted_timestamp: enrichedData.submitted_timestamp
       };
 
-      console.log('Inserting contribution into database...', contribution);
+      console.log('Inserting enriched contribution into database...', contribution);
       
       const { data, error: insertError } = await supabase
         .from('iebc_office_contributions')
@@ -757,28 +1045,30 @@ export const useContributeLocation = () => {
         throw new Error(`Failed to save contribution: ${insertError.message}`);
       }
 
-      console.log('Contribution submitted successfully:', data);
+      console.log('Enriched contribution submitted successfully:', data);
       
       console.log('Contribution Analytics:', {
         contributionId: data.id,
         location: `${data.submitted_latitude}, ${data.submitted_longitude}`,
         county: data.submitted_county,
         constituency: data.submitted_constituency,
+        confidenceScore: data.confidence_score,
         hasImage: !!imagePublicUrl,
+        duplicateCandidates: data.duplicate_candidate_ids?.length || 0,
         timestamp: data.created_at
       });
 
       return data;
 
     } catch (err) {
-      console.error('Contribution submission error:', err);
+      console.error('Enhanced contribution submission error:', err);
       const errorMessage = err.message || 'An unexpected error occurred during submission';
       setError(errorMessage);
       throw err;
     } finally {
       setIsSubmitting(false);
     }
-  }, [generateDeviceFingerprint, uploadImage]);
+  }, [generateDeviceFingerprint, enrichContributionData, uploadImage]);
 
   const manuallyFetchOSMData = useCallback(async (latitude, longitude, radiusMeters = 2000) => {
     return await fetchOSMDataForLocation(latitude, longitude, radiusMeters);
@@ -840,7 +1130,12 @@ export const useContributeLocation = () => {
     isValidCoordinate,
     checkRateLimit,
     generateDeviceFingerprint,
-    hashString
+    hashString,
+    reverseGeocode,
+    extractExifData,
+    findNearbyFeatures,
+    calculateConfidenceScore,
+    enrichContributionData
   };
 };
 
