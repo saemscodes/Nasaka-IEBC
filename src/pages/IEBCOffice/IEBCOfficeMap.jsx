@@ -1,4 +1,4 @@
-// src/pages/IEBCOffice/IEBCOfficeMap.jsx
+// src/pages/IEBCOffice/IEBCOfficeMap.tsx
 import React, { useEffect, useMemo, useCallback, useState, useRef } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,12 +17,24 @@ import { useMapControls } from '@/hooks/useMapControls';
 import { findNearestOffice, findNearestOffices } from '@/utils/geoUtils';
 import { supabase } from '@/integrations/supabase/client';
 import L from 'leaflet';
+import { useLocation as useGeoLocation } from '@/hooks/useLocation';
 
 const IEBCOfficeMap = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const userLocation = state?.userLocation;
+  
+  // ENHANCED: Use our custom location hook for real-time location tracking
+  const { 
+    location: realTimeLocation, 
+    error: locationError, 
+    loading: locationLoading, 
+    getCurrentLocation,
+    requestLocationPermission 
+  } = useGeoLocation();
+
+  // ENHANCED: Combine passed location with real-time location
+  const userLocation = realTimeLocation || state?.userLocation;
   const manualEntry = state?.manualEntry;
 
   const { offices, loading, error, searchOffices, refetch } = useIEBCOffices();
@@ -41,7 +53,7 @@ const IEBCOfficeMap = () => {
     closeListPanel
   } = useMapControls();
 
-  // Enhanced state management
+  // Enhanced state management with location tracking
   const [activeLayers, setActiveLayers] = useState(['iebc-offices']);
   const [isLayerPanelOpen, setIsLayerPanelOpen] = useState(false);
   const [currentRoute, setCurrentRoute] = useState(null);
@@ -57,6 +69,8 @@ const IEBCOfficeMap = () => {
   const [routeBadgePosition, setRouteBadgePosition] = useState({ x: 20, y: 140 });
   const [isDraggingRouteBadge, setIsDraggingRouteBadge] = useState(false);
   const [urlQueryProcessed, setUrlQueryProcessed] = useState(false);
+  const [locationTracking, setLocationTracking] = useState(false);
+  const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
 
   const mapInstanceRef = useRef(null);
   const tileLayersRef = useRef({});
@@ -64,8 +78,94 @@ const IEBCOfficeMap = () => {
   const routeBadgeRef = useRef(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const badgeStartPos = useRef({ x: 0, y: 0 });
+  const locationWatchId = useRef(null);
 
-  // NEW: Handle URL query parameter on component mount
+  // ENHANCED: Real-time location tracking effect
+  useEffect(() => {
+    if (locationTracking && locationPermissionGranted) {
+      // Start watching position for real-time updates
+      if (navigator.geolocation) {
+        locationWatchId.current = navigator.geolocation.watchPosition(
+          (position) => {
+            const newLocation = {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              accuracy: position.coords.accuracy,
+              altitude: position.coords.altitude,
+              heading: position.coords.heading,
+              speed: position.coords.speed
+            };
+            
+            // Update map center to follow user if tracking is active
+            if (mapInstanceRef.current && locationTracking) {
+              mapInstanceRef.current.flyTo([newLocation.latitude, newLocation.longitude], 16, {
+                duration: 1
+              });
+            }
+            
+            // Update accuracy circle
+            updateAccuracyCircle(newLocation);
+          },
+          (error) => {
+            console.error('Location tracking error:', error);
+            setLocationTracking(false);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 5000,
+            distanceFilter: 10 // Update every 10 meters
+          }
+        );
+      }
+    }
+
+    return () => {
+      if (locationWatchId.current) {
+        navigator.geolocation.clearWatch(locationWatchId.current);
+      }
+    };
+  }, [locationTracking, locationPermissionGranted]);
+
+  // ENHANCED: Update accuracy circle for real-time location
+  const updateAccuracyCircle = useCallback((location) => {
+    if (!mapInstanceRef.current || !location.accuracy) return;
+
+    // Remove existing accuracy circle
+    if (accuracyCircleRef.current) {
+      mapInstanceRef.current.removeLayer(accuracyCircleRef.current);
+    }
+    
+    // Create new accuracy circle
+    accuracyCircleRef.current = L.circle([location.latitude, location.longitude], {
+      radius: location.accuracy,
+      color: '#007AFF',
+      fillColor: '#007AFF',
+      fillOpacity: 0.1,
+      weight: 1,
+      opacity: 0.6
+    }).addTo(mapInstanceRef.current);
+  }, []);
+
+  // ENHANCED: Request location permissions on component mount
+  useEffect(() => {
+    const initializeLocation = async () => {
+      try {
+        const granted = await requestLocationPermission();
+        setLocationPermissionGranted(granted);
+        
+        if (granted && !userLocation) {
+          await getCurrentLocation();
+        }
+      } catch (error) {
+        console.error('Location initialization failed:', error);
+      }
+    };
+
+    initializeLocation();
+  }, []);
+
+  // Handle URL query parameter on component mount
   useEffect(() => {
     const query = searchParams.get('q');
     if (query && !urlQueryProcessed && offices.length > 0 && mapInstanceRef.current) {
@@ -73,7 +173,7 @@ const IEBCOfficeMap = () => {
     }
   }, [searchParams, offices, urlQueryProcessed]);
 
-  // NEW: Function to handle URL query parameter search
+  // Function to handle URL query parameter search
   const handleUrlQuerySearch = async (query) => {
     if (!query.trim()) return;
 
@@ -185,24 +285,7 @@ const IEBCOfficeMap = () => {
   useEffect(() => {
     if (userLocation?.latitude && userLocation?.longitude) {
       flyToLocation(userLocation.latitude, userLocation.longitude, 14);
-      
-      // Create accuracy circle if accuracy data is available
-      if (userLocation.accuracy && mapInstanceRef.current) {
-        // Remove existing accuracy circle
-        if (accuracyCircleRef.current) {
-          mapInstanceRef.current.removeLayer(accuracyCircleRef.current);
-        }
-        
-        // Create new accuracy circle
-        accuracyCircleRef.current = L.circle([userLocation.latitude, userLocation.longitude], {
-          radius: userLocation.accuracy,
-          color: '#007AFF',
-          fillColor: '#007AFF',
-          fillOpacity: 0.1,
-          weight: 1,
-          opacity: 0.6
-        }).addTo(mapInstanceRef.current);
-      }
+      updateAccuracyCircle(userLocation);
     }
 
     // Cleanup function to remove accuracy circle
@@ -211,7 +294,23 @@ const IEBCOfficeMap = () => {
         mapInstanceRef.current.removeLayer(accuracyCircleRef.current);
       }
     };
-  }, [userLocation, flyToLocation]);
+  }, [userLocation, flyToLocation, updateAccuracyCircle]);
+
+  // ENHANCED: Toggle real-time location tracking
+  const toggleLocationTracking = useCallback(async () => {
+    if (!locationPermissionGranted) {
+      const granted = await requestLocationPermission();
+      if (!granted) return;
+      setLocationPermissionGranted(true);
+    }
+
+    setLocationTracking(prev => !prev);
+    
+    if (!locationTracking && userLocation) {
+      // Center map on user when starting tracking
+      flyToLocation(userLocation.latitude, userLocation.longitude, 16);
+    }
+  }, [locationPermissionGranted, locationTracking, userLocation, flyToLocation, requestLocationPermission]);
 
   // Enhanced office selection
   const handleOfficeSelect = useCallback(async (office) => {
@@ -238,6 +337,9 @@ const IEBCOfficeMap = () => {
     closeListPanel();
     setBottomSheetState('peek');
     setRoutingError(null);
+    
+    // Stop location tracking when office is selected
+    setLocationTracking(false);
   }, [setSelectedOffice, flyToOffice, closeListPanel]);
 
   // Enhanced search handler
@@ -352,12 +454,18 @@ const IEBCOfficeMap = () => {
   // Navigation handlers
   const handleBack = () => navigate(-1);
   const handleSearchFocus = () => {
-    // This now only opens panel when called from search (on Enter)
     openListPanel();
     setIsPanelBackdropVisible(true);
   };
   
-  const handleRetryLocation = () => navigate('/nasaka-iebc', { replace: true });
+  const handleRetryLocation = async () => {
+    try {
+      await getCurrentLocation();
+    } catch (error) {
+      console.error('Failed to get location:', error);
+      navigate('/nasaka-iebc', { replace: true });
+    }
+  };
 
   const openLayerPanel = () => {
     setIsLayerPanelOpen(true);
@@ -414,7 +522,7 @@ const IEBCOfficeMap = () => {
     refetch();
   }, [refetch]);
 
-  // Route badge drag handlers - FIXED IMPLEMENTATION
+  // Route badge drag handlers
   const handleRouteBadgeMouseDown = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -467,11 +575,14 @@ const IEBCOfficeMap = () => {
   // Cleanup event listeners on unmount
   useEffect(() => {
     return () => {
-      // Remove any lingering event listeners
       document.removeEventListener('mousemove', () => {});
       document.removeEventListener('mouseup', () => {});
       document.removeEventListener('touchmove', () => {});
       document.removeEventListener('touchend', () => {});
+      
+      if (locationWatchId.current) {
+        navigator.geolocation.clearWatch(locationWatchId.current);
+      }
     };
   }, []);
 
@@ -527,6 +638,24 @@ const IEBCOfficeMap = () => {
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="flex flex-col space-y-3"
         >
+          {/* ENHANCED: Location Tracking Button */}
+          <button
+            onClick={toggleLocationTracking}
+            className={`ios-control-btn ${locationTracking ? 'bg-primary text-primary-foreground' : ''}`}
+            aria-label={locationTracking ? "Stop tracking location" : "Track my location"}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                d={locationTracking 
+                  ? "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  : "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"} 
+              />
+              {locationTracking && (
+                <circle cx="12" cy="12" r="3" fill="currentColor" />
+              )}
+            </svg>
+          </button>
+
           {/* Contribute Location Button */}
           <ContributeLocationButton 
             userLocation={userLocation}
@@ -537,14 +666,14 @@ const IEBCOfficeMap = () => {
             onClick={openLayerPanel}
             className="ios-control-btn"
             aria-label="Map layers"
-            >
+          >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path 
                 strokeLinecap="round" 
                 strokeLinejoin="round" 
                 strokeWidth={2} 
                 d="M2 12.0001L11.6422 16.8212C11.7734 16.8868 11.839 16.9196 11.9078 16.9325C11.9687 16.9439 12.0313 16.9439 12.0922 16.9325C12.161 16.9196 12.2266 16.8868 12.3578 16.8212L22 12.0001M2 17.0001L11.6422 21.8212C11.7734 21.8868 11.839 21.9196 11.9078 21.9325C11.9687 21.9439 12.0313 21.9439 12.0922 21.9325C12.161 21.9196 12.2266 21.8868 12.3578 21.8212L22 17.0001M2 7.00006L11.6422 2.17895C11.7734 2.11336 11.839 2.08056 11.9078 2.06766C11.9687 2.05622 12.0313 2.05622 12.0922 2.06766C12.161 2.08056 12.2266 2.11336 12.3578 2.17895L22 7.00006L12.3578 11.8212C12.2266 11.8868 12.161 11.9196 12.0922 11.9325C12.0313 11.9439 11.9687 11.9439 11.9078 11.9325C11.839 11.9196 11.7734 11.8868 11.6422 11.8212L2 7.00006Z"
-                />
+              />
             </svg>
           </button>
 
@@ -573,7 +702,60 @@ const IEBCOfficeMap = () => {
         </motion.div>
       </div>
 
-      {/* Fixed Badge Container - For non-draggable badges */}
+      {/* Location Status Indicator */}
+      <AnimatePresence>
+        {locationLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="location-status-indicator"
+          >
+            <div className="flex items-center space-x-2">
+              <LoadingSpinner size="small" />
+              <span className="text-sm font-medium">Getting your location...</span>
+            </div>
+          </motion.div>
+        )}
+
+        {locationError && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="location-error-indicator"
+          >
+            <div className="flex items-center space-x-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <span className="text-sm font-medium">Location access needed</span>
+            </div>
+            <button 
+              onClick={handleRetryLocation}
+              className="text-xs underline mt-1"
+            >
+              Enable location
+            </button>
+          </motion.div>
+        )}
+
+        {locationTracking && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="tracking-indicator"
+          >
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium">Tracking your location</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Fixed Badge Container */}
       <div className="fixed-badge-container">
         <AnimatePresence>
           {isSearchingNearby && (
@@ -609,7 +791,7 @@ const IEBCOfficeMap = () => {
         </AnimatePresence>
       </div>
 
-      {/* Draggable Route Badge - FIXED IMPLEMENTATION */}
+      {/* Draggable Route Badge */}
       <AnimatePresence>
         {currentRoute && currentRoute.length > 0 && (
           <motion.div
@@ -645,7 +827,6 @@ const IEBCOfficeMap = () => {
             onMouseDown={handleRouteBadgeMouseDown}
             onTouchStart={handleRouteBadgeMouseDown}
             onClick={(e) => {
-              // Only trigger click if not dragging (small movement threshold)
               if (!isDraggingRouteBadge && selectedOffice) {
                 setBottomSheetState('expanded');
               }
@@ -662,13 +843,12 @@ const IEBCOfficeMap = () => {
                 Best: {(currentRoute[0].summary.totalDistance / 1000).toFixed(1)} km, {Math.round(currentRoute[0].summary.totalTime / 60)} min
               </div>
             )}
-            {/* Drag handle indicator */}
             <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-1 bg-gray-400 rounded-full opacity-60 transition-opacity duration-200 hover:opacity-80"></div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Map Container - Isolated */}
+      {/* Map Container */}
       <MapContainer
         ref={mapRef}
         center={mapCenter}
@@ -677,20 +857,22 @@ const IEBCOfficeMap = () => {
         onMapReady={handleMapReady}
         onDoubleTap={handleDoubleTap}
       >
-        {/* User Location Marker with Accuracy Circle */}
+        {/* Enhanced User Location Marker with real-time tracking */}
         <UserLocationMarker
           position={userLocation ? [userLocation.latitude, userLocation.longitude] : null}
           accuracy={userLocation?.accuracy}
+          heading={userLocation?.heading}
+          isTracking={locationTracking}
         />
 
-        {/* GeoJSON Layer Manager - FIXED MARKER DISPLAY */}
+        {/* GeoJSON Layer Manager */}
         <GeoJSONLayerManager
           activeLayers={activeLayers}
           onOfficeSelect={handleOfficeSelect}
           selectedOffice={selectedOffice}
           onNearbyOfficesFound={setNearbyOffices}
           baseMap={baseMap}
-          liveOffices={offices} // NEW: Pass live offices for real-time updates
+          liveOffices={offices}
         />
 
         {/* Last Tap Location Indicator */}
@@ -714,7 +896,7 @@ const IEBCOfficeMap = () => {
         )}
       </MapContainer>
 
-      {/* PANEL BACKDROP - CRITICAL FIX: BELOW CONTROLS, ABOVE MAP */}
+      {/* PANEL BACKDROP */}
       <AnimatePresence>
         {isPanelBackdropVisible && (
           <motion.div
@@ -736,6 +918,8 @@ const IEBCOfficeMap = () => {
         userLocation={userLocation}
         baseMap={baseMap}
         onBaseMapChange={handleBaseMapChange}
+        locationTracking={locationTracking}
+        onToggleLocationTracking={toggleLocationTracking}
       />
 
       {/* Office List Panel */}
@@ -763,6 +947,8 @@ const IEBCOfficeMap = () => {
         onExpand={handleBottomSheetExpand}
         onCollapse={handleBottomSheetCollapse}
         onClose={handleBottomSheetClose}
+        locationTracking={locationTracking}
+        onToggleLocationTracking={toggleLocationTracking}
       />
     </div>
   );
