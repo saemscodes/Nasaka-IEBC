@@ -176,7 +176,7 @@ export const useContributeLocation = () => {
     }
   }, []);
 
-  // NEW: Reverse geocoding function
+  // NEW: Enhanced Reverse geocoding function with constituency mapping
   const reverseGeocode = useCallback(async (latitude, longitude) => {
     try {
       console.log('Reverse geocoding coordinates:', { latitude, longitude });
@@ -192,11 +192,32 @@ export const useContributeLocation = () => {
       const data = await response.json();
       console.log('Reverse geocode result:', data);
       
+      // Enhanced: Get constituency information from database
+      let constituencyInfo = null;
+      try {
+        const { data: constituencyData, error: constituencyError } = await supabase
+          .rpc('get_constituency_from_coords', {
+            p_lat: latitude,
+            p_lng: longitude
+          });
+
+        if (!constituencyError && constituencyData && constituencyData.length > 0) {
+          constituencyInfo = {
+            name: constituencyData[0].constituency_name,
+            county: constituencyData[0].county_name,
+            id: constituencyData[0].constituency_id
+          };
+        }
+      } catch (constituencyError) {
+        console.warn('Constituency lookup during reverse geocode failed:', constituencyError);
+      }
+      
       return {
         display_name: data.display_name,
         address: data.address,
         boundingbox: data.boundingbox,
-        full_result: data
+        full_result: data,
+        constituency_info: constituencyInfo
       };
     } catch (error) {
       console.warn('Reverse geocoding failed:', error);
@@ -250,7 +271,7 @@ export const useContributeLocation = () => {
     });
   }, []);
 
-  // NEW: Find nearby features for enrichment
+  // NEW: Enhanced Find nearby features for enrichment with constituency mapping
   const findNearbyFeatures = useCallback(async (latitude, longitude, radiusMeters = 500) => {
     try {
       console.log('Finding nearby features for enrichment...');
@@ -320,7 +341,7 @@ export const useContributeLocation = () => {
     }
   }, [calculateDistance]);
 
-  // NEW: Calculate confidence score
+  // NEW: Enhanced Calculate confidence score
   const calculateConfidenceScore = useCallback((contributionData, nearbyFeatures, exifData, reverseGeocodeResult) => {
     let score = 50;
     
@@ -369,7 +390,7 @@ export const useContributeLocation = () => {
     return score;
   }, []);
 
-  // NEW: Get constituency code from name
+  // NEW: Enhanced Get constituency code from name - NOW USING constituencies.id
   const getConstituencyCode = useCallback(async (constituencyName, countyName) => {
     if (!constituencyName) return null;
     
@@ -380,8 +401,9 @@ export const useContributeLocation = () => {
           p_county_name: countyName
         });
 
-      if (!error && data) {
-        return data.code || null;
+      if (!error && data && data.length > 0) {
+        // NOW RETURNING constituencies.id instead of arbitrary code
+        return data[0].id || null;
       }
     } catch (error) {
       console.warn('Constituency code lookup failed:', error);
@@ -390,7 +412,7 @@ export const useContributeLocation = () => {
     return null;
   }, []);
 
-  // NEW: Main data enrichment function
+  // NEW: Enhanced Main data enrichment function with proper constituency mapping
   const enrichContributionData = useCallback(async (contributionData) => {
     console.log('Starting data enrichment process...');
     
@@ -412,7 +434,31 @@ export const useContributeLocation = () => {
     enrichedData.reverse_geocode_result = reverseGeocodeResult;
     enrichedData.nearby_landmarks = nearbyFeatures.landmarks;
     
-    if (reverseGeocodeResult?.address) {
+    // Enhanced: Use reverse geocode constituency info if available
+    if (reverseGeocodeResult?.constituency_info) {
+      const constituencyInfo = reverseGeocodeResult.constituency_info;
+      
+      if (!enrichedData.submitted_county && constituencyInfo.county) {
+        enrichedData.submitted_county = constituencyInfo.county;
+      }
+      
+      if (!enrichedData.submitted_constituency && constituencyInfo.name) {
+        enrichedData.submitted_constituency = constituencyInfo.name;
+      }
+      
+      // Set constituency ID directly from reverse geocode if available
+      if (constituencyInfo.id) {
+        enrichedData.submitted_constituency_code = constituencyInfo.id;
+      }
+      
+      if (!enrichedData.submitted_landmark) {
+        const address = reverseGeocodeResult.address;
+        const landmark = address?.road || address?.neighbourhood || address?.suburb;
+        if (landmark) {
+          enrichedData.submitted_landmark = `Near ${landmark}`;
+        }
+      }
+    } else if (reverseGeocodeResult?.address) {
       const address = reverseGeocodeResult.address;
       
       if (!enrichedData.submitted_county) {
@@ -431,7 +477,8 @@ export const useContributeLocation = () => {
       }
     }
 
-    if (enrichedData.submitted_constituency && enrichedData.submitted_county) {
+    // Enhanced: Only get constituency code if not already set from reverse geocode
+    if (!enrichedData.submitted_constituency_code && enrichedData.submitted_constituency && enrichedData.submitted_county) {
       enrichedData.submitted_constituency_code = await getConstituencyCode(
         enrichedData.submitted_constituency,
         enrichedData.submitted_county
@@ -457,6 +504,46 @@ export const useContributeLocation = () => {
     console.log('Data enrichment completed:', enrichedData);
     return enrichedData;
   }, [extractExifData, reverseGeocode, findNearbyFeatures, getConstituencyCode, calculateConfidenceScore]);
+
+  // NEW: Function to update existing constituency codes in contributions
+  const updateExistingConstituencyCodes = useCallback(async () => {
+    try {
+      console.log('Updating constituency codes in existing contributions...');
+      
+      const { data, error } = await supabase
+        .rpc('update_contribution_constituency_codes');
+      
+      if (error) {
+        throw new Error(`Failed to update constituency codes: ${error.message}`);
+      }
+      
+      console.log('Constituency codes updated successfully:', data);
+      return data;
+    } catch (error) {
+      console.error('Error updating constituency codes:', error);
+      throw error;
+    }
+  }, []);
+
+  // NEW: Function to update constituency codes in iebc_offices
+  const updateOfficeConstituencyCodes = useCallback(async () => {
+    try {
+      console.log('Updating constituency codes in iebc_offices...');
+      
+      const { data, error } = await supabase
+        .rpc('update_office_constituency_codes');
+      
+      if (error) {
+        throw new Error(`Failed to update office constituency codes: ${error.message}`);
+      }
+      
+      console.log('Office constituency codes updated successfully:', data);
+      return data;
+    } catch (error) {
+      console.error('Error updating office constituency codes:', error);
+      throw error;
+    }
+  }, []);
 
   const getFallbackLandmarks = useCallback(async (latitude, longitude, radiusMeters) => {
     const fallbackLandmarks = [];
@@ -958,7 +1045,7 @@ export const useContributeLocation = () => {
     }
   }, []);
 
-  // UPDATED: Enhanced submit function with data enrichment
+  // UPDATED: Enhanced submit function with data enrichment and proper constituency mapping
   const submitContribution = useCallback(async (contributionData) => {
     setIsSubmitting(true);
     setError(null);
@@ -1052,6 +1139,7 @@ export const useContributeLocation = () => {
         location: `${data.submitted_latitude}, ${data.submitted_longitude}`,
         county: data.submitted_county,
         constituency: data.submitted_constituency,
+        constituencyCode: data.submitted_constituency_code,
         confidenceScore: data.confidence_score,
         hasImage: !!imagePublicUrl,
         duplicateCandidates: data.duplicate_candidate_ids?.length || 0,
@@ -1135,7 +1223,10 @@ export const useContributeLocation = () => {
     extractExifData,
     findNearbyFeatures,
     calculateConfidenceScore,
-    enrichContributionData
+    enrichContributionData,
+    getConstituencyCode,
+    updateExistingConstituencyCodes,
+    updateOfficeConstituencyCodes
   };
 };
 
