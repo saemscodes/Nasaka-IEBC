@@ -168,7 +168,10 @@ const LayerControlPanel = ({
           </h3>
           <div className="space-y-3">
             {availableLayers.map((layer) => {
-              const isActive = layers.includes(layer.id);
+              const isActive =
+                layer.id === 'user-location'
+                ? !!userLocation || layers.includes(layer.id)
+                : layers.includes(layer.id);
               const isDisabled = layer.disabled;
 
               return (
