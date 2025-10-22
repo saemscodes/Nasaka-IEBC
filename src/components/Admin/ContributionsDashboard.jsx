@@ -73,6 +73,25 @@ interface Contribution {
   submission_method?: string;
   nearby_landmarks?: any[];
   submitted_timestamp?: string;
+  is_archived?: boolean;
+  archived_at?: string;
+  archive_reason?: string;
+  original_office_id?: number;
+}
+
+interface ArchiveRecord {
+  archive_id: number;
+  contribution_id: number;
+  original_office_id?: number;
+  action_type: string;
+  action_timestamp: string;
+  actor: string;
+  review_notes?: string;
+  archive_reason?: string;
+  office_name: string;
+  county: string;
+  constituency: string;
+  archived_data: any;
 }
 
 interface ContributionsDashboardProps {
@@ -80,7 +99,6 @@ interface ContributionsDashboardProps {
   counties: string[];
 }
 
-// Custom Map Container for Dashboard with Isolated Z-Index
 const DashboardMapContainer: React.FC<{
   center: [number, number];
   zoom: number;
@@ -107,7 +125,8 @@ const ContributionCard: React.FC<{
   onReject: (contribution: Contribution) => void;
   onRequestInfo: (contribution: Contribution) => void;
   onMerge: (contribution: Contribution) => void;
-}> = ({ contribution, onVerify, onReject, onRequestInfo, onMerge }) => {
+  onViewArchive: () => void;
+}> = ({ contribution, onVerify, onReject, onRequestInfo, onMerge, onViewArchive }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
   const [showReverseGeocode, setShowReverseGeocode] = useState(false);
@@ -122,6 +141,7 @@ const ContributionCard: React.FC<{
       case 'flagged_suspicious': return 'red';
       case 'verified': return 'green';
       case 'rejected': return 'red';
+      case 'archived': return 'gray';
       default: return 'gray';
     }
   };
@@ -135,6 +155,7 @@ const ContributionCard: React.FC<{
       case 'flagged_suspicious': return 'Flagged Suspicious';
       case 'verified': return 'Verified';
       case 'rejected': return 'Rejected';
+      case 'archived': return 'Archived';
       default: return status;
     }
   };
@@ -200,6 +221,11 @@ const ContributionCard: React.FC<{
           <span className="text-xs text-muted-foreground">
             Source: {contribution.submission_source || 'Unknown'}
           </span>
+          {contribution.is_archived && (
+            <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full">
+              Archived
+            </span>
+          )}
         </div>
       </div>
 
@@ -526,7 +552,7 @@ const ContributionCard: React.FC<{
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Verify & Publish</span>
+                <span>Verify & Archive</span>
               </button>
 
               {contribution.duplicate_candidate_ids && contribution.duplicate_candidate_ids.length > 0 && (
@@ -537,7 +563,7 @@ const ContributionCard: React.FC<{
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                   </svg>
-                  <span>Merge with Existing</span>
+                  <span>Merge & Archive</span>
                 </button>
               )}
 
@@ -558,19 +584,38 @@ const ContributionCard: React.FC<{
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                <span>Reject</span>
+                <span>Reject & Archive</span>
               </button>
             </>
           )}
 
-          {(contribution.status === 'verified' || contribution.status === 'rejected') && (
-            <div className="text-sm text-muted-foreground">
-              Reviewed by: {contribution.reviewer_id || 'System'} • {contribution.reviewed_at ? new Date(contribution.reviewed_at).toLocaleString() : 'N/A'}
-              {contribution.review_notes && (
-                <div className="mt-1 text-xs">
-                  Notes: {contribution.review_notes}
-                </div>
-              )}
+          {(contribution.status === 'verified' || contribution.status === 'rejected' || contribution.is_archived) && (
+            <div className="flex items-center space-x-4 w-full">
+              <div className="text-sm text-muted-foreground flex-1">
+                {contribution.is_archived ? (
+                  <div>
+                    <span className="font-medium">Archived</span> • {contribution.archived_at ? new Date(contribution.archived_at).toLocaleString() : 'N/A'}
+                    {contribution.archive_reason && (
+                      <span> • Reason: {contribution.archive_reason}</span>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    Reviewed by: {contribution.reviewer_id || 'System'} • {contribution.reviewed_at ? new Date(contribution.reviewed_at).toLocaleString() : 'N/A'}
+                  </div>
+                )}
+                {contribution.review_notes && (
+                  <div className="mt-1 text-xs">
+                    Notes: {contribution.review_notes}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={onViewArchive}
+                className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded text-xs font-medium transition-colors"
+              >
+                View Archive
+              </button>
             </div>
           )}
         </div>
@@ -579,22 +624,179 @@ const ContributionCard: React.FC<{
   );
 };
 
+const ArchiveView: React.FC<{
+  archives: ArchiveRecord[];
+  onClose: () => void;
+  onRestore: (archive: ArchiveRecord) => void;
+}> = ({ archives, onClose, onRestore }) => {
+  const { theme } = useTheme();
+
+  const getActionColor = (actionType: string) => {
+    switch (actionType) {
+      case 'verified': return 'green';
+      case 'rejected': return 'red';
+      case 'merged': return 'blue';
+      case 'archived': return 'gray';
+      default: return 'gray';
+    }
+  };
+
+  const getActionText = (actionType: string) => {
+    switch (actionType) {
+      case 'verified': return 'Verified';
+      case 'rejected': return 'Rejected';
+      case 'merged': return 'Merged';
+      case 'archived': return 'Archived';
+      default: return actionType;
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[10002]"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Archive History</h2>
+            <p className="text-gray-600 dark:text-gray-400">View archived contributions and their actions</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="space-y-4">
+            {archives.map((archive) => (
+              <div
+                key={archive.archive_id}
+                className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-3">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      theme === 'dark' 
+                        ? `bg-${getActionColor(archive.action_type)}-900 text-${getActionColor(archive.action_type)}-100`
+                        : `bg-${getActionColor(archive.action_type)}-100 text-${getActionColor(archive.action_type)}-800`
+                    }`}>
+                      {getActionText(archive.action_type)}
+                    </span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                      {archive.office_name}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    {new Date(archive.action_timestamp).toLocaleString()}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Location:</span>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {archive.county} • {archive.constituency}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Actor:</span>
+                    <p className="text-gray-600 dark:text-gray-400">{archive.actor}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Office ID:</span>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {archive.original_office_id || 'New Office'}
+                    </p>
+                  </div>
+                </div>
+
+                {archive.review_notes && (
+                  <div className="mt-3">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Review Notes:</span>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{archive.review_notes}</p>
+                  </div>
+                )}
+
+                {archive.archive_reason && (
+                  <div className="mt-2">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Archive Reason:</span>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{archive.archive_reason}</p>
+                  </div>
+                )}
+
+                <div className="mt-4 flex justify-end space-x-2">
+                  <button
+                    onClick={() => onRestore(archive)}
+                    className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-sm font-medium transition-colors"
+                  >
+                    Restore
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(JSON.stringify(archive.archived_data, null, 2));
+                      alert('Archive data copied to clipboard!');
+                    }}
+                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium transition-colors"
+                  >
+                    Copy Data
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {archives.length === 0 && (
+            <div className="text-center py-12">
+              <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Archive Records</h3>
+              <p className="text-gray-500 dark:text-gray-400">No contributions have been archived yet.</p>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogout, counties = [] }) => {
   const [contributions, setContributions] = useState<Contribution[]>([]);
+  const [archives, setArchives] = useState<ArchiveRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showArchive, setShowArchive] = useState(false);
   const [filters, setFilters] = useState({
     status: 'all',
     county: 'all',
     confidence: 'all',
-    hasPhoto: 'all'
+    hasPhoto: 'all',
+    showArchived: false
   });
   const [stats, setStats] = useState({
     pending: 0,
     verified_today: 0,
     rejected: 0,
     total: 0,
-    high_confidence: 0
+    high_confidence: 0,
+    archived: 0
   });
   const { theme } = useTheme();
 
@@ -632,6 +834,9 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
           query = query.lt('confidence_score', 50);
         }
       }
+      if (!filters.showArchived) {
+        query = query.eq('is_archived', false);
+      }
 
       const { data, error } = await query;
 
@@ -650,39 +855,66 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
       const { data: pendingData } = await supabase
         .from('iebc_office_contributions')
         .select('id')
-        .eq('status', 'pending_review');
+        .eq('status', 'pending_review')
+        .eq('is_archived', false);
 
       const today = new Date().toISOString().split('T')[0];
       const { data: todayData } = await supabase
         .from('iebc_office_contributions')
         .select('id')
         .eq('status', 'verified')
-        .gte('reviewed_at', today);
+        .gte('reviewed_at', today)
+        .eq('is_archived', false);
 
       const { data: rejectedData } = await supabase
         .from('iebc_office_contributions')
         .select('id')
-        .eq('status', 'rejected');
+        .eq('status', 'rejected')
+        .eq('is_archived', false);
 
       const { data: totalData } = await supabase
         .from('iebc_office_contributions')
-        .select('id');
+        .select('id')
+        .eq('is_archived', false);
 
       const { data: highConfidenceData } = await supabase
         .from('iebc_office_contributions')
         .select('id')
         .gte('confidence_score', 80)
-        .eq('status', 'pending_review');
+        .eq('status', 'pending_review')
+        .eq('is_archived', false);
+
+      const { data: archivedData } = await supabase
+        .from('iebc_office_contributions')
+        .select('id')
+        .eq('is_archived', true);
 
       setStats({
         pending: pendingData?.length || 0,
         verified_today: todayData?.length || 0,
         rejected: rejectedData?.length || 0,
         total: totalData?.length || 0,
-        high_confidence: highConfidenceData?.length || 0
+        high_confidence: highConfidenceData?.length || 0,
+        archived: archivedData?.length || 0
       });
     } catch (err) {
       console.error('Error fetching stats:', err);
+    }
+  }, []);
+
+  const fetchArchives = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .rpc('get_archived_contributions', {
+          p_limit: 100,
+          p_offset: 0
+        });
+
+      if (error) throw error;
+      setArchives(data || []);
+    } catch (err: any) {
+      console.error('Error fetching archives:', err);
+      setError(err.message);
     }
   }, []);
 
@@ -694,12 +926,35 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
     return () => clearInterval(interval);
   }, [fetchContributions, fetchStats]);
 
-  // NEW: Enhanced verification function with proper promotion to iebc_offices
+  const archiveContribution = async (
+    contributionId: number,
+    actionType: 'verified' | 'rejected' | 'merged',
+    reviewNotes: string,
+    originalOfficeId?: number
+  ) => {
+    try {
+      const { data, error } = await supabase
+        .rpc('archive_contribution', {
+          p_contribution_id: contributionId,
+          p_action_type: actionType,
+          p_actor: 'admin_dashboard',
+          p_review_notes: reviewNotes,
+          p_archive_reason: `Contribution ${actionType} by admin`,
+          p_original_office_id: originalOfficeId || null
+        });
+
+      if (error) throw error;
+      return data;
+    } catch (err: any) {
+      console.error('Error archiving contribution:', err);
+      throw err;
+    }
+  };
+
   const handleVerify = async (contribution: Contribution) => {
     try {
-      console.log('Verifying contribution:', contribution.id);
+      console.log('Verifying and archiving contribution:', contribution.id);
       
-      // First, check if this should be merged with an existing office
       const shouldMerge = contribution.duplicate_candidate_ids && contribution.duplicate_candidate_ids.length > 0;
       
       if (shouldMerge) {
@@ -713,7 +968,6 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
         }
       }
 
-      // Create new office in iebc_offices table
       const { data: newOffice, error: officeError } = await supabase
         .from('iebc_offices')
         .insert({
@@ -740,24 +994,13 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
         throw new Error(`Failed to create office: ${officeError.message}`);
       }
 
-      // Update contribution status
-      const { error: updateError } = await supabase
-        .from('iebc_office_contributions')
-        .update({
-          status: 'verified',
-          reviewer_id: 'admin_dashboard',
-          reviewed_at: new Date().toISOString(),
-          original_office_id: newOffice.id,
-          review_notes: 'Verified and published as new IEBC office'
-        })
-        .eq('id', contribution.id);
+      await archiveContribution(
+        contribution.id,
+        'verified',
+        'Verified and published as new IEBC office',
+        newOffice.id
+      );
 
-      if (updateError) {
-        console.error('Error updating contribution:', updateError);
-        throw new Error(`Failed to update contribution: ${updateError.message}`);
-      }
-
-      // Log the verification
       await supabase.from('verification_log').insert({
         contribution_id: contribution.id,
         office_id: newOffice.id,
@@ -766,14 +1009,15 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
         details: {
           confidence_score: contribution.confidence_score,
           submission_method: contribution.submission_method,
-          has_image: !!contribution.image_public_url
+          has_image: !!contribution.image_public_url,
+          archived: true
         }
       });
 
       await fetchContributions();
       await fetchStats();
       
-      alert(`Contribution verified successfully! New office created with ID: ${newOffice.id}`);
+      alert(`Contribution verified and archived successfully! New office created with ID: ${newOffice.id}`);
     } catch (err: any) {
       console.error('Error verifying contribution:', err);
       alert('Failed to verify contribution: ' + err.message);
@@ -785,17 +1029,11 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
     if (!reason) return;
 
     try {
-      const { error } = await supabase
-        .from('iebc_office_contributions')
-        .update({
-          status: 'rejected',
-          review_notes: reason,
-          reviewer_id: 'admin_dashboard',
-          reviewed_at: new Date().toISOString()
-        })
-        .eq('id', contribution.id);
-
-      if (error) throw error;
+      await archiveContribution(
+        contribution.id,
+        'rejected',
+        reason
+      );
 
       await supabase.from('verification_log').insert({
         contribution_id: contribution.id,
@@ -803,14 +1041,15 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
         actor: 'admin:dashboard',
         details: { 
           reason,
-          confidence_score: contribution.confidence_score
+          confidence_score: contribution.confidence_score,
+          archived: true
         }
       });
 
       await fetchContributions();
       await fetchStats();
       
-      alert('Contribution rejected successfully!');
+      alert('Contribution rejected and archived successfully!');
     } catch (err: any) {
       console.error('Error rejecting contribution:', err);
       alert('Failed to reject contribution: ' + err.message);
@@ -841,10 +1080,8 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
     }
   };
 
-  // NEW: Enhanced merge function
   const handleMerge = async (contribution: Contribution) => {
     try {
-      // Get duplicate candidates with full details
       const { data: duplicates, error: dupError } = await supabase
         .rpc('find_duplicate_offices', {
           p_lat: contribution.submitted_latitude,
@@ -869,21 +1106,13 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
           const selectedOffice = duplicates.find((d: any) => d.id === officeId);
           
           if (selectedOffice) {
-            // Update contribution to mark it as merged
-            const { error: updateError } = await supabase
-              .from('iebc_office_contributions')
-              .update({
-                status: 'verified',
-                reviewer_id: 'admin_dashboard',
-                reviewed_at: new Date().toISOString(),
-                original_office_id: officeId,
-                review_notes: `Merged with existing office: ${selectedOffice.office_name}`
-              })
-              .eq('id', contribution.id);
+            await archiveContribution(
+              contribution.id,
+              'merged',
+              `Merged with existing office: ${selectedOffice.office_name}`,
+              officeId
+            );
 
-            if (updateError) throw updateError;
-
-            // Log the merge action
             await supabase.from('verification_log').insert({
               contribution_id: contribution.id,
               office_id: officeId,
@@ -892,14 +1121,15 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
               details: {
                 existing_office: selectedOffice.office_name,
                 distance: selectedOffice.distance_meters,
-                confidence_score: contribution.confidence_score
+                confidence_score: contribution.confidence_score,
+                archived: true
               }
             });
 
             await fetchContributions();
             await fetchStats();
             
-            alert(`Contribution merged successfully with office: ${selectedOffice.office_name}`);
+            alert(`Contribution merged and archived successfully with office: ${selectedOffice.office_name}`);
           } else {
             alert('Invalid office ID selected.');
           }
@@ -913,10 +1143,41 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
     }
   };
 
+  const handleRestoreArchive = async (archive: ArchiveRecord) => {
+    const confirmRestore = confirm(
+      `Are you sure you want to restore this archived contribution? This will make it available for review again.`
+    );
+
+    if (!confirmRestore) return;
+
+    try {
+      const { error } = await supabase
+        .from('iebc_office_contributions')
+        .update({
+          is_archived: false,
+          archived_at: null,
+          archive_reason: null,
+          status: 'pending_review'
+        })
+        .eq('id', archive.contribution_id);
+
+      if (error) throw error;
+
+      await fetchContributions();
+      await fetchStats();
+      await fetchArchives();
+      
+      alert('Contribution restored successfully!');
+    } catch (err: any) {
+      console.error('Error restoring archive:', err);
+      alert('Failed to restore contribution: ' + err.message);
+    }
+  };
+
   const handleBulkAction = async (action: 'verify' | 'reject', contributionIds: number[]) => {
     const confirmMessage = action === 'verify' 
-      ? `Are you sure you want to verify ${contributionIds.length} contributions?`
-      : `Are you sure you want to reject ${contributionIds.length} contributions?`;
+      ? `Are you sure you want to verify and archive ${contributionIds.length} contributions?`
+      : `Are you sure you want to reject and archive ${contributionIds.length} contributions?`;
 
     if (!confirm(confirmMessage)) return;
 
@@ -944,12 +1205,17 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
       if (errorCount > 0) {
         alert(`Processed ${successCount} contributions successfully. ${errorCount} failed.`);
       } else {
-        alert(`Successfully processed ${successCount} contributions!`);
+        alert(`Successfully processed and archived ${successCount} contributions!`);
       }
     } catch (err: any) {
       console.error('Error in bulk action:', err);
       alert('Failed to process bulk action: ' + err.message);
     }
+  };
+
+  const handleViewArchive = async () => {
+    setShowArchive(true);
+    await fetchArchives();
   };
 
   if (loading && safeContributions.length === 0) {
@@ -985,6 +1251,15 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
                 Last updated: {new Date().toLocaleString()}
               </div>
               <button
+                onClick={handleViewArchive}
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                </svg>
+                <span>View Archive</span>
+              </button>
+              <button
                 onClick={onLogout}
                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
               >
@@ -1003,7 +1278,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-[10001]"
         style={{ zIndex: 10001 }}
       >
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 mb-8">
           {/* Pending Review Stat */}
           <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
             <div className="flex items-center">
@@ -1072,6 +1347,23 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
             </div>
           </div>
 
+          {/* Archived Stat */}
+          <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-gray-100 dark:bg-gray-900 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-muted-foreground">Archived</p>
+                <p className="text-2xl font-semibold text-foreground">{stats.archived}</p>
+              </div>
+            </div>
+          </div>
+
           {/* Total Submissions Stat */}
           <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
             <div className="flex items-center">
@@ -1083,7 +1375,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
                 </div>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">Total Submissions</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Active</p>
                 <p className="text-2xl font-semibold text-foreground">{stats.total}</p>
               </div>
             </div>
@@ -1092,7 +1384,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
 
         {/* Enhanced Filters */}
         <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6 mb-6 relative z-[10001]">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">Status</label>
               <select
@@ -1150,6 +1442,18 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
                 <option value="no">Without Photo</option>
               </select>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Archive</label>
+              <select
+                value={filters.showArchived.toString()}
+                onChange={(e) => setFilters(prev => ({ ...prev, showArchived: e.target.value === 'true' }))}
+                className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-background text-foreground"
+              >
+                <option value="false">Hide Archived</option>
+                <option value="true">Show Archived</option>
+              </select>
+            </div>
           </div>
 
           {/* Enhanced Bulk Actions */}
@@ -1161,16 +1465,17 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
                   onClick={() => handleBulkAction('verify', safeContributions.map(c => c.id))}
                   className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors"
                 >
-                  Verify All
+                  Verify & Archive All
                 </button>
                 <button
                   onClick={() => handleBulkAction('reject', safeContributions.map(c => c.id))}
                   className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors"
                 >
-                  Reject All
+                  Reject & Archive All
                 </button>
                 <span className="text-sm text-muted-foreground">
                   Showing {safeContributions.length} contribution{safeContributions.length === 1 ? '' : 's'}
+                  {filters.showArchived && ' (including archived)'}
                 </span>
               </div>
             </div>
@@ -1199,6 +1504,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
               onReject={handleReject}
               onRequestInfo={handleRequestInfo}
               onMerge={handleMerge}
+              onViewArchive={handleViewArchive}
             />
           ))}
         </div>
@@ -1210,10 +1516,26 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <h3 className="text-lg font-medium text-foreground mb-2">No contributions found</h3>
-            <p className="text-muted-foreground">No submissions match your current filters.</p>
+            <p className="text-muted-foreground">
+              {filters.showArchived 
+                ? 'No submissions match your current filters, including archived contributions.'
+                : 'No active submissions match your current filters.'
+              }
+            </p>
           </div>
         )}
       </div>
+
+      {/* Archive View Modal */}
+      <AnimatePresence>
+        {showArchive && (
+          <ArchiveView
+            archives={archives}
+            onClose={() => setShowArchive(false)}
+            onRestore={handleRestoreArchive}
+          />
+        )}
+      </AnimatePresence>
 
       {/* CSS for Z-Index Isolation */}
       <style>{`
