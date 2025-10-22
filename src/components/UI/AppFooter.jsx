@@ -101,7 +101,7 @@ const AppFooter = () => {
                 : 'text-ios-blue focus:ring-ios-blue-500 focus:ring-offset-white'
             }`}
           >
-            Support/Donations
+            Donate
           </button>
           
           <div className={`w-px h-2 ${
