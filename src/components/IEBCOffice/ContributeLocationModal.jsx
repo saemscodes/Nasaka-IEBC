@@ -10,543 +10,362 @@ import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
 import { supabase } from '@/integrations/supabase/client';
 import L from 'leaflet';
 
-// Complete list of 47 Kenyan counties with constituencies
-const KENYAN_COUNTIES = [
-  "Baringo", "Bomet", "Bungoma", "Busia", "Elgeyo/Marakwet",
-  "Embu", "Garissa", "Homa Bay", "Isiolo", "Kajiado",
-  "Kakamega", "Kericho", "Kiambu", "Kilifi", "Kirinyaga",
-  "Kisii", "Kisumu", "Kitui", "Kwale", "Laikipia",
-  "Lamu", "Machakos", "Makueni", "Mandera", "Marsabit",
-  "Meru", "Migori", "Mombasa", "Murang'a", "Nairobi",
-  "Nakuru", "Nandi", "Narok", "Nyamira", "Nyandarua",
-  "Nyeri", "Samburu", "Siaya", "Taita Taveta", "Tana River",
-  "Tharaka-Nithi", "Trans Nzoia", "Turkana", "Uasin Gishu",
-  "Vihiga", "Wajir", "West Pokot"
-];
-
-// Comprehensive counties data - 47 counties
+// Comprehensive Kenyan counties data from database
 const COUNTIES_DATA = [
-  {id: 1, name: "Baringo", county_code: "030"},
-  {id: 2, name: "Bomet", county_code: "036"},
-  {id: 3, name: "Bungoma", county_code: "039"},
-  {id: 4, name: "Busia", county_code: "040"},
-  {id: 5, name: "Elgeyo/Marakwet", county_code: "028"},
-  {id: 6, name: "Embu", county_code: "014"},
-  {id: 7, name: "Garissa", county_code: "007"},
-  {id: 8, name: "Homa Bay", county_code: "043"},
-  {id: 9, name: "Isiolo", county_code: "011"},
-  {id: 10, name: "Kajiado", county_code: "034"},
-  {id: 11, name: "Kakamega", county_code: "037"},
-  {id: 12, name: "Kericho", county_code: "035"},
-  {id: 13, name: "Kiambu", county_code: "022"},
-  {id: 14, name: "Kilifi", county_code: "003"},
-  {id: 15, name: "Kirinyaga", county_code: "020"},
-  {id: 16, name: "Kisii", county_code: "045"},
-  {id: 17, name: "Kisumu", county_code: "042"},
-  {id: 18, name: "Kitui", county_code: "015"},
-  {id: 19, name: "Kwale", county_code: "002"},
-  {id: 20, name: "Laikipia", county_code: "031"},
-  {id: 21, name: "Lamu", county_code: "005"},
-  {id: 22, name: "Machakos", county_code: "016"},
-  {id: 23, name: "Makueni", county_code: "017"},
-  {id: 24, name: "Mandera", county_code: "009"},
-  {id: 25, name: "Marsabit", county_code: "010"},
-  {id: 26, name: "Meru", county_code: "012"},
-  {id: 27, name: "Migori", county_code: "044"},
-  {id: 28, name: "Mombasa", county_code: "001"},
-  {id: 29, name: "Murang'a", county_code: "021"},
-  {id: 30, name: "Nairobi", county_code: "047"},
-  {id: 31, name: "Nakuru", county_code: "032"},
-  {id: 32, name: "Nandi", county_code: "029"},
-  {id: 33, name: "Narok", county_code: "033"},
-  {id: 34, name: "Nyamira", county_code: "046"},
-  {id: 35, name: "Nyandarua", county_code: "018"},
-  {id: 36, name: "Nyeri", county_code: "019"},
-  {id: 37, name: "Samburu", county_code: "025"},
-  {id: 38, name: "Siaya", county_code: "041"},
-  {id: 39, name: "Taita Taveta", county_code: "006"},
-  {id: 40, name: "Tana River", county_code: "004"},
-  {id: 41, name: "Tharaka-Nithi", county_code: "013"},
-  {id: 42, name: "Trans Nzoia", county_code: "026"},
-  {id: 43, name: "Turkana", county_code: "023"},
-  {id: 44, name: "Uasin Gishu", county_code: "027"},
-  {id: 45, name: "Vihiga", county_code: "038"},
-  {id: 46, name: "Wajir", county_code: "008"},
-  {id: 47, name: "West Pokot", county_code: "024"}
+  { id: 1, name: 'Baringo', county_code: '030' },
+  { id: 2, name: 'Bomet', county_code: '036' },
+  { id: 3, name: 'Bungoma', county_code: '039' },
+  { id: 4, name: 'Busia', county_code: '040' },
+  { id: 5, name: 'Elgeyo/Marakwet', county_code: '028' },
+  { id: 6, name: 'Embu', county_code: '014' },
+  { id: 7, name: 'Garissa', county_code: '007' },
+  { id: 8, name: 'Homa Bay', county_code: '043' },
+  { id: 9, name: 'Isiolo', county_code: '011' },
+  { id: 10, name: 'Kajiado', county_code: '034' },
+  { id: 11, name: 'Kakamega', county_code: '037' },
+  { id: 12, name: 'Kericho', county_code: '035' },
+  { id: 13, name: 'Kiambu', county_code: '022' },
+  { id: 14, name: 'Kilifi', county_code: '003' },
+  { id: 15, name: 'Kirinyaga', county_code: '020' },
+  { id: 16, name: 'Kisii', county_code: '045' },
+  { id: 17, name: 'Kisumu', county_code: '042' },
+  { id: 18, name: 'Kitui', county_code: '015' },
+  { id: 19, name: 'Kwale', county_code: '002' },
+  { id: 20, name: 'Laikipia', county_code: '031' },
+  { id: 21, name: 'Lamu', county_code: '005' },
+  { id: 22, name: 'Machakos', county_code: '016' },
+  { id: 23, name: 'Makueni', county_code: '017' },
+  { id: 24, name: 'Mandera', county_code: '009' },
+  { id: 25, name: 'Marsabit', county_code: '010' },
+  { id: 26, name: 'Meru', county_code: '012' },
+  { id: 27, name: 'Migori', county_code: '044' },
+  { id: 28, name: 'Mombasa', county_code: '001' },
+  { id: 29, name: 'Murang\'a', county_code: '021' },
+  { id: 30, name: 'Nairobi', county_code: '047' },
+  { id: 31, name: 'Nakuru', county_code: '032' },
+  { id: 32, name: 'Nandi', county_code: '029' },
+  { id: 33, name: 'Narok', county_code: '033' },
+  { id: 34, name: 'Nyamira', county_code: '046' },
+  { id: 35, name: 'Nyandarua', county_code: '018' },
+  { id: 36, name: 'Nyeri', county_code: '019' },
+  { id: 37, name: 'Samburu', county_code: '025' },
+  { id: 38, name: 'Siaya', county_code: '041' },
+  { id: 39, name: 'Taita Taveta', county_code: '006' },
+  { id: 40, name: 'Tana River', county_code: '004' },
+  { id: 41, name: 'Tharaka-Nithi', county_code: '013' },
+  { id: 42, name: 'Trans Nzoia', county_code: '026' },
+  { id: 43, name: 'Turkana', county_code: '023' },
+  { id: 44, name: 'Uasin Gishu', county_code: '027' },
+  { id: 45, name: 'Vihiga', county_code: '038' },
+  { id: 46, name: 'Wajir', county_code: '008' },
+  { id: 47, name: 'West Pokot', county_code: '024' }
 ];
 
-// Comprehensive constituencies data - all 290 constituencies with correct county_id mappings
+// Comprehensive constituencies data from database
 const CONSTITUENCIES_DATA = [
-  // MOMBASA (County ID: 28) - 6 constituencies
-  {id: 1, name: "CHANGAMWE", county_id: 28},
-  {id: 2, name: "JOMVU", county_id: 28},
-  {id: 3, name: "KISAUNI", county_id: 28},
-  {id: 4, name: "NYALI", county_id: 28},
-  {id: 5, name: "LIKONI", county_id: 28},
-  {id: 6, name: "MVITA", county_id: 28},
-  
-  // KWALE (County ID: 19) - 4 constituencies
-  {id: 7, name: "MSAMBWENI", county_id: 19},
-  {id: 8, name: "LUNGALUNGA", county_id: 19},
-  {id: 9, name: "MATUGA", county_id: 19},
-  {id: 10, name: "KINANGO", county_id: 19},
-  
-  // KILIFI (County ID: 14) - 7 constituencies
-  {id: 11, name: "KILIFI NORTH", county_id: 14},
-  {id: 12, name: "KILIFI SOUTH", county_id: 14},
-  {id: 13, name: "KALOLENI", county_id: 14},
-  {id: 14, name: "RABAI", county_id: 14},
-  {id: 15, name: "GANZE", county_id: 14},
-  {id: 16, name: "MALINDI", county_id: 14},
-  {id: 17, name: "MAGARINI", county_id: 14},
-  
-  // TANA RIVER (County ID: 40) - 3 constituencies
-  {id: 18, name: "GARSEN", county_id: 40},
-  {id: 19, name: "GALOLE", county_id: 40},
-  {id: 20, name: "BURA", county_id: 40},
-  
-  // LAMU (County ID: 21) - 2 constituencies
-  {id: 21, name: "LAMU EAST", county_id: 21},
-  {id: 22, name: "LAMU WEST", county_id: 21},
-  
-  // TAITA TAVETA (County ID: 39) - 4 constituencies
-  {id: 23, name: "TAVETA", county_id: 39},
-  {id: 24, name: "WUNDANYI", county_id: 39},
-  {id: 25, name: "MWATATE", county_id: 39},
-  {id: 26, name: "VOI", county_id: 39},
-  
-  // GARISSA (County ID: 7) - 6 constituencies
-  {id: 27, name: "GARISSA TOWNSHIP", county_id: 7},
-  {id: 28, name: "BALAMBALA", county_id: 7},
-  {id: 29, name: "LAGDERA", county_id: 7},
-  {id: 30, name: "DADAAB", county_id: 7},
-  {id: 31, name: "FAFI", county_id: 7},
-  {id: 32, name: "IJARA", county_id: 7},
-  
-  // WAJIR (County ID: 46) - 6 constituencies
-  {id: 33, name: "WAJIR NORTH", county_id: 46},
-  {id: 34, name: "WAJIR EAST", county_id: 46},
-  {id: 35, name: "TARBAJ", county_id: 46},
-  {id: 36, name: "WAJIR WEST", county_id: 46},
-  {id: 37, name: "ELDAS", county_id: 46},
-  {id: 38, name: "WAJIR SOUTH", county_id: 46},
-  
-  // MANDERA (County ID: 24) - 6 constituencies
-  {id: 39, name: "MANDERA WEST", county_id: 24},
-  {id: 40, name: "BANISSA", county_id: 24},
-  {id: 41, name: "MANDERA NORTH", county_id: 24},
-  {id: 42, name: "MANDERA SOUTH", county_id: 24},
-  {id: 43, name: "MANDERA EAST", county_id: 24},
-  {id: 44, name: "LAFEY", county_id: 24},
-  
-  // MARSABIT (County ID: 25) - 4 constituencies
-  {id: 45, name: "MOYALE", county_id: 25},
-  {id: 46, name: "NORTH HORR", county_id: 25},
-  {id: 47, name: "SAKU", county_id: 25},
-  {id: 48, name: "LAISAMIS", county_id: 25},
-  
-  // ISIOLO (County ID: 9) - 2 constituencies
-  {id: 49, name: "ISIOLO NORTH", county_id: 9},
-  {id: 50, name: "ISIOLO SOUTH", county_id: 9},
-  
-  // MERU (County ID: 26) - 9 constituencies
-  {id: 51, name: "IGEMBE SOUTH", county_id: 26},
-  {id: 52, name: "IGEMBE CENTRAL", county_id: 26},
-  {id: 53, name: "IGEMBE NORTH", county_id: 26},
-  {id: 54, name: "TIGANIA WEST", county_id: 26},
-  {id: 55, name: "TIGANIA EAST", county_id: 26},
-  {id: 56, name: "NORTH IMENTI", county_id: 26},
-  {id: 57, name: "BUURI", county_id: 26},
-  {id: 58, name: "CENTRAL IMENTI", county_id: 26},
-  {id: 59, name: "SOUTH IMENTI", county_id: 26},
-  
-  // THARAKA-NITHI (County ID: 41) - 3 constituencies
-  {id: 60, name: "MAARA", county_id: 41},
-  {id: 61, name: "CHUKA/IGAMBANG'OMBE", county_id: 41},
-  {id: 62, name: "THARAKA", county_id: 41},
-  
-  // EMBU (County ID: 6) - 4 constituencies
-  {id: 63, name: "MANYATTA", county_id: 6},
-  {id: 64, name: "RUNYENJES", county_id: 6},
-  {id: 65, name: "MBEERE SOUTH", county_id: 6},
-  {id: 66, name: "MBEERE NORTH", county_id: 6},
-  
-  // KITUI (County ID: 18) - 8 constituencies
-  {id: 67, name: "MWINGI NORTH", county_id: 18},
-  {id: 68, name: "MWINGI WEST", county_id: 18},
-  {id: 69, name: "MWINGI CENTRAL", county_id: 18},
-  {id: 70, name: "KITUI WEST", county_id: 18},
-  {id: 71, name: "KITUI RURAL", county_id: 18},
-  {id: 72, name: "KITUI CENTRAL", county_id: 18},
-  {id: 73, name: "KITUI EAST", county_id: 18},
-  {id: 74, name: "KITUI SOUTH", county_id: 18},
-  
-  // MACHAKOS (County ID: 22) - 8 constituencies
-  {id: 75, name: "MASINGA", county_id: 22},
-  {id: 76, name: "YATTA", county_id: 22},
-  {id: 77, name: "KANGUNDO", county_id: 22},
-  {id: 78, name: "MATUNGULU", county_id: 22},
-  {id: 79, name: "KATHIANI", county_id: 22},
-  {id: 80, name: "MAVOKO", county_id: 22},
-  {id: 81, name: "MACHAKOS TOWN", county_id: 22},
-  {id: 82, name: "MWALA", county_id: 22},
-  
-  // MAKUENI (County ID: 23) - 6 constituencies
-  {id: 83, name: "MBOONI", county_id: 23},
-  {id: 84, name: "KILOME", county_id: 23},
-  {id: 85, name: "KAITI", county_id: 23},
-  {id: 86, name: "MAKUENI", county_id: 23},
-  {id: 87, name: "KIBWEZI WEST", county_id: 23},
-  {id: 88, name: "KIBWEZI EAST", county_id: 23},
-  
-  // NYANDARUA (County ID: 35) - 5 constituencies
-  {id: 89, name: "KINANGOP", county_id: 35},
-  {id: 90, name: "KIPIPIRI", county_id: 35},
-  {id: 91, name: "OL KALOU", county_id: 35},
-  {id: 92, name: "OL JOROK", county_id: 35},
-  {id: 93, name: "NDARAGWA", county_id: 35},
-  
-  // NYERI (County ID: 36) - 6 constituencies
-  {id: 94, name: "TETU", county_id: 36},
-  {id: 95, name: "KIENI", county_id: 36},
-  {id: 96, name: "MATHIRA", county_id: 36},
-  {id: 97, name: "OTHAYA", county_id: 36},
-  {id: 98, name: "MUKURWEINI", county_id: 36},
-  {id: 99, name: "NYERI TOWN", county_id: 36},
-  
-  // KIRINYAGA (County ID: 15) - 4 constituencies
-  {id: 100, name: "MWEA", county_id: 15},
-  {id: 101, name: "GICHUGU", county_id: 15},
-  {id: 102, name: "NDIA", county_id: 15},
-  {id: 103, name: "KIRINYAGA CENTRAL", county_id: 15},
-  
-  // MURANG'A (County ID: 29) - 7 constituencies
-  {id: 104, name: "KANGEMA", county_id: 29},
-  {id: 105, name: "MATHIOYA", county_id: 29},
-  {id: 106, name: "KIHARU", county_id: 29},
-  {id: 107, name: "KIGUMO", county_id: 29},
-  {id: 108, name: "MARAGWA", county_id: 29},
-  {id: 109, name: "KANDARA", county_id: 29},
-  {id: 110, name: "GATANGA", county_id: 29},
-  
-  // KIAMBU (County ID: 13) - 12 constituencies
-  {id: 111, name: "GATUNDU SOUTH", county_id: 13},
-  {id: 112, name: "GATUNDU NORTH", county_id: 13},
-  {id: 113, name: "JUJA", county_id: 13},
-  {id: 114, name: "THIKA TOWN", county_id: 13},
-  {id: 115, name: "RUIRU", county_id: 13},
-  {id: 116, name: "GITHUNGURI", county_id: 13},
-  {id: 117, name: "KIAMBU", county_id: 13},
-  {id: 118, name: "KIAMBAA", county_id: 13},
-  {id: 119, name: "KABETE", county_id: 13},
-  {id: 120, name: "KIKUYU", county_id: 13},
-  {id: 121, name: "LIMURU", county_id: 13},
-  {id: 122, name: "LARI", county_id: 13},
-  
-  // TURKANA (County ID: 43) - 6 constituencies
-  {id: 123, name: "TURKANA NORTH", county_id: 43},
-  {id: 124, name: "TURKANA WEST", county_id: 43},
-  {id: 125, name: "TURKANA CENTRAL", county_id: 43},
-  {id: 126, name: "LOIMA", county_id: 43},
-  {id: 127, name: "TURKANA SOUTH", county_id: 43},
-  {id: 128, name: "TURKANA EAST", county_id: 43},
-  
-  // WEST POKOT (County ID: 47) - 4 constituencies
-  {id: 129, name: "KAPENGURIA", county_id: 47},
-  {id: 130, name: "SIGOR", county_id: 47},
-  {id: 131, name: "KACHELIBA", county_id: 47},
-  {id: 132, name: "POKOT SOUTH", county_id: 47},
-  
-  // SAMBURU (County ID: 37) - 3 constituencies
-  {id: 133, name: "SAMBURU WEST", county_id: 37},
-  {id: 134, name: "SAMBURU NORTH", county_id: 37},
-  {id: 135, name: "SAMBURU EAST", county_id: 37},
-  
-  // TRANS NZOIA (County ID: 42) - 5 constituencies
-  {id: 136, name: "KWANZA", county_id: 42},
-  {id: 137, name: "ENDEBESS", county_id: 42},
-  {id: 138, name: "SABOTI", county_id: 42},
-  {id: 139, name: "KIMININI", county_id: 42},
-  {id: 140, name: "CHERANGANY", county_id: 42},
-  
-  // UASIN GISHU (County ID: 44) - 6 constituencies
-  {id: 141, name: "SOY", county_id: 44},
-  {id: 142, name: "TURBO", county_id: 44},
-  {id: 143, name: "MOIBEN", county_id: 44},
-  {id: 144, name: "AINABKOI", county_id: 44},
-  {id: 145, name: "KAPSERET", county_id: 44},
-  {id: 146, name: "KESSES", county_id: 44},
-  
-  // ELGEYO/MARAKWET (County ID: 5) - 4 constituencies
-  {id: 147, name: "MARAKWET EAST", county_id: 5},
-  {id: 148, name: "MARAKWET WEST", county_id: 5},
-  {id: 149, name: "KEIYO NORTH", county_id: 5},
-  {id: 150, name: "KEIYO SOUTH", county_id: 5},
-  
-  // NANDI (County ID: 32) - 6 constituencies
-  {id: 151, name: "TINDERET", county_id: 32},
-  {id: 152, name: "ALDAI", county_id: 32},
-  {id: 153, name: "NANDI HILLS", county_id: 32},
-  {id: 154, name: "CHESUMEI", county_id: 32},
-  {id: 155, name: "EMGWEN", county_id: 32},
-  {id: 156, name: "MOSOP", county_id: 32},
-  
-  // BARINGO (County ID: 1) - 6 constituencies
-  {id: 157, name: "TIATY", county_id: 1},
-  {id: 158, name: "BARINGO NORTH", county_id: 1},
-  {id: 159, name: "BARINGO CENTRAL", county_id: 1},
-  {id: 160, name: "BARINGO SOUTH", county_id: 1},
-  {id: 161, name: "MOGOTIO", county_id: 1},
-  {id: 162, name: "ELDAMA RAVINE", county_id: 1},
-  
-  // LAIKIPIA (County ID: 20) - 3 constituencies
-  {id: 163, name: "LAIKIPIA WEST", county_id: 20},
-  {id: 164, name: "LAIKIPIA EAST", county_id: 20},
-  {id: 165, name: "LAIKIPIA NORTH", county_id: 20},
-  
-  // NAKURU (County ID: 31) - 11 constituencies
-  {id: 166, name: "MOLO", county_id: 31},
-  {id: 167, name: "NJORO", county_id: 31},
-  {id: 168, name: "NAIVASHA", county_id: 31},
-  {id: 169, name: "GILGIL", county_id: 31},
-  {id: 170, name: "KURESOI SOUTH", county_id: 31},
-  {id: 171, name: "KURESOI NORTH", county_id: 31},
-  {id: 172, name: "SUBUKIA", county_id: 31},
-  {id: 173, name: "RONGAI", county_id: 31},
-  {id: 174, name: "BAHATI", county_id: 31},
-  {id: 175, name: "NAKURU TOWN WEST", county_id: 31},
-  {id: 176, name: "NAKURU TOWN EAST", county_id: 31},
-  
-  // NAROK (County ID: 33) - 6 constituencies
-  {id: 177, name: "KILGORIS", county_id: 33},
-  {id: 178, name: "EMURUA DIKIRR", county_id: 33},
-  {id: 179, name: "NAROK NORTH", county_id: 33},
-  {id: 180, name: "NAROK EAST", county_id: 33},
-  {id: 181, name: "NAROK SOUTH", county_id: 33},
-  {id: 182, name: "NAROK WEST", county_id: 33},
-  
-  // KAJIADO (County ID: 10) - 5 constituencies
-  {id: 183, name: "KAJIADO NORTH", county_id: 10},
-  {id: 184, name: "KAJIADO CENTRAL", county_id: 10},
-  {id: 185, name: "KAJIADO EAST", county_id: 10},
-  {id: 186, name: "KAJIADO WEST", county_id: 10},
-  {id: 187, name: "KAJIADO SOUTH", county_id: 10},
-  
-  // KERICHO (County ID: 12) - 6 constituencies
-  {id: 188, name: "KIPKELION EAST", county_id: 12},
-  {id: 189, name: "KIPKELION WEST", county_id: 12},
-  {id: 190, name: "AINAMOI", county_id: 12},
-  {id: 191, name: "BURETI", county_id: 12},
-  {id: 192, name: "BELGUT", county_id: 12},
-  {id: 193, name: "SIGOWET/SOIN", county_id: 12},
-  
-  // BOMET (County ID: 2) - 5 constituencies
-  {id: 194, name: "SOTIK", county_id: 2},
-  {id: 195, name: "CHEPALUNGU", county_id: 2},
-  {id: 196, name: "BOMET EAST", county_id: 2},
-  {id: 197, name: "BOMET CENTRAL", county_id: 2},
-  {id: 198, name: "KONOIN", county_id: 2},
-  
-  // KAKAMEGA (County ID: 11) - 12 constituencies
-  {id: 199, name: "LUGARI", county_id: 11},
-  {id: 200, name: "LIKUYANI", county_id: 11},
-  {id: 201, name: "MALAVA", county_id: 11},
-  {id: 202, name: "LURAMBI", county_id: 11},
-  {id: 203, name: "NAVAKHOLO", county_id: 11},
-  {id: 204, name: "MUMIAS WEST", county_id: 11},
-  {id: 205, name: "MUMIAS EAST", county_id: 11},
-  {id: 206, name: "MATUNGU", county_id: 11},
-  {id: 207, name: "BUTERE", county_id: 11},
-  {id: 208, name: "KHWISERO", county_id: 11},
-  {id: 209, name: "SHINYALU", county_id: 11},
-  {id: 210, name: "IKOLOMANI", county_id: 11},
-  
-  // VIHIGA (County ID: 45) - 5 constituencies
-  {id: 211, name: "VIHIGA", county_id: 45},
-  {id: 212, name: "SABATIA", county_id: 45},
-  {id: 213, name: "HAMISI", county_id: 45},
-  {id: 214, name: "LUANDA", county_id: 45},
-  {id: 215, name: "EMUHAYA", county_id: 45},
-  
-  // BUNGOMA (County ID: 3) - 9 constituencies
-  {id: 216, name: "MT. ELGON", county_id: 3},
-  {id: 217, name: "SIRISIA", county_id: 3},
-  {id: 218, name: "KABUCHAI", county_id: 3},
-  {id: 219, name: "BUMULA", county_id: 3},
-  {id: 220, name: "KANDUYI", county_id: 3},
-  {id: 221, name: "WEBUYE EAST", county_id: 3},
-  {id: 222, name: "WEBUYE WEST", county_id: 3},
-  {id: 223, name: "KIMILILI", county_id: 3},
-  {id: 224, name: "TONGAREN", county_id: 3},
-  
-  // BUSIA (County ID: 4) - 7 constituencies
-  {id: 225, name: "TESO NORTH", county_id: 4},
-  {id: 226, name: "TESO SOUTH", county_id: 4},
-  {id: 227, name: "NAMBALE", county_id: 4},
-  {id: 228, name: "MATAYOS", county_id: 4},
-  {id: 229, name: "BUTULA", county_id: 4},
-  {id: 230, name: "FUNYULA", county_id: 4},
-  {id: 231, name: "BUDALANGI", county_id: 4},
-  
-  // SIAYA (County ID: 38) - 6 constituencies
-  {id: 232, name: "UGENYA", county_id: 38},
-  {id: 233, name: "UGUNJA", county_id: 38},
-  {id: 234, name: "ALEGO USONGA", county_id: 38},
-  {id: 235, name: "GEM", county_id: 38},
-  {id: 236, name: "BONDO", county_id: 38},
-  {id: 237, name: "RARIEDA", county_id: 38},
-  
-  // KISUMU (County ID: 17) - 7 constituencies
-  {id: 238, name: "KISUMU EAST", county_id: 17},
-  {id: 239, name: "KISUMU WEST", county_id: 17},
-  {id: 240, name: "KISUMU CENTRAL", county_id: 17},
-  {id: 241, name: "SEME", county_id: 17},
-  {id: 242, name: "NYANDO", county_id: 17},
-  {id: 243, name: "MUHORONI", county_id: 17},
-  {id: 244, name: "NYAKACH", county_id: 17},
-  
-  // HOMA BAY (County ID: 8) - 8 constituencies
-  {id: 245, name: "KASIPUL", county_id: 8},
-  {id: 246, name: "KABONDO KASIPUL", county_id: 8},
-  {id: 247, name: "KARACHUONYO", county_id: 8},
-  {id: 248, name: "RANGWE", county_id: 8},
-  {id: 249, name: "HOMA BAY TOWN", county_id: 8},
-  {id: 250, name: "NDHIWA", county_id: 8},
-  {id: 251, name: "SUBA NORTH", county_id: 8},
-  {id: 252, name: "SUBA SOUTH", county_id: 8},
-  
-  // MIGORI (County ID: 27) - 8 constituencies
-  {id: 253, name: "RONGO", county_id: 27},
-  {id: 254, name: "AWENDO", county_id: 27},
-  {id: 255, name: "SUNA EAST", county_id: 27},
-  {id: 256, name: "SUNA WEST", county_id: 27},
-  {id: 257, name: "URIRI", county_id: 27},
-  {id: 258, name: "NYATIKE", county_id: 27},
-  {id: 259, name: "KURIA WEST", county_id: 27},
-  {id: 260, name: "KURIA EAST", county_id: 27},
-  
-  // KISII (County ID: 16) - 9 constituencies
-  {id: 261, name: "BONCHARI", county_id: 16},
-  {id: 262, name: "SOUTH MUGIRANGO", county_id: 16},
-  {id: 263, name: "BOMACHOGE BORABU", county_id: 16},
-  {id: 264, name: "BOBASI", county_id: 16},
-  {id: 265, name: "BOMACHOGE CHACHE", county_id: 16},
-  {id: 266, name: "NYARIBARI MASABA", county_id: 16},
-  {id: 267, name: "NYARIBARI CHACHE", county_id: 16},
-  {id: 268, name: "KITUTU CHACHE NORTH", county_id: 16},
-  {id: 269, name: "KITUTU CHACHE SOUTH", county_id: 16},
-  
-  // NYAMIRA (County ID: 34) - 4 constituencies
-  {id: 270, name: "KITUTU MASABA", county_id: 34},
-  {id: 271, name: "WEST MUGIRANGO", county_id: 34},
-  {id: 272, name: "NORTH MUGIRANGO", county_id: 34},
-  {id: 273, name: "BORABU", county_id: 34},
-  
-  // NAIROBI (County ID: 30) - 17 constituencies
-  {id: 274, name: "WESTLANDS", county_id: 30},
-  {id: 275, name: "DAGORETTI NORTH", county_id: 30},
-  {id: 276, name: "DAGORETTI SOUTH", county_id: 30},
-  {id: 277, name: "LANGATA", county_id: 30},
-  {id: 278, name: "KIBRA", county_id: 30},
-  {id: 279, name: "ROYSAMBU", county_id: 30},
-  {id: 280, name: "KASARANI", county_id: 30},
-  {id: 281, name: "RUARAKA", county_id: 30},
-  {id: 282, name: "EMBAKASI SOUTH", county_id: 30},
-  {id: 283, name: "EMBAKASI NORTH", county_id: 30},
-  {id: 284, name: "EMBAKASI CENTRAL", county_id: 30},
-  {id: 285, name: "EMBAKASI EAST", county_id: 30},
-  {id: 286, name: "EMBAKASI WEST", county_id: 30},
-  {id: 287, name: "MAKADARA", county_id: 30},
-  {id: 288, name: "KAMUKUNJI", county_id: 30},
-  {id: 289, name: "STAREHE", county_id: 30},
-  {id: 290, name: "MATHARE", county_id: 30}
+  { id: 1, name: 'CHANGAMWE', county_id: 28 },
+  { id: 2, name: 'JOMVU', county_id: 28 },
+  { id: 3, name: 'KISAUNI', county_id: 28 },
+  { id: 4, name: 'NYALI', county_id: 28 },
+  { id: 5, name: 'LIKONI', county_id: 28 },
+  { id: 6, name: 'MVITA', county_id: 28 },
+  { id: 7, name: 'MSAMBWENI', county_id: 19 },
+  { id: 8, name: 'LUNGALUNGA', county_id: 19 },
+  { id: 9, name: 'MATUGA', county_id: 19 },
+  { id: 10, name: 'KINANGO', county_id: 19 },
+  { id: 11, name: 'KILIFI NORTH', county_id: 14 },
+  { id: 12, name: 'KILIFI SOUTH', county_id: 14 },
+  { id: 13, name: 'KALOLENI', county_id: 14 },
+  { id: 14, name: 'RABAI', county_id: 14 },
+  { id: 15, name: 'GANZE', county_id: 14 },
+  { id: 16, name: 'MALINDI', county_id: 14 },
+  { id: 17, name: 'MAGARINI', county_id: 14 },
+  { id: 18, name: 'GARSEN', county_id: 40 },
+  { id: 19, name: 'GALOLE', county_id: 40 },
+  { id: 20, name: 'BURA', county_id: 40 },
+  { id: 21, name: 'LAMU EAST', county_id: 21 },
+  { id: 22, name: 'LAMU WEST', county_id: 21 },
+  { id: 23, name: 'TAVETA', county_id: 39 },
+  { id: 24, name: 'WUNDANYI', county_id: 39 },
+  { id: 25, name: 'MWATATE', county_id: 39 },
+  { id: 26, name: 'VOI', county_id: 39 },
+  { id: 27, name: 'GARISSA TOWNSHIP', county_id: 7 },
+  { id: 28, name: 'BALAMBALA', county_id: 7 },
+  { id: 29, name: 'LAGDERA', county_id: 7 },
+  { id: 30, name: 'DADAAB', county_id: 7 },
+  { id: 31, name: 'FAFI', county_id: 7 },
+  { id: 32, name: 'IJARA', county_id: 7 },
+  { id: 33, name: 'WAJIR NORTH', county_id: 46 },
+  { id: 34, name: 'WAJIR EAST', county_id: 46 },
+  { id: 35, name: 'TARBAJ', county_id: 46 },
+  { id: 36, name: 'WAJIR WEST', county_id: 46 },
+  { id: 37, name: 'ELDAS', county_id: 46 },
+  { id: 38, name: 'WAJIR SOUTH', county_id: 46 },
+  { id: 39, name: 'MANDERA WEST', county_id: 24 },
+  { id: 40, name: 'BANISSA', county_id: 24 },
+  { id: 41, name: 'MANDERA NORTH', county_id: 24 },
+  { id: 42, name: 'MANDERA SOUTH', county_id: 24 },
+  { id: 43, name: 'MANDERA EAST', county_id: 24 },
+  { id: 44, name: 'LAFEY', county_id: 24 },
+  { id: 45, name: 'MOYALE', county_id: 25 },
+  { id: 46, name: 'NORTH HORR', county_id: 25 },
+  { id: 47, name: 'SAKU', county_id: 25 },
+  { id: 48, name: 'LAISAMIS', county_id: 25 },
+  { id: 49, name: 'ISIOLO NORTH', county_id: 9 },
+  { id: 50, name: 'ISIOLO SOUTH', county_id: 9 },
+  { id: 51, name: 'IGEMBE SOUTH', county_id: 26 },
+  { id: 52, name: 'IGEMBE CENTRAL', county_id: 26 },
+  { id: 53, name: 'IGEMBE NORTH', county_id: 26 },
+  { id: 54, name: 'TIGANIA WEST', county_id: 26 },
+  { id: 55, name: 'TIGANIA EAST', county_id: 26 },
+  { id: 56, name: 'NORTH IMENTI', county_id: 26 },
+  { id: 57, name: 'BUURI', county_id: 26 },
+  { id: 58, name: 'CENTRAL IMENTI', county_id: 26 },
+  { id: 59, name: 'SOUTH IMENTI', county_id: 26 },
+  { id: 60, name: 'MAARA', county_id: 41 },
+  { id: 61, name: 'CHUKA/IGAMBANG\'OMBE', county_id: 41 },
+  { id: 62, name: 'THARAKA', county_id: 41 },
+  { id: 63, name: 'MANYATTA', county_id: 6 },
+  { id: 64, name: 'RUNYENJES', county_id: 6 },
+  { id: 65, name: 'MBEERE SOUTH', county_id: 6 },
+  { id: 66, name: 'MBEERE NORTH', county_id: 6 },
+  { id: 67, name: 'MWINGI NORTH', county_id: 18 },
+  { id: 68, name: 'MWINGI WEST', county_id: 18 },
+  { id: 69, name: 'MWINGI CENTRAL', county_id: 18 },
+  { id: 70, name: 'KITUI WEST', county_id: 18 },
+  { id: 71, name: 'KITUI RURAL', county_id: 18 },
+  { id: 72, name: 'KITUI CENTRAL', county_id: 18 },
+  { id: 73, name: 'KITUI EAST', county_id: 18 },
+  { id: 74, name: 'KITUI SOUTH', county_id: 18 },
+  { id: 75, name: 'MASINGA', county_id: 22 },
+  { id: 76, name: 'YATTA', county_id: 22 },
+  { id: 77, name: 'KANGUNDO', county_id: 22 },
+  { id: 78, name: 'MATUNGULU', county_id: 22 },
+  { id: 79, name: 'KATHIANI', county_id: 22 },
+  { id: 80, name: 'MAVOKO', county_id: 22 },
+  { id: 81, name: 'MACHAKOS TOWN', county_id: 22 },
+  { id: 82, name: 'MWALA', county_id: 22 },
+  { id: 83, name: 'MBOONI', county_id: 23 },
+  { id: 84, name: 'KILOME', county_id: 23 },
+  { id: 85, name: 'KAITI', county_id: 23 },
+  { id: 86, name: 'MAKUENI', county_id: 23 },
+  { id: 87, name: 'KIBWEZI WEST', county_id: 23 },
+  { id: 88, name: 'KIBWEZI EAST', county_id: 23 },
+  { id: 89, name: 'KINANGOP', county_id: 35 },
+  { id: 90, name: 'KIPIPIRI', county_id: 35 },
+  { id: 91, name: 'OL KALOU', county_id: 35 },
+  { id: 92, name: 'OL JOROK', county_id: 35 },
+  { id: 93, name: 'NDARAGWA', county_id: 35 },
+  { id: 94, name: 'TETU', county_id: 36 },
+  { id: 95, name: 'KIENI', county_id: 36 },
+  { id: 96, name: 'MATHIRA', county_id: 36 },
+  { id: 97, name: 'OTHAYA', county_id: 36 },
+  { id: 98, name: 'MUKURWEINI', county_id: 36 },
+  { id: 99, name: 'NYERI TOWN', county_id: 36 },
+  { id: 100, name: 'MWEA', county_id: 15 },
+  { id: 101, name: 'GICHUGU', county_id: 15 },
+  { id: 102, name: 'NDIA', county_id: 15 },
+  { id: 103, name: 'KIRINYAGA CENTRAL', county_id: 15 },
+  { id: 104, name: 'KANGEMA', county_id: 29 },
+  { id: 105, name: 'MATHIOYA', county_id: 29 },
+  { id: 106, name: 'KIHARU', county_id: 29 },
+  { id: 107, name: 'KIGUMO', county_id: 29 },
+  { id: 108, name: 'MARAGWA', county_id: 29 },
+  { id: 109, name: 'KANDARA', county_id: 29 },
+  { id: 110, name: 'GATANGA', county_id: 29 },
+  { id: 111, name: 'GATUNDU SOUTH', county_id: 13 },
+  { id: 112, name: 'GATUNDU NORTH', county_id: 13 },
+  { id: 113, name: 'JUJA', county_id: 13 },
+  { id: 114, name: 'THIKA TOWN', county_id: 13 },
+  { id: 115, name: 'RUIRU', county_id: 13 },
+  { id: 116, name: 'GITHUNGURI', county_id: 13 },
+  { id: 117, name: 'KIAMBU', county_id: 13 },
+  { id: 118, name: 'KIAMBAA', county_id: 13 },
+  { id: 119, name: 'KABETE', county_id: 13 },
+  { id: 120, name: 'KIKUYU', county_id: 13 },
+  { id: 121, name: 'LIMURU', county_id: 13 },
+  { id: 122, name: 'LARI', county_id: 13 },
+  { id: 123, name: 'TURKANA NORTH', county_id: 43 },
+  { id: 124, name: 'TURKANA WEST', county_id: 43 },
+  { id: 125, name: 'TURKANA CENTRAL', county_id: 43 },
+  { id: 126, name: 'LOIMA', county_id: 43 },
+  { id: 127, name: 'TURKANA SOUTH', county_id: 43 },
+  { id: 128, name: 'TURKANA EAST', county_id: 43 },
+  { id: 129, name: 'KAPENGURIA', county_id: 47 },
+  { id: 130, name: 'SIGOR', county_id: 47 },
+  { id: 131, name: 'KACHELIBA', county_id: 47 },
+  { id: 132, name: 'POKOT SOUTH', county_id: 47 },
+  { id: 133, name: 'SAMBURU WEST', county_id: 37 },
+  { id: 134, name: 'SAMBURU NORTH', county_id: 37 },
+  { id: 135, name: 'SAMBURU EAST', county_id: 37 },
+  { id: 136, name: 'KWANZA', county_id: 42 },
+  { id: 137, name: 'ENDEBESS', county_id: 42 },
+  { id: 138, name: 'SABOTI', county_id: 42 },
+  { id: 139, name: 'KIMININI', county_id: 42 },
+  { id: 140, name: 'CHERANGANY', county_id: 42 },
+  { id: 141, name: 'SOY', county_id: 44 },
+  { id: 142, name: 'TURBO', county_id: 44 },
+  { id: 143, name: 'MOIBEN', county_id: 44 },
+  { id: 144, name: 'AINABKOI', county_id: 44 },
+  { id: 145, name: 'KAPSERET', county_id: 44 },
+  { id: 146, name: 'KESSES', county_id: 44 },
+  { id: 147, name: 'MARAKWET EAST', county_id: 5 },
+  { id: 148, name: 'MARAKWET WEST', county_id: 5 },
+  { id: 149, name: 'KEIYO NORTH', county_id: 5 },
+  { id: 150, name: 'KEIYO SOUTH', county_id: 5 },
+  { id: 151, name: 'TINDERET', county_id: 32 },
+  { id: 152, name: 'ALDAI', county_id: 32 },
+  { id: 153, name: 'NANDI HILLS', county_id: 32 },
+  { id: 154, name: 'CHESUMEI', county_id: 32 },
+  { id: 155, name: 'EMGWEN', county_id: 32 },
+  { id: 156, name: 'MOSOP', county_id: 32 },
+  { id: 157, name: 'TIATY', county_id: 1 },
+  { id: 158, name: 'BARINGO NORTH', county_id: 1 },
+  { id: 159, name: 'BARINGO CENTRAL', county_id: 1 },
+  { id: 160, name: 'BARINGO SOUTH', county_id: 1 },
+  { id: 161, name: 'MOGOTIO', county_id: 1 },
+  { id: 162, name: 'ELDAMA RAVINE', county_id: 1 },
+  { id: 163, name: 'LAIKIPIA WEST', county_id: 20 },
+  { id: 164, name: 'LAIKIPIA EAST', county_id: 20 },
+  { id: 165, name: 'LAIKIPIA NORTH', county_id: 20 },
+  { id: 166, name: 'MOLO', county_id: 31 },
+  { id: 167, name: 'NJORO', county_id: 31 },
+  { id: 168, name: 'NAIVASHA', county_id: 31 },
+  { id: 169, name: 'GILGIL', county_id: 31 },
+  { id: 170, name: 'KURESOI SOUTH', county_id: 31 },
+  { id: 171, name: 'KURESOI NORTH', county_id: 31 },
+  { id: 172, name: 'SUBUKIA', county_id: 31 },
+  { id: 173, name: 'RONGAI', county_id: 31 },
+  { id: 174, name: 'BAHATI', county_id: 31 },
+  { id: 175, name: 'NAKURU TOWN WEST', county_id: 31 },
+  { id: 176, name: 'NAKURU TOWN EAST', county_id: 31 },
+  { id: 177, name: 'KILGORIS', county_id: 33 },
+  { id: 178, name: 'EMURUA DIKIRR', county_id: 33 },
+  { id: 179, name: 'NAROK NORTH', county_id: 33 },
+  { id: 180, name: 'NAROK EAST', county_id: 33 },
+  { id: 181, name: 'NAROK SOUTH', county_id: 33 },
+  { id: 182, name: 'NAROK WEST', county_id: 33 },
+  { id: 183, name: 'KAJIADO NORTH', county_id: 10 },
+  { id: 184, name: 'KAJIADO CENTRAL', county_id: 10 },
+  { id: 185, name: 'KAJIADO EAST', county_id: 10 },
+  { id: 186, name: 'KAJIADO WEST', county_id: 10 },
+  { id: 187, name: 'KAJIADO SOUTH', county_id: 10 },
+  { id: 188, name: 'KIPKELION EAST', county_id: 12 },
+  { id: 189, name: 'KIPKELION WEST', county_id: 12 },
+  { id: 190, name: 'AINAMOI', county_id: 12 },
+  { id: 191, name: 'BURETI', county_id: 12 },
+  { id: 192, name: 'BELGUT', county_id: 12 },
+  { id: 193, name: 'SIGOWET/SOIN', county_id: 12 },
+  { id: 194, name: 'SOTIK', county_id: 2 },
+  { id: 195, name: 'CHEPALUNGU', county_id: 2 },
+  { id: 196, name: 'BOMET EAST', county_id: 2 },
+  { id: 197, name: 'BOMET CENTRAL', county_id: 2 },
+  { id: 198, name: 'KONOIN', county_id: 2 },
+  { id: 199, name: 'LUGARI', county_id: 11 },
+  { id: 200, name: 'LIKUYANI', county_id: 11 },
+  { id: 201, name: 'MALAVA', county_id: 11 },
+  { id: 202, name: 'LURAMBI', county_id: 11 },
+  { id: 203, name: 'NAVAKHOLO', county_id: 11 },
+  { id: 204, name: 'MUMIAS WEST', county_id: 11 },
+  { id: 205, name: 'MUMIAS EAST', county_id: 11 },
+  { id: 206, name: 'MATUNGU', county_id: 11 },
+  { id: 207, name: 'BUTERE', county_id: 11 },
+  { id: 208, name: 'KHWISERO', county_id: 11 },
+  { id: 209, name: 'SHINYALU', county_id: 11 },
+  { id: 210, name: 'IKOLOMANI', county_id: 11 },
+  { id: 211, name: 'VIHIGA', county_id: 45 },
+  { id: 212, name: 'SABATIA', county_id: 45 },
+  { id: 213, name: 'HAMISI', county_id: 45 },
+  { id: 214, name: 'LUANDA', county_id: 45 },
+  { id: 215, name: 'EMUHAYA', county_id: 45 },
+  { id: 216, name: 'MT. ELGON', county_id: 3 },
+  { id: 217, name: 'SIRISIA', county_id: 3 },
+  { id: 218, name: 'KABUCHAI', county_id: 3 },
+  { id: 219, name: 'BUMULA', county_id: 3 },
+  { id: 220, name: 'KANDUYI', county_id: 3 },
+  { id: 221, name: 'WEBUYE EAST', county_id: 3 },
+  { id: 222, name: 'WEBUYE WEST', county_id: 3 },
+  { id: 223, name: 'KIMILILI', county_id: 3 },
+  { id: 224, name: 'TONGAREN', county_id: 3 },
+  { id: 225, name: 'TESO NORTH', county_id: 4 },
+  { id: 226, name: 'TESO SOUTH', county_id: 4 },
+  { id: 227, name: 'NAMBALE', county_id: 4 },
+  { id: 228, name: 'MATAYOS', county_id: 4 },
+  { id: 229, name: 'BUTULA', county_id: 4 },
+  { id: 230, name: 'FUNYULA', county_id: 4 },
+  { id: 231, name: 'BUDALANGI', county_id: 4 },
+  { id: 232, name: 'UGENYA', county_id: 38 },
+  { id: 233, name: 'UGUNJA', county_id: 38 },
+  { id: 234, name: 'ALEGO USONGA', county_id: 38 },
+  { id: 235, name: 'GEM', county_id: 38 },
+  { id: 236, name: 'BONDO', county_id: 38 },
+  { id: 237, name: 'RARIEDA', county_id: 38 },
+  { id: 238, name: 'KISUMU EAST', county_id: 17 },
+  { id: 239, name: 'KISUMU WEST', county_id: 17 },
+  { id: 240, name: 'KISUMU CENTRAL', county_id: 17 },
+  { id: 241, name: 'SEME', county_id: 17 },
+  { id: 242, name: 'NYANDO', county_id: 17 },
+  { id: 243, name: 'MUHORONI', county_id: 17 },
+  { id: 244, name: 'NYAKACH', county_id: 17 },
+  { id: 245, name: 'KASIPUL', county_id: 8 },
+  { id: 246, name: 'KABONDO KASIPUL', county_id: 8 },
+  { id: 247, name: 'KARACHUONYO', county_id: 8 },
+  { id: 248, name: 'RANGWE', county_id: 8 },
+  { id: 249, name: 'HOMA BAY TOWN', county_id: 8 },
+  { id: 250, name: 'NDHIWA', county_id: 8 },
+  { id: 251, name: 'SUBA NORTH', county_id: 8 },
+  { id: 252, name: 'SUBA SOUTH', county_id: 8 },
+  { id: 253, name: 'RONGO', county_id: 27 },
+  { id: 254, name: 'AWENDO', county_id: 27 },
+  { id: 255, name: 'SUNA EAST', county_id: 27 },
+  { id: 256, name: 'SUNA WEST', county_id: 27 },
+  { id: 257, name: 'URIRI', county_id: 27 },
+  { id: 258, name: 'NYATIKE', county_id: 27 },
+  { id: 259, name: 'KURIA WEST', county_id: 27 },
+  { id: 260, name: 'KURIA EAST', county_id: 27 },
+  { id: 261, name: 'BONCHARI', county_id: 16 },
+  { id: 262, name: 'SOUTH MUGIRANGO', county_id: 16 },
+  { id: 263, name: 'BOMACHOGE BORABU', county_id: 16 },
+  { id: 264, name: 'BOBASI', county_id: 16 },
+  { id: 265, name: 'BOMACHOGE CHACHE', county_id: 16 },
+  { id: 266, name: 'NYARIBARI MASABA', county_id: 16 },
+  { id: 267, name: 'NYARIBARI CHACHE', county_id: 16 },
+  { id: 268, name: 'KITUTU CHACHE NORTH', county_id: 16 },
+  { id: 269, name: 'KITUTU CHACHE SOUTH', county_id: 16 },
+  { id: 270, name: 'KITUTU MASABA', county_id: 34 },
+  { id: 271, name: 'WEST MUGIRANGO', county_id: 34 },
+  { id: 272, name: 'NORTH MUGIRANGO', county_id: 34 },
+  { id: 273, name: 'BORABU', county_id: 34 },
+  { id: 274, name: 'WESTLANDS', county_id: 30 },
+  { id: 275, name: 'DAGORETTI NORTH', county_id: 30 },
+  { id: 276, name: 'DAGORETTI SOUTH', county_id: 30 },
+  { id: 277, name: 'LANGATA', county_id: 30 },
+  { id: 278, name: 'KIBRA', county_id: 30 },
+  { id: 279, name: 'ROYSAMBU', county_id: 30 },
+  { id: 280, name: 'KASARANI', county_id: 30 },
+  { id: 281, name: 'RUARAKA', county_id: 30 },
+  { id: 282, name: 'EMBAKASI SOUTH', county_id: 30 },
+  { id: 283, name: 'EMBAKASI NORTH', county_id: 30 },
+  { id: 284, name: 'EMBAKASI CENTRAL', county_id: 30 },
+  { id: 285, name: 'EMBAKASI EAST', county_id: 30 },
+  { id: 286, name: 'EMBAKASI WEST', county_id: 30 },
+  { id: 287, name: 'MAKADARA', county_id: 30 },
+  { id: 288, name: 'KAMUKUNJI', county_id: 30 },
+  { id: 289, name: 'STAREHE', county_id: 30 },
+  { id: 290, name: 'MATHARE', county_id: 30 }
 ];
 
-// Generate CONSTITUENCY_SUGGESTIONS from the data
+// Generate KENYAN_COUNTIES from COUNTIES_DATA
+const KENYAN_COUNTIES = COUNTIES_DATA.map(county => county.name);
+
+// Generate CONSTITUENCY_SUGGESTIONS from data
 const CONSTITUENCY_SUGGESTIONS = {};
 COUNTIES_DATA.forEach(county => {
-  const constituencies = CONSTITUENCIES_DATA
+  const countyConstituencies = CONSTITUENCIES_DATA
     .filter(constituency => constituency.county_id === county.id)
     .map(constituency => constituency.name);
-  CONSTITUENCY_SUGGESTIONS[county.name] = constituencies;
+  CONSTITUENCY_SUGGESTIONS[county.name] = countyConstituencies;
 });
-
-// Enhanced fuzzy search function
-const fuzzySearch = (query, options, maxSuggestions = 5) => {
-  if (!query) return [];
-  
-  const normalizedQuery = query.toLowerCase().trim();
-  const words = normalizedQuery.split(/\s+/);
-  
-  const scores = options.map(option => {
-    const normalizedOption = option.toLowerCase();
-    let score = 0;
-    
-    // Exact match
-    if (normalizedOption === normalizedQuery) {
-      score += 100;
-    }
-    
-    // Starts with query
-    if (normalizedOption.startsWith(normalizedQuery)) {
-      score += 50;
-    }
-    
-    // Contains all words
-    const containsAllWords = words.every(word => normalizedOption.includes(word));
-    if (containsAllWords) {
-      score += 30;
-    }
-    
-    // Contains query as substring
-    if (normalizedOption.includes(normalizedQuery)) {
-      score += 20;
-    }
-    
-    // Individual word matches
-    words.forEach(word => {
-      if (normalizedOption.includes(word)) {
-        score += 10;
-      }
-    });
-    
-    return { option, score };
-  });
-  
-  return scores
-    .filter(item => item.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, maxSuggestions)
-    .map(item => item.option);
-};
-
-// Enhanced constituency code mapping function
-const getConstituencyCodeFromData = (constituencyName, countyName) => {
-  if (!constituencyName || !countyName) return null;
-  
-  const normalizedConstituency = constituencyName.trim().toUpperCase();
-  const normalizedCounty = countyName.trim().toUpperCase();
-  
-  // Find the county
-  const county = COUNTIES_DATA.find(c => c.name.toUpperCase() === normalizedCounty);
-  if (!county) {
-    console.warn(`County not found: ${countyName}`);
-    return null;
-  }
-  
-  // Find the constituency within the county
-  const constituency = CONSTITUENCIES_DATA.find(c => 
-    c.county_id === county.id && c.name.toUpperCase() === normalizedConstituency
-  );
-  
-  if (!constituency) {
-    console.warn(`Constituency "${constituencyName}" not found in county "${countyName}"`);
-    return null;
-  }
-  
-  // Return the constituency ID as code
-  return `CONST-${constituency.id}`;
-};
 
 // Enhanced Google Maps URL parsing function
 const parseGoogleMapsInput = (input) => {
@@ -661,53 +480,100 @@ const createCustomIcon = (color = '#34C759') => L.divIcon({
   iconAnchor: [12, 12]
 });
 
-// Constituency validation function
+// Fuzzy search utility functions
+const normalizeString = (str) => {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ');
+};
+
+const fuzzyMatch = (query, target) => {
+  const normalizedQuery = normalizeString(query);
+  const normalizedTarget = normalizeString(target);
+  
+  if (normalizedTarget.includes(normalizedQuery)) return true;
+  if (normalizedQuery.includes(normalizedTarget)) return true;
+  
+  // Levenshtein distance simple check for typos
+  const maxDistance = Math.floor(Math.min(normalizedQuery.length, normalizedTarget.length) * 0.3);
+  if (calculateLevenshteinDistance(normalizedQuery, normalizedTarget) <= maxDistance) return true;
+  
+  return false;
+};
+
+const calculateLevenshteinDistance = (a, b) => {
+  const matrix = [];
+  for (let i = 0; i <= b.length; i++) {
+    matrix[i] = [i];
+  }
+  for (let j = 0; j <= a.length; j++) {
+    matrix[0][j] = j;
+  }
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1
+        );
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+};
+
+// Enhanced constituency code mapping function
+const getConstituencyCodeFromData = (constituencyName, countyName) => {
+  if (!constituencyName || !countyName) return null;
+  
+  const normalizedConstituency = normalizeString(constituencyName);
+  const normalizedCounty = normalizeString(countyName);
+  
+  // Find the county using fuzzy matching
+  const county = COUNTIES_DATA.find(c => 
+    fuzzyMatch(normalizedCounty, c.name)
+  );
+  
+  if (!county) {
+    console.warn(`County not found: ${countyName}`);
+    return null;
+  }
+  
+  // Find the constituency within the county using fuzzy matching
+  const constituency = CONSTITUENCIES_DATA.find(c => 
+    c.county_id === county.id && fuzzyMatch(normalizedConstituency, c.name)
+  );
+  
+  if (!constituency) {
+    console.warn(`Constituency "${constituencyName}" not found in county "${countyName}"`);
+    return null;
+  }
+  
+  // Return the constituency ID as integer (not string with "CONST-" prefix)
+  return constituency.id;
+};
+
+// Validation function for constituency-county match
 const validateConstituencyCountyMatch = (constituencyName, countyName) => {
   if (!constituencyName || !countyName) return true;
   
-  const normalizedConstituency = constituencyName.trim().toUpperCase();
-  const normalizedCounty = countyName.trim().toUpperCase();
+  const normalizedConstituency = normalizeString(constituencyName);
+  const normalizedCounty = normalizeString(countyName);
   
-  const county = COUNTIES_DATA.find(c => c.name.toUpperCase() === normalizedCounty);
+  const county = COUNTIES_DATA.find(c => fuzzyMatch(normalizedCounty, c.name));
   if (!county) return false;
   
   const constituency = CONSTITUENCIES_DATA.find(c => 
-    c.county_id === county.id && c.name.toUpperCase() === normalizedConstituency
+    c.county_id === county.id && fuzzyMatch(normalizedConstituency, c.name)
   );
   
   return !!constituency;
-};
-
-// Enhanced status component for constituency validation
-const ConstituencyStatus = ({ constituency, county, code }) => {
-  if (!constituency || !county) return null;
-  
-  const isValidMatch = validateConstituencyCountyMatch(constituency, county);
-  
-  if (code) {
-    return (
-      <div className="mt-1">
-        <p className="text-xs text-green-600">✓ Valid constituency: {constituency} in {county}</p>
-        <p className="text-xs text-green-600">✓ Code: {code}</p>
-      </div>
-    );
-  }
-  
-  if (!isValidMatch) {
-    return (
-      <div className="mt-1">
-        <p className="text-xs text-red-600">⚠ "{constituency}" is not a valid constituency in {county}</p>
-        <p className="text-xs text-gray-500 mt-1">Please select a valid constituency from the suggestions.</p>
-      </div>
-    );
-  }
-  
-  return (
-    <div className="mt-1">
-      <p className="text-xs text-yellow-600">⚠ Constituency validated but code not available</p>
-      <p className="text-xs text-gray-500 mt-1">This won't affect your submission. The constituency is valid.</p>
-    </div>
-  );
 };
 
 const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) => {
@@ -728,15 +594,12 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     submitted_constituency: '',
     submitted_landmark: ''
   });
-  
-  // New state for fuzzy search
   const [countyInput, setCountyInput] = useState('');
-  const [countySuggestions, setCountySuggestions] = useState([]);
-  const [showCountySuggestions, setShowCountySuggestions] = useState(false);
   const [constituencyInput, setConstituencyInput] = useState('');
-  const [constituencySuggestions, setConstituencySuggestions] = useState([]);
+  const [showCountySuggestions, setShowCountySuggestions] = useState(false);
   const [showConstituencySuggestions, setShowConstituencySuggestions] = useState(false);
-  
+  const [countySuggestions, setCountySuggestions] = useState([]);
+  const [constituencySuggestions, setConstituencySuggestions] = useState([]);
   const [agreement, setAgreement] = useState(false);
   const [mapCenter, setMapCenter] = useState([-1.286389, 36.817223]);
   const [mapZoom, setMapZoom] = useState(6);
@@ -752,9 +615,9 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const accuracyCircleRef = useRef(null);
   const markerRef = useRef(null);
   const fileInputRef = useRef(null);
+  const retryCountRef = useRef(0);
   const countyInputRef = useRef(null);
   const constituencyInputRef = useRef(null);
-  const retryCountRef = useRef(0);
   
   const { 
     getCurrentPosition, 
@@ -764,57 +627,26 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     error
   } = useContributeLocation();
 
-  // Enhanced constituency code fetching with local data fallback
+  // Enhanced constituency code fetching with local data
   const fetchConstituencyCode = async (constituencyName, countyName) => {
     try {
-      // Try local data first
+      console.log('Fetching constituency code for:', constituencyName, countyName);
       const code = getConstituencyCodeFromData(constituencyName, countyName);
-      if (code) return code;
-      
-      // Fallback to database if needed
-      const { data, error } = await supabase
-        .rpc('get_constituency_code', { 
-          constituency_name: constituencyName,
-          county_name: countyName 
-        });
-      
-      if (error) throw error;
-      return data;
+      console.log('Constituency code result:', code);
+      return code;
     } catch (error) {
-      console.warn('Constituency code fetch failed, using fallback:', error);
-      return getConstituencyCodeFromData(constituencyName, countyName);
+      console.warn('Failed to fetch constituency code from local data:', error);
+      return null;
     }
   };
 
-  // Enhanced constituency suggestions with fuzzy search
-  const enhancedConstituencySuggestions = useMemo(() => {
-    if (!formData.submitted_county) return [];
-    
-    const baseSuggestions = CONSTITUENCY_SUGGESTIONS[formData.submitted_county] || [];
-    
-    // If user is typing, apply fuzzy search
-    if (constituencyInput.trim()) {
-      return fuzzySearch(constituencyInput, baseSuggestions, 10);
-    }
-    
-    return baseSuggestions.slice(0, 10);
-  }, [formData.submitted_county, constituencyInput]);
-
-  // Enhanced county suggestions with fuzzy search
-  const enhancedCountySuggestions = useMemo(() => {
-    if (!countyInput.trim()) return KENYAN_COUNTIES.slice(0, 10);
-    return fuzzySearch(countyInput, KENYAN_COUNTIES, 10);
-  }, [countyInput]);
-
   // Enhanced: Auto-fetch constituency code when constituency and county are selected
   useEffect(() => {
-    const fetchConstituencyCodeData = async () => {
+    const fetchCode = async () => {
       if (formData.submitted_constituency && formData.submitted_county) {
         try {
-          console.log('Fetching constituency code for:', formData.submitted_constituency, formData.submitted_county);
           const code = await fetchConstituencyCode(formData.submitted_constituency, formData.submitted_county);
           setConstituencyCode(code);
-          console.log('Constituency code found:', code);
         } catch (error) {
           console.warn('Failed to fetch constituency code:', error);
           setConstituencyCode(null);
@@ -824,9 +656,59 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       }
     };
 
-    const timeoutId = setTimeout(fetchConstituencyCodeData, 500);
+    const timeoutId = setTimeout(fetchCode, 500);
     return () => clearTimeout(timeoutId);
   }, [formData.submitted_constituency, formData.submitted_county]);
+
+  // County input handler with fuzzy search
+  const handleCountyInputChange = (value) => {
+    setCountyInput(value);
+    setFormData(prev => ({ ...prev, submitted_county: value }));
+    
+    if (value.length > 1) {
+      const suggestions = KENYAN_COUNTIES.filter(county => 
+        fuzzyMatch(value, county)
+      ).slice(0, 5);
+      setCountySuggestions(suggestions);
+      setShowCountySuggestions(true);
+    } else {
+      setShowCountySuggestions(false);
+    }
+  };
+
+  // Constituency input handler with fuzzy search
+  const handleConstituencyInputChange = (value) => {
+    setConstituencyInput(value);
+    setFormData(prev => ({ ...prev, submitted_constituency: value }));
+    
+    if (value.length > 1 && formData.submitted_county) {
+      const countyConstituencies = CONSTITUENCY_SUGGESTIONS[formData.submitted_county] || [];
+      const suggestions = countyConstituencies.filter(constituency => 
+        fuzzyMatch(value, constituency)
+      ).slice(0, 5);
+      setConstituencySuggestions(suggestions);
+      setShowConstituencySuggestions(true);
+    } else {
+      setShowConstituencySuggestions(false);
+    }
+  };
+
+  // County selection handler
+  const handleCountySelect = (countyName) => {
+    setFormData(prev => ({ ...prev, submitted_county: countyName }));
+    setCountyInput(countyName);
+    setShowCountySuggestions(false);
+    // Clear constituency when county changes
+    setFormData(prev => ({ ...prev, submitted_constituency: '' }));
+    setConstituencyInput('');
+  };
+
+  // Constituency selection handler
+  const handleConstituencySelect = (constituencyName) => {
+    setFormData(prev => ({ ...prev, submitted_constituency: constituencyName }));
+    setConstituencyInput(constituencyName);
+    setShowConstituencySuggestions(false);
+  };
 
   // Safe duplicate office check function
   const safeFindDuplicateOffices = async (lat, lng, name, radius = 200) => {
@@ -846,15 +728,31 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         throw new Error('Coordinates outside Kenya bounds');
       }
 
-      const { data, error } = await supabase.rpc('find_duplicate_offices', {
-        p_lat: lat,
-        p_lng: lng,
-        p_name: String(name || ''),
-        p_radius_meters: Math.max(50, Math.min(radius, 1000))
-      });
+      // Use direct Supabase query instead of RPC function
+      const { data, error } = await supabase
+        .from('iebc_office_contributions')
+        .select('*')
+        .lt('submitted_latitude', lat + 0.002) // ~200m radius
+        .gt('submitted_latitude', lat - 0.002)
+        .lt('submitted_longitude', lng + 0.002)
+        .gt('submitted_longitude', lng - 0.002)
+        .eq('status', 'verified');
 
       if (error) throw error;
-      return data || [];
+      
+      // Simple distance calculation
+      const nearbyOffices = data?.filter(office => {
+        const distance = Math.sqrt(
+          Math.pow(office.submitted_latitude - lat, 2) + 
+          Math.pow(office.submitted_longitude - lng, 2)
+        ) * 111000; // Convert to meters
+        return distance < radius;
+      }) || [];
+
+      return nearbyOffices.map(office => ({
+        ...office,
+        is_likely_duplicate: true
+      }));
     } catch (error) {
       console.warn('Safe duplicate check failed:', error.message);
       return [];
@@ -1033,7 +931,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
           formData.submitted_office_location, 
           200
         );
-        setDuplicateOffices(results.filter(office => office.is_likely_duplicate === true));
+        setDuplicateOffices(results);
       } catch (error) {
         console.error('Duplicate check failed:', error);
         setDuplicateOffices([]);
@@ -1066,24 +964,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     } else if (method === 'drop_pin') {
       initializeMapWithUserLocation();
     }
-  };
-
-  // Enhanced county selection handler with fuzzy search
-  const handleCountySelect = (countyName) => {
-    setFormData(prev => ({ ...prev, submitted_county: countyName }));
-    setCountyInput(countyName);
-    setShowCountySuggestions(false);
-    
-    // Clear constituency when county changes
-    setFormData(prev => ({ ...prev, submitted_constituency: '' }));
-    setConstituencyInput('');
-  };
-
-  // Enhanced constituency selection handler
-  const handleConstituencySelect = (constituencyName) => {
-    setFormData(prev => ({ ...prev, submitted_constituency: constituencyName }));
-    setConstituencyInput(constituencyName);
-    setShowConstituencySuggestions(false);
   };
 
   // FIXED: Enhanced handleCurrentLocation with proper map readiness and auto-proceed to Step 3
@@ -1287,6 +1167,20 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     }
     
     try {
+      // Validate constituency and county match
+      const isValidMatch = validateConstituencyCountyMatch(
+        formData.submitted_constituency, 
+        formData.submitted_county
+      );
+      
+      if (!isValidMatch) {
+        setLocationError({
+          type: 'error',
+          message: 'The selected constituency does not belong to the selected county. Please check your entries.'
+        });
+        return;
+      }
+
       const contributionData = {
         submitted_latitude: position.lat,
         submitted_longitude: position.lng,
@@ -1294,7 +1188,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         submitted_office_location: formData.submitted_office_location,
         submitted_county: formData.submitted_county,
         submitted_constituency: formData.submitted_constituency,
-        submitted_constituency_code: constituencyCode,
+        submitted_constituency_code: constituencyCode, // Use the integer ID directly
         submitted_landmark: formData.submitted_landmark || notes,
         google_maps_link: selectedMethod === 'google_maps' ? googleMapsInput : null,
         imageFile: imageFile,
@@ -1385,11 +1279,11 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       submitted_landmark: ''
     });
     setCountyInput('');
-    setCountySuggestions([]);
-    setShowCountySuggestions(false);
     setConstituencyInput('');
-    setConstituencySuggestions([]);
+    setShowCountySuggestions(false);
     setShowConstituencySuggestions(false);
+    setCountySuggestions([]);
+    setConstituencySuggestions([]);
     setAgreement(false);
     setLocationError(null);
     setSubmissionSuccess(false);
@@ -1488,41 +1382,34 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     );
   };
 
-  // Suggestion dropdown components
-  const CountySuggestionsDropdown = () => {
-    if (!showCountySuggestions || enhancedCountySuggestions.length === 0) return null;
+  // Enhanced constituency status component
+  const ConstituencyStatus = ({ constituency, county, code }) => {
+    if (!constituency || !county) return null;
+    
+    const isValidMatch = validateConstituencyCountyMatch(constituency, county);
+    
+    if (code && isValidMatch) {
+      return (
+        <div className="mt-1">
+          <p className="text-xs text-green-600">✓ Valid constituency: {constituency} in {county}</p>
+          <p className="text-xs text-green-600">✓ Code: {code}</p>
+        </div>
+      );
+    }
+    
+    if (!isValidMatch) {
+      return (
+        <div className="mt-1">
+          <p className="text-xs text-red-600">⚠ "{constituency}" is not a valid constituency in {county}</p>
+          <p className="text-xs text-gray-500 mt-1">Please select a valid constituency from the suggestions.</p>
+        </div>
+      );
+    }
     
     return (
-      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
-        {enhancedCountySuggestions.map((county, index) => (
-          <button
-            key={index}
-            type="button"
-            className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
-            onClick={() => handleCountySelect(county)}
-          >
-            {county}
-          </button>
-        ))}
-      </div>
-    );
-  };
-
-  const ConstituencySuggestionsDropdown = () => {
-    if (!showConstituencySuggestions || enhancedConstituencySuggestions.length === 0) return null;
-    
-    return (
-      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
-        {enhancedConstituencySuggestions.map((constituency, index) => (
-          <button
-            key={index}
-            type="button"
-            className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
-            onClick={() => handleConstituencySelect(constituency)}
-          >
-            {constituency}
-          </button>
-        ))}
+      <div className="mt-1">
+        <p className="text-xs text-yellow-600">⚠ Constituency validated but code not available</p>
+        <p className="text-xs text-gray-500 mt-1">This won't affect your submission. The constituency is valid.</p>
       </div>
     );
   };
@@ -1864,24 +1751,35 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                           type="text"
                           required
                           value={countyInput}
-                          onChange={(e) => {
-                            setCountyInput(e.target.value);
-                            setShowCountySuggestions(true);
-                            if (e.target.value !== formData.submitted_county) {
-                              setFormData(prev => ({ ...prev, submitted_county: e.target.value }));
-                            }
-                          }}
-                          onFocus={() => setShowCountySuggestions(true)}
+                          onChange={(e) => handleCountyInputChange(e.target.value)}
+                          onFocus={() => setShowCountySuggestions(countyInput.length > 1)}
                           onBlur={() => setTimeout(() => setShowCountySuggestions(false), 200)}
                           placeholder="e.g., Nairobi"
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                          list="county-suggestions"
                         />
-                        <CountySuggestionsDropdown />
-                        {countyInput && !formData.submitted_county && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            Type to search counties. Suggestions will appear below.
-                          </p>
+                        
+                        {/* County suggestions dropdown */}
+                        {showCountySuggestions && countySuggestions.length > 0 && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            {countySuggestions.map((county, index) => (
+                              <button
+                                key={index}
+                                type="button"
+                                className="w-full px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                                onClick={() => handleCountySelect(county)}
+                              >
+                                {county}
+                              </button>
+                            ))}
+                          </div>
                         )}
+                        
+                        <datalist id="county-suggestions">
+                          {KENYAN_COUNTIES.map(county => (
+                            <option key={county} value={county} />
+                          ))}
+                        </datalist>
                       </div>
 
                       <div className="relative">
@@ -1894,23 +1792,35 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                           type="text"
                           required
                           value={constituencyInput}
-                          onChange={(e) => {
-                            setConstituencyInput(e.target.value);
-                            setShowConstituencySuggestions(true);
-                            if (e.target.value !== formData.submitted_constituency) {
-                              setFormData(prev => ({ ...prev, submitted_constituency: e.target.value }));
-                            }
-                          }}
-                          onFocus={() => setShowConstituencySuggestions(true)}
+                          onChange={(e) => handleConstituencyInputChange(e.target.value)}
+                          onFocus={() => formData.submitted_county && setShowConstituencySuggestions(constituencyInput.length > 0)}
                           onBlur={() => setTimeout(() => setShowConstituencySuggestions(false), 200)}
                           placeholder="e.g., Westlands"
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                          disabled={!formData.submitted_county}
+                          list="constituency-suggestions"
                         />
-                        <ConstituencySuggestionsDropdown />
-                        {!formData.submitted_county && (
-                          <p className="text-xs text-gray-500 mt-1">Please select a county first</p>
+                        
+                        {/* Constituency suggestions dropdown */}
+                        {showConstituencySuggestions && constituencySuggestions.length > 0 && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            {constituencySuggestions.map((constituency, index) => (
+                              <button
+                                key={index}
+                                type="button"
+                                className="w-full px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                                onClick={() => handleConstituencySelect(constituency)}
+                              >
+                                {constituency}
+                              </button>
+                            ))}
+                          </div>
                         )}
+                        
+                        <datalist id="constituency-suggestions">
+                          {formData.submitted_county && CONSTITUENCY_SUGGESTIONS[formData.submitted_county]?.map(constituency => (
+                            <option key={constituency} value={constituency} />
+                          ))}
+                        </datalist>
                         
                         {/* Enhanced constituency status */}
                         <ConstituencyStatus 
