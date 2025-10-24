@@ -12,19 +12,19 @@ import L from 'leaflet';
 
 // Complete list of 47 Kenyan counties with constituencies
 const KENYAN_COUNTIES = [
-  "Baringo", "Bomet", "Bungoma", "Busia", "Elgeyo-Marakwet",
+  "Baringo", "Bomet", "Bungoma", "Busia", "Elgeyo/Marakwet",
   "Embu", "Garissa", "Homa Bay", "Isiolo", "Kajiado",
   "Kakamega", "Kericho", "Kiambu", "Kilifi", "Kirinyaga",
   "Kisii", "Kisumu", "Kitui", "Kwale", "Laikipia",
   "Lamu", "Machakos", "Makueni", "Mandera", "Marsabit",
   "Meru", "Migori", "Mombasa", "Murang'a", "Nairobi",
   "Nakuru", "Nandi", "Narok", "Nyamira", "Nyandarua",
-  "Nyeri", "Samburu", "Siaya", "Taita-Taveta", "Tana River",
+  "Nyeri", "Samburu", "Siaya", "Taita Taveta", "Tana River",
   "Tharaka-Nithi", "Trans Nzoia", "Turkana", "Uasin Gishu",
   "Vihiga", "Wajir", "West Pokot"
 ];
 
-// Comprehensive constituencies data from your database
+// Comprehensive counties data - 47 counties
 const COUNTIES_DATA = [
   {id: 1, name: "Baringo", county_code: "030"},
   {id: 2, name: "Bomet", county_code: "036"},
@@ -74,17 +74,24 @@ const COUNTIES_DATA = [
   {id: 46, name: "Wajir", county_code: "008"},
   {id: 47, name: "West Pokot", county_code: "024"}
 ];
+
+// Comprehensive constituencies data - all 290 constituencies with correct county_id mappings
 const CONSTITUENCIES_DATA = [
-   {id: 1, name: "CHANGAMWE", county_id: 28},
+  // MOMBASA (County ID: 28) - 6 constituencies
+  {id: 1, name: "CHANGAMWE", county_id: 28},
   {id: 2, name: "JOMVU", county_id: 28},
   {id: 3, name: "KISAUNI", county_id: 28},
   {id: 4, name: "NYALI", county_id: 28},
   {id: 5, name: "LIKONI", county_id: 28},
   {id: 6, name: "MVITA", county_id: 28},
+  
+  // KWALE (County ID: 19) - 4 constituencies
   {id: 7, name: "MSAMBWENI", county_id: 19},
   {id: 8, name: "LUNGALUNGA", county_id: 19},
   {id: 9, name: "MATUGA", county_id: 19},
   {id: 10, name: "KINANGO", county_id: 19},
+  
+  // KILIFI (County ID: 14) - 7 constituencies
   {id: 11, name: "KILIFI NORTH", county_id: 14},
   {id: 12, name: "KILIFI SOUTH", county_id: 14},
   {id: 13, name: "KALOLENI", county_id: 14},
@@ -92,39 +99,57 @@ const CONSTITUENCIES_DATA = [
   {id: 15, name: "GANZE", county_id: 14},
   {id: 16, name: "MALINDI", county_id: 14},
   {id: 17, name: "MAGARINI", county_id: 14},
+  
+  // TANA RIVER (County ID: 40) - 3 constituencies
   {id: 18, name: "GARSEN", county_id: 40},
   {id: 19, name: "GALOLE", county_id: 40},
   {id: 20, name: "BURA", county_id: 40},
+  
+  // LAMU (County ID: 21) - 2 constituencies
   {id: 21, name: "LAMU EAST", county_id: 21},
   {id: 22, name: "LAMU WEST", county_id: 21},
+  
+  // TAITA TAVETA (County ID: 39) - 4 constituencies
   {id: 23, name: "TAVETA", county_id: 39},
   {id: 24, name: "WUNDANYI", county_id: 39},
   {id: 25, name: "MWATATE", county_id: 39},
   {id: 26, name: "VOI", county_id: 39},
+  
+  // GARISSA (County ID: 7) - 6 constituencies
   {id: 27, name: "GARISSA TOWNSHIP", county_id: 7},
   {id: 28, name: "BALAMBALA", county_id: 7},
   {id: 29, name: "LAGDERA", county_id: 7},
   {id: 30, name: "DADAAB", county_id: 7},
   {id: 31, name: "FAFI", county_id: 7},
   {id: 32, name: "IJARA", county_id: 7},
+  
+  // WAJIR (County ID: 46) - 6 constituencies
   {id: 33, name: "WAJIR NORTH", county_id: 46},
   {id: 34, name: "WAJIR EAST", county_id: 46},
   {id: 35, name: "TARBAJ", county_id: 46},
   {id: 36, name: "WAJIR WEST", county_id: 46},
   {id: 37, name: "ELDAS", county_id: 46},
   {id: 38, name: "WAJIR SOUTH", county_id: 46},
+  
+  // MANDERA (County ID: 24) - 6 constituencies
   {id: 39, name: "MANDERA WEST", county_id: 24},
   {id: 40, name: "BANISSA", county_id: 24},
   {id: 41, name: "MANDERA NORTH", county_id: 24},
   {id: 42, name: "MANDERA SOUTH", county_id: 24},
   {id: 43, name: "MANDERA EAST", county_id: 24},
   {id: 44, name: "LAFEY", county_id: 24},
+  
+  // MARSABIT (County ID: 25) - 4 constituencies
   {id: 45, name: "MOYALE", county_id: 25},
   {id: 46, name: "NORTH HORR", county_id: 25},
   {id: 47, name: "SAKU", county_id: 25},
   {id: 48, name: "LAISAMIS", county_id: 25},
+  
+  // ISIOLO (County ID: 9) - 2 constituencies
   {id: 49, name: "ISIOLO NORTH", county_id: 9},
   {id: 50, name: "ISIOLO SOUTH", county_id: 9},
+  
+  // MERU (County ID: 26) - 9 constituencies
   {id: 51, name: "IGEMBE SOUTH", county_id: 26},
   {id: 52, name: "IGEMBE CENTRAL", county_id: 26},
   {id: 53, name: "IGEMBE NORTH", county_id: 26},
@@ -134,13 +159,19 @@ const CONSTITUENCIES_DATA = [
   {id: 57, name: "BUURI", county_id: 26},
   {id: 58, name: "CENTRAL IMENTI", county_id: 26},
   {id: 59, name: "SOUTH IMENTI", county_id: 26},
+  
+  // THARAKA-NITHI (County ID: 41) - 3 constituencies
   {id: 60, name: "MAARA", county_id: 41},
   {id: 61, name: "CHUKA/IGAMBANG'OMBE", county_id: 41},
   {id: 62, name: "THARAKA", county_id: 41},
+  
+  // EMBU (County ID: 6) - 4 constituencies
   {id: 63, name: "MANYATTA", county_id: 6},
   {id: 64, name: "RUNYENJES", county_id: 6},
   {id: 65, name: "MBEERE SOUTH", county_id: 6},
   {id: 66, name: "MBEERE NORTH", county_id: 6},
+  
+  // KITUI (County ID: 18) - 8 constituencies
   {id: 67, name: "MWINGI NORTH", county_id: 18},
   {id: 68, name: "MWINGI WEST", county_id: 18},
   {id: 69, name: "MWINGI CENTRAL", county_id: 18},
@@ -149,6 +180,8 @@ const CONSTITUENCIES_DATA = [
   {id: 72, name: "KITUI CENTRAL", county_id: 18},
   {id: 73, name: "KITUI EAST", county_id: 18},
   {id: 74, name: "KITUI SOUTH", county_id: 18},
+  
+  // MACHAKOS (County ID: 22) - 8 constituencies
   {id: 75, name: "MASINGA", county_id: 22},
   {id: 76, name: "YATTA", county_id: 22},
   {id: 77, name: "KANGUNDO", county_id: 22},
@@ -157,27 +190,37 @@ const CONSTITUENCIES_DATA = [
   {id: 80, name: "MAVOKO", county_id: 22},
   {id: 81, name: "MACHAKOS TOWN", county_id: 22},
   {id: 82, name: "MWALA", county_id: 22},
+  
+  // MAKUENI (County ID: 23) - 6 constituencies
   {id: 83, name: "MBOONI", county_id: 23},
   {id: 84, name: "KILOME", county_id: 23},
   {id: 85, name: "KAITI", county_id: 23},
   {id: 86, name: "MAKUENI", county_id: 23},
   {id: 87, name: "KIBWEZI WEST", county_id: 23},
   {id: 88, name: "KIBWEZI EAST", county_id: 23},
+  
+  // NYANDARUA (County ID: 35) - 5 constituencies
   {id: 89, name: "KINANGOP", county_id: 35},
   {id: 90, name: "KIPIPIRI", county_id: 35},
   {id: 91, name: "OL KALOU", county_id: 35},
   {id: 92, name: "OL JOROK", county_id: 35},
   {id: 93, name: "NDARAGWA", county_id: 35},
+  
+  // NYERI (County ID: 36) - 6 constituencies
   {id: 94, name: "TETU", county_id: 36},
   {id: 95, name: "KIENI", county_id: 36},
   {id: 96, name: "MATHIRA", county_id: 36},
   {id: 97, name: "OTHAYA", county_id: 36},
   {id: 98, name: "MUKURWEINI", county_id: 36},
   {id: 99, name: "NYERI TOWN", county_id: 36},
+  
+  // KIRINYAGA (County ID: 15) - 4 constituencies
   {id: 100, name: "MWEA", county_id: 15},
   {id: 101, name: "GICHUGU", county_id: 15},
   {id: 102, name: "NDIA", county_id: 15},
   {id: 103, name: "KIRINYAGA CENTRAL", county_id: 15},
+  
+  // MURANG'A (County ID: 29) - 7 constituencies
   {id: 104, name: "KANGEMA", county_id: 29},
   {id: 105, name: "MATHIOYA", county_id: 29},
   {id: 106, name: "KIHARU", county_id: 29},
@@ -185,6 +228,8 @@ const CONSTITUENCIES_DATA = [
   {id: 108, name: "MARAGWA", county_id: 29},
   {id: 109, name: "KANDARA", county_id: 29},
   {id: 110, name: "GATANGA", county_id: 29},
+  
+  // KIAMBU (County ID: 13) - 12 constituencies
   {id: 111, name: "GATUNDU SOUTH", county_id: 13},
   {id: 112, name: "GATUNDU NORTH", county_id: 13},
   {id: 113, name: "JUJA", county_id: 13},
@@ -197,49 +242,69 @@ const CONSTITUENCIES_DATA = [
   {id: 120, name: "KIKUYU", county_id: 13},
   {id: 121, name: "LIMURU", county_id: 13},
   {id: 122, name: "LARI", county_id: 13},
+  
+  // TURKANA (County ID: 43) - 6 constituencies
   {id: 123, name: "TURKANA NORTH", county_id: 43},
   {id: 124, name: "TURKANA WEST", county_id: 43},
   {id: 125, name: "TURKANA CENTRAL", county_id: 43},
   {id: 126, name: "LOIMA", county_id: 43},
   {id: 127, name: "TURKANA SOUTH", county_id: 43},
   {id: 128, name: "TURKANA EAST", county_id: 43},
+  
+  // WEST POKOT (County ID: 47) - 4 constituencies
   {id: 129, name: "KAPENGURIA", county_id: 47},
   {id: 130, name: "SIGOR", county_id: 47},
   {id: 131, name: "KACHELIBA", county_id: 47},
   {id: 132, name: "POKOT SOUTH", county_id: 47},
+  
+  // SAMBURU (County ID: 37) - 3 constituencies
   {id: 133, name: "SAMBURU WEST", county_id: 37},
   {id: 134, name: "SAMBURU NORTH", county_id: 37},
   {id: 135, name: "SAMBURU EAST", county_id: 37},
+  
+  // TRANS NZOIA (County ID: 42) - 5 constituencies
   {id: 136, name: "KWANZA", county_id: 42},
   {id: 137, name: "ENDEBESS", county_id: 42},
   {id: 138, name: "SABOTI", county_id: 42},
   {id: 139, name: "KIMININI", county_id: 42},
   {id: 140, name: "CHERANGANY", county_id: 42},
+  
+  // UASIN GISHU (County ID: 44) - 6 constituencies
   {id: 141, name: "SOY", county_id: 44},
   {id: 142, name: "TURBO", county_id: 44},
   {id: 143, name: "MOIBEN", county_id: 44},
   {id: 144, name: "AINABKOI", county_id: 44},
   {id: 145, name: "KAPSERET", county_id: 44},
   {id: 146, name: "KESSES", county_id: 44},
+  
+  // ELGEYO/MARAKWET (County ID: 5) - 4 constituencies
   {id: 147, name: "MARAKWET EAST", county_id: 5},
   {id: 148, name: "MARAKWET WEST", county_id: 5},
   {id: 149, name: "KEIYO NORTH", county_id: 5},
   {id: 150, name: "KEIYO SOUTH", county_id: 5},
+  
+  // NANDI (County ID: 32) - 6 constituencies
   {id: 151, name: "TINDERET", county_id: 32},
   {id: 152, name: "ALDAI", county_id: 32},
   {id: 153, name: "NANDI HILLS", county_id: 32},
   {id: 154, name: "CHESUMEI", county_id: 32},
   {id: 155, name: "EMGWEN", county_id: 32},
   {id: 156, name: "MOSOP", county_id: 32},
+  
+  // BARINGO (County ID: 1) - 6 constituencies
   {id: 157, name: "TIATY", county_id: 1},
   {id: 158, name: "BARINGO NORTH", county_id: 1},
   {id: 159, name: "BARINGO CENTRAL", county_id: 1},
   {id: 160, name: "BARINGO SOUTH", county_id: 1},
   {id: 161, name: "MOGOTIO", county_id: 1},
   {id: 162, name: "ELDAMA RAVINE", county_id: 1},
+  
+  // LAIKIPIA (County ID: 20) - 3 constituencies
   {id: 163, name: "LAIKIPIA WEST", county_id: 20},
   {id: 164, name: "LAIKIPIA EAST", county_id: 20},
   {id: 165, name: "LAIKIPIA NORTH", county_id: 20},
+  
+  // NAKURU (County ID: 31) - 11 constituencies
   {id: 166, name: "MOLO", county_id: 31},
   {id: 167, name: "NJORO", county_id: 31},
   {id: 168, name: "NAIVASHA", county_id: 31},
@@ -251,28 +316,38 @@ const CONSTITUENCIES_DATA = [
   {id: 174, name: "BAHATI", county_id: 31},
   {id: 175, name: "NAKURU TOWN WEST", county_id: 31},
   {id: 176, name: "NAKURU TOWN EAST", county_id: 31},
+  
+  // NAROK (County ID: 33) - 6 constituencies
   {id: 177, name: "KILGORIS", county_id: 33},
   {id: 178, name: "EMURUA DIKIRR", county_id: 33},
   {id: 179, name: "NAROK NORTH", county_id: 33},
   {id: 180, name: "NAROK EAST", county_id: 33},
   {id: 181, name: "NAROK SOUTH", county_id: 33},
   {id: 182, name: "NAROK WEST", county_id: 33},
+  
+  // KAJIADO (County ID: 10) - 5 constituencies
   {id: 183, name: "KAJIADO NORTH", county_id: 10},
   {id: 184, name: "KAJIADO CENTRAL", county_id: 10},
   {id: 185, name: "KAJIADO EAST", county_id: 10},
   {id: 186, name: "KAJIADO WEST", county_id: 10},
   {id: 187, name: "KAJIADO SOUTH", county_id: 10},
+  
+  // KERICHO (County ID: 12) - 6 constituencies
   {id: 188, name: "KIPKELION EAST", county_id: 12},
   {id: 189, name: "KIPKELION WEST", county_id: 12},
   {id: 190, name: "AINAMOI", county_id: 12},
   {id: 191, name: "BURETI", county_id: 12},
   {id: 192, name: "BELGUT", county_id: 12},
   {id: 193, name: "SIGOWET/SOIN", county_id: 12},
+  
+  // BOMET (County ID: 2) - 5 constituencies
   {id: 194, name: "SOTIK", county_id: 2},
   {id: 195, name: "CHEPALUNGU", county_id: 2},
   {id: 196, name: "BOMET EAST", county_id: 2},
   {id: 197, name: "BOMET CENTRAL", county_id: 2},
   {id: 198, name: "KONOIN", county_id: 2},
+  
+  // KAKAMEGA (County ID: 11) - 12 constituencies
   {id: 199, name: "LUGARI", county_id: 11},
   {id: 200, name: "LIKUYANI", county_id: 11},
   {id: 201, name: "MALAVA", county_id: 11},
@@ -285,11 +360,15 @@ const CONSTITUENCIES_DATA = [
   {id: 208, name: "KHWISERO", county_id: 11},
   {id: 209, name: "SHINYALU", county_id: 11},
   {id: 210, name: "IKOLOMANI", county_id: 11},
+  
+  // VIHIGA (County ID: 45) - 5 constituencies
   {id: 211, name: "VIHIGA", county_id: 45},
   {id: 212, name: "SABATIA", county_id: 45},
   {id: 213, name: "HAMISI", county_id: 45},
   {id: 214, name: "LUANDA", county_id: 45},
   {id: 215, name: "EMUHAYA", county_id: 45},
+  
+  // BUNGOMA (County ID: 3) - 9 constituencies
   {id: 216, name: "MT. ELGON", county_id: 3},
   {id: 217, name: "SIRISIA", county_id: 3},
   {id: 218, name: "KABUCHAI", county_id: 3},
@@ -299,6 +378,8 @@ const CONSTITUENCIES_DATA = [
   {id: 222, name: "WEBUYE WEST", county_id: 3},
   {id: 223, name: "KIMILILI", county_id: 3},
   {id: 224, name: "TONGAREN", county_id: 3},
+  
+  // BUSIA (County ID: 4) - 7 constituencies
   {id: 225, name: "TESO NORTH", county_id: 4},
   {id: 226, name: "TESO SOUTH", county_id: 4},
   {id: 227, name: "NAMBALE", county_id: 4},
@@ -306,12 +387,16 @@ const CONSTITUENCIES_DATA = [
   {id: 229, name: "BUTULA", county_id: 4},
   {id: 230, name: "FUNYULA", county_id: 4},
   {id: 231, name: "BUDALANGI", county_id: 4},
+  
+  // SIAYA (County ID: 38) - 6 constituencies
   {id: 232, name: "UGENYA", county_id: 38},
   {id: 233, name: "UGUNJA", county_id: 38},
   {id: 234, name: "ALEGO USONGA", county_id: 38},
   {id: 235, name: "GEM", county_id: 38},
   {id: 236, name: "BONDO", county_id: 38},
   {id: 237, name: "RARIEDA", county_id: 38},
+  
+  // KISUMU (County ID: 17) - 7 constituencies
   {id: 238, name: "KISUMU EAST", county_id: 17},
   {id: 239, name: "KISUMU WEST", county_id: 17},
   {id: 240, name: "KISUMU CENTRAL", county_id: 17},
@@ -319,6 +404,8 @@ const CONSTITUENCIES_DATA = [
   {id: 242, name: "NYANDO", county_id: 17},
   {id: 243, name: "MUHORONI", county_id: 17},
   {id: 244, name: "NYAKACH", county_id: 17},
+  
+  // HOMA BAY (County ID: 8) - 8 constituencies
   {id: 245, name: "KASIPUL", county_id: 8},
   {id: 246, name: "KABONDO KASIPUL", county_id: 8},
   {id: 247, name: "KARACHUONYO", county_id: 8},
@@ -327,6 +414,8 @@ const CONSTITUENCIES_DATA = [
   {id: 250, name: "NDHIWA", county_id: 8},
   {id: 251, name: "SUBA NORTH", county_id: 8},
   {id: 252, name: "SUBA SOUTH", county_id: 8},
+  
+  // MIGORI (County ID: 27) - 8 constituencies
   {id: 253, name: "RONGO", county_id: 27},
   {id: 254, name: "AWENDO", county_id: 27},
   {id: 255, name: "SUNA EAST", county_id: 27},
@@ -335,6 +424,8 @@ const CONSTITUENCIES_DATA = [
   {id: 258, name: "NYATIKE", county_id: 27},
   {id: 259, name: "KURIA WEST", county_id: 27},
   {id: 260, name: "KURIA EAST", county_id: 27},
+  
+  // KISII (County ID: 16) - 9 constituencies
   {id: 261, name: "BONCHARI", county_id: 16},
   {id: 262, name: "SOUTH MUGIRANGO", county_id: 16},
   {id: 263, name: "BOMACHOGE BORABU", county_id: 16},
@@ -344,10 +435,14 @@ const CONSTITUENCIES_DATA = [
   {id: 267, name: "NYARIBARI CHACHE", county_id: 16},
   {id: 268, name: "KITUTU CHACHE NORTH", county_id: 16},
   {id: 269, name: "KITUTU CHACHE SOUTH", county_id: 16},
+  
+  // NYAMIRA (County ID: 34) - 4 constituencies
   {id: 270, name: "KITUTU MASABA", county_id: 34},
   {id: 271, name: "WEST MUGIRANGO", county_id: 34},
   {id: 272, name: "NORTH MUGIRANGO", county_id: 34},
   {id: 273, name: "BORABU", county_id: 34},
+  
+  // NAIROBI (County ID: 30) - 17 constituencies
   {id: 274, name: "WESTLANDS", county_id: 30},
   {id: 275, name: "DAGORETTI NORTH", county_id: 30},
   {id: 276, name: "DAGORETTI SOUTH", county_id: 30},
