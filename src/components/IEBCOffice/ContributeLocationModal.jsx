@@ -10,173 +10,161 @@ import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
 import { supabase } from '@/integrations/supabase/client';
 import L from 'leaflet';
 
-// Complete database data for Kenyan counties and constituencies
-const COUNTIES_DATA = [
-  {id: 30, name: "Nairobi", governor: "Johnson Sakaja", senator: "Edwin Sifuna", registration_target: 724593, total_count: 2415310, county_code: "047"},
-  {id: 34, name: "Nyamira", governor: "Amos Nyaribo", senator: "Okong'o Omogeni", registration_target: 96985, total_count: 323283, county_code: "046"},
-  {id: 16, name: "Kisii", governor: "Simba Arati", senator: "Richard Onyonka", registration_target: 191103, total_count: 637010, county_code: "045"},
-  {id: 27, name: "Migori", governor: "Ochillo Ayacko", senator: "Eddy Oketch", registration_target: 140706, total_count: 469019, county_code: "044"},
-  {id: 8, name: "Homa Bay", governor: "Gladys Wanga", senator: "Moses Kajwang'", registration_target: 165321, total_count: 551071, county_code: "043"},
-  {id: 17, name: "Kisumu", governor: "Anyang' Nyong'o", senator: "Tom Ojienda", registration_target: 182026, total_count: 606754, county_code: "042"},
-  {id: 38, name: "Siaya", governor: "James Orengo", senator: "Oburu Odinga", registration_target: 160079, total_count: 533595, county_code: "041"},
-  {id: 4, name: "Busia", governor: "Paul Otuoma", senator: "Okiya Omtatah", registration_target: 125027, total_count: 416756, county_code: "040"},
-  {id: 3, name: "Bungoma", governor: "Kenneth Lusaka", senator: "Moses Wetangula", registration_target: 193979, total_count: 646598, county_code: "039"},
-  {id: 45, name: "Vihiga", governor: "Wilber Khasilwa Otichillo", senator: "Godfrey Osotsi", registration_target: 93013, total_count: 310043, county_code: "038"},
-  {id: 11, name: "Kakamega", governor: "Fernandes Barasa", senator: "Boni Khalwale", registration_target: 253365, total_count: 844551, county_code: "037"},
-  {id: 2, name: "Bomet", governor: "Hillary Barchok", senator: "Hillary Sigei", registration_target: 113096, total_count: 376985, county_code: "036"},
-  {id: 12, name: "Kericho", governor: "Erick Mutai", senator: "Aaron Cheruiyot", registration_target: 128420, total_count: 428067, county_code: "035"},
-  {id: 10, name: "Kajiado", governor: "Joseph Ole Lenku", senator: "Samuel Seki", registration_target: 138982, total_count: 463273, county_code: "034"},
-  {id: 33, name: "Narok", governor: "Patrick Ntutu", senator: "Ledama Olekina", registration_target: 119635, total_count: 398784, county_code: "033"},
-  {id: 31, name: "Nakuru", governor: "Susan Kihika", senator: "Tabitha Karanja", registration_target: 316457, total_count: 1054856, county_code: "032"},
-  {id: 20, name: "Laikipia", governor: "Joshua Irungu", senator: "John Kinyua", registration_target: 78904, total_count: 263012, county_code: "031"},
-  {id: 1, name: "Baringo", governor: "Benjamin Cheboi", senator: "William Cheptumo", registration_target: 84316, total_count: 281053, county_code: "030"},
-  {id: 32, name: "Nandi", governor: "Stephen Sang", senator: "Samson Cherargei", registration_target: 121886, total_count: 406288, county_code: "029"},
-  {id: 5, name: "Elgeyo/Marakwet", governor: "Wisley Rotich", senator: "Kipchumba Murkomen", registration_target: 64165, total_count: 213884, county_code: "028"},
-  {id: 44, name: "Uasin Gishu", governor: "Jonathan Bii", senator: "Jackson Mandago", registration_target: 151841, total_count: 506138, county_code: "027"},
-  {id: 42, name: "Trans Nzoia", governor: "George Natembeya", senator: "Allan Chesang", registration_target: 119694, total_count: 398981, county_code: "026"},
-  {id: 37, name: "Samburu", governor: "Jonathan Lelelit Lati", senator: "Steve Lelegwe", registration_target: 30004, total_count: 100014, county_code: "025"},
-  {id: 47, name: "West Pokot", governor: "Simon Kachapin Kitalei", senator: "Julius Murgor", registration_target: 66008, total_count: 220026, county_code: "024"},
-  {id: 43, name: "Turkana", governor: "Jeremiah Ekamais Lomorukai", senator: "James Lomenen Ekomwa", registration_target: 71558, total_count: 238528, county_code: "023"},
-  {id: 13, name: "Kiambu", governor: "Paul Kimani Wamatangi", senator: "Karungo Thang'wa", registration_target: 382502, total_count: 1275008, county_code: "022"},
-  {id: 29, name: "Murang'a", governor: "Irungu Kangata", senator: "Joe Nyutu", registration_target: 186279, total_count: 620929, county_code: "021"},
-  {id: 15, name: "Kirinyaga", governor: "Anne Mumbi Waiguru", senator: "Kamau Murango", registration_target: 112800, total_count: 376001, county_code: "020"},
-  {id: 36, name: "Nyeri", governor: "Edward Mutahi Kahiga", senator: "Wahome Wamatinga", registration_target: 144490, total_count: 481632, county_code: "019"},
-  {id: 35, name: "Nyandarua", governor: "Moses Ndirangu Kiarie Badilisha", senator: "John Methu", registration_target: 108350, total_count: 361165, county_code: "018"},
-  {id: 23, name: "Makueni", governor: "Mutula Kilonzo JR", senator: "Daniel Maanzo", registration_target: 143820, total_count: 479401, county_code: "017"},
-  {id: 22, name: "Machakos", governor: "Wavinya Ndeti", senator: "Agnes Kavindu", registration_target: 206270, total_count: 687565, county_code: "016"},
-  {id: 18, name: "Kitui", governor: "Julius Makau Malombe", senator: "Enock Wambua", registration_target: 159827, total_count: 532758, county_code: "015"},
-  {id: 6, name: "Embu", governor: "Cecily Mutitu Mbarire", senator: "Alexander Mundigi", registration_target: 100291, total_count: 334302, county_code: "014"},
-  {id: 41, name: "Tharaka-Nithi", governor: "Muthomi Njuki", senator: "Mwenda Gataya", registration_target: 69580, total_count: 231932, county_code: "013"},
-  {id: 26, name: "Meru", governor: "Isaac Mutuma M'ethingia", senator: "Kathuri Murungi", registration_target: 231642, total_count: 772139, county_code: "012"},
-  {id: 9, name: "Isiolo", governor: "Abdi Ibrahim Hassan", senator: "Fatuma Adan Dulo", registration_target: 26851, total_count: 89504, county_code: "011"},
-  {id: 25, name: "Marsabit", governor: "Mohamud Mohamed Ali", senator: "Mohamed Chute", registration_target: 50074, total_count: 166912, county_code: "010"},
-  {id: 24, name: "Mandera", governor: "Mohamed Adan Khalif", senator: "Ali Roba", registration_target: 65109, total_count: 217030, county_code: "009"},
-  {id: 46, name: "Wajir", governor: "Ahmed Abdullahi", senator: "Abbas Sheikh", registration_target: 62327, total_count: 207758, county_code: "008"},
-  {id: 7, name: "Garissa", governor: "Nathif Adam Jama", senator: "Abdulkadir Haji", registration_target: 60442, total_count: 201473, county_code: "007"},
-  {id: 39, name: "Taita Taveta", governor: "Andrew Mwadime", senator: "Johnes Mwaruma", registration_target: 54548, total_count: 181827, county_code: "006"},
-  {id: 21, name: "Lamu", governor: "Issa Abdalla Timamy", senator: "Joseph Githuku", registration_target: 24436, total_count: 81453, county_code: "005"},
-  {id: 40, name: "Tana River", governor: "Dhadho Gaddae Godhana", senator: "Danson Mungatana", registration_target: 42329, total_count: 141096, county_code: "004"},
-  {id: 14, name: "Kilifi", governor: "Gideon Maitha Mung'aro", senator: "Stewart Madzayo", registration_target: 176581, total_count: 588602, county_code: "003"},
-  {id: 19, name: "Kwale", governor: "Fatuma Mohamed Achani", senator: "Issa Boy Juma", registration_target: 98476, total_count: 328253, county_code: "002"},
-  {id: 28, name: "Mombasa", governor: "AbdullSwamad Shariff Nassir", senator: "Mohamed Faki Mwinyihaji", registration_target: 192574, total_count: 641913, county_code: "001"}
+// Complete list of 47 Kenyan counties with exact names from database
+const KENYAN_COUNTIES = [
+  "Mombasa", "Kwale", "Kilifi", "Tana River", "Lamu", "Taita Taveta", 
+  "Garissa", "Wajir", "Mandera", "Marsabit", "Isiolo", "Meru", 
+  "Tharaka-Nithi", "Embu", "Kitui", "Machakos", "Makueni", "Nyandarua", 
+  "Nyeri", "Kirinyaga", "Murang'a", "Kiambu", "Turkana", "West Pokot", 
+  "Samburu", "Trans Nzoia", "Uasin Gishu", "Elgeyo/Marakwet", "Nandi", 
+  "Baringo", "Laikipia", "Nakuru", "Narok", "Kajiado", "Kericho", 
+  "Bomet", "Kakamega", "Vihiga", "Bungoma", "Busia", "Siaya", 
+  "Kisumu", "Homa Bay", "Migori", "Kisii", "Nyamira", "Nairobi"
 ];
 
-const CONSTITUENCIES_DATA = [
-  {id: 144, name: "AINABKOI", member_of_parliament: "Samuel Chepkonga", county_id: 44, registration_target: 62606, party: "UDA", women_rep: "Gladys Boss Shollei"},
-  {id: 190, name: "AINAMOI", member_of_parliament: "Benjamin Langat", county_id: 12, registration_target: 85024, party: "UDA", women_rep: "Beatrice Kemei"},
-  {id: 152, name: "ALDAI", member_of_parliament: "Marianne Jebet Kitany", county_id: 32, registration_target: 78005, party: "UDA", women_rep: "Cynthia Muge"},
-  {id: 234, name: "ALEGO USONGA", member_of_parliament: "Samuel Atandi", county_id: 38, registration_target: 122002, party: "ODM", women_rep: "Christine Ombaka"},
-  {id: 254, name: "AWENDO", member_of_parliament: "John Owino", county_id: 27, registration_target: 55972, party: "ODM", women_rep: "Fatuma Mohamed"},
-  {id: 174, name: "BAHATI", member_of_parliament: "Irene Mrembo Njoki", county_id: 31, registration_target: 97040, party: "JP", women_rep: "Liza Chelule"},
-  {id: 28, name: "BALAMBALA", member_of_parliament: "Abdi Omar Shurie", county_id: 7, registration_target: 26085, party: "JP", women_rep: "Edo Udgoon Siyad"},
-  {id: 40, name: "BANISSA", member_of_parliament: "Kulow Maalim Hassan", county_id: 24, registration_target: 32703, party: "UDM", women_rep: "Ummul Kheir Khassim"},
-  {id: 159, name: "BARINGO CENTRAL", member_of_parliament: "Joshua Chepyegon Kandie", county_id: 1, registration_target: 45920, party: "UDA", women_rep: "Florence Sergon"},
-  {id: 158, name: "BARINGO NORTH", member_of_parliament: "Joseph Kipkoross Makilap", county_id: 1, registration_target: 50287, party: "UDA", women_rep: "Florence Sergon"},
-  {id: 160, name: "BARINGO SOUTH", member_of_parliament: "Charles Kamuren", county_id: 1, registration_target: 42791, party: "UDA", women_rep: "Florence Sergon"},
-  {id: 192, name: "BELGUT", member_of_parliament: "Nelson Koech", county_id: 12, registration_target: 75175, party: "UDA", women_rep: "Beatrice Kemei"},
-  {id: 264, name: "BOBASI", member_of_parliament: "Innocent Obiri", county_id: 16, registration_target: 106060, party: "Wiper", women_rep: "Dorice Donya Aburi"},
-  {id: 263, name: "BOMACHOGE BORABU", member_of_parliament: "Obadiah Barongo", county_id: 16, registration_target: 56991, party: "ODM", women_rep: "Dorice Donya Aburi"},
-  {id: 265, name: "BOMACHOGE CHACHE", member_of_parliament: "Miruka Ondieki Alfah", county_id: 16, registration_target: 49301, party: "UDA", women_rep: "Dorice Donya Aburi"},
-  {id: 197, name: "BOMET CENTRAL", member_of_parliament: "Richard Kilel", county_id: 2, registration_target: 71409, party: "UDA", women_rep: "Linet Toto"},
-  {id: 196, name: "BOMET EAST", member_of_parliament: "Richard Yegon Kipkemoi", county_id: 2, registration_target: 63640, party: "UDA", women_rep: "Linet Toto"},
-  {id: 261, name: "BONCHARI", member_of_parliament: "Charles Mamwacha Onchoke", county_id: 16, registration_target: 64630, party: "UPA", women_rep: "Dorice Donya Aburi"},
-  {id: 236, name: "BONDO", member_of_parliament: "Gideon Ochanda Ogolla", county_id: 38, registration_target: 104035, party: "ODM", women_rep: "Christine Ombaka"},
-  {id: 273, name: "BORABU", member_of_parliament: "Patrick Kibagendi Osero", county_id: 34, registration_target: 64065, party: "ODM", women_rep: "Jerusha Momanyi"},
-  {id: 231, name: "BUDALANGI", member_of_parliament: "Raphael Bitta Sauti Wanjala", county_id: 4, registration_target: 46032, party: "ODM", women_rep: "Catherine Omanyo"},
-  {id: 219, name: "BUMULA", member_of_parliament: "Jack Wamboka", county_id: 3, registration_target: 82047, party: "DAP–K", women_rep: "Catherine Wambilianga"},
-  {id: 20, name: "BURA", member_of_parliament: "Yakub Adow", county_id: 40, registration_target: 45678, party: "UPIA", women_rep: "Amina Dika"},
-  {id: 191, name: "BURETI", member_of_parliament: "Kibet Kirui Komingoi", county_id: 12, registration_target: 95320, party: "UDA", women_rep: "Beatrice Kemei"},
-  {id: 207, name: "BUTERE", member_of_parliament: "Nicholas Scott Tindi Mwale", county_id: 11, registration_target: 70224, party: "ODM", women_rep: "Elsie Muhanda"},
-  {id: 229, name: "BUTULA", member_of_parliament: "Joseph Maelo Oyula", county_id: 4, registration_target: 67377, party: "ODM", women_rep: "Catherine Omanyo"},
-  {id: 57, name: "BUURI", member_of_parliament: "Mugambi Ridikiri Murwithania", county_id: 26, registration_target: 82341, party: "UDA", women_rep: "Elizabeth Kailemia Karambu"},
-  {id: 58, name: "CENTRAL IMENTI", member_of_parliament: "Moses Nguchine Kirima", county_id: 26, registration_target: 76495, party: "UDA", women_rep: "Elizabeth Kailemia Karambu"},
-  {id: 1, name: "CHANGAMWE", member_of_parliament: "Omar Mwinyi", county_id: 28, registration_target: 93561, party: "ODM", women_rep: "Zamzam Mohamed"},
-  {id: 195, name: "CHEPALUNGU", member_of_parliament: "Victor Koech", county_id: 2, registration_target: 80140, party: "CCM", women_rep: "Linet Toto"},
-  {id: 140, name: "CHERANGANY", member_of_parliament: "Patrick Simiyu Barasa", county_id: 42, registration_target: 91830, party: "DAP–K", women_rep: "Lilian Siyoi"},
-  {id: 154, name: "CHESUMEI", member_of_parliament: "Paul Kibichiy Biego", county_id: 32, registration_target: 74201, party: "UDA", women_rep: "Cynthia Muge"},
-  {id: 61, name: "CHUKA/IGAMBANG'OMBE", member_of_parliament: "Patrick Munene Ntwiga", county_id: 41, registration_target: 84674, party: "UDA", women_rep: "Susan Ngugi"},
-  {id: 30, name: "DADAAB", member_of_parliament: "Farah Maalim", county_id: 7, registration_target: 38185, party: "Wiper", women_rep: "Edo Udgoon Siyad"},
-  {id: 275, name: "DAGORETTI NORTH", member_of_parliament: "Beatrice Elachi", county_id: 30, registration_target: 157659, party: "ODM", women_rep: "Esther Passaris"},
-  {id: 276, name: "DAGORETTI SOUTH", member_of_parliament: "John Kiarie Waweru", county_id: 30, registration_target: 114930, party: "UDA", women_rep: "Esther Passaris"},
-  {id: 162, name: "ELDAMA RAVINE", member_of_parliament: "Musa Sirma", county_id: 1, registration_target: 64074, party: "UDA", women_rep: "Florence Sergon"},
-  {id: 37, name: "ELDAS", member_of_parliament: "Adan Keynan Wehliye", county_id: 46, registration_target: 23359, party: "ODM", women_rep: "Fatuma Abdi Jehow"},
-  {id: 284, name: "EMBAKASI CENTRAL", member_of_parliament: "Benjamin Mwangi", county_id: 30, registration_target: 145892, party: "UDA", women_rep: "Esther Passaris"},
-  {id: 285, name: "EMBAKASI EAST", member_of_parliament: "Babu Owino", county_id: 30, registration_target: 154599, party: "ODM", women_rep: "Esther Passaris"},
-  {id: 283, name: "EMBAKASI NORTH", member_of_parliament: "James Gakuya", county_id: 30, registration_target: 113344, party: "UDA", women_rep: "Esther Passaris"},
-  {id: 282, name: "EMBAKASI SOUTH", member_of_parliament: "Julius Mwathe", county_id: 30, registration_target: 167953, party: "Wiper", women_rep: "Esther Passaris"},
-  {id: 286, name: "EMBAKASI WEST", member_of_parliament: "Mark Mwenje", county_id: 30, registration_target: 141878, party: "JP", women_rep: "Esther Passaris"},
-  {id: 155, name: "EMGWEN", member_of_parliament: "Josses Kiptoo Kosgei Lelmengit", county_id: 32, registration_target: 66940, party: "UDA", women_rep: "Cynthia Muge"},
-  {id: 215, name: "EMUHAYA", member_of_parliament: "Milemba Amboko", county_id: 45, registration_target: 50185, party: "ANC", women_rep: "Beatrice Adagala"},
-  {id: 178, name: "EMURUA DIKIRR", member_of_parliament: "Johana Ngeno Kipyegon", county_id: 33, registration_target: 44040, party: "UDA", women_rep: "Rebecca Tonkei"},
-  {id: 137, name: "ENDEBESS", member_of_parliament: "Robert Pukose", county_id: 42, registration_target: 50688, party: "UDA", women_rep: "Lilian Siyoi"},
-  {id: 31, name: "FAFI", member_of_parliament: "Salah Yakub Farah", county_id: 7, registration_target: 27335, party: "UDA", women_rep: "Edo Udgoon Siyad"},
-  {id: 230, name: "FUNYULA", member_of_parliament: "Wilberforce Oundo", county_id: 4, registration_target: 54031, party: "ODM", women_rep: "Catherine Omanyo"},
-  {id: 19, name: "GALOLE", member_of_parliament: "Said Buya Hiribae", county_id: 40, registration_target: 39965, party: "ODM", women_rep: "Amina Dika"},
-  {id: 15, name: "GANZE", member_of_parliament: "Charo Kenneth Kazungu Tungule", county_id: 14, registration_target: 67257, party: "PAA", women_rep: "Gertrude Mwanyanje"},
-  {id: 27, name: "GARISSA TOWNSHIP", member_of_parliament: "Aden Duale", county_id: 7, registration_target: 53253, party: "UDA", women_rep: "Edo Udgoon Siyad"},
-  {id: 18, name: "GARSEN", member_of_parliament: "Ali Wario Guyo", county_id: 40, registration_target: 55453, party: "ODM", women_rep: "Amina Dika"},
-  {id: 110, name: "GATANGA", member_of_parliament: "Edward Muriu", county_id: 29, registration_target: 101296, party: "UDA", women_rep: "Betty Maina"},
-  {id: 112, name: "GATUNDU NORTH", member_of_parliament: "Elijah Njoroge Kururia", county_id: 13, registration_target: 71810, party: "Independent", women_rep: "Anne Wamuratha"},
-  {id: 111, name: "GATUNDU SOUTH", member_of_parliament: "Gabriel Gathuka Kagombe", county_id: 13, registration_target: 79860, party: "UDA", women_rep: "Anne Wamuratha"},
-  {id: 235, name: "GEM", member_of_parliament: "Elisha Odhiambo", county_id: 38, registration_target: 93568, party: "ODM", women_rep: "Christine Ombaka"},
-  {id: 101, name: "GICHUGU", member_of_parliament: "Robert Gichimu Githinji", county_id: 15, registration_target: 92495, party: "UDA", women_rep: "Jane Njeri Maina"},
-  {id: 169, name: "GILGIL", member_of_parliament: "Martha Wangari Wanjira", county_id: 31, registration_target: 95654, party: "UDA", women_rep: "Liza Chelule"},
-  {id: 116, name: "GITHUNGURI", member_of_parliament: "Gathoni Wamuchomba", county_id: 13, registration_target: 104592, party: "UDA", women_rep: "Anne Wamuratha"},
-  {id: 213, name: "HAMISI", member_of_parliament: "Charles Gimose", county_id: 45, registration_target: 80384, party: "ANC", women_rep: "Beatrice Adagala"},
-  {id: 249, name: "HOMA BAY TOWN", member_of_parliament: "Peter Kaluma", county_id: 8, registration_target: 58335, party: "ODM", women_rep: "Joyce Osogo"},
-  {id: 52, name: "IGEMBE CENTRAL", member_of_parliament: "Dan Kiili Karitho", county_id: 26, registration_target: 93434, party: "JP", women_rep: "Elizabeth Kailemia Karambu"},
-  {id: 53, name: "IGEMBE NORTH", member_of_parliament: "Julius Taitumu M'anaiba", county_id: 26, registration_target: 77050, party: "UDA", women_rep: "Elizabeth Kailemia Karambu"},
-  {id: 51, name: "IGEMBE SOUTH", member_of_parliament: "John Paul Mwirigi", county_id: 26, registration_target: 77126, party: "UDA", women_rep: "Elizabeth Kailemia Karambu"},
-  {id: 32, name: "IJARA", member_of_parliament: "Abdi Ali Sheikhow", county_id: 7, registration_target: 29666, party: "NAP–K", women_rep: "Edo Udgoon Siyad"},
-  {id: 210, name: "IKOLOMANI", member_of_parliament: "Bernard Shinali", county_id: 11, registration_target: 56299, party: "ODM", women_rep: "Elsie Muhanda"},
-  {id: 49, name: "ISIOLO NORTH", member_of_parliament: "Joseph Samal Lomwa", county_id: 9, registration_target: 67323, party: "JP", women_rep: "Mumina Gollo Bonaya"},
-  {id: 50, name: "ISIOLO SOUTH", member_of_parliament: "Mohamed Tupi", county_id: 9, registration_target: 22181, party: "JP", women_rep: "Mumina Gollo Bonaya"},
-  {id: 2, name: "JOMVU", member_of_parliament: "Bady Twalib", county_id: 28, registration_target: 75085, party: "ODM", women_rep: "Zamzam Mohamed"},
-  {id: 113, name: "JUJA", member_of_parliament: "George Koimburi Ndungu", county_id: 13, registration_target: 134638, party: "UDA", women_rep: "Anne Wamuratha"},
-  {id: 119, name: "KABETE", member_of_parliament: "James Githua Kamau Wamacukuru", county_id: 13, registration_target: 91775, party: "UDA", women_rep: "Anne Wamuratha"},
-  {id: 246, name: "KABONDO KASIPUL", member_of_parliament: "Eve Akinyi Obara", county_id: 8, registration_target: 59910, party: "ODM", women_rep: "Joyce Osogo"},
-  {id: 218, name: "KABUCHAI", member_of_parliament: "Joseph Simiyu Wekesa Majimbo Kalasinga", county_id: 3, registration_target: 67221, party: "FORD–Kenya", women_rep: "Catherine Wambilianga"},
-  {id: 131, name: "KACHELIBA", member_of_parliament: "Titus Lotee", county_id: 47, registration_target: 51146, party: "KUP", women_rep: "Rael Aleutum"},
-  {id: 85, name: "KAITI", member_of_parliament: "Joshua Kivinda Kimilu", county_id: 23, registration_target: 65188, party: "Wiper", women_rep: "Rose Museo"},
-  {id: 184, name: "KAJIADO CENTRAL", member_of_parliament: "Elijah Memusi Ole Kanchory", county_id: 10, registration_target: 65823, party: "ODM", women_rep: "Leah Sopiato"},
-  {id: 185, name: "KAJIADO EAST", member_of_parliament: "Kakuta Maimai Hamisi", county_id: 10, registration_target: 116336, party: "ODM", women_rep: "Leah Sopiato"},
-  {id: 183, name: "KAJIADO NORTH", member_of_parliament: "Onesmus Ngogoyo Nguro", county_id: 10, registration_target: 134880, party: "UDA", women_rep: "Leah Sopiato"},
-  {id: 187, name: "KAJIADO SOUTH", member_of_parliament: "Samuel Parashina Sakimba", county_id: 10, registration_target: 71061, party: "ODM", women_rep: "Leah Sopiato"},
-  {id: 186, name: "KAJIADO WEST", member_of_parliament: "George Sunkuyia Risa", county_id: 10, registration_target: 75173, party: "UDA", women_rep: "Leah Sopiato"},
-  {id: 13, name: "KALOLENI", member_of_parliament: "Katana Paul Kahindi", county_id: 14, registration_target: 73009, party: "ODM", women_rep: "Gertrude Mwanyanje"},
-  {id: 288, name: "KAMUKUNJI", member_of_parliament: "Yusuf Hassan Abdi", county_id: 30, registration_target: 128516, party: "JP", women_rep: "Esther Passaris"},
-  {id: 109, name: "KANDARA", member_of_parliament: "Alice Muthoni Wahome", county_id: 29, registration_target: 105148, party: "UDA", women_rep: "Betty Maina"},
-  {id: 220, name: "KANDUYI", member_of_parliament: "John Makali", county_id: 3, registration_target: 118333, party: "FORD–Kenya", women_rep: "Catherine Wambilianga"},
-  {id: 104, name: "KANGEMA", member_of_parliament: "Peter Irungu Kihungi", county_id: 29, registration_target: 52002, party: "UDA", women_rep: "Betty Maina"},
-  {id: 77, name: "KANGUNDO", member_of_parliament: "Fabian Kyule Mule", county_id: 22, registration_target: 60796, party: "GDDP", women_rep: "Joyce Kamene Kasimbi"},
-  {id: 129, name: "KAPENGURIA", member_of_parliament: "Samwel Moroto Chumel", county_id: 47, registration_target: 66540, party: "UDA", women_rep: "Rael Aleutum"},
-  {id: 145, name: "KAPSERET", member_of_parliament: "Oscar Kipchumba Sudi", county_id: 44, registration_target: 74809, party: "UDA", women_rep: "Gladys Boss Shollei"},
-  {id: 247, name: "KARACHUONYO", member_of_parliament: "Andrew Adipo Okuome", county_id: 8, registration_target: 94181, party: "ODM", women_rep: "Joyce Osogo"},
-  {id: 280, name: "KASARANI", member_of_parliament: "Ronald Karauri", county_id: 30, registration_target: 155250, party: "Independent", women_rep: "Esther Passaris"},
-  {id: 245, name: "KASIPUL", member_of_parliament: "Vacant", county_id: 8, registration_target: 67513, party: "", women_rep: "Joyce Osogo"},
-  {id: 79, name: "KATHIANI", member_of_parliament: "Robert Mbui", county_id: 22, registration_target: 60224, party: "Wiper", women_rep: "Joyce Kamene Kasimbi"},
-  {id: 149, name: "KEIYO NORTH", member_of_parliament: "Adams Kipsanai Korir", county_id: 5, registration_target: 49247, party: "UDA", women_rep: "Caroline Jeptoo Ngelechei"},
-  {id: 150, name: "KEIYO SOUTH", member_of_parliament: "Gideon Kimaiyo Kipkoech", county_id: 5, registration_target: 62397, party: "UDA", women_rep: "Caroline Jeptoo Ngelechei"},
-  {id: 146, name: "KESSES", member_of_parliament: "Julius Kipletting Rutto", county_id: 44, registration_target: 77942, party: "UDA", women_rep: "Gladys Boss Shollei"},
-  {id: 208, name: "KHWISERO", member_of_parliament: "Christopher Aseka Wangaya", county_id: 11, registration_target: 55091, party: "ODM", women_rep: "Elsie Muhanda"},
-  {id: 118, name: "KIAMBAA", member_of_parliament: "John Njuguna Wanjiku", county_id: 13, registration_target: 104268, party: "UDA", women_rep: "Anne Wamuratha"},
-  {id: 117, name: "KIAMBU", member_of_parliament: "John Machua Waithaka", county_id: 13, registration_target: 86986, party: "UDA", women_rep: "Anne Wamuratha"},
-  {id: 278, name: "KIBRA", member_of_parliament: "Peter Ochieng Orero", county_id: 30, registration_target: 128282, party: "ODM", women_rep: "Esther Passaris"}
-];
+// Complete constituency data mapped to counties from database
+const CONSTITUENCY_SUGGESTIONS = {
+  "Mombasa": ["Changamwe", "Jomvu", "Kisauni", "Nyali", "Likoni", "Mvita"],
+  "Kwale": ["Msambweni", "Lungalunga", "Matuga", "Kinango"],
+  "Kilifi": ["Kilifi North", "Kilifi South", "Kaloleni", "Rabai", "Ganze", "Malindi", "Magarini"],
+  "Tana River": ["Garsen", "Galole", "Bura"],
+  "Lamu": ["Lamu East", "Lamu West"],
+  "Taita Taveta": ["Taveta", "Wundanyi", "Mwatate", "Voi"],
+  "Garissa": ["Garissa Township", "Balambala", "Lagdera", "Dadaab", "Fafi", "Ijara"],
+  "Wajir": ["Wajir North", "Wajir East", "Wajir South", "Wajir West", "Eldas", "Tarbaj"],
+  "Mandera": ["Mandera West", "Mandera North", "Mandera East", "Mandera South", "Banissa", "Lafey"],
+  "Marsabit": ["Moyale", "North Horr", "Saku", "Laisamis"],
+  "Isiolo": ["Isiolo North", "Isiolo South"],
+  "Meru": ["Igembe South", "Igembe Central", "Igembe North", "Tigania West", "Tigania East", "North Imenti", "Buuri", "Central Imenti", "South Imenti"],
+  "Tharaka-Nithi": ["Tharaka", "Chuka/Igambang'ombe", "Maara"],
+  "Embu": ["Manyatta", "Runyenjes", "Mbeere South", "Mbeere North"],
+  "Kitui": ["Mwingi North", "Mwingi West", "Mwingi Central", "Kitui West", "Kitui Rural", "Kitui Central", "Kitui East", "Kitui South"],
+  "Machakos": ["Masinga", "Yatta", "Kangundo", "Matungulu", "Kathiani", "Mavoko", "Machakos Town", "Mwala"],
+  "Makueni": ["Mbooni", "Kilome", "Kaiti", "Makueni", "Kibwezi West", "Kibwezi East"],
+  "Nyandarua": ["Kinangop", "Kipipiri", "Ol Kalou", "Ol Jorok", "Ndaragwa"],
+  "Nyeri": ["Tetu", "Kieni", "Mathira", "Othaya", "Mukurweini", "Nyeri Town"],
+  "Kirinyaga": ["Mwea", "Gichugu", "Ndia", "Kirinyaga Central"],
+  "Murang'a": ["Kangema", "Mathioya", "Kiharu", "Kigumo", "Maragwa", "Kandara", "Gatanga"],
+  "Kiambu": ["Gatundu South", "Gatundu North", "Juja", "Thika Town", "Ruiru", "Githunguri", "Kiambu", "Kiambaa", "Kabete", "Kikuyu", "Limuru", "Lari"],
+  "Turkana": ["Turkana North", "Turkana West", "Turkana Central", "Loima", "Turkana South", "Turkana East"],
+  "West Pokot": ["Kapenguria", "Sigor", "Kacheliba", "Pokot South"],
+  "Samburu": ["Samburu West", "Samburu North", "Samburu East"],
+  "Trans Nzoia": ["Kwanza", "Endebess", "Saboti", "Kiminini", "Cherangany"],
+  "Uasin Gishu": ["Soy", "Turbo", "Moiben", "Ainabkoi", "Kapseret", "Kesses"],
+  "Elgeyo/Marakwet": ["Marakwet East", "Marakwet West", "Keiyo North", "Keiyo South"],
+  "Nandi": ["Tinderet", "Aldai", "Nandi Hills", "Chesumei", "Emgwen", "Mosop"],
+  "Baringo": ["Baringo North", "Baringo Central", "Baringo South", "Mogotio", "Eldama Ravine"],
+  "Laikipia": ["Laikipia West", "Laikipia East", "Laikipia North"],
+  "Nakuru": ["Nakuru Town West", "Nakuru Town East", "Naivasha", "Gilgil", "Bahati", "Subukia", "Rongai", "Njoro", "Molo", "Kuresoi North", "Kuresoi South"],
+  "Narok": ["Narok North", "Narok South", "Narok East", "Narok West", "Kilgoris", "Emurua Dikirr"],
+  "Kajiado": ["Kajiado North", "Kajiado Central", "Kajiado East", "Kajiado West", "Kajiado South"],
+  "Kericho": ["Ainamoi", "Belgut", "Bureti", "Kipkelion East", "Kipkelion West", "Sigowet/Soin"],
+  "Bomet": ["Bomet East", "Bomet Central", "Chepalungu", "Sotik", "Konoin"],
+  "Kakamega": ["Butere", "Mumias East", "Mumias West", "Matungu", "Khwisero", "Shinyalu", "Lurambi", "Navakholo", "Malava", "Ikolomani"],
+  "Vihiga": ["Vihiga", "Sabatia", "Hamisi", "Emuhaya", "Luanda"],
+  "Bungoma": ["Bumula", "Kanduyi", "Webuye East", "Webuye West", "Kimilili", "Tongaren", "Sirisia", "Kabuchai", "Mt. Elgon"],
+  "Busia": ["Butula", "Funyula", "Budalangi", "Nambale", "Matayos", "Teso North", "Teso South"],
+  "Siaya": ["Ugenya", "Ugunja", "Alego Usonga", "Gem", "Bondo", "Rarieda"],
+  "Kisumu": ["Kisumu East", "Kisumu West", "Kisumu Central", "Seme", "Nyando", "Muhoroni", "Nyakach"],
+  "Homa Bay": ["Kasipul", "Kabondo Kasipul", "Karachuonyo", "Rangwe", "Homa Bay Town", "Ndhiwa", "Suba North", "Suba South"],
+  "Migori": ["Rongo", "Awendo", "Suna East", "Suna West", "Uriri", "Nyatike", "Kuria East", "Kuria West"],
+  "Kisii": ["Bonchari", "South Mugirango", "Bomachoge Borabu", "Bobasi", "Bomachoge Chache", "Nyaribari Masaba", "Nyaribari Chache", "Kitutu Chache North", "Kitutu Chache South"],
+  "Nyamira": ["Kitutu Masaba", "West Mugirango", "North Mugirango", "Borabu"],
+  "Nairobi": ["Westlands", "Dagoretti North", "Dagoretti South", "Langata", "Kibra", "Roysambu", "Kasarani", "Ruaraka", "Embakasi South", "Embakasi North", "Embakasi Central", "Embakasi East", "Embakasi West", "Makadara", "Kamukunji", "Starehe", "Mathare"]
+};
 
-// Complete list of 47 Kenyan counties with constituencies
-const KENYAN_COUNTIES = COUNTIES_DATA.map(county => county.name);
+// County code mapping for database queries
+const COUNTY_CODES = {
+  "Mombasa": "001",
+  "Kwale": "002", 
+  "Kilifi": "003",
+  "Tana River": "004",
+  "Lamu": "005",
+  "Taita Taveta": "006",
+  "Garissa": "007",
+  "Wajir": "008",
+  "Mandera": "009",
+  "Marsabit": "010",
+  "Isiolo": "011",
+  "Meru": "012",
+  "Tharaka-Nithi": "013",
+  "Embu": "014",
+  "Kitui": "015",
+  "Machakos": "016",
+  "Makueni": "017",
+  "Nyandarua": "018",
+  "Nyeri": "019",
+  "Kirinyaga": "020",
+  "Murang'a": "021",
+  "Kiambu": "022",
+  "Turkana": "023",
+  "West Pokot": "024",
+  "Samburu": "025",
+  "Trans Nzoia": "026",
+  "Uasin Gishu": "027",
+  "Elgeyo/Marakwet": "028",
+  "Nandi": "029",
+  "Baringo": "030",
+  "Laikipia": "031",
+  "Nakuru": "032",
+  "Narok": "033",
+  "Kajiado": "034",
+  "Kericho": "035",
+  "Bomet": "036",
+  "Kakamega": "037",
+  "Vihiga": "038",
+  "Bungoma": "039",
+  "Busia": "040",
+  "Siaya": "041",
+  "Kisumu": "042",
+  "Homa Bay": "043",
+  "Migori": "044",
+  "Kisii": "045",
+  "Nyamira": "046",
+  "Nairobi": "047"
+};
 
-// Enhanced constituency suggestions with all counties and their constituencies
-const CONSTITUENCY_SUGGESTIONS = {};
-
-COUNTIES_DATA.forEach(county => {
-  const countyConstituencies = CONSTITUENCIES_DATA
-    .filter(constituency => constituency.county_id === county.id)
-    .map(constituency => constituency.name);
+// Fuzzy search utility functions
+const fuzzyMatch = (input, options) => {
+  if (!input || !options || options.length === 0) return [];
   
-  CONSTITUENCY_SUGGESTIONS[county.name] = countyConstituencies;
-});
+  const inputLower = input.toLowerCase().trim();
+  const exactMatch = options.find(option => 
+    option.toLowerCase() === inputLower
+  );
+  
+  if (exactMatch) return [exactMatch];
+  
+  // Find close matches
+  const matches = options.filter(option => {
+    const optionLower = option.toLowerCase();
+    
+    // Direct inclusion
+    if (optionLower.includes(inputLower) || inputLower.includes(optionLower)) {
+      return true;
+    }
+    
+    // Levenshtein-like simple matching
+    if (inputLower.length >= 3) {
+      let matches = 0;
+      for (let i = 0; i < inputLower.length; i++) {
+        if (optionLower.includes(inputLower[i])) {
+          matches++;
+        }
+      }
+      return matches >= inputLower.length - 1;
+    }
+    
+    return false;
+  });
+  
+  return matches.slice(0, 5); // Return top 5 matches
+};
+
+const normalizeInput = (input) => {
+  if (!input) return '';
+  return input.trim().toLowerCase().replace(/[^a-z0-9\s]/g, '');
+};
 
 // Enhanced Google Maps URL parsing function
 const parseGoogleMapsInput = (input) => {
@@ -261,77 +249,6 @@ const isValidCoordinate = (lat, lng) => {
           lng >= KENYA_BOUNDS.minLng && lng <= KENYA_BOUNDS.maxLng);
 };
 
-// Fuzzy search utility functions
-const normalizeText = (text) => {
-  return text.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '');
-};
-
-const fuzzyMatch = (input, options, threshold = 0.7) => {
-  const normalizedInput = normalizeText(input);
-  if (!normalizedInput) return [];
-  
-  const matches = [];
-  
-  options.forEach(option => {
-    const normalizedOption = normalizeText(option);
-    
-    // Exact match
-    if (normalizedOption === normalizedInput) {
-      matches.push({ option, score: 1, type: 'exact' });
-      return;
-    }
-    
-    // Contains match
-    if (normalizedOption.includes(normalizedInput) || normalizedInput.includes(normalizedOption)) {
-      const score = Math.min(normalizedOption.length, normalizedInput.length) / Math.max(normalizedOption.length, normalizedInput.length);
-      matches.push({ option, score, type: 'contains' });
-      return;
-    }
-    
-    // Levenshtein distance based matching
-    const distance = levenshteinDistance(normalizedInput, normalizedOption);
-    const maxLength = Math.max(normalizedInput.length, normalizedOption.length);
-    const similarity = 1 - distance / maxLength;
-    
-    if (similarity >= threshold) {
-      matches.push({ option, score: similarity, type: 'fuzzy' });
-    }
-  });
-  
-  return matches
-    .sort((a, b) => b.score - a.score)
-    .map(match => match.option)
-    .slice(0, 5); // Return top 5 matches
-};
-
-const levenshteinDistance = (a, b) => {
-  const matrix = [];
-  
-  for (let i = 0; i <= b.length; i++) {
-    matrix[i] = [i];
-  }
-  
-  for (let j = 0; j <= a.length; j++) {
-    matrix[0][j] = j;
-  }
-  
-  for (let i = 1; i <= b.length; i++) {
-    for (let j = 1; j <= a.length; j++) {
-      if (b.charAt(i - 1) === a.charAt(j - 1)) {
-        matrix[i][j] = matrix[i - 1][j - 1];
-      } else {
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j - 1] + 1,
-          matrix[i][j - 1] + 1,
-          matrix[i - 1][j] + 1
-        );
-      }
-    }
-  }
-  
-  return matrix[b.length][a.length];
-};
-
 // Enhanced client-side URL expansion with timeout
 const expandShortUrl = async (shortUrl) => {
   const controller = new AbortController();
@@ -391,8 +308,10 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const [duplicateOffices, setDuplicateOffices] = useState([]);
   const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
   const [constituencyCode, setConstituencyCode] = useState(null);
-  const [fuzzyCountyMatches, setFuzzyCountyMatches] = useState([]);
-  const [fuzzyConstituencyMatches, setFuzzyConstituencyMatches] = useState([]);
+  
+  // New state for fuzzy search
+  const [countySuggestions, setCountySuggestions] = useState([]);
+  const [constituencyInputSuggestions, setConstituencyInputSuggestions] = useState([]);
   const [showCountySuggestions, setShowCountySuggestions] = useState(false);
   const [showConstituencySuggestions, setShowConstituencySuggestions] = useState(false);
   
@@ -401,8 +320,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const markerRef = useRef(null);
   const fileInputRef = useRef(null);
   const retryCountRef = useRef(0);
-  const countyInputRef = useRef(null);
-  const constituencyInputRef = useRef(null);
   
   const { 
     getCurrentPosition, 
@@ -413,38 +330,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     getConstituencyCode
   } = useContributeLocation();
 
-  // Enhanced fuzzy search for counties
-  const handleCountyInputChange = useCallback((value) => {
-    setFormData(prev => ({ ...prev, submitted_county: value }));
-    
-    if (!value.trim()) {
-      setFuzzyCountyMatches([]);
-      setShowCountySuggestions(false);
-      return;
-    }
-    
-    const matches = fuzzyMatch(value, KENYAN_COUNTIES, 0.6);
-    setFuzzyCountyMatches(matches);
-    setShowCountySuggestions(matches.length > 0);
-  }, []);
-
-  // Enhanced fuzzy search for constituencies
-  const handleConstituencyInputChange = useCallback((value) => {
-    setFormData(prev => ({ ...prev, submitted_constituency: value }));
-    
-    if (!value.trim() || !formData.submitted_county) {
-      setFuzzyConstituencyMatches([]);
-      setShowConstituencySuggestions(false);
-      return;
-    }
-    
-    const countyConstituencies = CONSTITUENCY_SUGGESTIONS[formData.submitted_county] || [];
-    const matches = fuzzyMatch(value, countyConstituencies, 0.6);
-    setFuzzyConstituencyMatches(matches);
-    setShowConstituencySuggestions(matches.length > 0);
-  }, [formData.submitted_county]);
-
-  // Memoized constituency suggestions based on selected county
+  // Enhanced constituency suggestions with fuzzy search
   const constituencySuggestions = useMemo(() => {
     return CONSTITUENCY_SUGGESTIONS[formData.submitted_county] || [];
   }, [formData.submitted_county]);
@@ -470,6 +356,52 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     const timeoutId = setTimeout(fetchConstituencyCode, 500);
     return () => clearTimeout(timeoutId);
   }, [formData.submitted_constituency, formData.submitted_county, getConstituencyCode]);
+
+  // Fuzzy search handlers
+  const handleCountyInputChange = useCallback((value) => {
+    setFormData(prev => ({ ...prev, submitted_county: value }));
+    
+    if (value.length > 1) {
+      const matches = fuzzyMatch(value, KENYAN_COUNTIES);
+      setCountySuggestions(matches);
+      setShowCountySuggestions(matches.length > 0);
+    } else {
+      setCountySuggestions([]);
+      setShowCountySuggestions(false);
+    }
+  }, []);
+
+  const handleConstituencyInputChange = useCallback((value) => {
+    setFormData(prev => ({ ...prev, submitted_constituency: value }));
+    
+    if (value.length > 1 && formData.submitted_county) {
+      const countyConstituencies = CONSTITUENCY_SUGGESTIONS[formData.submitted_county] || [];
+      const matches = fuzzyMatch(value, countyConstituencies);
+      setConstituencyInputSuggestions(matches);
+      setShowConstituencySuggestions(matches.length > 0);
+    } else {
+      setConstituencyInputSuggestions([]);
+      setShowConstituencySuggestions(false);
+    }
+  }, [formData.submitted_county]);
+
+  const handleCountySelect = useCallback((county) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      submitted_county: county,
+      submitted_constituency: '' // Reset constituency when county changes
+    }));
+    setCountySuggestions([]);
+    setShowCountySuggestions(false);
+    setConstituencyInputSuggestions([]);
+    setShowConstituencySuggestions(false);
+  }, []);
+
+  const handleConstituencySelect = useCallback((constituency) => {
+    setFormData(prev => ({ ...prev, submitted_constituency: constituency }));
+    setConstituencyInputSuggestions([]);
+    setShowConstituencySuggestions(false);
+  }, []);
 
   // Safe duplicate office check function
   const safeFindDuplicateOffices = async (lat, lng, name, radius = 200) => {
@@ -1015,8 +947,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     setContributionId(null);
     setDuplicateOffices([]);
     setConstituencyCode(null);
-    setFuzzyCountyMatches([]);
-    setFuzzyConstituencyMatches([]);
+    setCountySuggestions([]);
+    setConstituencyInputSuggestions([]);
     setShowCountySuggestions(false);
     setShowConstituencySuggestions(false);
     retryCountRef.current = 0;
@@ -1111,111 +1043,104 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     );
   };
 
-  // Enhanced County Input with Fuzzy Search
+  // Enhanced County Input Component with Fuzzy Search
   const CountyInput = () => (
     <div className="relative">
       <label htmlFor="county" className="block text-sm font-medium text-gray-700 mb-1">
         County *
       </label>
       <input
-        ref={countyInputRef}
         id="county"
         type="text"
         required
         value={formData.submitted_county}
         onChange={(e) => handleCountyInputChange(e.target.value)}
-        onFocus={() => setShowCountySuggestions(fuzzyCountyMatches.length > 0)}
+        onFocus={() => formData.submitted_county && handleCountyInputChange(formData.submitted_county)}
         onBlur={() => setTimeout(() => setShowCountySuggestions(false), 200)}
-        placeholder="e.g., Nairobi, Mombasa, Kisumu..."
+        placeholder="Start typing county name..."
         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-        list="county-suggestions"
+        autoComplete="off"
       />
       
-      {showCountySuggestions && fuzzyCountyMatches.length > 0 && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
-          {fuzzyCountyMatches.map((county, index) => (
-            <div
-              key={county}
-              className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
-              onClick={() => {
-                setFormData(prev => ({ ...prev, submitted_county: county }));
-                setFuzzyCountyMatches([]);
-                setShowCountySuggestions(false);
-              }}
+      {showCountySuggestions && countySuggestions.length > 0 && (
+        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+          {countySuggestions.map((county, index) => (
+            <button
+              key={index}
+              type="button"
+              className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+              onClick={() => handleCountySelect(county)}
             >
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{county}</span>
-                <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                <span>{county}</span>
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                   Did you mean?
                 </span>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}
       
-      <datalist id="county-suggestions">
-        {KENYAN_COUNTIES.map(county => (
-          <option key={county} value={county} />
-        ))}
-      </datalist>
+      {formData.submitted_county && !KENYAN_COUNTIES.includes(formData.submitted_county) && countySuggestions.length === 0 && (
+        <p className="text-xs text-red-600 mt-1">
+          County not found. Please select from the list or check spelling.
+        </p>
+      )}
     </div>
   );
 
-  // Enhanced Constituency Input with Fuzzy Search
+  // Enhanced Constituency Input Component with Fuzzy Search
   const ConstituencyInput = () => (
     <div className="relative">
       <label htmlFor="constituency" className="block text-sm font-medium text-gray-700 mb-1">
         Constituency *
       </label>
       <input
-        ref={constituencyInputRef}
         id="constituency"
         type="text"
         required
         value={formData.submitted_constituency}
         onChange={(e) => handleConstituencyInputChange(e.target.value)}
-        onFocus={() => setShowConstituencySuggestions(fuzzyConstituencyMatches.length > 0)}
+        onFocus={() => formData.submitted_constituency && handleConstituencyInputChange(formData.submitted_constituency)}
         onBlur={() => setTimeout(() => setShowConstituencySuggestions(false), 200)}
-        placeholder="e.g., Westlands, Dagoretti North, Embakasi West..."
+        placeholder="Start typing constituency..."
         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-        list="constituency-suggestions"
+        autoComplete="off"
         disabled={!formData.submitted_county}
       />
       
-      {showConstituencySuggestions && fuzzyConstituencyMatches.length > 0 && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
-          {fuzzyConstituencyMatches.map((constituency, index) => (
-            <div
-              key={constituency}
-              className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
-              onClick={() => {
-                setFormData(prev => ({ ...prev, submitted_constituency: constituency }));
-                setFuzzyConstituencyMatches([]);
-                setShowConstituencySuggestions(false);
-              }}
+      {showConstituencySuggestions && constituencyInputSuggestions.length > 0 && (
+        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+          {constituencyInputSuggestions.map((constituency, index) => (
+            <button
+              key={index}
+              type="button"
+              className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+              onClick={() => handleConstituencySelect(constituency)}
             >
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{constituency}</span>
-                <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                <span>{constituency}</span>
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                   Match
                 </span>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}
       
-      <datalist id="constituency-suggestions">
-        {constituencySuggestions.map(constituency => (
-          <option key={constituency} value={constituency} />
-        ))}
-      </datalist>
-      
-      {constituencySuggestions.length > 0 && (
+      {!formData.submitted_county && (
         <p className="text-xs text-gray-500 mt-1">
-          Suggestions: {constituencySuggestions.slice(0, 3).join(', ')}
-          {constituencySuggestions.length > 3 && '...'}
+          Please select a county first
+        </p>
+      )}
+      
+      {formData.submitted_county && formData.submitted_constituency && 
+       !constituencySuggestions.includes(formData.submitted_constituency) && 
+       constituencyInputSuggestions.length === 0 && (
+        <p className="text-xs text-red-600 mt-1">
+          Constituency not found in {formData.submitted_county}. Please check spelling.
         </p>
       )}
       
@@ -1228,12 +1153,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       {formData.submitted_constituency && formData.submitted_county && !constituencyCode && (
         <p className="text-xs text-yellow-600 mt-1">
           ⚠ No constituency code found for this combination
-        </p>
-      )}
-      
-      {!formData.submitted_county && (
-        <p className="text-xs text-gray-500 mt-1">
-          Please select a county first to see constituency suggestions
         </p>
       )}
     </div>
