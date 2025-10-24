@@ -1,3 +1,4 @@
+// src/components/IEBCOffice/ContributeLocationModal.jsx
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
@@ -9,354 +10,466 @@ import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
 import { supabase } from '@/integrations/supabase/client';
 import L from 'leaflet';
 
-// Complete database-driven counties data
-const COUNTIES_DATA = [
-  { id: 30, name: "Nairobi", county_code: "047" },
-  { id: 34, name: "Nyamira", county_code: "046" },
-  { id: 16, name: "Kisii", county_code: "045" },
-  { id: 27, name: "Migori", county_code: "044" },
-  { id: 8, name: "Homa Bay", county_code: "043" },
-  { id: 17, name: "Kisumu", county_code: "042" },
-  { id: 38, name: "Siaya", county_code: "041" },
-  { id: 4, name: "Busia", county_code: "040" },
-  { id: 3, name: "Bungoma", county_code: "039" },
-  { id: 45, name: "Vihiga", county_code: "038" },
-  { id: 11, name: "Kakamega", county_code: "037" },
-  { id: 2, name: "Bomet", county_code: "036" },
-  { id: 12, name: "Kericho", county_code: "035" },
-  { id: 10, name: "Kajiado", county_code: "034" },
-  { id: 33, name: "Narok", county_code: "033" },
-  { id: 31, name: "Nakuru", county_code: "032" },
-  { id: 20, name: "Laikipia", county_code: "031" },
-  { id: 1, name: "Baringo", county_code: "030" },
-  { id: 32, name: "Nandi", county_code: "029" },
-  { id: 5, name: "Elgeyo/Marakwet", county_code: "028" },
-  { id: 44, name: "Uasin Gishu", county_code: "027" },
-  { id: 42, name: "Trans Nzoia", county_code: "026" },
-  { id: 37, name: "Samburu", county_code: "025" },
-  { id: 47, name: "West Pokot", county_code: "024" },
-  { id: 43, name: "Turkana", county_code: "023" },
-  { id: 13, name: "Kiambu", county_code: "022" },
-  { id: 29, name: "Murang'a", county_code: "021" },
-  { id: 15, name: "Kirinyaga", county_code: "020" },
-  { id: 36, name: "Nyeri", county_code: "019" },
-  { id: 35, name: "Nyandarua", county_code: "018" },
-  { id: 23, name: "Makueni", county_code: "017" },
-  { id: 22, name: "Machakos", county_code: "016" },
-  { id: 18, name: "Kitui", county_code: "015" },
-  { id: 6, name: "Embu", county_code: "014" },
-  { id: 41, name: "Tharaka-Nithi", county_code: "013" },
-  { id: 26, name: "Meru", county_code: "012" },
-  { id: 9, name: "Isiolo", county_code: "011" },
-  { id: 25, name: "Marsabit", county_code: "010" },
-  { id: 24, name: "Mandera", county_code: "009" },
-  { id: 46, name: "Wajir", county_code: "008" },
-  { id: 7, name: "Garissa", county_code: "007" },
-  { id: 39, name: "Taita Taveta", county_code: "006" },
-  { id: 21, name: "Lamu", county_code: "005" },
-  { id: 40, name: "Tana River", county_code: "004" },
-  { id: 14, name: "Kilifi", county_code: "003" },
-  { id: 19, name: "Kwale", county_code: "002" },
-  { id: 28, name: "Mombasa", county_code: "001" }
+// Complete list of 47 Kenyan counties with exact names from database
+const KENYAN_COUNTIES = [
+  "Baringo", "Bomet", "Bungoma", "Busia", "Elgeyo/Marakwet",
+  "Embu", "Garissa", "Homa Bay", "Isiolo", "Kajiado",
+  "Kakamega", "Kericho", "Kiambu", "Kilifi", "Kirinyaga",
+  "Kisii", "Kisumu", "Kitui", "Kwale", "Laikipia",
+  "Lamu", "Machakos", "Makueni", "Mandera", "Marsabit",
+  "Meru", "Migori", "Mombasa", "Murang'a", "Nairobi",
+  "Nakuru", "Nandi", "Narok", "Nyamira", "Nyandarua",
+  "Nyeri", "Samburu", "Siaya", "Taita Taveta", "Tana River",
+  "Tharaka-Nithi", "Trans Nzoia", "Turkana", "Uasin Gishu",
+  "Vihiga", "Wajir", "West Pokot"
 ];
 
-// Complete database-driven constituencies data
-const CONSTITUENCIES_DATA = [
-  { id: 144, name: "AINABKOI", county_id: 44 },
-  { id: 190, name: "AINAMOI", county_id: 12 },
-  { id: 152, name: "ALDAI", county_id: 32 },
-  { id: 234, name: "ALEGO USONGA", county_id: 38 },
-  { id: 254, name: "AWENDO", county_id: 27 },
-  { id: 174, name: "BAHATI", county_id: 31 },
-  { id: 28, name: "BALAMBALA", county_id: 7 },
-  { id: 40, name: "BANISSA", county_id: 24 },
-  { id: 159, name: "BARINGO CENTRAL", county_id: 1 },
-  { id: 158, name: "BARINGO NORTH", county_id: 1 },
-  { id: 160, name: "BARINGO SOUTH", county_id: 1 },
-  { id: 192, name: "BELGUT", county_id: 12 },
-  { id: 264, name: "BOBASI", county_id: 16 },
-  { id: 263, name: "BOMACHOGE BORABU", county_id: 16 },
-  { id: 265, name: "BOMACHOGE CHACHE", county_id: 16 },
-  { id: 197, name: "BOMET CENTRAL", county_id: 2 },
-  { id: 196, name: "BOMET EAST", county_id: 2 },
-  { id: 261, name: "BONCHARI", county_id: 16 },
-  { id: 236, name: "BONDO", county_id: 38 },
-  { id: 273, name: "BORABU", county_id: 34 },
-  { id: 231, name: "BUDALANGI", county_id: 4 },
-  { id: 219, name: "BUMULA", county_id: 3 },
-  { id: 20, name: "BURA", county_id: 40 },
-  { id: 191, name: "BURETI", county_id: 12 },
-  { id: 207, name: "BUTERE", county_id: 11 },
-  { id: 229, name: "BUTULA", county_id: 4 },
-  { id: 57, name: "BUURI", county_id: 26 },
-  { id: 58, name: "CENTRAL IMENTI", county_id: 26 },
-  { id: 1, name: "CHANGAMWE", county_id: 28 },
-  { id: 195, name: "CHEPALUNGU", county_id: 2 },
-  { id: 140, name: "CHERANGANY", county_id: 42 },
-  { id: 154, name: "CHESUMEI", county_id: 32 },
-  { id: 61, name: "CHUKA/IGAMBANG'OMBE", county_id: 41 },
-  { id: 30, name: "DADAAB", county_id: 7 },
-  { id: 275, name: "DAGORETTI NORTH", county_id: 30 },
-  { id: 276, name: "DAGORETTI SOUTH", county_id: 30 },
-  { id: 162, name: "ELDAMA RAVINE", county_id: 1 },
-  { id: 37, name: "ELDAS", county_id: 46 },
-  { id: 284, name: "EMBAKASI CENTRAL", county_id: 30 },
-  { id: 285, name: "EMBAKASI EAST", county_id: 30 },
-  { id: 283, name: "EMBAKASI NORTH", county_id: 30 },
-  { id: 282, name: "EMBAKASI SOUTH", county_id: 30 },
-  { id: 286, name: "EMBAKASI WEST", county_id: 30 },
-  { id: 155, name: "EMGWEN", county_id: 32 },
-  { id: 215, name: "EMUHAYA", county_id: 45 },
-  { id: 178, name: "EMURUA DIKIRR", county_id: 33 },
-  { id: 137, name: "ENDEBESS", county_id: 42 },
-  { id: 31, name: "FAFI", county_id: 7 },
-  { id: 230, name: "FUNYULA", county_id: 4 },
-  { id: 19, name: "GALOLE", county_id: 40 },
-  { id: 15, name: "GANZE", county_id: 14 },
-  { id: 27, name: "GARISSA TOWNSHIP", county_id: 7 },
-  { id: 18, name: "GARSEN", county_id: 40 },
-  { id: 110, name: "GATANGA", county_id: 29 },
-  { id: 112, name: "GATUNDU NORTH", county_id: 13 },
-  { id: 111, name: "GATUNDU SOUTH", county_id: 13 },
-  { id: 235, name: "GEM", county_id: 38 },
-  { id: 101, name: "GICHUGU", county_id: 15 },
-  { id: 169, name: "GILGIL", county_id: 31 },
-  { id: 116, name: "GITHUNGURI", county_id: 13 },
-  { id: 213, name: "HAMISI", county_id: 45 },
-  { id: 249, name: "HOMA BAY TOWN", county_id: 8 },
-  { id: 52, name: "IGEMBE CENTRAL", county_id: 26 },
-  { id: 53, name: "IGEMBE NORTH", county_id: 26 },
-  { id: 51, name: "IGEMBE SOUTH", county_id: 26 },
-  { id: 32, name: "IJARA", county_id: 7 },
-  { id: 210, name: "IKOLOMANI", county_id: 11 },
-  { id: 49, name: "ISIOLO NORTH", county_id: 9 },
-  { id: 50, name: "ISIOLO SOUTH", county_id: 9 },
-  { id: 2, name: "JOMVU", county_id: 28 },
-  { id: 113, name: "JUJA", county_id: 13 },
-  { id: 119, name: "KABETE", county_id: 13 },
-  { id: 246, name: "KABONDO KASIPUL", county_id: 8 },
-  { id: 218, name: "KABUCHAI", county_id: 3 },
-  { id: 131, name: "KACHELIBA", county_id: 47 },
-  { id: 85, name: "KAITI", county_id: 23 },
-  { id: 184, name: "KAJIADO CENTRAL", county_id: 10 },
-  { id: 185, name: "KAJIADO EAST", county_id: 10 },
-  { id: 183, name: "KAJIADO NORTH", county_id: 10 },
-  { id: 187, name: "KAJIADO SOUTH", county_id: 10 },
-  { id: 186, name: "KAJIADO WEST", county_id: 10 },
-  { id: 13, name: "KALOLENI", county_id: 14 },
-  { id: 288, name: "KAMUKUNJI", county_id: 30 },
-  { id: 109, name: "KANDARA", county_id: 29 },
-  { id: 220, name: "KANDUYI", county_id: 3 },
-  { id: 104, name: "KANGEMA", county_id: 29 },
-  { id: 77, name: "KANGUNDO", county_id: 22 },
-  { id: 129, name: "KAPENGURIA", county_id: 47 },
-  { id: 145, name: "KAPSERET", county_id: 44 },
-  { id: 247, name: "KARACHUONYO", county_id: 8 },
-  { id: 280, name: "KASARANI", county_id: 30 },
-  { id: 245, name: "KASIPUL", county_id: 8 },
-  { id: 79, name: "KATHIANI", county_id: 22 },
-  { id: 149, name: "KEIYO NORTH", county_id: 5 },
-  { id: 150, name: "KEIYO SOUTH", county_id: 5 },
-  { id: 146, name: "KESSES", county_id: 44 },
-  { id: 208, name: "KHWISERO", county_id: 11 },
-  { id: 118, name: "KIAMBAA", county_id: 13 },
-  { id: 117, name: "KIAMBU", county_id: 13 },
-  { id: 278, name: "KIBRA", county_id: 30 },
-  { id: 88, name: "KIBWEZI EAST", county_id: 23 },
-  { id: 87, name: "KIBWEZI WEST", county_id: 23 },
-  { id: 95, name: "KIENI", county_id: 36 },
-  { id: 107, name: "KIGUMO", county_id: 29 },
-  { id: 106, name: "KIHARU", county_id: 29 },
-  { id: 120, name: "KIKUYU", county_id: 13 },
-  { id: 177, name: "KILGORIS", county_id: 33 },
-  { id: 11, name: "KILIFI NORTH", county_id: 14 },
-  { id: 12, name: "KILIFI SOUTH", county_id: 14 },
-  { id: 84, name: "KILOME", county_id: 23 },
-  { id: 223, name: "KIMILILI", county_id: 3 },
-  { id: 139, name: "KIMININI", county_id: 42 },
-  { id: 10, name: "KINANGO", county_id: 19 },
-  { id: 89, name: "KINANGOP", county_id: 35 },
-  { id: 90, name: "KIPIPIRI", county_id: 35 },
-  { id: 188, name: "KIPKELION EAST", county_id: 12 },
-  { id: 189, name: "KIPKELION WEST", county_id: 12 },
-  { id: 103, name: "KIRINYAGA CENTRAL", county_id: 15 },
-  { id: 3, name: "KISAUNI", county_id: 28 },
-  { id: 240, name: "KISUMU CENTRAL", county_id: 17 },
-  { id: 238, name: "KISUMU EAST", county_id: 17 },
-  { id: 239, name: "KISUMU WEST", county_id: 17 },
-  { id: 72, name: "KITUI CENTRAL", county_id: 18 },
-  { id: 73, name: "KITUI EAST", county_id: 18 },
-  { id: 71, name: "KITUI RURAL", county_id: 18 },
-  { id: 74, name: "KITUI SOUTH", county_id: 18 },
-  { id: 70, name: "KITUI WEST", county_id: 18 },
-  { id: 268, name: "KITUTU CHACHE NORTH", county_id: 16 },
-  { id: 269, name: "KITUTU CHACHE SOUTH", county_id: 16 },
-  { id: 270, name: "KITUTU MASABA", county_id: 34 },
-  { id: 198, name: "KONOIN", county_id: 2 },
-  { id: 171, name: "KURESOI NORTH", county_id: 31 },
-  { id: 170, name: "KURESOI SOUTH", county_id: 31 },
-  { id: 260, name: "KURIA EAST", county_id: 27 },
-  { id: 259, name: "KURIA WEST", county_id: 27 },
-  { id: 136, name: "KWANZA", county_id: 42 },
-  { id: 44, name: "LAFEY", county_id: 24 },
-  { id: 29, name: "LAGDERA", county_id: 7 },
-  { id: 164, name: "LAIKIPIA EAST", county_id: 20 },
-  { id: 165, name: "LAIKIPIA NORTH", county_id: 20 },
-  { id: 163, name: "LAIKIPIA WEST", county_id: 20 },
-  { id: 48, name: "LAISAMIS", county_id: 25 },
-  { id: 21, name: "LAMU EAST", county_id: 21 },
-  { id: 22, name: "LAMU WEST", county_id: 21 },
-  { id: 277, name: "LANGATA", county_id: 30 },
-  { id: 122, name: "LARI", county_id: 13 },
-  { id: 5, name: "LIKONI", county_id: 28 },
-  { id: 200, name: "LIKUYANI", county_id: 11 },
-  { id: 121, name: "LIMURU", county_id: 13 },
-  { id: 126, name: "LOIMA", county_id: 43 },
-  { id: 214, name: "LUANDA", county_id: 45 },
-  { id: 199, name: "LUGARI", county_id: 11 },
-  { id: 8, name: "LUNGALUNGA", county_id: 19 },
-  { id: 202, name: "LURAMBI", county_id: 11 },
-  { id: 60, name: "MAARA", county_id: 41 },
-  { id: 81, name: "MACHAKOS TOWN", county_id: 22 },
-  { id: 17, name: "MAGARINI", county_id: 14 },
-  { id: 287, name: "MAKADARA", county_id: 30 },
-  { id: 86, name: "MAKUENI", county_id: 23 },
-  { id: 201, name: "MALAVA", county_id: 11 },
-  { id: 16, name: "MALINDI", county_id: 14 },
-  { id: 43, name: "MANDERA EAST", county_id: 24 },
-  { id: 41, name: "MANDERA NORTH", county_id: 24 },
-  { id: 42, name: "MANDERA SOUTH", county_id: 24 },
-  { id: 39, name: "MANDERA WEST", county_id: 24 },
-  { id: 63, name: "MANYATTA", county_id: 6 },
-  { id: 108, name: "MARAGWA", county_id: 29 },
-  { id: 147, name: "MARAKWET EAST", county_id: 5 },
-  { id: 148, name: "MARAKWET WEST", county_id: 5 },
-  { id: 75, name: "MASINGA", county_id: 22 },
-  { id: 228, name: "MATAYOS", county_id: 4 },
-  { id: 290, name: "MATHARE", county_id: 30 },
-  { id: 105, name: "MATHIOYA", county_id: 29 },
-  { id: 96, name: "MATHIRA", county_id: 36 },
-  { id: 9, name: "MATUGA", county_id: 19 },
-  { id: 206, name: "MATUNGU", county_id: 11 },
-  { id: 78, name: "MATUNGULU", county_id: 22 },
-  { id: 80, name: "MAVOKO", county_id: 22 },
-  { id: 66, name: "MBEERE NORTH", county_id: 6 },
-  { id: 65, name: "MBEERE SOUTH", county_id: 6 },
-  { id: 83, name: "MBOONI", county_id: 23 },
-  { id: 161, name: "MOGOTIO", county_id: 1 },
-  { id: 143, name: "MOIBEN", county_id: 44 },
-  { id: 166, name: "MOLO", county_id: 31 },
-  { id: 156, name: "MOSOP", county_id: 32 },
-  { id: 45, name: "MOYALE", county_id: 25 },
-  { id: 7, name: "MSAMBWENI", county_id: 19 },
-  { id: 216, name: "MT. ELGON", county_id: 3 },
-  { id: 243, name: "MUHORONI", county_id: 17 },
-  { id: 98, name: "MUKURWEINI", county_id: 36 },
-  { id: 205, name: "MUMIAS EAST", county_id: 11 },
-  { id: 204, name: "MUMIAS WEST", county_id: 11 },
-  { id: 6, name: "MVITA", county_id: 28 },
-  { id: 82, name: "MWALA", county_id: 22 },
-  { id: 25, name: "MWATATE", county_id: 39 },
-  { id: 100, name: "MWEA", county_id: 15 },
-  { id: 69, name: "MWINGI CENTRAL", county_id: 18 },
-  { id: 67, name: "MWINGI NORTH", county_id: 18 },
-  { id: 68, name: "MWINGI WEST", county_id: 18 },
-  { id: 168, name: "NAIVASHA", county_id: 31 },
-  { id: 176, name: "NAKURU TOWN EAST", county_id: 31 },
-  { id: 175, name: "NAKURU TOWN WEST", county_id: 31 },
-  { id: 227, name: "NAMBALE", county_id: 4 },
-  { id: 153, name: "NANDI HILLS", county_id: 32 },
-  { id: 180, name: "NAROK EAST", county_id: 33 },
-  { id: 179, name: "NAROK NORTH", county_id: 33 },
-  { id: 181, name: "NAROK SOUTH", county_id: 33 },
-  { id: 182, name: "NAROK WEST", county_id: 33 },
-  { id: 203, name: "NAVAKHOLO", county_id: 11 },
-  { id: 93, name: "NDARAGWA", county_id: 35 },
-  { id: 250, name: "NDHIWA", county_id: 8 },
-  { id: 102, name: "NDIA", county_id: 15 },
-  { id: 167, name: "NJORO", county_id: 31 },
-  { id: 46, name: "NORTH HORR", county_id: 25 },
-  { id: 56, name: "NORTH IMENTI", county_id: 26 },
-  { id: 272, name: "NORTH MUGIRANGO", county_id: 34 },
-  { id: 244, name: "NYAKACH", county_id: 17 },
-  { id: 4, name: "NYALI", county_id: 28 },
-  { id: 242, name: "NYANDO", county_id: 17 },
-  { id: 267, name: "NYARIBARI CHACHE", county_id: 16 },
-  { id: 266, name: "NYARIBARI MASABA", county_id: 16 },
-  { id: 258, name: "NYATIKE", county_id: 27 },
-  { id: 99, name: "NYERI TOWN", county_id: 36 },
-  { id: 92, name: "OL JOROK", county_id: 35 },
-  { id: 91, name: "OL KALOU", county_id: 35 },
-  { id: 97, name: "OTHAYA", county_id: 36 },
-  { id: 132, name: "POKOT SOUTH", county_id: 47 },
-  { id: 14, name: "RABAI", county_id: 14 },
-  { id: 248, name: "RANGWE", county_id: 8 },
-  { id: 237, name: "RARIEDA", county_id: 38 },
-  { id: 173, name: "RONGAI", county_id: 31 },
-  { id: 253, name: "RONGO", county_id: 27 },
-  { id: 279, name: "ROYSAMBU", county_id: 30 },
-  { id: 281, name: "RUARAKA", county_id: 30 },
-  { id: 115, name: "RUIRU", county_id: 13 },
-  { id: 64, name: "RUNYENJES", county_id: 6 },
-  { id: 212, name: "SABATIA", county_id: 45 },
-  { id: 138, name: "SABOTI", county_id: 42 },
-  { id: 47, name: "SAKU", county_id: 25 },
-  { id: 135, name: "SAMBURU EAST", county_id: 37 },
-  { id: 134, name: "SAMBURU NORTH", county_id: 37 },
-  { id: 133, name: "SAMBURU WEST", county_id: 37 },
-  { id: 241, name: "SEME", county_id: 17 },
-  { id: 209, name: "SHINYALU", county_id: 11 },
-  { id: 130, name: "SIGOR", county_id: 47 },
-  { id: 193, name: "SIGOWET/SOIN", county_id: 12 },
-  { id: 217, name: "SIRISIA", county_id: 3 },
-  { id: 194, name: "SOTIK", county_id: 2 },
-  { id: 59, name: "SOUTH IMENTI", county_id: 26 },
-  { id: 262, name: "SOUTH MUGIRANGO", county_id: 16 },
-  { id: 141, name: "SOY", county_id: 44 },
-  { id: 289, name: "STAREHE", county_id: 30 },
-  { id: 251, name: "SUBA NORTH", county_id: 8 },
-  { id: 252, name: "SUBA SOUTH", county_id: 8 },
-  { id: 172, name: "SUBUKIA", county_id: 31 },
-  { id: 255, name: "SUNA EAST", county_id: 27 },
-  { id: 256, name: "SUNA WEST", county_id: 27 },
-  { id: 35, name: "TARBAJ", county_id: 46 },
-  { id: 23, name: "TAVETA", county_id: 39 },
-  { id: 225, name: "TESO NORTH", county_id: 4 },
-  { id: 226, name: "TESO SOUTH", county_id: 4 },
-  { id: 94, name: "TETU", county_id: 36 },
-  { id: 62, name: "THARAKA", county_id: 41 },
-  { id: 114, name: "THIKA TOWN", county_id: 13 },
-  { id: 157, name: "TIATY", county_id: 1 },
-  { id: 55, name: "TIGANIA EAST", county_id: 26 },
-  { id: 54, name: "TIGANIA WEST", county_id: 26 },
-  { id: 151, name: "TINDERET", county_id: 32 },
-  { id: 224, name: "TONGAREN", county_id: 3 },
-  { id: 142, name: "TURBO", county_id: 44 },
-  { id: 125, name: "TURKANA CENTRAL", county_id: 43 },
-  { id: 128, name: "TURKANA EAST", county_id: 43 },
-  { id: 123, name: "TURKANA NORTH", county_id: 43 },
-  { id: 127, name: "TURKANA SOUTH", county_id: 43 },
-  { id: 124, name: "TURKANA WEST", county_id: 43 },
-  { id: 232, name: "UGENYA", county_id: 38 },
-  { id: 233, name: "UGUNJA", county_id: 38 },
-  { id: 257, name: "URIRI", county_id: 27 },
-  { id: 211, name: "VIHIGA", county_id: 45 },
-  { id: 26, name: "VOI", county_id: 39 },
-  { id: 34, name: "WAJIR EAST", county_id: 46 },
-  { id: 33, name: "WAJIR NORTH", county_id: 46 },
-  { id: 38, name: "WAJIR SOUTH", county_id: 46 },
-  { id: 36, name: "WAJIR WEST", county_id: 46 },
-  { id: 221, name: "WEBUYE EAST", county_id: 3 },
-  { id: 222, name: "WEBUYE WEST", county_id: 3 },
-  { id: 271, name: "WEST MUGIRANGO", county_id: 34 },
-  { id: 274, name: "WESTLANDS", county_id: 30 },
-  { id: 24, name: "WUNDANYI", county_id: 39 },
-  { id: 76, name: "YATTA", county_id: 22 }
+// County mapping data from database with IDs and codes
+const COUNTIES_DATA = [
+  {id: 1, name: "Baringo", county_code: "030"},
+  {id: 2, name: "Bomet", county_code: "036"},
+  {id: 3, name: "Bungoma", county_code: "039"},
+  {id: 4, name: "Busia", county_code: "040"},
+  {id: 5, name: "Elgeyo/Marakwet", county_code: "028"},
+  {id: 6, name: "Embu", county_code: "014"},
+  {id: 7, name: "Garissa", county_code: "007"},
+  {id: 8, name: "Homa Bay", county_code: "043"},
+  {id: 9, name: "Isiolo", county_code: "011"},
+  {id: 10, name: "Kajiado", county_code: "034"},
+  {id: 11, name: "Kakamega", county_code: "037"},
+  {id: 12, name: "Kericho", county_code: "035"},
+  {id: 13, name: "Kiambu", county_code: "022"},
+  {id: 14, name: "Kilifi", county_code: "003"},
+  {id: 15, name: "Kirinyaga", county_code: "020"},
+  {id: 16, name: "Kisii", county_code: "045"},
+  {id: 17, name: "Kisumu", county_code: "042"},
+  {id: 18, name: "Kitui", county_code: "015"},
+  {id: 19, name: "Kwale", county_code: "002"},
+  {id: 20, name: "Laikipia", county_code: "031"},
+  {id: 21, name: "Lamu", county_code: "005"},
+  {id: 22, name: "Machakos", county_code: "016"},
+  {id: 23, name: "Makueni", county_code: "017"},
+  {id: 24, name: "Mandera", county_code: "009"},
+  {id: 25, name: "Marsabit", county_code: "010"},
+  {id: 26, name: "Meru", county_code: "012"},
+  {id: 27, name: "Migori", county_code: "044"},
+  {id: 28, name: "Mombasa", county_code: "001"},
+  {id: 29, name: "Murang'a", county_code: "021"},
+  {id: 30, name: "Nairobi", county_code: "047"},
+  {id: 31, name: "Nakuru", county_code: "032"},
+  {id: 32, name: "Nandi", county_code: "029"},
+  {id: 33, name: "Narok", county_code: "033"},
+  {id: 34, name: "Nyamira", county_code: "046"},
+  {id: 35, name: "Nyandarua", county_code: "018"},
+  {id: 36, name: "Nyeri", county_code: "019"},
+  {id: 37, name: "Samburu", county_code: "025"},
+  {id: 38, name: "Siaya", county_code: "041"},
+  {id: 39, name: "Taita Taveta", county_code: "006"},
+  {id: 40, name: "Tana River", county_code: "004"},
+  {id: 41, name: "Tharaka-Nithi", county_code: "013"},
+  {id: 42, name: "Trans Nzoia", county_code: "026"},
+  {id: 43, name: "Turkana", county_code: "023"},
+  {id: 44, name: "Uasin Gishu", county_code: "027"},
+  {id: 45, name: "Vihiga", county_code: "038"},
+  {id: 46, name: "Wajir", county_code: "008"},
+  {id: 47, name: "West Pokot", county_code: "024"}
 ];
+
+// Comprehensive constituencies data from database
+const CONSTITUENCIES_DATA = [
+  {id: 1, name: "CHANGAMWE", county_id: 28},
+  {id: 2, name: "JOMVU", county_id: 28},
+  {id: 3, name: "KISAUNI", county_id: 28},
+  {id: 4, name: "NYALI", county_id: 28},
+  {id: 5, name: "LIKONI", county_id: 28},
+  {id: 6, name: "MVITA", county_id: 28},
+  {id: 7, name: "MSAMBWENI", county_id: 19},
+  {id: 8, name: "LUNGALUNGA", county_id: 19},
+  {id: 9, name: "MATUGA", county_id: 19},
+  {id: 10, name: "KINANGO", county_id: 19},
+  {id: 11, name: "KILIFI NORTH", county_id: 14},
+  {id: 12, name: "KILIFI SOUTH", county_id: 14},
+  {id: 13, name: "KALOLENI", county_id: 14},
+  {id: 14, name: "RABAI", county_id: 14},
+  {id: 15, name: "GANZE", county_id: 14},
+  {id: 16, name: "MALINDI", county_id: 14},
+  {id: 17, name: "MAGARINI", county_id: 14},
+  {id: 18, name: "GARSEN", county_id: 40},
+  {id: 19, name: "GALOLE", county_id: 40},
+  {id: 20, name: "BURA", county_id: 40},
+  {id: 21, name: "LAMU EAST", county_id: 21},
+  {id: 22, name: "LAMU WEST", county_id: 21},
+  {id: 23, name: "TAVETA", county_id: 39},
+  {id: 24, name: "WUNDANYI", county_id: 39},
+  {id: 25, name: "MWATATE", county_id: 39},
+  {id: 26, name: "VOI", county_id: 39},
+  {id: 27, name: "GARISSA TOWNSHIP", county_id: 7},
+  {id: 28, name: "BALAMBALA", county_id: 7},
+  {id: 29, name: "LAGDERA", county_id: 7},
+  {id: 30, name: "DADAAB", county_id: 7},
+  {id: 31, name: "FAFI", county_id: 7},
+  {id: 32, name: "IJARA", county_id: 7},
+  {id: 33, name: "WAJIR NORTH", county_id: 46},
+  {id: 34, name: "WAJIR EAST", county_id: 46},
+  {id: 35, name: "TARBAJ", county_id: 46},
+  {id: 36, name: "WAJIR WEST", county_id: 46},
+  {id: 37, name: "ELDAS", county_id: 46},
+  {id: 38, name: "WAJIR SOUTH", county_id: 46},
+  {id: 39, name: "MANDERA WEST", county_id: 24},
+  {id: 40, name: "BANISSA", county_id: 24},
+  {id: 41, name: "MANDERA NORTH", county_id: 24},
+  {id: 42, name: "MANDERA SOUTH", county_id: 24},
+  {id: 43, name: "MANDERA EAST", county_id: 24},
+  {id: 44, name: "LAFEY", county_id: 24},
+  {id: 45, name: "MOYALE", county_id: 25},
+  {id: 46, name: "NORTH HORR", county_id: 25},
+  {id: 47, name: "SAKU", county_id: 25},
+  {id: 48, name: "LAISAMIS", county_id: 25},
+  {id: 49, name: "ISIOLO NORTH", county_id: 9},
+  {id: 50, name: "ISIOLO SOUTH", county_id: 9},
+  {id: 51, name: "IGEMBE SOUTH", county_id: 26},
+  {id: 52, name: "IGEMBE CENTRAL", county_id: 26},
+  {id: 53, name: "IGEMBE NORTH", county_id: 26},
+  {id: 54, name: "TIGANIA WEST", county_id: 26},
+  {id: 55, name: "TIGANIA EAST", county_id: 26},
+  {id: 56, name: "NORTH IMENTI", county_id: 26},
+  {id: 57, name: "BUURI", county_id: 26},
+  {id: 58, name: "CENTRAL IMENTI", county_id: 26},
+  {id: 59, name: "SOUTH IMENTI", county_id: 26},
+  {id: 60, name: "MAARA", county_id: 41},
+  {id: 61, name: "CHUKA/IGAMBANG'OMBE", county_id: 41},
+  {id: 62, name: "THARAKA", county_id: 41},
+  {id: 63, name: "MANYATTA", county_id: 6},
+  {id: 64, name: "RUNYENJES", county_id: 6},
+  {id: 65, name: "MBEERE SOUTH", county_id: 6},
+  {id: 66, name: "MBEERE NORTH", county_id: 6},
+  {id: 67, name: "MWINGI NORTH", county_id: 18},
+  {id: 68, name: "MWINGI WEST", county_id: 18},
+  {id: 69, name: "MWINGI CENTRAL", county_id: 18},
+  {id: 70, name: "KITUI WEST", county_id: 18},
+  {id: 71, name: "KITUI RURAL", county_id: 18},
+  {id: 72, name: "KITUI CENTRAL", county_id: 18},
+  {id: 73, name: "KITUI EAST", county_id: 18},
+  {id: 74, name: "KITUI SOUTH", county_id: 18},
+  {id: 75, name: "MASINGA", county_id: 22},
+  {id: 76, name: "YATTA", county_id: 22},
+  {id: 77, name: "KANGUNDO", county_id: 22},
+  {id: 78, name: "MATUNGULU", county_id: 22},
+  {id: 79, name: "KATHIANI", county_id: 22},
+  {id: 80, name: "MAVOKO", county_id: 22},
+  {id: 81, name: "MACHAKOS TOWN", county_id: 22},
+  {id: 82, name: "MWALA", county_id: 22},
+  {id: 83, name: "MBOONI", county_id: 23},
+  {id: 84, name: "KILOME", county_id: 23},
+  {id: 85, name: "KAITI", county_id: 23},
+  {id: 86, name: "MAKUENI", county_id: 23},
+  {id: 87, name: "KIBWEZI WEST", county_id: 23},
+  {id: 88, name: "KIBWEZI EAST", county_id: 23},
+  {id: 89, name: "KINANGOP", county_id: 35},
+  {id: 90, name: "KIPIPIRI", county_id: 35},
+  {id: 91, name: "OL KALOU", county_id: 35},
+  {id: 92, name: "OL JOROK", county_id: 35},
+  {id: 93, name: "NDARAGWA", county_id: 35},
+  {id: 94, name: "TETU", county_id: 36},
+  {id: 95, name: "KIENI", county_id: 36},
+  {id: 96, name: "MATHIRA", county_id: 36},
+  {id: 97, name: "OTHAYA", county_id: 36},
+  {id: 98, name: "MUKURWEINI", county_id: 36},
+  {id: 99, name: "NYERI TOWN", county_id: 36},
+  {id: 100, name: "MWEA", county_id: 15},
+  {id: 101, name: "GICHUGU", county_id: 15},
+  {id: 102, name: "NDIA", county_id: 15},
+  {id: 103, name: "KIRINYAGA CENTRAL", county_id: 15},
+  {id: 104, name: "KANGEMA", county_id: 29},
+  {id: 105, name: "MATHIOYA", county_id: 29},
+  {id: 106, name: "KIHARU", county_id: 29},
+  {id: 107, name: "KIGUMO", county_id: 29},
+  {id: 108, name: "MARAGWA", county_id: 29},
+  {id: 109, name: "KANDARA", county_id: 29},
+  {id: 110, name: "GATANGA", county_id: 29},
+  {id: 111, name: "GATUNDU SOUTH", county_id: 13},
+  {id: 112, name: "GATUNDU NORTH", county_id: 13},
+  {id: 113, name: "JUJA", county_id: 13},
+  {id: 114, name: "THIKA TOWN", county_id: 13},
+  {id: 115, name: "RUIRU", county_id: 13},
+  {id: 116, name: "GITHUNGURI", county_id: 13},
+  {id: 117, name: "KIAMBU", county_id: 13},
+  {id: 118, name: "KIAMBAA", county_id: 13},
+  {id: 119, name: "KABETE", county_id: 13},
+  {id: 120, name: "KIKUYU", county_id: 13},
+  {id: 121, name: "LIMURU", county_id: 13},
+  {id: 122, name: "LARI", county_id: 13},
+  {id: 123, name: "TURKANA NORTH", county_id: 43},
+  {id: 124, name: "TURKANA WEST", county_id: 43},
+  {id: 125, name: "TURKANA CENTRAL", county_id: 43},
+  {id: 126, name: "LOIMA", county_id: 43},
+  {id: 127, name: "TURKANA SOUTH", county_id: 43},
+  {id: 128, name: "TURKANA EAST", county_id: 43},
+  {id: 129, name: "KAPENGURIA", county_id: 47},
+  {id: 130, name: "SIGOR", county_id: 47},
+  {id: 131, name: "KACHELIBA", county_id: 47},
+  {id: 132, name: "POKOT SOUTH", county_id: 47},
+  {id: 133, name: "SAMBURU WEST", county_id: 37},
+  {id: 134, name: "SAMBURU NORTH", county_id: 37},
+  {id: 135, name: "SAMBURU EAST", county_id: 37},
+  {id: 136, name: "KWANZA", county_id: 42},
+  {id: 137, name: "ENDEBESS", county_id: 42},
+  {id: 138, name: "SABOTI", county_id: 42},
+  {id: 139, name: "KIMININI", county_id: 42},
+  {id: 140, name: "CHERANGANY", county_id: 42},
+  {id: 141, name: "SOY", county_id: 44},
+  {id: 142, name: "TURBO", county_id: 44},
+  {id: 143, name: "MOIBEN", county_id: 44},
+  {id: 144, name: "AINABKOI", county_id: 44},
+  {id: 145, name: "KAPSERET", county_id: 44},
+  {id: 146, name: "KESSES", county_id: 44},
+  {id: 147, name: "MARAKWET EAST", county_id: 5},
+  {id: 148, name: "MARAKWET WEST", county_id: 5},
+  {id: 149, name: "KEIYO NORTH", county_id: 5},
+  {id: 150, name: "KEIYO SOUTH", county_id: 5},
+  {id: 151, name: "TINDERET", county_id: 32},
+  {id: 152, name: "ALDAI", county_id: 32},
+  {id: 153, name: "NANDI HILLS", county_id: 32},
+  {id: 154, name: "CHESUMEI", county_id: 32},
+  {id: 155, name: "EMGWEN", county_id: 32},
+  {id: 156, name: "MOSOP", county_id: 32},
+  {id: 157, name: "TIATY", county_id: 1},
+  {id: 158, name: "BARINGO NORTH", county_id: 1},
+  {id: 159, name: "BARINGO CENTRAL", county_id: 1},
+  {id: 160, name: "BARINGO SOUTH", county_id: 1},
+  {id: 161, name: "MOGOTIO", county_id: 1},
+  {id: 162, name: "ELDAMA RAVINE", county_id: 1},
+  {id: 163, name: "LAIKIPIA WEST", county_id: 20},
+  {id: 164, name: "LAIKIPIA EAST", county_id: 20},
+  {id: 165, name: "LAIKIPIA NORTH", county_id: 20},
+  {id: 166, name: "MOLO", county_id: 31},
+  {id: 167, name: "NJORO", county_id: 31},
+  {id: 168, name: "NAIVASHA", county_id: 31},
+  {id: 169, name: "GILGIL", county_id: 31},
+  {id: 170, name: "KURESOI SOUTH", county_id: 31},
+  {id: 171, name: "KURESOI NORTH", county_id: 31},
+  {id: 172, name: "SUBUKIA", county_id: 31},
+  {id: 173, name: "RONGAI", county_id: 31},
+  {id: 174, name: "BAHATI", county_id: 31},
+  {id: 175, name: "NAKURU TOWN WEST", county_id: 31},
+  {id: 176, name: "NAKURU TOWN EAST", county_id: 31},
+  {id: 177, name: "KILGORIS", county_id: 33},
+  {id: 178, name: "EMURUA DIKIRR", county_id: 33},
+  {id: 179, name: "NAROK NORTH", county_id: 33},
+  {id: 180, name: "NAROK EAST", county_id: 33},
+  {id: 181, name: "NAROK SOUTH", county_id: 33},
+  {id: 182, name: "NAROK WEST", county_id: 33},
+  {id: 183, name: "KAJIADO NORTH", county_id: 10},
+  {id: 184, name: "KAJIADO CENTRAL", county_id: 10},
+  {id: 185, name: "KAJIADO EAST", county_id: 10},
+  {id: 186, name: "KAJIADO WEST", county_id: 10},
+  {id: 187, name: "KAJIADO SOUTH", county_id: 10},
+  {id: 188, name: "KIPKELION EAST", county_id: 12},
+  {id: 189, name: "KIPKELION WEST", county_id: 12},
+  {id: 190, name: "AINAMOI", county_id: 12},
+  {id: 191, name: "BURETI", county_id: 12},
+  {id: 192, name: "BELGUT", county_id: 12},
+  {id: 193, name: "SIGOWET/SOIN", county_id: 12},
+  {id: 194, name: "SOTIK", county_id: 2},
+  {id: 195, name: "CHEPALUNGU", county_id: 2},
+  {id: 196, name: "BOMET EAST", county_id: 2},
+  {id: 197, name: "BOMET CENTRAL", county_id: 2},
+  {id: 198, name: "KONOIN", county_id: 2},
+  {id: 199, name: "LUGARI", county_id: 11},
+  {id: 200, name: "LIKUYANI", county_id: 11},
+  {id: 201, name: "MALAVA", county_id: 11},
+  {id: 202, name: "LURAMBI", county_id: 11},
+  {id: 203, name: "NAVAKHOLO", county_id: 11},
+  {id: 204, name: "MUMIAS WEST", county_id: 11},
+  {id: 205, name: "MUMIAS EAST", county_id: 11},
+  {id: 206, name: "MATUNGU", county_id: 11},
+  {id: 207, name: "BUTERE", county_id: 11},
+  {id: 208, name: "KHWISERO", county_id: 11},
+  {id: 209, name: "SHINYALU", county_id: 11},
+  {id: 210, name: "IKOLOMANI", county_id: 11},
+  {id: 211, name: "VIHIGA", county_id: 45},
+  {id: 212, name: "SABATIA", county_id: 45},
+  {id: 213, name: "HAMISI", county_id: 45},
+  {id: 214, name: "LUANDA", county_id: 45},
+  {id: 215, name: "EMUHAYA", county_id: 45},
+  {id: 216, name: "MT. ELGON", county_id: 3},
+  {id: 217, name: "SIRISIA", county_id: 3},
+  {id: 218, name: "KABUCHAI", county_id: 3},
+  {id: 219, name: "BUMULA", county_id: 3},
+  {id: 220, name: "KANDUYI", county_id: 3},
+  {id: 221, name: "WEBUYE EAST", county_id: 3},
+  {id: 222, name: "WEBUYE WEST", county_id: 3},
+  {id: 223, name: "KIMILILI", county_id: 3},
+  {id: 224, name: "TONGAREN", county_id: 3},
+  {id: 225, name: "TESO NORTH", county_id: 4},
+  {id: 226, name: "TESO SOUTH", county_id: 4},
+  {id: 227, name: "NAMBALE", county_id: 4},
+  {id: 228, name: "MATAYOS", county_id: 4},
+  {id: 229, name: "BUTULA", county_id: 4},
+  {id: 230, name: "FUNYULA", county_id: 4},
+  {id: 231, name: "BUDALANGI", county_id: 4},
+  {id: 232, name: "UGENYA", county_id: 38},
+  {id: 233, name: "UGUNJA", county_id: 38},
+  {id: 234, name: "ALEGO USONGA", county_id: 38},
+  {id: 235, name: "GEM", county_id: 38},
+  {id: 236, name: "BONDO", county_id: 38},
+  {id: 237, name: "RARIEDA", county_id: 38},
+  {id: 238, name: "KISUMU EAST", county_id: 17},
+  {id: 239, name: "KISUMU WEST", county_id: 17},
+  {id: 240, name: "KISUMU CENTRAL", county_id: 17},
+  {id: 241, name: "SEME", county_id: 17},
+  {id: 242, name: "NYANDO", county_id: 17},
+  {id: 243, name: "MUHORONI", county_id: 17},
+  {id: 244, name: "NYAKACH", county_id: 17},
+  {id: 245, name: "KASIPUL", county_id: 8},
+  {id: 246, name: "KABONDO KASIPUL", county_id: 8},
+  {id: 247, name: "KARACHUONYO", county_id: 8},
+  {id: 248, name: "RANGWE", county_id: 8},
+  {id: 249, name: "HOMA BAY TOWN", county_id: 8},
+  {id: 250, name: "NDHIWA", county_id: 8},
+  {id: 251, name: "SUBA NORTH", county_id: 8},
+  {id: 252, name: "SUBA SOUTH", county_id: 8},
+  {id: 253, name: "RONGO", county_id: 27},
+  {id: 254, name: "AWENDO", county_id: 27},
+  {id: 255, name: "SUNA EAST", county_id: 27},
+  {id: 256, name: "SUNA WEST", county_id: 27},
+  {id: 257, name: "URIRI", county_id: 27},
+  {id: 258, name: "NYATIKE", county_id: 27},
+  {id: 259, name: "KURIA WEST", county_id: 27},
+  {id: 260, name: "KURIA EAST", county_id: 27},
+  {id: 261, name: "BONCHARI", county_id: 16},
+  {id: 262, name: "SOUTH MUGIRANGO", county_id: 16},
+  {id: 263, name: "BOMACHOGE BORABU", county_id: 16},
+  {id: 264, name: "BOBASI", county_id: 16},
+  {id: 265, name: "BOMACHOGE CHACHE", county_id: 16},
+  {id: 266, name: "NYARIBARI MASABA", county_id: 16},
+  {id: 267, name: "NYARIBARI CHACHE", county_id: 16},
+  {id: 268, name: "KITUTU CHACHE NORTH", county_id: 16},
+  {id: 269, name: "KITUTU CHACHE SOUTH", county_id: 16},
+  {id: 270, name: "KITUTU MASABA", county_id: 34},
+  {id: 271, name: "WEST MUGIRANGO", county_id: 34},
+  {id: 272, name: "NORTH MUGIRANGO", county_id: 34},
+  {id: 273, name: "BORABU", county_id: 34},
+  {id: 274, name: "WESTLANDS", county_id: 30},
+  {id: 275, name: "DAGORETTI NORTH", county_id: 30},
+  {id: 276, name: "DAGORETTI SOUTH", county_id: 30},
+  {id: 277, name: "LANGATA", county_id: 30},
+  {id: 278, name: "KIBRA", county_id: 30},
+  {id: 279, name: "ROYSAMBU", county_id: 30},
+  {id: 280, name: "KASARANI", county_id: 30},
+  {id: 281, name: "RUARAKA", county_id: 30},
+  {id: 282, name: "EMBAKASI SOUTH", county_id: 30},
+  {id: 283, name: "EMBAKASI NORTH", county_id: 30},
+  {id: 284, name: "EMBAKASI CENTRAL", county_id: 30},
+  {id: 285, name: "EMBAKASI EAST", county_id: 30},
+  {id: 286, name: "EMBAKASI WEST", county_id: 30},
+  {id: 287, name: "MAKADARA", county_id: 30},
+  {id: 288, name: "KAMUKUNJI", county_id: 30},
+  {id: 289, name: "STAREHE", county_id: 30},
+  {id: 290, name: "MATHARE", county_id: 30}
+];
+
+// Generate constituency suggestions object from the data
+const CONSTITUENCY_SUGGESTIONS = {};
+COUNTIES_DATA.forEach(county => {
+  const constituencies = CONSTITUENCIES_DATA
+    .filter(constituency => constituency.county_id === county.id)
+    .map(constituency => constituency.name);
+  CONSTITUENCY_SUGGESTIONS[county.name] = constituencies;
+});
+
+// Enhanced fuzzy search function
+const fuzzySearch = (query, options, threshold = 0.3) => {
+  if (!query) return [];
+  
+  const normalizedQuery = query.toLowerCase().trim();
+  const results = [];
+  
+  options.forEach(option => {
+    const normalizedOption = option.toLowerCase();
+    
+    // Exact match
+    if (normalizedOption === normalizedQuery) {
+      results.push({ option, score: 1, type: 'exact' });
+      return;
+    }
+    
+    // Contains match
+    if (normalizedOption.includes(normalizedQuery)) {
+      results.push({ option, score: 0.8, type: 'contains' });
+      return;
+    }
+    
+    // Fuzzy match using Levenshtein distance approximation
+    const distance = calculateSimilarity(normalizedQuery, normalizedOption);
+    if (distance >= threshold) {
+      results.push({ option, score: distance, type: 'fuzzy' });
+    }
+  });
+  
+  return results
+    .sort((a, b) => b.score - a.score)
+    .map(result => result.option)
+    .slice(0, 5); // Return top 5 matches
+};
+
+// Calculate similarity between two strings (simplified Levenshtein)
+const calculateSimilarity = (str1, str2) => {
+  const longer = str1.length > str2.length ? str1 : str2;
+  const shorter = str1.length > str2.length ? str2 : str1;
+  
+  if (longer.length === 0) return 1.0;
+  
+  const distance = longer.length - shorter.length;
+  if (distance > 3) return 0; // Too different
+  
+  // Simple character matching
+  let matches = 0;
+  for (let i = 0; i < shorter.length; i++) {
+    if (longer.includes(shorter[i])) {
+      matches++;
+    }
+  }
+  
+  return matches / longer.length;
+};
+
+// Enhanced constituency code mapping function
+const getConstituencyCodeFromData = (constituencyName, countyName) => {
+  if (!constituencyName || !countyName) return null;
+  
+  const normalizedConstituency = constituencyName.trim().toUpperCase();
+  const normalizedCounty = countyName.trim().toUpperCase();
+  
+  // Find the county
+  const county = COUNTIES_DATA.find(c => 
+    c.name.toUpperCase() === normalizedCounty
+  );
+  
+  if (!county) {
+    console.warn(`County not found: ${countyName}`);
+    return null;
+  }
+  
+  // Find the constituency within the county
+  const constituency = CONSTITUENCIES_DATA.find(c => 
+    c.county_id === county.id && 
+    c.name.toUpperCase() === normalizedConstituency
+  );
+  
+  if (!constituency) {
+    console.warn(`Constituency "${constituencyName}" not found in county "${countyName}"`);
+    return null;
+  }
+  
+  // Return the constituency ID as code
+  return `CONST-${constituency.id}`;
+};
 
 // Enhanced Google Maps URL parsing function
 const parseGoogleMapsInput = (input) => {
   if (!input || typeof input !== 'string') return null;
+  
   const trimmed = input.trim();
   
   // Pattern 1: Direct coordinates (e.g., "-1.2921,36.8219")
@@ -368,7 +481,7 @@ const parseGoogleMapsInput = (input) => {
       return { lat, lng, source: 'direct_paste' };
     }
   }
-
+  
   // Pattern 2: @lat,lng,zoom format (most common)
   const atPattern = trimmed.match(/@(-?\d+\.?\d+),(-?\d+\.?\d+),?(\d+\.?\d*)?z?/);
   if (atPattern) {
@@ -378,7 +491,7 @@ const parseGoogleMapsInput = (input) => {
       return { lat, lng, source: 'at_pattern', zoom: parseFloat(atPattern[3]) };
     }
   }
-
+  
   // Pattern 3: ?q=lat,lng format
   const qPattern = trimmed.match(/[?&]q=(-?\d+\.?\d+),(-?\d+\.?\d+)/);
   if (qPattern) {
@@ -388,7 +501,7 @@ const parseGoogleMapsInput = (input) => {
       return { lat, lng, source: 'q_parameter' };
     }
   }
-
+  
   // Pattern 4: !3dlat!4dlng format
   const dataPattern = trimmed.match(/!3d(-?\d+\.?\d+)!4d(-?\d+\.?\d+)/);
   if (dataPattern) {
@@ -398,7 +511,7 @@ const parseGoogleMapsInput = (input) => {
       return { lat, lng, source: 'data_parameter' };
     }
   }
-
+  
   // Pattern 5: /place/ with coordinates
   const placePattern = trimmed.match(/\/place\/([^/@?]+)\/@(-?\d+\.?\d+),(-?\d+\.?\d+)/);
   if (placePattern) {
@@ -409,19 +522,19 @@ const parseGoogleMapsInput = (input) => {
       return { lat, lng, placeName, source: 'place_path' };
     }
   }
-
+  
   // Pattern 6: Short URLs
   if (trimmed.match(/goo\.gl\/maps\/|maps\.app\.goo\.gl/)) {
     return { requiresExpansion: true, shortUrl: trimmed, source: 'short_url' };
   }
-
+  
   // Pattern 7: Place name only
   const placeNamePattern = trimmed.match(/\/place\/([^/@?]+)/);
   if (placeNamePattern && !placeNamePattern[1].includes('@')) {
     const placeName = decodeURIComponent(placeNamePattern[1]).replace(/\+/g, ' ');
     return { placeName, requiresGeocoding: true, source: 'place_name' };
   }
-
+  
   return null;
 };
 
@@ -430,9 +543,10 @@ const isValidCoordinate = (lat, lng) => {
     minLat: -4.678, maxLat: 5.506,
     minLng: 33.908, maxLng: 41.899
   };
+  
   return (!isNaN(lat) && !isNaN(lng) &&
-    lat >= KENYA_BOUNDS.minLat && lat <= KENYA_BOUNDS.maxLat &&
-    lng >= KENYA_BOUNDS.minLng && lng <= KENYA_BOUNDS.maxLng);
+          lat >= KENYA_BOUNDS.minLat && lat <= KENYA_BOUNDS.maxLat &&
+          lng >= KENYA_BOUNDS.minLng && lng <= KENYA_BOUNDS.maxLng);
 };
 
 // Enhanced client-side URL expansion with timeout
@@ -459,81 +573,60 @@ const expandShortUrl = async (shortUrl) => {
 const createCustomIcon = (color = '#34C759') => L.divIcon({
   className: 'contribution-marker',
   html: `<div style="width: 24px; height: 24px; background: ${color}; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;">
-          <div style="width: 8px; height: 8px; background: white; border-radius: 50%;"></div>
-        </div>`,
+           <div style="width: 8px; height: 8px; background: white; border-radius: 50%;"></div>
+         </div>`,
   iconSize: [24, 24],
   iconAnchor: [12, 12]
 });
 
-// Fuzzy search utility functions
-const normalizeString = (str) => {
-  return str
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
-    .replace(/[^a-z0-9\s]/g, '') // Remove special characters
-    .replace(/\s+/g, ' ') // Normalize spaces
-    .trim();
+// Enhanced constituency validation function
+const validateConstituencyCountyMatch = (constituencyName, countyName) => {
+  if (!constituencyName || !countyName) return true; // No validation needed if empty
+  
+  const normalizedConstituency = constituencyName.trim().toUpperCase();
+  const normalizedCounty = countyName.trim().toUpperCase();
+  
+  const county = COUNTIES_DATA.find(c => c.name.toUpperCase() === normalizedCounty);
+  if (!county) return false;
+  
+  const constituency = CONSTITUENCIES_DATA.find(c => 
+    c.county_id === county.id && 
+    c.name.toUpperCase() === normalizedConstituency
+  );
+  
+  return !!constituency;
 };
 
-const fuzzyMatch = (searchTerm, options, threshold = 0.7) => {
-  const normalizedSearch = normalizeString(searchTerm);
-  if (!normalizedSearch) return [];
-
-  return options
-    .map(option => {
-      const normalizedOption = normalizeString(option);
-      
-      // Exact match
-      if (normalizedOption === normalizedSearch) {
-        return { option, score: 1.0 };
-      }
-      
-      // Contains match
-      if (normalizedOption.includes(normalizedSearch)) {
-        return { option, score: 0.9 };
-      }
-      
-      // Starts with match
-      if (normalizedOption.startsWith(normalizedSearch)) {
-        return { option, score: 0.8 };
-      }
-      
-      // Calculate Levenshtein distance for fuzzy matching
-      const distance = levenshteinDistance(normalizedSearch, normalizedOption);
-      const maxLength = Math.max(normalizedSearch.length, normalizedOption.length);
-      const similarity = 1 - distance / maxLength;
-      
-      return { option, score: similarity };
-    })
-    .filter(match => match.score >= threshold)
-    .sort((a, b) => b.score - a.score)
-    .map(match => match.option);
-};
-
-const levenshteinDistance = (a, b) => {
-  const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null));
-
-  for (let i = 0; i <= a.length; i++) {
-    matrix[0][i] = i;
+// Enhanced status component for constituency validation
+const ConstituencyStatus = ({ constituency, county, code }) => {
+  if (!constituency || !county) return null;
+  
+  const isValidMatch = validateConstituencyCountyMatch(constituency, county);
+  
+  if (code) {
+    return (
+      <div className="mt-1">
+        <p className="text-xs text-green-600">✓ Valid constituency: {constituency} in {county}</p>
+        <p className="text-xs text-green-600">✓ Code: {code}</p>
+      </div>
+    );
   }
-
-  for (let j = 0; j <= b.length; j++) {
-    matrix[j][0] = j;
+  
+  if (!isValidMatch) {
+    return (
+      <div className="mt-1">
+        <p className="text-xs text-red-600">⚠ "{constituency}" is not a valid constituency in {county}</p>
+        <p className="text-xs text-gray-500 mt-1">Please select a valid constituency from the suggestions.</p>
+      </div>
+    );
   }
-
-  for (let j = 1; j <= b.length; j++) {
-    for (let i = 1; i <= a.length; i++) {
-      const indicator = a[i - 1] === b[j - 1] ? 0 : 1;
-      matrix[j][i] = Math.min(
-        matrix[j][i - 1] + 1,
-        matrix[j - 1][i] + 1,
-        matrix[j - 1][i - 1] + indicator
-      );
-    }
-  }
-
-  return matrix[b.length][a.length];
+  
+  return (
+    <div className="mt-1">
+      <p className="text-xs text-yellow-600">⚠ Constituency validated but code not available</p>
+      <p className="text-xs text-gray-500 mt-1">This won't affect your submission. The constituency is valid.</p>
+    </div>
+  );
 };
 
 const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) => {
@@ -554,6 +647,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     submitted_constituency: '',
     submitted_landmark: ''
   });
+  
   const [agreement, setAgreement] = useState(false);
   const [mapCenter, setMapCenter] = useState([-1.286389, 36.817223]);
   const [mapZoom, setMapZoom] = useState(6);
@@ -564,68 +658,55 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const [duplicateOffices, setDuplicateOffices] = useState([]);
   const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
   const [constituencyCode, setConstituencyCode] = useState(null);
+  
+  // New state for fuzzy search
+  const [countyInput, setCountyInput] = useState('');
   const [countySuggestions, setCountySuggestions] = useState([]);
+  const [showCountySuggestions, setShowCountySuggestions] = useState(false);
   const [constituencyInput, setConstituencyInput] = useState('');
   const [constituencySuggestions, setConstituencySuggestions] = useState([]);
   const [showConstituencySuggestions, setShowConstituencySuggestions] = useState(false);
-
+  
   const mapRef = useRef(null);
   const accuracyCircleRef = useRef(null);
   const markerRef = useRef(null);
   const fileInputRef = useRef(null);
   const retryCountRef = useRef(0);
-  const constituencyInputRef = useRef(null);
-  const countyInputRef = useRef(null);
+  
+  const { 
+    getCurrentPosition, 
+    convertImageToWebP, 
+    submitContribution, 
+    isSubmitting, 
+    error,
+    getConstituencyCode
+  } = useContributeLocation();
 
-  const { getCurrentPosition, convertImageToWebP, submitContribution, isSubmitting, error, getConstituencyCode } = useContributeLocation();
-
-  // Build constituency suggestions from database data
-  const constituencyOptions = useMemo(() => {
-    if (!formData.submitted_county) return [];
-    const county = COUNTIES_DATA.find(c => c.name === formData.submitted_county);
-    if (!county) return [];
-    
-    return CONSTITUENCIES_DATA
-      .filter(constituency => constituency.county_id === county.id)
-      .map(constituency => constituency.name);
-  }, [formData.submitted_county]);
-
-  // County options for fuzzy search
-  const countyOptions = useMemo(() => {
-    return COUNTIES_DATA.map(county => county.name);
-  }, []);
-
-  // Fuzzy search for counties
-  useEffect(() => {
-    if (!formData.submitted_county) {
-      setCountySuggestions([]);
-      return;
+  // Enhanced hook usage with fallback
+  const fetchConstituencyCode = async (constituencyName, countyName) => {
+    try {
+      // First try the API hook
+      const code = await getConstituencyCode(constituencyName, countyName);
+      if (code) return code;
+      
+      // Fallback to local data lookup
+      return getConstituencyCodeFromData(constituencyName, countyName);
+    } catch (error) {
+      console.warn('API constituency code fetch failed, using fallback:', error);
+      return getConstituencyCodeFromData(constituencyName, countyName);
     }
-
-    const matches = fuzzyMatch(formData.submitted_county, countyOptions, 0.6);
-    setCountySuggestions(matches.slice(0, 5)); // Show top 5 matches
-  }, [formData.submitted_county, countyOptions]);
-
-  // Fuzzy search for constituencies
-  useEffect(() => {
-    if (!constituencyInput || !formData.submitted_county) {
-      setConstituencySuggestions([]);
-      return;
-    }
-
-    const matches = fuzzyMatch(constituencyInput, constituencyOptions, 0.6);
-    setConstituencySuggestions(matches.slice(0, 5)); // Show top 5 matches
-  }, [constituencyInput, formData.submitted_county, constituencyOptions]);
+  };
 
   // Enhanced: Auto-fetch constituency code when constituency and county are selected
   useEffect(() => {
-    const fetchConstituencyCode = async () => {
+    const fetchCode = async () => {
       if (formData.submitted_constituency && formData.submitted_county) {
         try {
           console.log('Fetching constituency code for:', formData.submitted_constituency, formData.submitted_county);
-          const code = await getConstituencyCode(formData.submitted_constituency, formData.submitted_county);
+          // Use the enhanced fetch function
+          const code = await fetchConstituencyCode(formData.submitted_constituency, formData.submitted_county);
           setConstituencyCode(code);
-          console.log('Constituency code found:', code);
+          console.log('Constituency code result:', code);
         } catch (error) {
           console.warn('Failed to fetch constituency code:', error);
           setConstituencyCode(null);
@@ -635,9 +716,70 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       }
     };
 
-    const timeoutId = setTimeout(fetchConstituencyCode, 500);
+    const timeoutId = setTimeout(fetchCode, 500);
     return () => clearTimeout(timeoutId);
-  }, [formData.submitted_constituency, formData.submitted_county, getConstituencyCode]);
+  }, [formData.submitted_constituency, formData.submitted_county]);
+
+  // County input handler with fuzzy search
+  const handleCountyInputChange = (value) => {
+    setCountyInput(value);
+    setFormData(prev => ({ ...prev, submitted_county: value }));
+    
+    if (value.length > 1) {
+      const suggestions = fuzzySearch(value, KENYAN_COUNTIES);
+      setCountySuggestions(suggestions);
+      setShowCountySuggestions(true);
+    } else {
+      setCountySuggestions([]);
+      setShowCountySuggestions(false);
+    }
+  };
+
+  // County selection handler
+  const handleCountySelect = (countyName) => {
+    setFormData(prev => ({ ...prev, submitted_county: countyName }));
+    setCountyInput(countyName);
+    setShowCountySuggestions(false);
+    
+    // Clear constituency when county changes
+    setFormData(prev => ({ ...prev, submitted_constituency: '' }));
+    setConstituencyInput('');
+    setConstituencyCode(null);
+  };
+
+  // Constituency input handler with fuzzy search
+  const handleConstituencyInputChange = (value) => {
+    setConstituencyInput(value);
+    setFormData(prev => ({ ...prev, submitted_constituency: value }));
+    
+    if (value.length > 1 && formData.submitted_county) {
+      const countyConstituencies = CONSTITUENCY_SUGGESTIONS[formData.submitted_county] || [];
+      const suggestions = fuzzySearch(value, countyConstituencies);
+      setConstituencySuggestions(suggestions);
+      setShowConstituencySuggestions(true);
+    } else {
+      setConstituencySuggestions([]);
+      setShowConstituencySuggestions(false);
+    }
+  };
+
+  // Constituency selection handler
+  const handleConstituencySelect = (constituencyName) => {
+    setFormData(prev => ({ ...prev, submitted_constituency: constituencyName }));
+    setConstituencyInput(constituencyName);
+    setShowConstituencySuggestions(false);
+    
+    // Validate the selection
+    const isValid = validateConstituencyCountyMatch(constituencyName, formData.submitted_county);
+    if (!isValid) {
+      console.warn(`Constituency "${constituencyName}" doesn't belong to county "${formData.submitted_county}"`);
+    }
+  };
+
+  // Memoized constituency suggestions based on selected county
+  const constituencySuggestionsForCounty = useMemo(() => {
+    return CONSTITUENCY_SUGGESTIONS[formData.submitted_county] || [];
+  }, [formData.submitted_county]);
 
   // Safe duplicate office check function
   const safeFindDuplicateOffices = async (lat, lng, name, radius = 200) => {
@@ -645,10 +787,10 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       if (typeof lat !== 'number' || typeof lng !== 'number') {
         throw new Error('Invalid coordinates');
       }
-
+      
       // Validate Kenya bounds
       const KENYA_BOUNDS = {
-        minLat: -4.678, maxLat: 5.506,
+        minLat: -4.678, maxLat: 5.506, 
         minLng: 33.908, maxLng: 41.899
       };
       
@@ -683,13 +825,13 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       console.error('Invalid coordinates for marker:', position);
       return;
     }
-
+    
     const addMarker = (retryCount = 0) => {
       if (retryCount > 3) {
         console.warn('Max retries exceeded for adding marker');
         return;
       }
-
+      
       try {
         const mapInstance = mapRef.current;
         if (!mapInstance || typeof mapInstance.addLayer !== 'function') {
@@ -697,16 +839,16 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
           setTimeout(() => addMarker(retryCount + 1), 200);
           return;
         }
-
+        
         if (markerRef.current) {
           mapInstance.removeLayer(markerRef.current);
         }
-
+        
         markerRef.current = L.marker([position.lat, position.lng], {
           icon: createCustomIcon(),
           draggable: method === 'drop_pin'
         }).addTo(mapInstance);
-
+        
         if (method === 'drop_pin') {
           markerRef.current.on('dragend', (event) => {
             const newPosition = event.target.getLatLng();
@@ -735,13 +877,13 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       console.warn('Invalid parameters for accuracy circle:', { position, accuracyValue });
       return;
     }
-
+    
     const addCircle = (retryCount = 0) => {
       if (retryCount > 3) {
         console.warn('Max retries exceeded for adding accuracy circle');
         return;
       }
-
+      
       try {
         const mapInstance = mapRef.current;
         if (!mapInstance || typeof mapInstance.addLayer !== 'function') {
@@ -749,11 +891,11 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
           setTimeout(() => addCircle(retryCount + 1), 200);
           return;
         }
-
+        
         if (accuracyCircleRef.current) {
           mapInstance.removeLayer(accuracyCircleRef.current);
         }
-
+        
         const limitedAccuracy = Math.min(accuracyValue, 1000);
         accuracyCircleRef.current = L.circle([position.lat, position.lng], {
           radius: limitedAccuracy,
@@ -775,6 +917,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const handleMapClick = useCallback((e) => {
     if (selectedMethod === 'drop_pin' && e && e.latlng) {
       const { lat, lng } = e.latlng;
+      
       if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
         console.error('Invalid map click coordinates:', e.latlng);
         return;
@@ -783,7 +926,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       const clickedPosition = { lat, lng };
       setPosition(clickedPosition);
       setAccuracy(5);
-
+      
       if (mapRef.current) {
         mapRef.current.flyTo([lat, lng], 16, { duration: 0.5 });
         
@@ -805,7 +948,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     if (map && typeof map.on === 'function') {
       map.on('click', handleMapClick);
     }
-
+    
     if (position) {
       // Use setTimeout to ensure map layers are fully initialized
       setTimeout(() => {
@@ -834,7 +977,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       if (!position || typeof position.lat !== 'number' || typeof position.lng !== 'number') {
         return;
       }
-
+      
       setIsCheckingDuplicates(true);
       try {
         const results = await safeFindDuplicateOffices(
@@ -883,14 +1026,16 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     setLocationError(null);
     setIsGettingLocation(true);
     retryCountRef.current = 0;
-
+    
     try {
       const pos = await getCurrentPosition();
+      
       if (!pos || !pos.latitude || !pos.longitude) {
         throw new Error('Failed to retrieve valid location data');
       }
 
       const { latitude, longitude, accuracy: posAccuracy = 50 } = pos;
+      
       if (isNaN(latitude) || isNaN(longitude)) {
         throw new Error('Invalid coordinates received from GPS');
       }
@@ -902,17 +1047,19 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       setAccuracy(limitedAccuracy);
       setMapCenter([latitude, longitude]);
       setMapZoom(16);
-
+      
       // Wait for map to be ready before adding layers
       if (mapRef.current) {
-        mapRef.current.flyTo([latitude, longitude], 16, { duration: 1 });
+        mapRef.current.flyTo([latitude, longitude], 16, { 
+          duration: 1 
+        });
         
         // Use setTimeout to ensure flyTo completes before adding layers
         setTimeout(() => {
           addMarkerToMap(capturedPosition);
           addAccuracyCircle(capturedPosition, limitedAccuracy);
         }, 500);
-
+        
         // Show accuracy guidance
         if (limitedAccuracy > 100) {
           setLocationError({
@@ -937,7 +1084,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       setTimeout(() => {
         setStep(3);
       }, 1500);
-
+      
     } catch (err) {
       console.error('Error capturing location:', err);
       const errorMessage = err?.message || 'Failed to get current location';
@@ -960,24 +1107,26 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     
     setIsExpandingUrl(true);
     setLocationError(null);
-
+    
     try {
       let result = parseGoogleMapsInput(googleMapsInput);
-
+      
       // Handle short URL expansion
       if (result?.requiresExpansion) {
         const expandedUrl = await expandShortUrl(result.shortUrl);
         result = parseGoogleMapsInput(expandedUrl);
       }
-
+      
       if (result?.lat && result?.lng) {
         setParseResult(result);
         setPosition({ lat: result.lat, lng: result.lng });
         setMapCenter([result.lat, result.lng]);
         setMapZoom(16);
-
+        
         if (mapRef.current) {
-          mapRef.current.flyTo([result.lat, result.lng], 16, { duration: 1 });
+          mapRef.current.flyTo([result.lat, result.lng], 16, { 
+            duration: 1 
+          });
           
           // Use setTimeout to ensure flyTo completes before adding layers
           setTimeout(() => {
@@ -987,20 +1136,19 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         } else {
           console.warn('Map not ready for flyTo operation');
         }
-
+        
         // Auto-fill office name if available
         if (result.placeName && !formData.submitted_office_location) {
-          setFormData(prev => ({
-            ...prev,
-            submitted_office_location: result.placeName
+          setFormData(prev => ({ 
+            ...prev, 
+            submitted_office_location: result.placeName 
           }));
         }
-
+        
         // Auto-proceed to Step 3 after successful parsing
         setTimeout(() => {
           setStep(3);
         }, 1000);
-
       } else if (result?.requiresGeocoding) {
         setLocationError({
           type: 'info',
@@ -1030,16 +1178,15 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const handleImageSelect = useCallback(async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
+    
     try {
       if (!file.type.startsWith('image/')) {
         throw new Error('Please select an image file (JPEG, PNG, etc.)');
       }
-
       if (file.size > 10 * 1024 * 1024) {
         throw new Error('Image must be smaller than 10MB');
       }
-
+      
       const webpFile = await convertImageToWebP(file);
       setImageFile(webpFile);
       
@@ -1065,27 +1212,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     }
   }, [imagePreview]);
 
-  // Enhanced county selection with fuzzy search
-  const handleCountySelect = (countyName) => {
-    setFormData(prev => ({
-      ...prev,
-      submitted_county: countyName,
-      submitted_constituency: '' // Reset constituency when county changes
-    }));
-    setConstituencyInput('');
-    setCountySuggestions([]);
-  };
-
-  // Enhanced constituency selection with fuzzy search
-  const handleConstituencySelect = (constituencyName) => {
-    setFormData(prev => ({
-      ...prev,
-      submitted_constituency: constituencyName
-    }));
-    setConstituencyInput(constituencyName);
-    setShowConstituencySuggestions(false);
-  };
-
   const handleFinalSubmit = async () => {
     if (!position || !agreement) {
       setLocationError({
@@ -1094,7 +1220,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       });
       return;
     }
-
+    
     try {
       const contributionData = {
         submitted_latitude: position.lat,
@@ -1103,7 +1229,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         submitted_office_location: formData.submitted_office_location,
         submitted_county: formData.submitted_county,
         submitted_constituency: formData.submitted_constituency,
-        submitted_constituency_code: constituencyCode,
+        submitted_constituency_code: constituencyCode, // Use the fetched constituency code
         submitted_landmark: formData.submitted_landmark || notes,
         google_maps_link: selectedMethod === 'google_maps' ? googleMapsInput : null,
         imageFile: imageFile,
@@ -1122,11 +1248,12 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
           screen_resolution: `${window.screen.width}x${window.screen.height}`,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           has_touch: 'ontouchstart' in window,
-          constituency_code: constituencyCode
+          constituency_code: constituencyCode // Include in device metadata too
         }
       };
-
+      
       console.log('Submitting contribution data with constituency code:', constituencyCode, contributionData);
+      
       const result = await submitContribution(contributionData);
       setContributionId(result.id);
       setSubmissionSuccess(true);
@@ -1156,15 +1283,15 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       });
       return;
     }
-
+    
     if (!formData.submitted_county) {
       setLocationError({
-        type: 'error', 
+        type: 'error',
         message: 'Please select a county.'
       });
       return;
     }
-
+    
     if (!formData.submitted_constituency.trim()) {
       setLocationError({
         type: 'error',
@@ -1172,7 +1299,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       });
       return;
     }
-
+    
     handleFinalSubmit();
   };
 
@@ -1192,23 +1319,25 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       submitted_constituency: '',
       submitted_landmark: ''
     });
+    setCountyInput('');
+    setConstituencyInput('');
+    setCountySuggestions([]);
+    setConstituencySuggestions([]);
+    setShowCountySuggestions(false);
+    setShowConstituencySuggestions(false);
     setAgreement(false);
     setLocationError(null);
     setSubmissionSuccess(false);
     setContributionId(null);
     setDuplicateOffices([]);
     setConstituencyCode(null);
-    setCountySuggestions([]);
-    setConstituencyInput('');
-    setConstituencySuggestions([]);
-    setShowConstituencySuggestions(false);
     retryCountRef.current = 0;
-
+    
     if (imagePreview) {
       URL.revokeObjectURL(imagePreview);
     }
-
-    // Cleanup map layers
+    
+    // Clean up map layers
     if (markerRef.current && mapRef.current && typeof mapRef.current.removeLayer === 'function') {
       try {
         mapRef.current.removeLayer(markerRef.current);
@@ -1217,7 +1346,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       }
       markerRef.current = null;
     }
-
     if (accuracyCircleRef.current && mapRef.current && typeof mapRef.current.removeLayer === 'function') {
       try {
         mapRef.current.removeLayer(accuracyCircleRef.current);
@@ -1244,14 +1372,14 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   // Enhanced error display component
   const ErrorAlert = ({ error }) => {
     if (!error) return null;
-
+    
     const alertStyles = {
       error: 'bg-red-50 border-red-200 text-red-700',
-      warning: 'bg-yellow-50 border-yellow-200 text-yellow-700', 
+      warning: 'bg-yellow-50 border-yellow-200 text-yellow-700',
       success: 'bg-green-50 border-green-200 text-green-700',
       info: 'bg-blue-50 border-blue-200 text-blue-700'
     };
-
+    
     const icons = {
       error: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1274,7 +1402,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         </svg>
       )
     };
-
+    
     return (
       <div className={`mb-4 border rounded-xl p-4 ${alertStyles[error.type]}`}>
         <div className="flex items-center space-x-3">
@@ -1291,6 +1419,29 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
             )}
           </div>
         </div>
+      </div>
+    );
+  };
+
+  // Custom dropdown component for suggestions
+  const SuggestionsDropdown = ({ suggestions, onSelect, show, query }) => {
+    if (!show || suggestions.length === 0) return null;
+    
+    return (
+      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+        {suggestions.map((suggestion, index) => (
+          <button
+            key={index}
+            type="button"
+            className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+            onClick={() => onSelect(suggestion)}
+          >
+            <span className="text-gray-900">{suggestion}</span>
+            {query && query.toLowerCase() !== suggestion.toLowerCase() && (
+              <span className="ml-2 text-xs text-gray-500">Did you mean: {suggestion}</span>
+            )}
+          </button>
+        ))}
       </div>
     );
   };
@@ -1312,7 +1463,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
               <div className="flex items-center space-x-4">
                 <h2 className="text-xl font-semibold text-gray-900">
                   {step === 1 && 'Contribute IEBC Office Location'}
-                  {step === 2 && 'Capture Location'}  
+                  {step === 2 && 'Capture Location'}
                   {step === 3 && 'Office Details'}
                   {step === 4 && 'Submission Complete'}
                 </h2>
@@ -1322,11 +1473,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     <div
                       key={stepNum}
                       className={`w-2 h-2 rounded-full ${
-                        stepNum === step 
-                          ? 'bg-green-600' 
-                          : stepNum < step 
-                            ? 'bg-green-400' 
-                            : 'bg-gray-300'
+                        stepNum === step ? 'bg-green-600' : 
+                        stepNum < step ? 'bg-green-400' : 'bg-gray-300'
                       }`}
                     />
                   ))}
@@ -1346,7 +1494,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-6">
               <ErrorAlert error={locationError} />
-              
+
               {error && (
                 <div className="mb-4 bg-red-50 border border-red-200 rounded-xl p-4">
                   <p className="text-sm text-red-700">{error}</p>
@@ -1359,7 +1507,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                   <div className="text-center">
                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314-12.314" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                     </div>
@@ -1395,7 +1543,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                           <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314-12.314" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                           </svg>
                         </div>
                         <div>
@@ -1449,16 +1597,23 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     <div>
                       <h3 className="text-lg font-medium text-gray-900 mb-2">Capture Your Current Location</h3>
                       <p className="text-gray-600 mb-4">Stand within 20 meters of the IEBC office entrance for best accuracy</p>
+                      
                       {position && accuracy && (
                         <div className="bg-blue-50 rounded-lg p-4 mb-4">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-blue-700">Accuracy: ±{Math.round(accuracy)} meters</span>
+                            <span className="text-sm font-medium text-blue-700">
+                              Accuracy: ±{Math.round(accuracy)} meters
+                            </span>
                             {accuracy <= 20 && (
-                              <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">✓ Good Accuracy</span>
+                              <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                                ✓ Good Accuracy
+                              </span>
                             )}
                           </div>
                           {accuracy > 100 && (
-                            <p className="text-sm text-blue-600 mt-1">Move to an open area for better GPS accuracy</p>
+                            <p className="text-sm text-blue-600 mt-1">
+                              Move to an open area for better GPS accuracy
+                            </p>
                           )}
                         </div>
                       )}
@@ -1476,6 +1631,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     <div>
                       <h3 className="text-lg font-medium text-gray-900 mb-2">Paste Google Maps Link</h3>
                       <p className="text-gray-600 mb-4">Paste a Google Maps URL or coordinates in format: -1.2921,36.8219</p>
+                      
                       <div className="flex space-x-2">
                         <input
                           type="text"
@@ -1500,9 +1656,12 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                           )}
                         </button>
                       </div>
+                      
                       {parseResult && (
                         <div className="bg-green-50 rounded-lg p-3 mt-2">
-                          <p className="text-sm text-green-700">✓ Coordinates extracted: {parseResult.lat.toFixed(6)}, {parseResult.lng.toFixed(6)}</p>
+                          <p className="text-sm text-green-700">
+                            ✓ Coordinates extracted: {parseResult.lat.toFixed(6)}, {parseResult.lng.toFixed(6)}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -1553,7 +1712,9 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                         </svg>
                         <div>
-                          <p className="text-sm font-medium text-yellow-800 mb-1">Possible duplicate office detected</p>
+                          <p className="text-sm font-medium text-yellow-800 mb-1">
+                            Possible duplicate office detected
+                          </p>
                           <p className="text-sm text-yellow-700">
                             There {duplicateOffices.length === 1 ? 'is' : 'are'} {duplicateOffices.length} verified office{duplicateOffices.length === 1 ? '' : 's'} within 100m. Please confirm this is a new location.
                           </p>
@@ -1598,7 +1759,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                   <div className="grid grid-cols-1 gap-4">
                     <div>
                       <label htmlFor="office-name" className="block text-sm font-medium text-gray-700 mb-1">
-                        Office Name*
+                        Office Name *
                       </label>
                       <input
                         id="office-name"
@@ -1614,84 +1775,67 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     <div className="grid grid-cols-2 gap-4">
                       <div className="relative">
                         <label htmlFor="county" className="block text-sm font-medium text-gray-700 mb-1">
-                          County*
+                          County *
                         </label>
                         <input
                           id="county"
                           type="text"
                           required
-                          value={formData.submitted_county}
-                          onChange={(e) => setFormData(prev => ({ ...prev, submitted_county: e.target.value }))}
+                          value={countyInput}
+                          onChange={(e) => handleCountyInputChange(e.target.value)}
+                          onFocus={() => countyInput.length > 1 && setShowCountySuggestions(true)}
+                          onBlur={() => setTimeout(() => setShowCountySuggestions(false), 200)}
                           placeholder="e.g., Nairobi"
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                          list="county-suggestions"
-                          ref={countyInputRef}
                         />
-                        <datalist id="county-suggestions">
-                          {COUNTIES_DATA.map(county => (
-                            <option key={county.id} value={county.name} />
-                          ))}
-                        </datalist>
-                        
-                        {/* Fuzzy search suggestions for counties */}
-                        {countySuggestions.length > 0 && (
-                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                            {countySuggestions.map((suggestion, index) => (
-                              <button
-                                key={index}
-                                type="button"
-                                className="w-full px-3 py-2 text-left hover:bg-gray-100 first:rounded-t-lg last:rounded-b-lg"
-                                onClick={() => handleCountySelect(suggestion)}
-                              >
-                                <span className="text-sm">{suggestion}</span>
-                              </button>
-                            ))}
-                          </div>
+                        <SuggestionsDropdown
+                          suggestions={countySuggestions}
+                          onSelect={handleCountySelect}
+                          show={showCountySuggestions}
+                          query={countyInput}
+                        />
+                        {countySuggestions.length > 0 && !showCountySuggestions && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Suggestions: {countySuggestions.slice(0, 3).join(', ')}
+                            {countySuggestions.length > 3 && '...'}
+                          </p>
                         )}
                       </div>
 
                       <div className="relative">
                         <label htmlFor="constituency" className="block text-sm font-medium text-gray-700 mb-1">
-                          Constituency*
+                          Constituency *
                         </label>
                         <input
                           id="constituency"
                           type="text"
                           required
                           value={constituencyInput}
-                          onChange={(e) => {
-                            setConstituencyInput(e.target.value);
-                            setShowConstituencySuggestions(true);
-                          }}
-                          onFocus={() => setShowConstituencySuggestions(true)}
+                          onChange={(e) => handleConstituencyInputChange(e.target.value)}
+                          onFocus={() => constituencyInput.length > 1 && formData.submitted_county && setShowConstituencySuggestions(true)}
                           onBlur={() => setTimeout(() => setShowConstituencySuggestions(false), 200)}
                           placeholder="e.g., Westlands"
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                          ref={constituencyInputRef}
+                          disabled={!formData.submitted_county}
+                        />
+                        <SuggestionsDropdown
+                          suggestions={constituencySuggestions}
+                          onSelect={handleConstituencySelect}
+                          show={showConstituencySuggestions}
+                          query={constituencyInput}
                         />
                         
-                        {/* Fuzzy search suggestions for constituencies */}
-                        {showConstituencySuggestions && constituencySuggestions.length > 0 && (
-                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                            {constituencySuggestions.map((suggestion, index) => (
-                              <button
-                                key={index}
-                                type="button"
-                                className="w-full px-3 py-2 text-left hover:bg-gray-100 first:rounded-t-lg last:rounded-b-lg"
-                                onClick={() => handleConstituencySelect(suggestion)}
-                              >
-                                <span className="text-sm">{suggestion}</span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
+                        {/* Enhanced constituency status */}
+                        <ConstituencyStatus 
+                          constituency={formData.submitted_constituency}
+                          county={formData.submitted_county}
+                          code={constituencyCode}
+                        />
                         
-                        {/* Enhanced: Show constituency code status */}
-                        {constituencyCode && (
-                          <p className="text-xs text-green-600 mt-1">✓ Constituency code mapped: {constituencyCode}</p>
-                        )}
-                        {formData.submitted_constituency && formData.submitted_county && !constituencyCode && (
-                          <p className="text-xs text-yellow-600 mt-1">⚠ No constituency code found for this combination</p>
+                        {!formData.submitted_county && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Please select a county first
+                          </p>
                         )}
                       </div>
                     </div>
@@ -1728,17 +1872,15 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                             <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            <p className="text-sm text-gray-600">{imageFile ? 'Photo selected' : 'Take or upload a photo'}</p>
+                            <p className="text-sm text-gray-600">
+                              {imageFile ? 'Photo selected' : 'Take or upload a photo'}
+                            </p>
                             <p className="text-xs text-gray-500 mt-1">Supports JPEG, PNG, WEBP (max 10MB)</p>
                           </div>
                         </label>
                         {imagePreview && (
                           <div className="flex-shrink-0 relative">
-                            <img
-                              src={imagePreview}
-                              alt="Office preview"
-                              className="w-20 h-20 object-cover rounded-lg"
-                            />
+                            <img src={imagePreview} alt="Office preview" className="w-20 h-20 object-cover rounded-lg" />
                             <button
                               type="button"
                               onClick={handleRemoveImage}
@@ -1752,7 +1894,9 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                           </div>
                         )}
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">📸 Photos with GPS data are prioritized for fast verification</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        📸 Photos with GPS data are prioritized for fast verification
+                      </p>
                     </div>
 
                     <div>
@@ -1824,7 +1968,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                         <h3 className="text-lg font-medium text-gray-900 mb-2">Contribution Successfully Submitted!</h3>
                         <p className="text-gray-600 mb-4">Your location data has been submitted and is now in our moderation queue.</p>
                       </div>
-
                       <div className="bg-green-50 rounded-xl p-4 border border-green-200">
                         <p className="text-sm text-green-700 text-left">
                           <strong className="block mb-2">What happens next:</strong>
@@ -1834,7 +1977,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                           <span className="block">✓ You'll be helping thousands of Kenyans find accurate IEBC office locations</span>
                         </p>
                       </div>
-
                       <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
                         <p className="text-sm text-blue-700 text-left">
                           <strong className="block mb-1">Contribution ID: #{contributionId}</strong>
@@ -1846,7 +1988,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                           )}
                         </p>
                       </div>
-
                       <div className="flex space-x-3 pt-2">
                         <button
                           onClick={handleClose}
