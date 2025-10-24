@@ -108,7 +108,7 @@ const CONSTITUENCIES_DATA = [
   { id: 195, name: 'CHEPALUNGU', county_id: 2 },
   { id: 140, name: 'CHERANGANY', county_id: 42 },
   { id: 154, name: 'CHESUMEI', county_id: 32 },
-  { id: 61, name: 'CHUKA/IGAMBANG''OMBE', county_id: 41 },
+  { id: 61, name: 'CHUKA/IGAMBANG'OMBE', county_id: 41 },
   { id: 30, name: 'DADAAB', county_id: 7 },
   { id: 275, name: 'DAGORETTI NORTH', county_id: 30 },
   { id: 276, name: 'DAGORETTI SOUTH', county_id: 30 },
