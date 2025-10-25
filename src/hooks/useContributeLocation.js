@@ -176,7 +176,6 @@ export const useContributeLocation = () => {
     }
   }, []);
 
-  // FIXED: Enhanced Reverse geocoding function without broken RPC calls
   const reverseGeocode = useCallback(async (latitude, longitude) => {
     try {
       console.log('Reverse geocoding coordinates:', { latitude, longitude });
@@ -192,10 +191,8 @@ export const useContributeLocation = () => {
       const data = await response.json();
       console.log('Reverse geocode result:', data);
       
-      // FIXED: Remove broken RPC call and use local data lookup instead
       let constituencyInfo = null;
       try {
-        // Use local constituencies data to find constituency
         const { data: localConstituencyData } = await findConstituencyFromCoords(latitude, longitude);
         if (localConstituencyData && localConstituencyData.length > 0) {
           constituencyInfo = {
@@ -221,21 +218,36 @@ export const useContributeLocation = () => {
     }
   }, []);
 
-  // NEW: Local constituency lookup function to replace broken RPC
   const findConstituencyFromCoords = useCallback(async (latitude, longitude) => {
     try {
-      // Simple bounding box check for Kenya constituencies
-      // In a real implementation, this would use proper GIS data
-      // For now, we'll return empty and rely on manual selection
       console.log('Local constituency lookup for:', { latitude, longitude });
-      return { data: [], error: null };
+      
+      const { data, error } = await supabase
+        .from('constituencies')
+        .select(`
+          id,
+          name,
+          counties!inner(name as county_name)
+        `)
+        .gte('latitude', latitude - 0.1)
+        .lte('latitude', latitude + 0.1)
+        .gte('longitude', longitude - 0.1)
+        .lte('longitude', longitude + 0.1)
+        .limit(5);
+
+      if (error) {
+        console.warn('Constituency lookup error:', error);
+        return { data: [], error };
+      }
+
+      console.log('Found constituencies:', data);
+      return { data: data || [], error: null };
     } catch (error) {
       console.warn('Local constituency lookup error:', error);
       return { data: [], error };
     }
   }, []);
 
-  // Extract EXIF data from image
   const extractExifData = useCallback(async (file) => {
     return new Promise((resolve) => {
       if (!file) {
@@ -281,7 +293,6 @@ export const useContributeLocation = () => {
     });
   }, []);
 
-  // FIXED: Enhanced Find nearby features without broken RPC calls
   const findNearbyFeatures = useCallback(async (latitude, longitude, radiusMeters = 500) => {
     try {
       console.log('Finding nearby features for enrichment...');
@@ -293,11 +304,10 @@ export const useContributeLocation = () => {
       };
 
       try {
-        // FIXED: Replace broken RPC with direct database query
         const { data: officesData, error: officesError } = await supabase
           .from('iebc_offices')
           .select('*')
-          .gte('latitude', latitude - 0.01) // Approximate 1km radius
+          .gte('latitude', latitude - 0.01)
           .lte('latitude', latitude + 0.01)
           .gte('longitude', longitude - 0.01)
           .lte('longitude', longitude + 0.01)
@@ -319,7 +329,6 @@ export const useContributeLocation = () => {
       }
 
       try {
-        // FIXED: Replace broken RPC with direct database query
         const { data: landmarksData, error: landmarksError } = await supabase
           .from('map_landmarks_readable')
           .select('*')
@@ -337,7 +346,6 @@ export const useContributeLocation = () => {
       }
 
       try {
-        // FIXED: Use local lookup instead of broken RPC
         const { data: constituencyData } = await findConstituencyFromCoords(latitude, longitude);
         if (constituencyData) {
           nearbyData.constituencies = Array.isArray(constituencyData) ? constituencyData : [constituencyData];
@@ -355,7 +363,6 @@ export const useContributeLocation = () => {
     }
   }, [calculateDistance, findConstituencyFromCoords]);
 
-  // Enhanced Calculate confidence score
   const calculateConfidenceScore = useCallback((contributionData, nearbyFeatures, exifData, reverseGeocodeResult) => {
     let score = 50;
     
@@ -404,51 +411,88 @@ export const useContributeLocation = () => {
     return score;
   }, []);
 
-  // UPDATED: Enhanced Get constituency code from name - NOW USING constituencies.id directly
-  const getConstituencyCode = useCallback(async (constituencyName, countyName) => {
-    if (!constituencyName || !countyName) return null;
+  const getConstituencyId = useCallback(async (constituencyName, countyName) => {
+    if (!constituencyName) {
+      console.warn('No constituency name provided for lookup');
+      return null;
+    }
     
     try {
-      console.log('Looking up constituency code for:', constituencyName, 'in county:', countyName);
+      console.log('Looking up constituency ID for:', constituencyName, 'in county:', countyName);
       
-      // First try exact match
-      const { data, error } = await supabase
+      let query = supabase
         .from('constituencies')
         .select('id, name, county_id')
-        .eq('name', constituencyName)
-        .single();
+        .ilike('name', `%${constituencyName}%`);
+
+      if (countyName) {
+        query = query.eq('counties.name', countyName);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
-        console.warn('Direct constituency lookup failed:', error);
-        
-        // Try fuzzy search
-        const { data: fuzzyData, error: fuzzyError } = await supabase
-          .from('constituencies')
-          .select('id, name, county_id')
-          .ilike('name', `%${constituencyName}%`)
-          .limit(1);
+        console.error('Constituency lookup failed:', error);
+        return null;
+      }
 
-        if (!fuzzyError && fuzzyData && fuzzyData.length > 0) {
-          console.log('Found constituency via fuzzy search:', fuzzyData[0]);
-          return fuzzyData[0].id;
+      if (!data || data.length === 0) {
+        console.warn('No constituency found for:', constituencyName);
+        
+        if (countyName) {
+          console.log('Attempting to create missing constituency...');
+          return await createMissingConstituency(constituencyName, countyName);
         }
         
         return null;
       }
 
-      if (data) {
-        console.log('Found constituency directly:', data);
-        return data.id;
-      }
-
-      return null;
+      console.log('Found constituency:', data[0]);
+      return data[0].id;
     } catch (error) {
-      console.warn('Constituency code lookup failed:', error);
+      console.error('Constituency ID lookup failed:', error);
       return null;
     }
   }, []);
 
-  // Enhanced Main data enrichment function with proper constituency mapping
+  const createMissingConstituency = useCallback(async (constituencyName, countyName) => {
+    try {
+      console.log('Creating missing constituency:', constituencyName, 'for county:', countyName);
+      
+      const { data: countyData, error: countyError } = await supabase
+        .from('counties')
+        .select('id')
+        .ilike('name', `%${countyName}%`)
+        .single();
+
+      if (countyError || !countyData) {
+        console.error('County not found for constituency creation:', countyError);
+        return null;
+      }
+
+      const { data: newConstituency, error: createError } = await supabase
+        .from('constituencies')
+        .insert({
+          name: constituencyName,
+          county_id: countyData.id,
+          registration_target: 0
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Failed to create constituency:', createError);
+        return null;
+      }
+
+      console.log('Successfully created new constituency:', newConstituency);
+      return newConstituency.id;
+    } catch (error) {
+      console.error('Error creating missing constituency:', error);
+      return null;
+    }
+  }, []);
+
   const enrichContributionData = useCallback(async (contributionData) => {
     console.log('Starting data enrichment process...');
     
@@ -482,7 +526,7 @@ export const useContributeLocation = () => {
       }
       
       if (constituencyInfo.id) {
-        enrichedData.submitted_constituency_code = constituencyInfo.id;
+        enrichedData.submitted_constituency_id = constituencyInfo.id;
       }
       
       if (!enrichedData.submitted_landmark) {
@@ -511,13 +555,13 @@ export const useContributeLocation = () => {
       }
     }
 
-    if (!enrichedData.submitted_constituency_code && enrichedData.submitted_constituency && enrichedData.submitted_county) {
-      console.log('Getting constituency code via API for:', enrichedData.submitted_constituency, enrichedData.submitted_county);
-      enrichedData.submitted_constituency_code = await getConstituencyCode(
+    if (!enrichedData.submitted_constituency_id && enrichedData.submitted_constituency) {
+      console.log('Getting constituency ID for:', enrichedData.submitted_constituency, enrichedData.submitted_county);
+      enrichedData.submitted_constituency_id = await getConstituencyId(
         enrichedData.submitted_constituency,
         enrichedData.submitted_county
       );
-      console.log('Constituency code result:', enrichedData.submitted_constituency_code);
+      console.log('Constituency ID result:', enrichedData.submitted_constituency_id);
     }
 
     enrichedData.duplicate_candidate_ids = nearbyFeatures.offices
@@ -538,19 +582,17 @@ export const useContributeLocation = () => {
 
     console.log('Data enrichment completed:', enrichedData);
     return enrichedData;
-  }, [extractExifData, reverseGeocode, findNearbyFeatures, getConstituencyCode, calculateConfidenceScore]);
+  }, [extractExifData, reverseGeocode, findNearbyFeatures, getConstituencyId, calculateConfidenceScore]);
 
-  // Function to update existing constituency codes in contributions
-  const updateExistingConstituencyCodes = useCallback(async () => {
+  const updateExistingConstituencyIds = useCallback(async () => {
     try {
-      console.log('Updating constituency codes in existing contributions...');
+      console.log('Updating constituency IDs in existing contributions...');
       
       const { data: contributions, error: contributionsError } = await supabase
         .from('iebc_office_contributions')
         .select('id, submitted_constituency, submitted_county')
-        .is('submitted_constituency_code', null)
-        .not('submitted_constituency', 'is', null)
-        .not('submitted_county', 'is', null);
+        .is('submitted_constituency_id', null)
+        .not('submitted_constituency', 'is', null);
 
       if (contributionsError) {
         throw new Error(`Failed to fetch contributions: ${contributionsError.message}`);
@@ -561,15 +603,15 @@ export const useContributeLocation = () => {
       let updatedCount = 0;
       for (const contribution of contributions || []) {
         try {
-          const constituencyCode = await getConstituencyCode(
+          const constituencyId = await getConstituencyId(
             contribution.submitted_constituency,
             contribution.submitted_county
           );
 
-          if (constituencyCode) {
+          if (constituencyId) {
             const { error: updateError } = await supabase
               .from('iebc_office_contributions')
-              .update({ submitted_constituency_code: constituencyCode })
+              .update({ submitted_constituency_id: constituencyId })
               .eq('id', contribution.id);
 
             if (!updateError) {
@@ -587,22 +629,20 @@ export const useContributeLocation = () => {
       return { updated: updatedCount, total: contributions?.length || 0 };
 
     } catch (error) {
-      console.error('Error updating constituency codes:', error);
+      console.error('Error updating constituency IDs:', error);
       throw error;
     }
-  }, [getConstituencyCode]);
+  }, [getConstituencyId]);
 
-  // Function to update constituency codes in iebc_offices
-  const updateOfficeConstituencyCodes = useCallback(async () => {
+  const updateOfficeConstituencyIds = useCallback(async () => {
     try {
-      console.log('Updating constituency codes in iebc_offices...');
+      console.log('Updating constituency IDs in iebc_offices...');
       
       const { data: offices, error: officesError } = await supabase
         .from('iebc_offices')
         .select('id, constituency, county')
         .is('constituency_code', null)
-        .not('constituency', 'is', null)
-        .not('county', 'is', null);
+        .not('constituency', 'is', null);
 
       if (officesError) {
         throw new Error(`Failed to fetch offices: ${officesError.message}`);
@@ -613,15 +653,15 @@ export const useContributeLocation = () => {
       let updatedCount = 0;
       for (const office of offices || []) {
         try {
-          const constituencyCode = await getConstituencyCode(
+          const constituencyId = await getConstituencyId(
             office.constituency,
             office.county
           );
 
-          if (constituencyCode) {
+          if (constituencyId) {
             const { error: updateError } = await supabase
               .from('iebc_offices')
-              .update({ constituency_code: constituencyCode })
+              .update({ constituency_code: constituencyId })
               .eq('id', office.id);
 
             if (!updateError) {
@@ -639,20 +679,19 @@ export const useContributeLocation = () => {
       return { updated: updatedCount, total: offices?.length || 0 };
 
     } catch (error) {
-      console.error('Error updating office constituency codes:', error);
+      console.error('Error updating office constituency IDs:', error);
       throw error;
     }
-  }, [getConstituencyCode]);
+  }, [getConstituencyId]);
 
   const getFallbackLandmarks = useCallback(async (latitude, longitude, radiusMeters) => {
     const fallbackLandmarks = [];
 
     try {
-      // FIXED: Replace broken RPC with direct query
       const { data: officeData, error: officeError } = await supabase
         .from('iebc_offices')
         .select('*')
-        .gte('latitude', latitude - 0.05) // Approximate 5km radius
+        .gte('latitude', latitude - 0.05)
         .lte('latitude', latitude + 0.05)
         .gte('longitude', longitude - 0.05)
         .lte('longitude', longitude + 0.05)
@@ -688,123 +727,6 @@ export const useContributeLocation = () => {
       console.warn('IEBC offices fallback failed:', officeError);
     }
 
-    try {
-      if (fallbackLandmarks.length < 3) {
-        const { data: directOfficeData, error: directError } = await supabase
-          .from('iebc_offices')
-          .select('*')
-          .eq('verified', true)
-          .limit(20);
-
-        if (!directError && directOfficeData && Array.isArray(directOfficeData)) {
-          const processedDirect = directOfficeData
-            .map(office => {
-              if (!office) return null;
-              
-              const officeLat = office.verified_latitude || office.latitude;
-              const officeLng = office.verified_longitude || office.longitude;
-              
-              if (!officeLat || !officeLng || isNaN(officeLat) || isNaN(officeLng)) return null;
-
-              const distance = calculateDistance(latitude, longitude, officeLat, officeLng);
-              if (distance > radiusMeters) return null;
-
-              const bearing = calculateBearing(latitude, longitude, officeLat, officeLng);
-              const qualityScore = calculateLandmarkQuality(office, distance, radiusMeters);
-
-              return {
-                landmark_id: office.id || `office_${Date.now()}`,
-                landmark_name: office.office_location || 'IEBC Office',
-                landmark_type: 'government',
-                landmark_subtype: 'iebc_office',
-                landmark_latitude: officeLat,
-                landmark_longitude: officeLng,
-                distance_meters: distance,
-                bearing_degrees: bearing,
-                triangulation_weight: 0.85,
-                quality_score: qualityScore,
-                direction_description: getDirectionFromBearing(bearing),
-                side_of_road: determineSideOfRoad(latitude, officeLat),
-                typical_accuracy_meters: 15
-              };
-            })
-            .filter(office => office !== null && office.landmark_latitude && office.landmark_longitude)
-            .sort((a, b) => b.quality_score - a.quality_score)
-            .slice(0, 8 - fallbackLandmarks.length);
-
-          fallbackLandmarks.push(...processedDirect);
-        }
-      }
-    } catch (directError) {
-      console.warn('Direct database fallback failed:', directError);
-    }
-
-    try {
-      if (fallbackLandmarks.length < 5) {
-       const { data: mapLandmarks, error: mapError } = await supabase
-         .from('map_landmarks_readable')
-         .select('*')
-         .eq('verified', true)
-         .limit(25);
-                
-        if (!mapError && mapLandmarks && Array.isArray(mapLandmarks)) {
-          const processedMap = mapLandmarks
-            .map(landmark => {
-              try {
-                if (!landmark) return null;
-                
-                let landmarkLat, landmarkLng;
-                
-                if (landmark.centroid_wkt && typeof landmark.centroid_wkt === 'string') {
-                  const match = landmark.centroid_wkt.match(/POINT\(([^ ]+) ([^ ]+)\)/);
-                  if (match) {
-                    landmarkLng = parseFloat(match[1]);
-                    landmarkLat = parseFloat(match[2]);
-                  }
-                }
-                
-                if (!landmarkLat || !landmarkLng || isNaN(landmarkLat) || isNaN(landmarkLng)) {
-                  return null;
-                }
-
-                const distance = calculateDistance(latitude, longitude, landmarkLat, landmarkLng);
-                
-                if (distance > radiusMeters) return null;
-
-                const bearing = calculateBearing(latitude, longitude, landmarkLat, landmarkLng);
-                const qualityScore = calculateLandmarkQuality(landmark, distance, radiusMeters);
-
-                return {
-                  landmark_id: landmark.id || `landmark_${Date.now()}`,
-                  landmark_name: landmark.name || landmark.landmark_subtype || 'Unknown Landmark',
-                  landmark_type: landmark.landmark_type || 'unknown',
-                  landmark_subtype: landmark.landmark_subtype || 'unknown',
-                  landmark_latitude: landmarkLat,
-                  landmark_longitude: landmarkLng,
-                  distance_meters: distance,
-                  bearing_degrees: bearing,
-                  triangulation_weight: landmark.triangulation_weight || 0.7,
-                  quality_score: qualityScore,
-                  direction_description: getDirectionFromBearing(bearing),
-                  side_of_road: 'unknown',
-                  typical_accuracy_meters: landmark.typical_accuracy_meters || 20
-                };
-              } catch (parseError) {
-                console.warn('Error processing landmark coordinates:', parseError);
-                return null;
-              }
-            })
-            .filter(landmark => landmark !== null && landmark.landmark_latitude && landmark.landmark_longitude)
-            .sort((a, b) => b.quality_score - a.quality_score)
-            .slice(0, 8 - fallbackLandmarks.length);
-
-          fallbackLandmarks.push(...processedMap);
-        }
-      }
-    } catch (mapError) {
-      console.warn('Map landmarks fallback failed:', mapError);
-    }
-
     return fallbackLandmarks
       .sort((a, b) => b.quality_score - a.quality_score)
       .slice(0, 8);
@@ -821,11 +743,7 @@ export const useContributeLocation = () => {
     setIsFetchingOSM(true);
     try {
       console.log('Fetching OSM data for location:', { latitude, longitude, radiusMeters });
-
-      // FIXED: Replace broken RPC with direct database operations or skip if not critical
-      console.log('OSM data fetching temporarily disabled - RPC function not available');
       
-      // For now, return empty result since OSM RPC is not available
       return { landmarksAdded: 0, totalProcessed: 0 };
 
     } catch (err) {
@@ -857,7 +775,6 @@ export const useContributeLocation = () => {
 
       while (attempt <= maxRetries && landmarks.length === 0) {
         try {
-          // FIXED: Replace broken RPC with direct database query
           const { data: rpcData, error: rpcError } = await supabase
             .from('map_landmarks_readable')
             .select('*')
@@ -1140,7 +1057,6 @@ export const useContributeLocation = () => {
     }
   }, []);
 
-  // UPDATED: Enhanced submit function with data enrichment and proper constituency mapping
   const submitContribution = useCallback(async (contributionData) => {
     setIsSubmitting(true);
     setError(null);
@@ -1188,15 +1104,18 @@ export const useContributeLocation = () => {
         confidence_score: enrichedData.confidence_score
       };
 
-      // FIXED: Ensure constituency_code is properly formatted as integer
-      let constituencyCode = enrichedData.submitted_constituency_code;
-      if (constituencyCode && typeof constituencyCode !== 'number') {
-        console.warn('Constituency code is not a number, converting:', constituencyCode);
-        constituencyCode = parseInt(constituencyCode);
-        if (isNaN(constituencyCode)) {
-          console.warn('Failed to parse constituency code as number, setting to null');
-          constituencyCode = null;
+      let constituencyId = enrichedData.submitted_constituency_id;
+      if (constituencyId && typeof constituencyId !== 'number') {
+        console.warn('Constituency ID is not a number, converting:', constituencyId);
+        constituencyId = parseInt(constituencyId);
+        if (isNaN(constituencyId)) {
+          console.warn('Failed to parse constituency ID as number, setting to null');
+          constituencyId = null;
         }
+      }
+
+      if (!constituencyId) {
+        throw new Error('Valid constituency ID is required for submission');
       }
 
       const contribution = {
@@ -1206,7 +1125,7 @@ export const useContributeLocation = () => {
         submitted_office_location: enrichedData.submitted_office_location,
         submitted_county: enrichedData.submitted_county,
         submitted_constituency: enrichedData.submitted_constituency,
-        submitted_constituency_code: constituencyCode, // Now properly formatted as integer
+        submitted_constituency_id: constituencyId,
         submitted_landmark: enrichedData.submitted_landmark,
         google_maps_link: enrichedData.google_maps_link,
         image_public_url: imagePublicUrl,
@@ -1245,7 +1164,7 @@ export const useContributeLocation = () => {
         location: `${data.submitted_latitude}, ${data.submitted_longitude}`,
         county: data.submitted_county,
         constituency: data.submitted_constituency,
-        constituencyCode: data.submitted_constituency_code,
+        constituencyId: data.submitted_constituency_id,
         confidenceScore: data.confidence_score,
         hasImage: !!imagePublicUrl,
         duplicateCandidates: data.duplicate_candidate_ids?.length || 0,
@@ -1268,7 +1187,6 @@ export const useContributeLocation = () => {
     return await fetchOSMDataForLocation(latitude, longitude, radiusMeters);
   }, [fetchOSMDataForLocation]);
 
-  // FIXED: Replace broken RPC with direct query
   const findNearbyLandmarks = useCallback(async (latitude, longitude, radius = 500) => {
     try {
       const { data, error } = await supabase
@@ -1293,13 +1211,12 @@ export const useContributeLocation = () => {
       const deviceFingerprint = await generateDeviceFingerprint();
       const ipHash = await hashString('client-ip-placeholder');
 
-      // FIXED: Replace broken RPC with simple local rate limiting
       const now = Date.now();
       const lastSubmission = localStorage.getItem('last_submission_time');
       
       if (lastSubmission) {
         const timeSinceLast = now - parseInt(lastSubmission);
-        if (timeSinceLast < 30000) { // 30 seconds rate limit
+        if (timeSinceLast < 30000) {
           return { 
             allowed: false, 
             reason: 'RATE_LIMIT_EXCEEDED', 
@@ -1343,9 +1260,9 @@ export const useContributeLocation = () => {
     findNearbyFeatures,
     calculateConfidenceScore,
     enrichContributionData,
-    getConstituencyCode,
-    updateExistingConstituencyCodes,
-    updateOfficeConstituencyCodes
+    getConstituencyId,
+    updateExistingConstituencyIds,
+    updateOfficeConstituencyIds
   };
 };
 
