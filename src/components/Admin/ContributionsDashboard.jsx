@@ -51,7 +51,7 @@ interface Contribution {
   submitted_office_location: string;
   submitted_county: string;
   submitted_constituency: string;
-  submitted_constituency_code?: number;
+  submitted_constituency_id?: number;
   submitted_landmark?: string;
   submitted_latitude: number;
   submitted_longitude: number;
@@ -184,7 +184,6 @@ const ContributionCard: React.FC<{
         zIndex: 50
       }}
     >
-      {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-3">
@@ -212,7 +211,7 @@ const ContributionCard: React.FC<{
         </h3>
         <p className="text-sm text-muted-foreground">
           {contribution.submitted_county} • {contribution.submitted_constituency}
-          {contribution.submitted_constituency_code && ` • Code: ${contribution.submitted_constituency_code}`}
+          {contribution.submitted_constituency_id && ` • ID: ${contribution.submitted_constituency_id}`}
         </p>
         <div className="flex items-center space-x-2 mt-1">
           <span className="text-xs text-muted-foreground">
@@ -229,10 +228,8 @@ const ContributionCard: React.FC<{
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="p-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-          {/* Map Preview */}
           <div className="h-48 rounded-lg overflow-hidden border border-border relative z-10">
             <DashboardMapContainer
               center={[contribution.submitted_latitude, contribution.submitted_longitude]}
@@ -251,7 +248,6 @@ const ContributionCard: React.FC<{
             </DashboardMapContainer>
           </div>
 
-          {/* Enhanced Details */}
           <div className="space-y-3 relative z-50">
             <div>
               <label className="text-sm font-medium text-foreground mb-2">Coordinates</label>
@@ -288,7 +284,6 @@ const ContributionCard: React.FC<{
               </div>
             )}
 
-            {/* Reverse Geocode Information */}
             {contribution.reverse_geocode_result && (
               <div>
                 <button
@@ -333,7 +328,6 @@ const ContributionCard: React.FC<{
           </div>
         </div>
 
-        {/* Enhanced Evidence Section */}
         {contribution.image_public_url && (
           <div className="mb-4 relative z-50">
             <label className="text-sm font-medium text-foreground mb-2 block">Photo Evidence</label>
@@ -354,7 +348,6 @@ const ContributionCard: React.FC<{
               </div>
               
               <div className="flex-1">
-                {/* EXIF Data */}
                 {contribution.exif_metadata && (
                   <div className="mb-3">
                     <div className="flex items-center space-x-2 mb-2">
@@ -378,7 +371,6 @@ const ContributionCard: React.FC<{
                   </div>
                 )}
 
-                {/* Nearby Landmarks */}
                 {contribution.nearby_landmarks && contribution.nearby_landmarks.length > 0 && (
                   <div>
                     <label className="text-xs font-medium text-foreground mb-1 block">Nearby Landmarks ({contribution.nearby_landmarks.length})</label>
@@ -402,9 +394,7 @@ const ContributionCard: React.FC<{
           </div>
         )}
 
-        {/* Enhanced Warnings Section */}
         <div className="space-y-3 mb-4">
-          {/* Duplicate Warning */}
           {contribution.duplicate_candidate_ids && contribution.duplicate_candidate_ids.length > 0 && (
             <div className="bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800 rounded-lg p-3 relative z-50">
               <div className="flex items-start space-x-3">
@@ -423,7 +413,6 @@ const ContributionCard: React.FC<{
             </div>
           )}
 
-          {/* Confidence Score Breakdown */}
           <div className="bg-blue-50 border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800 rounded-lg p-3 relative z-50">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-2">
@@ -460,7 +449,6 @@ const ContributionCard: React.FC<{
             </div>
           </div>
 
-          {/* Submission Method Info */}
           <div className="bg-gray-50 border border-gray-200 dark:bg-gray-900/20 dark:border-gray-800 rounded-lg p-3 relative z-50">
             <div className="flex items-center space-x-2">
               <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -479,7 +467,6 @@ const ContributionCard: React.FC<{
           </div>
         </div>
 
-        {/* Expandable Device Metadata */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="w-full text-left p-2 rounded-lg hover:bg-accent transition-colors relative z-50 text-foreground"
@@ -540,7 +527,6 @@ const ContributionCard: React.FC<{
         </AnimatePresence>
       </div>
 
-      {/* Action Buttons */}
       <div className="p-4 border-t border-border relative z-50 bg-muted/50">
         <div className="flex flex-wrap gap-2">
           {(contribution.status === 'pending' || contribution.status === 'pending_review') && (
@@ -666,7 +652,6 @@ const ArchiveView: React.FC<{
         className="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <div>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Archive History</h2>
@@ -682,7 +667,6 @@ const ArchiveView: React.FC<{
           </button>
         </div>
 
-        {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
           <div className="space-y-4">
             {archives.map((archive) => (
@@ -802,6 +786,54 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
 
   const safeCounties = Array.isArray(counties) ? counties : [];
   const safeContributions = Array.isArray(contributions) ? contributions : [];
+
+  const getConstituencyIdFromName = useCallback(async (constituencyName: string, countyName?: string): Promise<number | null> => {
+    if (!constituencyName) return null;
+
+    try {
+      console.log('Looking up constituency ID for:', constituencyName, 'county:', countyName);
+      
+      const { data, error } = await supabase
+        .rpc('get_or_create_constituency', {
+          constituency_name: constituencyName,
+          county_name: countyName || ''
+        });
+
+      if (error) {
+        console.error('RPC failed, trying manual lookup:', error);
+        
+        let query = supabase
+          .from('constituencies')
+          .select('id, name, county_id')
+          .ilike('name', `%${constituencyName}%`);
+
+        if (countyName) {
+          query = query.eq('counties.name', countyName);
+        }
+
+        const { data: manualData, error: manualError } = await query;
+
+        if (manualError) {
+          console.error('Manual lookup failed:', manualError);
+          return null;
+        }
+
+        if (manualData && manualData.length > 0) {
+          console.log('Found constituency manually:', manualData[0]);
+          return manualData[0].id;
+        }
+
+        return null;
+      }
+
+      console.log('Found constituency via RPC:', data);
+      return data;
+
+    } catch (err) {
+      console.error('Error in getConstituencyIdFromName:', err);
+      return null;
+    }
+  }, []);
 
   const fetchContributions = useCallback(async () => {
     try {
@@ -968,12 +1000,28 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
         }
       }
 
+      let constituencyId = contribution.submitted_constituency_id;
+      
+      if (!constituencyId || constituencyId === 0) {
+        console.log('No valid constituency ID found, looking up by name...');
+        constituencyId = await getConstituencyIdFromName(
+          contribution.submitted_constituency,
+          contribution.submitted_county
+        );
+      }
+
+      if (!constituencyId) {
+        throw new Error(`Cannot find or create constituency "${contribution.submitted_constituency}" in county "${contribution.submitted_county}". Please add it to the constituencies table first.`);
+      }
+
+      console.log('Using constituency ID for office creation:', constituencyId);
+
       const { data: newOffice, error: officeError } = await supabase
         .from('iebc_offices')
         .insert({
           county: contribution.submitted_county,
           constituency: contribution.submitted_constituency,
-          constituency_code: contribution.submitted_constituency_code,
+          constituency_code: constituencyId,
           office_location: contribution.submitted_office_location,
           landmark: contribution.submitted_landmark,
           latitude: contribution.submitted_latitude,
@@ -991,6 +1039,11 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
 
       if (officeError) {
         console.error('Error creating office:', officeError);
+        
+        if (officeError.code === '23503' && officeError.message.includes('constituency')) {
+          throw new Error(`Failed to create office: The constituency ID "${constituencyId}" does not exist in the constituencies table.`);
+        }
+        
         throw new Error(`Failed to create office: ${officeError.message}`);
       }
 
@@ -1235,7 +1288,6 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
         isolation: 'isolate'
       }}
     >
-      {/* Header */}
       <div 
         className="bg-card text-card-foreground shadow-sm border-b border-border relative z-[10001]"
         style={{ zIndex: 10001 }}
@@ -1273,13 +1325,11 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
         </div>
       </div>
 
-      {/* Enhanced Stats */}
       <div 
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-[10001]"
         style={{ zIndex: 10001 }}
       >
         <div className="grid grid-cols-1 md:grid-cols-6 gap-6 mb-8">
-          {/* Pending Review Stat */}
           <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -1296,7 +1346,6 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
             </div>
           </div>
 
-          {/* High Confidence Stat */}
           <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -1313,7 +1362,6 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
             </div>
           </div>
 
-          {/* Verified Today Stat */}
           <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -1330,7 +1378,6 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
             </div>
           </div>
 
-          {/* Rejected Stat */}
           <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -1347,7 +1394,6 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
             </div>
           </div>
 
-          {/* Archived Stat */}
           <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -1364,7 +1410,6 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
             </div>
           </div>
 
-          {/* Total Submissions Stat */}
           <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -1382,7 +1427,6 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
           </div>
         </div>
 
-        {/* Enhanced Filters */}
         <div className="bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6 mb-6 relative z-[10001]">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
@@ -1456,7 +1500,6 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
             </div>
           </div>
 
-          {/* Enhanced Bulk Actions */}
           {safeContributions.length > 0 && (
             <div className="mt-4 pt-4 border-t border-border">
               <div className="flex items-center space-x-4">
@@ -1482,7 +1525,6 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
           )}
         </div>
 
-        {/* Error Message */}
         {error && (
           <div className="bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-800 rounded-lg p-4 mb-6 relative z-[10001]">
             <div className="flex items-center space-x-2">
@@ -1494,7 +1536,6 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
           </div>
         )}
 
-        {/* Enhanced Contributions Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 relative z-[10001]">
           {safeContributions.map((contribution) => (
             <ContributionCard
@@ -1509,7 +1550,6 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
           ))}
         </div>
 
-        {/* Empty State */}
         {safeContributions.length === 0 && !loading && (
           <div className="text-center py-12 relative z-[10001]">
             <svg className="w-12 h-12 text-muted-foreground mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1526,7 +1566,6 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
         )}
       </div>
 
-      {/* Archive View Modal */}
       <AnimatePresence>
         {showArchive && (
           <ArchiveView
@@ -1537,7 +1576,6 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
         )}
       </AnimatePresence>
 
-      {/* CSS for Z-Index Isolation */}
       <style>{`
         .contributions-dashboard {
           z-index: 10000 !important;
@@ -1564,7 +1602,6 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
           z-index: 50 !important;
         }
         
-        /* Force all dashboard content above map */
         .contributions-dashboard > * {
           z-index: 10001 !important;
         }
