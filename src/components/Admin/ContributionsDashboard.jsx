@@ -94,6 +94,16 @@ interface ArchiveRecord {
   archived_data: any;
 }
 
+interface Constituency {
+  id: number;
+  name: string;
+  county_id: number;
+  registration_target: number;
+  counties?: {
+    name: string;
+  };
+}
+
 interface ContributionsDashboardProps {
   onLogout: () => void;
   counties: string[];
@@ -761,12 +771,139 @@ const ArchiveView: React.FC<{
   );
 };
 
+const ConstituencyManager: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  onConstituencySelect: (constituency: Constituency) => void;
+}> = ({ isOpen, onClose, onConstituencySelect }) => {
+  const [constituencies, setConstituencies] = useState<Constituency[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredConstituencies = constituencies.filter(constituency =>
+    constituency.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    constituency.counties?.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchConstituencies();
+    }
+  }, [isOpen]);
+
+  const fetchConstituencies = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('constituencies')
+        .select('*, counties(name)')
+        .order('name');
+
+      if (error) throw error;
+      setConstituencies(data || []);
+    } catch (error) {
+      console.error('Error fetching constituencies:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[10002]"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Select Constituency</h2>
+            <p className="text-gray-600 dark:text-gray-400">Choose a constituency for the office</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <input
+            type="text"
+            placeholder="Search constituencies..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+          />
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {loading ? (
+            <div className="flex items-center justify-center p-8">
+              <LoadingSpinner size="medium" />
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+              {filteredConstituencies.map((constituency) => (
+                <button
+                  key={constituency.id}
+                  onClick={() => onConstituencySelect(constituency)}
+                  className="w-full p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-medium text-gray-900 dark:text-white">{constituency.name}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {constituency.counties?.name} • ID: {constituency.id}
+                      </p>
+                    </div>
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {filteredConstituencies.length === 0 && !loading && (
+            <div className="text-center p-8">
+              <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No constituencies found</h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                {searchTerm ? 'Try a different search term' : 'No constituencies available'}
+              </p>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogout, counties = [] }) => {
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [archives, setArchives] = useState<ArchiveRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showArchive, setShowArchive] = useState(false);
+  const [showConstituencyManager, setShowConstituencyManager] = useState(false);
+  const [selectedContribution, setSelectedContribution] = useState<Contribution | null>(null);
   const [filters, setFilters] = useState({
     status: 'all',
     county: 'all',
@@ -834,6 +971,24 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
       return null;
     }
   }, []);
+
+  const fixAllConstituencyRelationships = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .rpc('fix_all_constituency_relationships');
+
+      if (error) throw error;
+
+      alert(`Successfully fixed constituency relationships! Updated ${data[0].offices_updated} offices and ${data[0].contributions_updated} contributions.`);
+      await fetchContributions();
+    } catch (err: any) {
+      console.error('Error fixing constituency relationships:', err);
+      alert('Failed to fix constituency relationships: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchContributions = useCallback(async () => {
     try {
@@ -983,7 +1138,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
     }
   };
 
-  const handleVerify = async (contribution: Contribution) => {
+  const handleVerify = async (contribution: Contribution, constituencyId?: number) => {
     try {
       console.log('Verifying and archiving contribution:', contribution.id);
       
@@ -1000,28 +1155,30 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
         }
       }
 
-      let constituencyId = contribution.submitted_constituency_id;
+      let finalConstituencyId = constituencyId || contribution.submitted_constituency_id;
       
-      if (!constituencyId || constituencyId === 0) {
+      if (!finalConstituencyId || finalConstituencyId === 0) {
         console.log('No valid constituency ID found, looking up by name...');
-        constituencyId = await getConstituencyIdFromName(
+        finalConstituencyId = await getConstituencyIdFromName(
           contribution.submitted_constituency,
           contribution.submitted_county
         );
       }
 
-      if (!constituencyId) {
-        throw new Error(`Cannot find or create constituency "${contribution.submitted_constituency}" in county "${contribution.submitted_county}". Please add it to the constituencies table first.`);
+      if (!finalConstituencyId) {
+        setSelectedContribution(contribution);
+        setShowConstituencyManager(true);
+        return;
       }
 
-      console.log('Using constituency ID for office creation:', constituencyId);
+      console.log('Using constituency ID for office creation:', finalConstituencyId);
 
       const { data: newOffice, error: officeError } = await supabase
         .from('iebc_offices')
         .insert({
           county: contribution.submitted_county,
           constituency: contribution.submitted_constituency,
-          constituency_code: constituencyId,
+          constituency_code: finalConstituencyId,
           office_location: contribution.submitted_office_location,
           landmark: contribution.submitted_landmark,
           latitude: contribution.submitted_latitude,
@@ -1041,7 +1198,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
         console.error('Error creating office:', officeError);
         
         if (officeError.code === '23503' && officeError.message.includes('constituency')) {
-          throw new Error(`Failed to create office: The constituency ID "${constituencyId}" does not exist in the constituencies table.`);
+          throw new Error(`Failed to create office: The constituency ID "${finalConstituencyId}" does not exist in the constituencies table.`);
         }
         
         throw new Error(`Failed to create office: ${officeError.message}`);
@@ -1271,6 +1428,14 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
     await fetchArchives();
   };
 
+  const handleConstituencySelect = (constituency: Constituency) => {
+    if (selectedContribution) {
+      handleVerify(selectedContribution, constituency.id);
+    }
+    setShowConstituencyManager(false);
+    setSelectedContribution(null);
+  };
+
   if (loading && safeContributions.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-64 relative z-[10000]">
@@ -1299,6 +1464,15 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
               <p className="text-muted-foreground">Manage and verify IEBC office location submissions</p>
             </div>
             <div className="flex items-center space-x-4">
+              <button
+                onClick={fixAllConstituencyRelationships}
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>Fix Constituencies</span>
+              </button>
               <div className="text-sm text-muted-foreground">
                 Last updated: {new Date().toLocaleString()}
               </div>
@@ -1575,6 +1749,15 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
           />
         )}
       </AnimatePresence>
+
+      <ConstituencyManager
+        isOpen={showConstituencyManager}
+        onClose={() => {
+          setShowConstituencyManager(false);
+          setSelectedContribution(null);
+        }}
+        onConstituencySelect={handleConstituencySelect}
+      />
 
       <style>{`
         .contributions-dashboard {
