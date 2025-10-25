@@ -229,11 +229,22 @@ export const useContributeLocation = () => {
         });
 
       if (error) {
-        console.warn('Constituency lookup error:', error);
-        return { data: [], error };
+        console.warn('Constituency lookup RPC failed:', error);
+        
+        const { data: manualData, error: manualError } = await supabase
+          .from('constituencies')
+          .select('id, name, counties(name)')
+          .limit(5);
+
+        if (manualError) {
+          console.warn('Manual constituency lookup failed:', manualError);
+          return { data: [], error };
+        }
+
+        return { data: manualData || [], error: null };
       }
 
-      console.log('Found constituencies:', data);
+      console.log('Found constituencies via RPC:', data);
       return { data: data || [], error: null };
     } catch (error) {
       console.warn('Local constituency lookup error:', error);
@@ -416,7 +427,7 @@ export const useContributeLocation = () => {
       const { data, error } = await supabase
         .rpc('get_or_create_constituency', {
           constituency_name: constituencyName,
-          county_name: countyName
+          county_name: countyName || ''
         });
 
       if (error) {
