@@ -8,7 +8,6 @@ export const useContributeLocation = () => {
   const [isFetchingOSM, setIsFetchingOSM] = useState(false);
   const fetchedLocations = useRef(new Set());
 
-  // Calculate distance between two coordinates
   const calculateDistance = useCallback((lat1, lon1, lat2, lon2) => {
     const R = 6371000;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -223,17 +222,11 @@ export const useContributeLocation = () => {
       console.log('Local constituency lookup for:', { latitude, longitude });
       
       const { data, error } = await supabase
-        .from('constituencies')
-        .select(`
-          id,
-          name,
-          counties!inner(name as county_name)
-        `)
-        .gte('latitude', latitude - 0.1)
-        .lte('latitude', latitude + 0.1)
-        .gte('longitude', longitude - 0.1)
-        .lte('longitude', longitude + 0.1)
-        .limit(5);
+        .rpc('find_constituencies_near_point', {
+          p_latitude: latitude,
+          p_longitude: longitude,
+          p_radius_km: 10
+        });
 
       if (error) {
         console.warn('Constituency lookup error:', error);
@@ -420,35 +413,37 @@ export const useContributeLocation = () => {
     try {
       console.log('Looking up constituency ID for:', constituencyName, 'in county:', countyName);
       
-      let query = supabase
-        .from('constituencies')
-        .select('id, name, county_id')
-        .ilike('name', `%${constituencyName}%`);
-
-      if (countyName) {
-        query = query.eq('counties.name', countyName);
-      }
-
-      const { data, error } = await query;
+      const { data, error } = await supabase
+        .rpc('get_or_create_constituency', {
+          constituency_name: constituencyName,
+          county_name: countyName
+        });
 
       if (error) {
-        console.error('Constituency lookup failed:', error);
-        return null;
-      }
-
-      if (!data || data.length === 0) {
-        console.warn('No constituency found for:', constituencyName);
+        console.error('Constituency lookup RPC failed:', error);
         
-        if (countyName) {
-          console.log('Attempting to create missing constituency...');
-          return await createMissingConstituency(constituencyName, countyName);
+        const { data: manualData, error: manualError } = await supabase
+          .from('constituencies')
+          .select('id, name, county_id')
+          .ilike('name', `%${constituencyName}%`)
+          .limit(1);
+
+        if (manualError) {
+          console.error('Manual constituency lookup failed:', manualError);
+          return null;
         }
-        
+
+        if (manualData && manualData.length > 0) {
+          console.log('Found constituency manually:', manualData[0]);
+          return manualData[0].id;
+        }
+
         return null;
       }
 
-      console.log('Found constituency:', data[0]);
-      return data[0].id;
+      console.log('Found constituency via RPC:', data);
+      return data;
+
     } catch (error) {
       console.error('Constituency ID lookup failed:', error);
       return null;
@@ -1112,10 +1107,6 @@ export const useContributeLocation = () => {
           console.warn('Failed to parse constituency ID as number, setting to null');
           constituencyId = null;
         }
-      }
-
-      if (!constituencyId) {
-        throw new Error('Valid constituency ID is required for submission');
       }
 
       const contribution = {
