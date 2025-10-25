@@ -1214,7 +1214,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
       await supabase.from('verification_log').insert({
         contribution_id: contribution.id,
         office_id: newOffice.id,
-        action: 'verified_new',
+        action: 'verified',
         actor: 'admin:dashboard',
         details: {
           confidence_score: contribution.confidence_score,
