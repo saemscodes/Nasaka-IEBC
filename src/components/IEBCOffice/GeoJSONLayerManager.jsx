@@ -202,6 +202,18 @@ const GeoJSONLayerManager = ({
         fillColor: '#8b5cf6',
         fillOpacity: 0.1
       }
+    },
+    'constituencies-shp': {
+    name: 'Kenya Constituencies (Shapefile)',
+    description: 'Parliamentary and electoral boundaries across Kenya as defined by IEBC. Each polygon represents one constituency with its corresponding code and name.',
+    url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/constituencies.zip',
+    type: 'shapefile',
+    style: {
+      color: '#eab308',
+      weight: 2,
+      opacity: 0.8,
+      fillColor: '#fde047',
+      fillOpacity: 0.3
     }
   }), [selectedOffice, liveOfficesGeoJSON]);
 
