@@ -221,36 +221,51 @@ export const useContributeLocation = () => {
     try {
       console.log('Local constituency lookup for:', { latitude, longitude });
       
+      // FIXED: Use direct table query instead of problematic RPC function
       const { data, error } = await supabase
-        .rpc('find_constituencies_near_point', {
-          p_latitude: latitude,
-          p_longitude: longitude,
-          p_radius_km: 10
-        });
+        .from('constituencies')
+        .select('id, name, county_id, counties(name)')
+        .gte('bounding_box_min_lat', latitude - 0.1)
+        .lte('bounding_box_max_lat', latitude + 0.1)
+        .gte('bounding_box_min_lng', longitude - 0.1)
+        .lte('bounding_box_max_lng', longitude + 0.1)
+        .limit(5);
 
       if (error) {
-        console.warn('Constituency lookup RPC failed:', error);
+        console.warn('Direct constituency lookup failed:', error);
         
-        const { data: manualData, error: manualError } = await supabase
+        // Fallback: Get all constituencies and filter by distance
+        const { data: allConstituencies, error: allError } = await supabase
           .from('constituencies')
-          .select('id, name, counties(name)')
-          .limit(5);
+          .select('id, name, county_id, centroid_lat, centroid_lng, counties(name)')
+          .limit(50);
 
-        if (manualError) {
-          console.warn('Manual constituency lookup failed:', manualError);
+        if (allError) {
+          console.warn('Fallback constituency lookup failed:', allError);
           return { data: [], error };
         }
 
-        return { data: manualData || [], error: null };
+        // Calculate distances and return closest constituencies
+        const constituenciesWithDistance = allConstituencies.map(constituency => {
+          const distance = calculateDistance(
+            latitude, 
+            longitude, 
+            constituency.centroid_lat || latitude, 
+            constituency.centroid_lng || longitude
+          );
+          return { ...constituency, distance };
+        }).sort((a, b) => a.distance - b.distance).slice(0, 5);
+
+        return { data: constituenciesWithDistance, error: null };
       }
 
-      console.log('Found constituencies via RPC:', data);
+      console.log('Found constituencies via direct query:', data);
       return { data: data || [], error: null };
     } catch (error) {
       console.warn('Local constituency lookup error:', error);
       return { data: [], error };
     }
-  }, []);
+  }, [calculateDistance]);
 
   const extractExifData = useCallback(async (file) => {
     return new Promise((resolve) => {
@@ -333,8 +348,9 @@ export const useContributeLocation = () => {
       }
 
       try {
+        // FIXED: Use proper column names for landmarks table
         const { data: landmarksData, error: landmarksError } = await supabase
-          .from('map_landmarks_readable')
+          .from('map_landmarks')
           .select('*')
           .gte('centroid_lat', latitude - 0.01)
           .lte('centroid_lat', latitude + 0.01)
@@ -424,36 +440,25 @@ export const useContributeLocation = () => {
     try {
       console.log('Looking up constituency ID for:', constituencyName, 'in county:', countyName);
       
+      // FIXED: Use direct query instead of RPC function
       const { data, error } = await supabase
-        .rpc('get_or_create_constituency', {
-          constituency_name: constituencyName,
-          county_name: countyName || ''
-        });
+        .from('constituencies')
+        .select('id, name, county_id')
+        .ilike('name', `%${constituencyName}%`)
+        .limit(1);
 
       if (error) {
-        console.error('Constituency lookup RPC failed:', error);
-        
-        const { data: manualData, error: manualError } = await supabase
-          .from('constituencies')
-          .select('id, name, county_id')
-          .ilike('name', `%${constituencyName}%`)
-          .limit(1);
-
-        if (manualError) {
-          console.error('Manual constituency lookup failed:', manualError);
-          return null;
-        }
-
-        if (manualData && manualData.length > 0) {
-          console.log('Found constituency manually:', manualData[0]);
-          return manualData[0].id;
-        }
-
+        console.error('Direct constituency lookup failed:', error);
         return null;
       }
 
-      console.log('Found constituency via RPC:', data);
-      return data;
+      if (data && data.length > 0) {
+        console.log('Found constituency:', data[0]);
+        return data[0].id;
+      }
+
+      console.warn('No constituency found for:', constituencyName);
+      return null;
 
     } catch (error) {
       console.error('Constituency ID lookup failed:', error);
@@ -481,7 +486,13 @@ export const useContributeLocation = () => {
         .insert({
           name: constituencyName,
           county_id: countyData.id,
-          registration_target: 0
+          registration_target: 0,
+          centroid_lat: 0,
+          centroid_lng: 0,
+          bounding_box_min_lat: 0,
+          bounding_box_max_lat: 0,
+          bounding_box_min_lng: 0,
+          bounding_box_max_lng: 0
         })
         .select()
         .single();
@@ -781,8 +792,9 @@ export const useContributeLocation = () => {
 
       while (attempt <= maxRetries && landmarks.length === 0) {
         try {
+          // FIXED: Use correct table name and column names
           const { data: rpcData, error: rpcError } = await supabase
-            .from('map_landmarks_readable')
+            .from('map_landmarks')
             .select('*')
             .gte('centroid_lat', latitude - 0.02)
             .lte('centroid_lat', latitude + 0.02)
@@ -1120,6 +1132,7 @@ export const useContributeLocation = () => {
         }
       }
 
+      // FIXED: Use correct column names that match database schema
       const contribution = {
         submitted_latitude: enrichedData.submitted_latitude,
         submitted_longitude: enrichedData.submitted_longitude,
@@ -1127,7 +1140,8 @@ export const useContributeLocation = () => {
         submitted_office_location: enrichedData.submitted_office_location,
         submitted_county: enrichedData.submitted_county,
         submitted_constituency: enrichedData.submitted_constituency,
-        submitted_constituency_id: constituencyId,
+        submitted_constituency_id: constituencyId, // FIXED: Use correct column name
+        submitted_constituency_code: constituencyId, // Keep both for compatibility
         submitted_landmark: enrichedData.submitted_landmark,
         google_maps_link: enrichedData.google_maps_link,
         image_public_url: imagePublicUrl,
