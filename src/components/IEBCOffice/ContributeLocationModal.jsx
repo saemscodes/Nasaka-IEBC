@@ -1188,7 +1188,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         submitted_office_location: formData.submitted_office_location,
         submitted_county: formData.submitted_county,
         submitted_constituency: formData.submitted_constituency,
-        submitted_constituency_code: constituencyCode, // Use the integer ID directly
+        submitted_constituency_id: constituencyCode, // Use the integer ID directly
         submitted_landmark: formData.submitted_landmark || notes,
         google_maps_link: selectedMethod === 'google_maps' ? googleMapsInput : null,
         imageFile: imageFile,
@@ -1207,7 +1207,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
           screen_resolution: `${window.screen.width}x${window.screen.height}`,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           has_touch: 'ontouchstart' in window,
-          constituency_code: constituencyCode
+          constituency_id: constituencyCode // FIXED: Use correct field name
         }
       };
       
