@@ -41,8 +41,8 @@ const IEBCOfficeMap = () => {
     closeListPanel
   } = useMapControls();
 
-  // Enhanced state management
-  const [activeLayers, setActiveLayers] = useState(['iebc-offices']);
+  // Enhanced state management with constituencies layer enabled by default
+  const [activeLayers, setActiveLayers] = useState(['iebc-offices', 'constituencies', 'kenya-counties']);
   const [isLayerPanelOpen, setIsLayerPanelOpen] = useState(false);
   const [currentRoute, setCurrentRoute] = useState(null);
   const [nearbyOffices, setNearbyOffices] = useState([]);
@@ -65,7 +65,7 @@ const IEBCOfficeMap = () => {
   const dragStartPos = useRef({ x: 0, y: 0 });
   const badgeStartPos = useRef({ x: 0, y: 0 });
 
-  // NEW: Handle URL query parameter on component mount
+  // Handle URL query parameter on component mount
   useEffect(() => {
     const query = searchParams.get('q');
     if (query && !urlQueryProcessed && offices.length > 0 && mapInstanceRef.current) {
@@ -73,7 +73,7 @@ const IEBCOfficeMap = () => {
     }
   }, [searchParams, offices, urlQueryProcessed]);
 
-  // NEW: Function to handle URL query parameter search
+  // Function to handle URL query parameter search
   const handleUrlQuerySearch = async (query) => {
     if (!query.trim()) return;
 
@@ -507,9 +507,9 @@ const IEBCOfficeMap = () => {
   }
 
   return (
-    <div className="ios-map-container relative">
+    <div className="ios-map-container relative w-full h-screen">
       {/* FIXED UI Controls - ALWAYS ON TOP */}
-      <div className="fixed-search-container">
+      <div className="fixed top-4 left-4 right-4 z-[1000]">
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
@@ -520,7 +520,7 @@ const IEBCOfficeMap = () => {
         />
       </div>
 
-      <div className="fixed-controls-container">
+      <div className="fixed top-24 right-4 z-[1000]">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -535,23 +535,23 @@ const IEBCOfficeMap = () => {
 
           <button
             onClick={openLayerPanel}
-            className="ios-control-btn"
+            className="w-12 h-12 bg-white rounded-2xl shadow-lg flex items-center justify-center border border-gray-200 hover:bg-gray-50 active:bg-gray-100 transition-all duration-200 active:scale-95"
             aria-label="Map layers"
-            >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          >
+            <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path 
                 strokeLinecap="round" 
                 strokeLinejoin="round" 
                 strokeWidth={2} 
                 d="M2 12.0001L11.6422 16.8212C11.7734 16.8868 11.839 16.9196 11.9078 16.9325C11.9687 16.9439 12.0313 16.9439 12.0922 16.9325C12.161 16.9196 12.2266 16.8868 12.3578 16.8212L22 12.0001M2 17.0001L11.6422 21.8212C11.7734 21.8868 11.839 21.9196 11.9078 21.9325C11.9687 21.9439 12.0313 21.9439 12.0922 21.9325C12.161 21.9196 12.2266 21.8868 12.3578 21.8212L22 17.0001M2 7.00006L11.6422 2.17895C11.7734 2.11336 11.839 2.08056 11.9078 2.06766C11.9687 2.05622 12.0313 2.05622 12.0922 2.06766C12.161 2.08056 12.2266 2.11336 12.3578 2.17895L22 7.00006L12.3578 11.8212C12.2266 11.8868 12.161 11.9196 12.0922 11.9325C12.0313 11.9439 11.9687 11.9439 11.9078 11.9325C11.839 11.9196 11.7734 11.8868 11.6422 11.8212L2 7.00006Z"
-                />
+              />
             </svg>
           </button>
 
           {!userLocation && (
             <button
               onClick={handleRetryLocation}
-              className="ios-control-btn"
+              className="w-12 h-12 bg-white rounded-2xl shadow-lg flex items-center justify-center border border-gray-200 hover:bg-gray-50 active:bg-gray-100 transition-all duration-200 active:scale-95"
               aria-label="Use my location"
             >
               <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -563,10 +563,10 @@ const IEBCOfficeMap = () => {
 
           <button
             onClick={handleSearchFocus}
-            className="ios-control-btn"
+            className="w-12 h-12 bg-white rounded-2xl shadow-lg flex items-center justify-center border border-gray-200 hover:bg-gray-50 active:bg-gray-100 transition-all duration-200 active:scale-95"
             aria-label="Show all offices"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
@@ -574,18 +574,18 @@ const IEBCOfficeMap = () => {
       </div>
 
       {/* Fixed Badge Container - For non-draggable badges */}
-      <div className="fixed-badge-container">
+      <div className="fixed top-32 left-4 z-[999]">
         <AnimatePresence>
           {isSearchingNearby && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              className="search-indicator"
+              className="bg-white rounded-2xl shadow-lg px-4 py-3 border border-gray-200 mb-2"
             >
               <div className="flex items-center space-x-2">
                 <LoadingSpinner size="small" />
-                <span className="text-sm font-medium">Searching nearby offices...</span>
+                <span className="text-sm font-medium text-gray-700">Searching nearby offices...</span>
               </div>
             </motion.div>
           )}
@@ -595,15 +595,15 @@ const IEBCOfficeMap = () => {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="error-notification"
+              className="bg-red-50 border border-red-200 rounded-2xl shadow-lg px-4 py-3 mb-2"
             >
               <div className="flex items-center space-x-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
-                <span className="text-sm font-medium">Routing unavailable</span>
+                <span className="text-sm font-medium text-red-700">Routing unavailable</span>
               </div>
-              <p className="text-xs mt-1 opacity-90">Tap office for Google Maps directions.</p>
+              <p className="text-xs mt-1 text-red-600 opacity-90">Tap office for Google Maps directions.</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -628,19 +628,21 @@ const IEBCOfficeMap = () => {
               damping: 30,
               mass: 1
             }}
-            className={`route-badge-draggable ${isDraggingRouteBadge ? 'dragging' : ''}`}
+            className={`bg-white rounded-2xl shadow-xl border border-gray-200 px-4 py-3 cursor-grab active:cursor-grabbing ${
+              isDraggingRouteBadge ? 'shadow-2xl ring-2 ring-primary ring-opacity-20' : ''
+            }`}
             style={{
               position: 'fixed',
               left: 0,
               top: 0,
               transform: `translate(${routeBadgePosition.x}px, ${routeBadgePosition.y}px)`,
               zIndex: 1000,
-              cursor: isDraggingRouteBadge ? 'grabbing' : 'grab',
               userSelect: 'none',
               WebkitUserSelect: 'none',
               MozUserSelect: 'none',
               msUserSelect: 'none',
-              touchAction: 'none'
+              touchAction: 'none',
+              minWidth: '180px'
             }}
             onMouseDown={handleRouteBadgeMouseDown}
             onTouchStart={handleRouteBadgeMouseDown}
@@ -653,12 +655,12 @@ const IEBCOfficeMap = () => {
           >
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium">
+              <span className="text-sm font-medium text-gray-700">
                 {currentRoute.length} route{currentRoute.length > 1 ? 's' : ''} found
               </span>
             </div>
             {currentRoute[0] && (
-              <div className="text-muted-foreground text-xs mt-1">
+              <div className="text-gray-500 text-xs mt-1">
                 Best: {(currentRoute[0].summary.totalDistance / 1000).toFixed(1)} km, {Math.round(currentRoute[0].summary.totalTime / 60)} min
               </div>
             )}
@@ -722,7 +724,7 @@ const IEBCOfficeMap = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleBackdropClick}
-            className="panel-backdrop visible"
+            className="fixed inset-0 bg-black bg-opacity-50 z-[900]"
           />
         )}
       </AnimatePresence>
