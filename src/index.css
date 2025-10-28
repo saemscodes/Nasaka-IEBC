@@ -1648,4 +1648,33 @@ button.ios-control-btn {
   position: relative !important;
 }
 
+/* Add to your global CSS */
+.error-notification {
+  @apply fixed top-20 right-4 bg-destructive text-destructive-foreground px-4 py-3 rounded-lg shadow-lg z-50 max-w-sm;
+}
+
+.layer-error {
+  @apply bg-yellow-100 border border-yellow-400 text-yellow-800 px-3 py-2 rounded mb-2 text-sm;
+}
+
+.loading-indicator {
+  @apply fixed top-20 left-4 bg-background/95 backdrop-blur-sm border border-border px-4 py-2 rounded-lg shadow-lg z-50;
+}
+
+.route-badge-draggable {
+  @apply bg-background/95 backdrop-blur-sm border border-border px-4 py-3 rounded-lg shadow-lg cursor-grab;
+}
+
+.route-badge-draggable.dragging {
+  @apply cursor-grabbing shadow-xl;
+}
+
+.panel-backdrop {
+  @apply fixed inset-0 bg-background/80 backdrop-blur-sm z-40;
+}
+
+.panel-backdrop.visible {
+  @apply block;
+}
+
 /* ===== END OF FILE ===== */
