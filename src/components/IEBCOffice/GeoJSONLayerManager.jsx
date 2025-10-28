@@ -69,7 +69,6 @@ const GeoJSONLayerManager = ({
   const [loading, setLoading] = useState({});
   const [layerErrors, setLayerErrors] = useState({});
   const geoJsonLayersRef = useRef({});
-  const layerCacheRef = useRef(new Map());
 
   const liveOfficesGeoJSON = useMemo(() => {
     if (!liveOffices || liveOffices.length === 0) {
@@ -119,22 +118,6 @@ const GeoJSONLayerManager = ({
       iconSize: [24, 24],
       iconAnchor: [12, 12]
     });
-  };
-
-  const validateGeoJSON = (geojson) => {
-    if (!geojson || typeof geojson !== 'object') {
-      throw new Error('Invalid GeoJSON: Not an object');
-    }
-    
-    if (geojson.type !== 'FeatureCollection' && geojson.type !== 'Feature') {
-      throw new Error(`Invalid GeoJSON type: ${geojson.type}. Expected FeatureCollection or Feature`);
-    }
-    
-    if (geojson.type === 'FeatureCollection' && (!Array.isArray(geojson.features))) {
-      throw new Error('Invalid FeatureCollection: features must be an array');
-    }
-    
-    return true;
   };
 
   const layerConfigs = useMemo(() => ({
@@ -219,99 +202,6 @@ const GeoJSONLayerManager = ({
         fillColor: '#8b5cf6',
         fillOpacity: 0.1
       }
-    },
-    'constituencies': {
-      name: 'Kenya Constituencies',
-      description: 'Parliamentary and electoral boundaries across Kenya as defined by IEBC. Each polygon represents one constituency with its corresponding code and name.',
-      url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/constituencies_with_centroids.geojson',
-      type: 'geojson',
-      style: {
-        color: '#eab308',
-        weight: 2,
-        opacity: 0.8,
-        fillColor: '#fde047',
-        fillOpacity: 0.3
-      },
-      onEachFeature: (feature, layer) => {
-        if (feature.properties) {
-          const props = feature.properties;
-          const popupContent = `
-            <div class="p-4 min-w-[280px]">
-              <div class="flex items-center justify-between mb-3">
-                <h3 class="text-lg font-bold text-gray-900">${props.name || 'Constituency'}</h3>
-                ${props.constituency_code ? `
-                  <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
-                    Code: ${props.constituency_code}
-                  </span>
-                ` : ''}
-              </div>
-              
-              <div class="space-y-2 text-sm text-gray-700">
-                ${props.county_name ? `
-                  <div class="flex items-center space-x-2">
-                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                    <span><strong>County:</strong> ${props.county_name}</span>
-                  </div>
-                ` : ''}
-                
-                ${props.area_sq_km ? `
-                  <div class="flex items-center space-x-2">
-                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
-                    </svg>
-                    <span><strong>Area:</strong> ${props.area_sq_km} km²</span>
-                  </div>
-                ` : ''}
-                
-                ${props.population ? `
-                  <div class="flex items-center space-x-2">
-                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                    </svg>
-                    <span><strong>Population:</strong> ${props.population.toLocaleString()}</span>
-                  </div>
-                ` : ''}
-                
-                ${props.registered_voters ? `
-                  <div class="flex items-center space-x-2">
-                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                    </svg>
-                    <span><strong>Registered Voters:</strong> ${props.registered_voters.toLocaleString()}</span>
-                  </div>
-                ` : ''}
-                
-                ${props.centroid_lat && props.centroid_lng ? `
-                  <div class="mt-3 p-2 bg-gray-50 rounded text-xs">
-                    <div class="font-medium text-gray-600">Centroid Coordinates:</div>
-                    <div class="font-mono text-gray-800">${parseFloat(props.centroid_lat).toFixed(6)}, ${parseFloat(props.centroid_lng).toFixed(6)}</div>
-                  </div>
-                ` : ''}
-              </div>
-              
-              <div class="mt-4 pt-3 border-t border-gray-200">
-                <button 
-                  onclick="navigator.clipboard.writeText('${props.name || 'Constituency'} - ${props.county_name || 'County'}').then(() => alert('Constituency name copied!'))"
-                  class="w-full bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                  </svg>
-                  <span>Copy Constituency Info</span>
-                </button>
-              </div>
-            </div>
-          `;
-          
-          layer.bindPopup(popupContent, {
-            maxWidth: 350,
-            className: 'constituency-popup'
-          });
-        }
-      }
     }
   }), [selectedOffice, liveOfficesGeoJSON]);
 
@@ -323,23 +213,12 @@ const GeoJSONLayerManager = ({
       return;
     }
     
-    const cacheKey = `${layerId}-${Date.now()}`;
-    if (layerCacheRef.current.has(layerId)) {
-      const cachedData = layerCacheRef.current.get(layerId);
-      if (cachedData && Date.now() - cachedData.timestamp < 300000) {
-        setLayerData(prev => ({ ...prev, [layerId]: cachedData.data }));
-        return;
-      }
-    }
-    
     setLoading(prev => ({ ...prev, [layerId]: true }));
     try {
       const config = layerConfigs[layerId];
       
       if (layerId === 'iebc-offices' && liveOfficesGeoJSON.features.length > 0) {
-        const data = liveOfficesGeoJSON;
-        setLayerData(prev => ({ ...prev, [layerId]: data }));
-        layerCacheRef.current.set(layerId, { data, timestamp: Date.now() });
+        setLayerData(prev => ({ ...prev, [layerId]: liveOfficesGeoJSON }));
         return;
       }
       
@@ -347,70 +226,34 @@ const GeoJSONLayerManager = ({
         throw new Error(`No URL configured for layer: ${layerId}`);
       }
 
-      console.log(`Fetching GeoJSON for ${layerId} from:`, config.url);
-      
-      const response = await fetch(config.url, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json,application/geo+json,text/plain,*/*'
-        },
-        mode: 'cors'
-      });
-      
+      const response = await fetch(config.url);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
-      const text = await response.text();
-      
-      if (!text.trim()) {
-        throw new Error('Empty response from server');
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Invalid content type: Expected JSON');
       }
       
-      let geojson;
-      try {
-        geojson = JSON.parse(text);
-      } catch (parseError) {
-        console.error('JSON parse error:', parseError);
-        throw new Error(`Invalid JSON format: ${parseError.message}`);
-      }
+      const geojson = await response.json();
       
-      validateGeoJSON(geojson);
+      if (!geojson || !geojson.type) {
+        throw new Error('Invalid GeoJSON format');
+      }
       
       setLayerData(prev => ({ ...prev, [layerId]: geojson }));
-      layerCacheRef.current.set(layerId, { data: geojson, timestamp: Date.now() });
-      
       setLayerErrors(prev => {
         const newErrors = { ...prev };
         delete newErrors[layerId];
         return newErrors;
       });
-      
-      console.log(`Successfully loaded GeoJSON for ${layerId}`, geojson);
     } catch (error) {
-      console.error(`Failed to load GeoJSON for ${layerId}:`, error.message);
-      
-      let userFriendlyError = error.message;
-      if (error.message.includes('Failed to fetch')) {
-        userFriendlyError = 'Network error: Unable to fetch data. Please check your connection.';
-      } else if (error.message.includes('HTTP')) {
-        userFriendlyError = `Server error: ${error.message}. Please try again later.`;
-      } else if (error.message.includes('JSON')) {
-        userFriendlyError = 'Data format error: Invalid data received from server.';
-      }
-      
+      console.warn(`Failed to load GeoJSON for ${layerId}:`, error.message);
       setLayerErrors(prev => ({ 
         ...prev, 
-        [layerId]: userFriendlyError 
+        [layerId]: error.message 
       }));
-      
-      setTimeout(() => {
-        setLayerErrors(prev => {
-          const newErrors = { ...prev };
-          delete newErrors[layerId];
-          return newErrors;
-        });
-      }, 10000);
     } finally {
       setLoading(prev => ({ ...prev, [layerId]: false }));
     }
@@ -418,14 +261,7 @@ const GeoJSONLayerManager = ({
 
   const onEachFeature = useCallback((feature, layer) => {
     if (isModalMap) {
-      return;
-    }
-
-    if (feature.properties && feature.properties.constituency_code) {
-      const config = layerConfigs['constituencies'];
-      if (config && config.onEachFeature) {
-        config.onEachFeature(feature, layer);
-      }
+      // Don't add click handlers for modal maps to prevent interference
       return;
     }
 
@@ -509,6 +345,7 @@ const GeoJSONLayerManager = ({
 
   useEffect(() => {
     if (isModalMap) {
+      // Don't load layers for modal maps to prevent interference
       return;
     }
 
@@ -781,24 +618,8 @@ const GeoJSONLayerManager = ({
     `;
   };
 
-  const ErrorDisplay = ({ layerId }) => {
-    const error = layerErrors[layerId];
-    if (!error) return null;
-
-    return (
-      <div className="error-notification layer-error">
-        <div className="flex items-center space-x-2">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-          </svg>
-          <span className="text-sm font-medium">Failed to load {layerConfigs[layerId]?.name}</span>
-        </div>
-        <p className="text-xs mt-1 opacity-90">{error}</p>
-      </div>
-    );
-  };
-
   if (isModalMap) {
+    // Return minimal layers for modal map to prevent interference
     return (
       <>
         {activeLayers.includes('iebc-offices') && (
@@ -834,33 +655,18 @@ const GeoJSONLayerManager = ({
         const config = layerConfigs[layerId];
         const data = layerData[layerId];
         const error = layerErrors[layerId];
-        const isLoading = loading[layerId];
         
-        if (!config) return null;
+        if (!config || error) return null;
+        if (!data) return null;
         
         return (
-          <div key={layerId}>
-            {isLoading && (
-              <div className="loading-indicator">
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-sm font-medium">Loading {config.name}...</span>
-                </div>
-              </div>
-            )}
-            
-            <ErrorDisplay layerId={layerId} />
-            
-            {data && !error && (
-              <GeoJSON
-                key={`${layerId}-${Object.keys(data).length}`}
-                data={data}
-                style={config.style}
-                pointToLayer={config.pointToLayer}
-                onEachFeature={layerId === 'constituencies' ? config.onEachFeature : onEachFeature}
-              />
-            )}
-          </div>
+          <GeoJSON
+            key={layerId}
+            data={data}
+            style={config.style}
+            pointToLayer={config.pointToLayer}
+            onEachFeature={onEachFeature}
+          />
         );
       })}
     </>
