@@ -215,6 +215,87 @@ const GeoJSONLayerManager = ({
         fillColor: '#fde047',
         fillOpacity: 0.3
       },
+      onEachFeature: (feature, layer) => {
+        // Enhanced constituency popup with detailed information
+        if (feature.properties) {
+          const props = feature.properties;
+          const popupContent = `
+            <div class="p-4 min-w-[280px]">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-lg font-bold text-gray-900">${props.name || 'Constituency'}</h3>
+                ${props.constituency_code ? `
+                  <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+                    Code: ${props.constituency_code}
+                  </span>
+                ` : ''}
+              </div>
+              
+              <div class="space-y-2 text-sm text-gray-700">
+                ${props.county_name ? `
+                  <div class="flex items-center space-x-2">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span><strong>County:</strong> ${props.county_name}</span>
+                  </div>
+                ` : ''}
+                
+                ${props.area_sq_km ? `
+                  <div class="flex items-center space-x-2">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                    </svg>
+                    <span><strong>Area:</strong> ${props.area_sq_km} km²</span>
+                  </div>
+                ` : ''}
+                
+                ${props.population ? `
+                  <div class="flex items-center space-x-2">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <span><strong>Population:</strong> ${props.population.toLocaleString()}</span>
+                  </div>
+                ` : ''}
+                
+                ${props.registered_voters ? `
+                  <div class="flex items-center space-x-2">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                    <span><strong>Registered Voters:</strong> ${props.registered_voters.toLocaleString()}</span>
+                  </div>
+                ` : ''}
+                
+                ${props.centroid_lat && props.centroid_lng ? `
+                  <div class="mt-3 p-2 bg-gray-50 rounded text-xs">
+                    <div class="font-medium text-gray-600">Centroid Coordinates:</div>
+                    <div class="font-mono text-gray-800">${parseFloat(props.centroid_lat).toFixed(6)}, ${parseFloat(props.centroid_lng).toFixed(6)}</div>
+                  </div>
+                ` : ''}
+              </div>
+              
+              <div class="mt-4 pt-3 border-t border-gray-200">
+                <button 
+                  onclick="navigator.clipboard.writeText('${props.name || 'Constituency'} - ${props.county_name || 'County'}').then(() => alert('Constituency name copied!'))"
+                  class="w-full bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                  </svg>
+                  <span>Copy Constituency Info</span>
+                </button>
+              </div>
+            </div>
+          `;
+          
+          layer.bindPopup(popupContent, {
+            maxWidth: 350,
+            className: 'constituency-popup'
+          });
+        }
+      }
     }
   }), [selectedOffice, liveOfficesGeoJSON]);
 
@@ -275,6 +356,16 @@ const GeoJSONLayerManager = ({
   const onEachFeature = useCallback((feature, layer) => {
     if (isModalMap) {
       // Don't add click handlers for modal maps to prevent interference
+      return;
+    }
+
+    // Handle constituency layer separately with its own popup
+    if (feature.properties && feature.properties.constituency_code) {
+      // Use the constituency-specific onEachFeature if available
+      const config = layerConfigs['constituencies'];
+      if (config && config.onEachFeature) {
+        config.onEachFeature(feature, layer);
+      }
       return;
     }
 
@@ -678,7 +769,7 @@ const GeoJSONLayerManager = ({
             data={data}
             style={config.style}
             pointToLayer={config.pointToLayer}
-            onEachFeature={onEachFeature}
+            onEachFeature={layerId === 'constituencies' ? config.onEachFeature : onEachFeature}
           />
         );
       })}
