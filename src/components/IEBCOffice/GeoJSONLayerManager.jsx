@@ -215,6 +215,7 @@ const GeoJSONLayerManager = ({
         fillColor: '#fde047',
         fillOpacity: 0.3
       },
+    }
   }), [selectedOffice, liveOfficesGeoJSON]);
 
   const fetchLayerData = useCallback(async (layerId) => {
