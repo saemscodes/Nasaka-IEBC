@@ -1,3 +1,4 @@
+// src/components/IEBCOffice/LayerControlPanel.jsx
 import React from 'react';
 import { motion } from 'framer-motion';
 
@@ -23,19 +24,19 @@ const LayerControlPanel = ({
       color: 'primary'
     },
     {
-    id: 'constituencies',
-    name: 'Kenya Constituencies',
-    description: 'Parliamentary and electoral boundaries across Kenya as defined by IEBC. Each polygon represents one constituency with its corresponding code and name.',
-    icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6.5v11l6 2 6-2 6 2V6.5l-6-2-6 2-6-2z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5v14" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 4.5v14" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 10l2 3 3-2 2 3" />
-      </svg>
-    ),
-    color: 'blue'
-  },
+      id: 'constituencies',
+      name: 'Kenya Constituencies',
+      description: 'Parliamentary and electoral boundaries across Kenya as defined by IEBC. Each polygon represents one constituency with its corresponding code and name.',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6.5v11l6 2 6-2 6 2V6.5l-6-2-6 2-6-2z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5v14" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 4.5v14" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 10l2 3 3-2 2 3" />
+        </svg>
+      ),
+      color: 'blue'
+    },
     {
       id: 'healthcare-facilities',
       name: 'Kenya Healthcare Facilities',
@@ -242,14 +243,12 @@ const LayerControlPanel = ({
                           }}
                           whileTap={!isDisabled ? { scale: 0.95 } : {}}
                         >
-                          {/* Track background with subtle gradient */}
                           <div className={`absolute inset-0 rounded-full ${
                             isActive && !isDisabled 
                               ? 'bg-gradient-to-r from-primary to-primary/90' 
                               : 'bg-gradient-to-r from-muted to-muted/80'
                           }`} />
                           
-                          {/* Thumb with enhanced shadow and perfect centering */}
                           <motion.span
                             className="absolute w-5 h-5 bg-white rounded-full z-10"
                             initial={false}
@@ -275,7 +274,6 @@ const LayerControlPanel = ({
                             }}
                           />
                           
-                          {/* Inner glow effect for the thumb */}
                           <motion.span
                             className="absolute w-4 h-4 bg-white/20 rounded-full z-0"
                             initial={false}
@@ -293,7 +291,6 @@ const LayerControlPanel = ({
                             }}
                           />
 
-                          {/* Active state ripple effect */}
                           {isActive && !isDisabled && (
                             <motion.div
                               className="absolute inset-0 rounded-full z-0"
@@ -314,7 +311,6 @@ const LayerControlPanel = ({
                             />
                           )}
 
-                          {/* Inactive state subtle inner shadow */}
                           {!isActive && !isDisabled && (
                             <div 
                               className="absolute inset-0 rounded-full"
