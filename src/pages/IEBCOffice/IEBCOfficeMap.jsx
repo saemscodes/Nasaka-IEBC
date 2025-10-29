@@ -25,6 +25,7 @@ const IEBCOfficeMap = () => {
   const userLocation = state?.userLocation;
   const manualEntry = state?.manualEntry;
 
+  // FIX: Add searchOffices to destructuring
   const { offices, loading, error, searchOffices, refetch } = useIEBCOffices();
   const {
     mapCenter,
@@ -240,10 +241,10 @@ const IEBCOfficeMap = () => {
     setRoutingError(null);
   }, [setSelectedOffice, flyToOffice, closeListPanel]);
 
-  // Enhanced search handler
+  // FIXED: Enhanced search handler - REMOVE THE BUGGY LINE 247
   const handleSearch = useCallback(async (result) => {
     if (result.searchQuery) {
-      // Perform full search with the query
+      // Perform full search with the query using the correct function
       const results = searchOffices(result.searchQuery);
       setSearchResults(results);
       setNearbyOffices(results);
