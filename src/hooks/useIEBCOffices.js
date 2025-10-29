@@ -139,6 +139,26 @@ export const useIEBCOffices = () => {
     }
   }, [fuse]);
 
+  // ADD THIS MISSING FUNCTION - Simple search function that returns results
+  const searchOffices = useCallback((query) => {
+    if (!query.trim() || !fuse) {
+      return [];
+    }
+
+    try {
+      const fuseResults = fuse.search(query.trim());
+      return fuseResults.map(result => ({
+        ...result.item,
+        matches: result.matches,
+        score: result.score,
+        type: 'office'
+      }));
+    } catch (error) {
+      console.error('Search error:', error);
+      return [];
+    }
+  }, [fuse]);
+
   // Debounced search for typing
   const debouncedSearch = useCallback(
     debounce((query, options) => {
@@ -228,6 +248,7 @@ export const useIEBCOffices = () => {
     handleSearch,
     clearSearch,
     performSearch,
+    searchOffices, // ADD THIS TO RETURN
     getOfficesByCounty
   };
 };
