@@ -27,7 +27,30 @@ const AppFooter = () => {
     e.preventDefault();
     const subject = encodeURIComponent('Support Inquiry - Recall254 IEBC Office Finder');
     const body = encodeURIComponent(`Hello Civic Education Kenya team,\n\nI am reaching out regarding the Recall254 platform, which helps Kenyan citizens locate IEBC offices for voter registration and civic participation.\n\n[Please include your question or feedback here]`);
-    window.open(`mailto:civiceducationkenya@gmail.com?subject=${subject}&body=${body}`, '_blank', 'noopener,noreferrer');
+    const mailtoUrl = `mailto:civiceducationkenya@gmail.com?subject=${subject}&body=${body}`;
+
+    const mailWindow = window.open(mailtoUrl, '_blank');
+    
+    if (!mailWindow || mailWindow.closed || typeof mailWindow.closed === 'undefined') {
+      const emailAddress = "civiceducationkenya@gmail.com";
+      const textToCopy = `Subject: ${decodeURIComponent(subject)}\n\n${decodeURIComponent(body)}`;
+      
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          alert(`The email content was copied to your clipboard. Please paste it into an email to ${emailAddress}`);
+        }).catch(err => {
+          alert(`Please send an email to ${emailAddress} with the following subject and body:\n\nSubject: ${decodeURIComponent(subject)}\n\nBody: ${decodeURIComponent(body)}`);
+        });
+      } else {
+        alert(`Please send an email to ${emailAddress} with the following subject and body:\n\nSubject: ${decodeURIComponent(subject)}\n\nBody: ${decodeURIComponent(body)}`);
+      }
+    } else {
+      setTimeout(() => {
+        if (mailWindow && !mailWindow.closed) {
+          mailWindow.close();
+        }
+      }, 500);
+    }
   };
 
   const handleCekaClick = (e) => {
@@ -47,7 +70,6 @@ const AppFooter = () => {
       animate="animate"
     >
       <div className="max-w-md mx-auto">
-        {/* Compact CEKA Branding */}
         <motion.div
           className="mb-2"
           whileHover={{ scale: 1.02 }}
@@ -57,7 +79,6 @@ const AppFooter = () => {
             onClick={handleCekaClick}
             className="flex items-center justify-center space-x-1 mx-auto group"
           >
-            {/* Compact Dual Mode Logo */}
             <div className="relative w-5 h-5">
               {theme === 'dark' ? (
                 <motion.img 
@@ -91,7 +112,6 @@ const AppFooter = () => {
           </button>
         </motion.div>
 
-        {/* Compact Support and Contact Links */}
         <div className="flex items-center justify-center space-x-4 mb-2">
           <button
             onClick={handleSupportClick}
@@ -120,7 +140,6 @@ const AppFooter = () => {
           </button>
         </div>
 
-        {/* Compact Copyright */}
         <div className={`text-xs text-center ${
           theme === 'dark' ? 'text-ios-gray-500' : 'text-ios-gray-400'
         }`}>
