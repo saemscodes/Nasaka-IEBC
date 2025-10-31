@@ -2,10 +2,26 @@
 
 **Find, Verify & Navigate to IEBC Offices Across Kenya**
 
-[![Live App](https://img.shields.io/badge/Live-App-green)](https://recall254.vercel.app/iebc-office)
-[![Built by CEKA](https://img.shields.io/badge/Built%20by-CEKA-blue)](https://recall254.vercel.app)
-
 ## 🎯 What is Nasaka IEBC?
+
+<p align="center">
+  <a href="https://recall254.vercel.app/iebc-office">
+    <img src="https://github.com/SaemsCodes/recall-254/blob/main/public/nasaka-logo-blue.png" alt="Nasaka IEBC Logo" width="200" style="border-radius: 50%;"/>
+  </a>
+</p>
+
+<p align="center">
+  <strong>Find, Verify & Navigate to IEBC Offices Across Kenya</strong>
+</p>
+
+<p align="center">
+  <a href="https://recall254.vercel.app/iebc-office">
+    <img src="https://img.shields.io/badge/Live-App-green" alt="Live App">
+  </a>
+  <a href="https://recall254.vercel.app">
+    <img src="https://img.shields.io/badge/Built%20by-CEKA-blue" alt="Built by CEKA">
+  </a>
+</p>
 
 Nasaka IEBC is a civic technology platform that bridges the gap between Kenyan citizens and electoral services. It's an interactive, community-powered map that helps you locate and verify official IEBC registration and constituency offices across Kenya—using live location tracking, turn-by-turn navigation, and crowdsourced verification.
 
@@ -146,9 +162,9 @@ Your choice. Let us know your thoughts.
 
 ## 🔗 Links
 
-- **Live App:** [recall254.vercel.app/iebc-office](https://recall254.vercel.app/iebc-office)
-- **Main Platform:** [recall254.vercel.app](https://recall254.vercel.app)
-- **Instagram:** [@CivicEdKenya](https://www.instagram.com/civicedkenya/)
+- **Main Platform:** [recall254.vercel.app/iebc-office](https://recall254.vercel.app/iebc-office)
+- **Download the App:** [Nasaka IEBC Android App](https://linktr.ee/civiceducationke)
+- **Instagram:** [@CivicEdKenya](https://www.instagram.com/civiceducationke/)
 - **X (Twitter):** [@CivicEdKenya](https://x.com/CivicEdKenya)
 - **IEBC Official Site:** [iebc.or.ke](https://www.iebc.or.ke)
 
