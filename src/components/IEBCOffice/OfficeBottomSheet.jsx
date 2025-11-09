@@ -735,10 +735,23 @@ const OfficeBottomSheet = ({
                             : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
                         }`}
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 20h2a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v2" />
+                        <svg
+                          className="w-5 h-5"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                          focusable="false"
+                          >
+                          {/* Back sheet */}
+                          <rect x="3.5" y="7.5" width="13" height="13" rx="2" ry="2" />
+                          {/* Front sheet (slightly offset) */}
+                          <rect x="7.5" y="3.5" width="13" height="13" rx="2" ry="2" />
                         </svg>
+      
                         <span>Copy Coordinates</span>
                       </button>
                     )}
