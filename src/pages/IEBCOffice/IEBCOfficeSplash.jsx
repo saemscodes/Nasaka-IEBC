@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import LoadingSpinner from '../../components/IEBCOffice/LoadingSpinner';
-import DonationWidget from '@/components/ui/DonationWidget';
+import DonationWidget from '@/components/Donation/DonationWidget';
 import { useTheme } from '@/contexts/ThemeContext';
 
 // Enhanced Background Layers with Cursor-Tracking Radial Effects
@@ -413,8 +413,8 @@ const IEBCOfficeSplash = () => {
         ? 'bg-ios-gray-900 text-white' 
         : 'bg-white text-ios-gray-900'
     }`}>
-      {/* Top Control Bar */}
-      <div className="absolute top-6 left-6 right-6 z-20 flex justify-between items-center">
+      {/* Top Control Bar - Full width with equal edge padding */}
+      <div className="absolute top-6 left-0 right-0 z-20 flex justify-between items-center px-6">
         <CekaLogoButton />
         <ThemeToggle />
       </div>
