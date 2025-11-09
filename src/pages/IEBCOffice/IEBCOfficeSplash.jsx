@@ -269,7 +269,7 @@ const CekaLogoButton = () => {
       aria-label="Visit CEKA Community"
     >
       <motion.img 
-        src="/assets/logo-coloured.png"
+        src="/assets/logo-colored.png"
         alt="CEKA Logo Light"
         className="w-6 h-6 object-cover rounded-full absolute transition-transform duration-300"
         variants={logoVariants}
