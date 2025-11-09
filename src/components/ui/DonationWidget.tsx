@@ -14,6 +14,12 @@ type DonationOptionBase = {
   accountNumber?: string;
   paybillInstruction?: string;
   qrImageSrc?: string;
+  extraActions?: Array<{
+    label: string;
+    href?: string;
+    onClickAction?: 'copy' | 'open' | 'tel';
+    value?: string;
+  }>;
 };
 
 const DONATION_OPTIONS: DonationOptionBase[] = [
@@ -25,8 +31,19 @@ const DONATION_OPTIONS: DonationOptionBase[] = [
     description: 'Support our civic education mission',
     paybillNumber: '4573966',
     accountNumber: '39928',
-    paybillInstruction: 'Go to M-Pesa → Lipa na M-PESA → Paybill',
-    qrImageSrc: '/assets/qr-code-donations.png'
+    qrImageSrc: '/assets/qr-code-donations.png',
+    extraActions: [
+      {
+        label: 'Copy Details',
+        onClickAction: 'copy',
+        value: '4573966 39928'
+      },
+      {
+        label: 'ZenLipa',
+        href: 'https://zenlipa.co.ke/tip/civic-education-kenya',
+        onClickAction: 'open'
+      }
+    ]
   },
   {
     id: 'paypal',
@@ -35,6 +52,14 @@ const DONATION_OPTIONS: DonationOptionBase[] = [
     icon: '💳',
     url: 'https://www.paypal.com/ncp/payment/5HP7FN968RTH6',
     description: 'International card donations'
+  },
+  {
+    id: 'zenlipa_mpesa',
+    name: 'ZenLipa',
+    type: 'link',
+    icon: '🔗',
+    url: 'https://zenlipa.co.ke/tip/civic-education-kenya',
+    description: 'M-Pesa & card payments'
   }
 ];
 
@@ -187,9 +212,9 @@ const DonationWidget: React.FC<DonationWidgetProps> = ({
           onMouseLeave={handleMouseLeave}
           onClick={handleExpand}
         >
-          <div className="relative w-48 h-12 flex items-center">
+          <div className="relative w-40 h-10 flex items-center">
             <div 
-              className={`absolute right-12 top-0 h-12 flex items-center transition-all duration-500 ease-out ${
+              className={`absolute right-10 top-0 h-10 flex items-center transition-all duration-500 ease-out ${
                 isHovering 
                   ? 'opacity-100 translate-x-0' 
                   : 'opacity-0 translate-x-4 pointer-events-none'
@@ -203,7 +228,7 @@ const DonationWidget: React.FC<DonationWidgetProps> = ({
                 }`} 
               />
               <span 
-                className={`relative px-4 py-2 text-white font-semibold text-sm whitespace-nowrap transition-all duration-500 ease-out drop-shadow-lg ${
+                className={`relative px-3 py-1 text-white font-semibold text-xs whitespace-nowrap transition-all duration-500 ease-out drop-shadow-lg ${
                   isHovering 
                     ? 'opacity-100 scale-100' 
                     : 'opacity-0 scale-90'
@@ -213,7 +238,7 @@ const DonationWidget: React.FC<DonationWidgetProps> = ({
               </span>
             </div>
             <div 
-              className={`absolute right-0 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 ease-out shadow-2xl ${
+              className={`absolute right-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ease-out shadow-2xl ${
                 isHovering
                   ? 'bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 shadow-blue-500/50 scale-110'
                   : 'bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 shadow-blue-600/40 scale-100'
@@ -223,8 +248,8 @@ const DonationWidget: React.FC<DonationWidgetProps> = ({
               <Heart 
                 className={`relative z-10 transition-all duration-300 ease-out ${
                   isHovering 
-                    ? 'h-6 w-6 text-white drop-shadow-lg' 
-                    : 'h-5 w-5 text-white/90'
+                    ? 'h-5 w-5 text-white drop-shadow-lg' 
+                    : 'h-4 w-4 text-white/90'
                 }`} 
               />
               <div 
@@ -238,132 +263,125 @@ const DonationWidget: React.FC<DonationWidgetProps> = ({
           </div>
           {isHovering && (
             <>
-              <div className="absolute top-2 right-2 w-1 h-1 bg-blue-300 rounded-full animate-bounce opacity-60" style={{ animationDelay: '0s' }} />
-              <div className="absolute top-4 right-6 w-0.5 h-0.5 bg-blue-200 rounded-full animate-bounce opacity-40" style={{ animationDelay: '0.2s' }} />
-              <div className="absolute top-6 right-3 w-1 h-1 bg-blue-400 rounded-full animate-bounce opacity-50" style={{ animationDelay: '0.4s' }} />
+              <div className="absolute top-1 right-1 w-1 h-1 bg-blue-300 rounded-full animate-bounce opacity-60" style={{ animationDelay: '0s' }} />
+              <div className="absolute top-3 right-4 w-0.5 h-0.5 bg-blue-200 rounded-full animate-bounce opacity-40" style={{ animationDelay: '0.2s' }} />
+              <div className="absolute top-4 right-2 w-1 h-1 bg-blue-400 rounded-full animate-bounce opacity-50" style={{ animationDelay: '0.4s' }} />
             </>
           )}
         </div>
       ) : (
-        <div className="w-80 bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 rounded-2xl shadow-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 dark:from-blue-400/10 dark:to-blue-500/10 p-4 border-b border-white/10 dark:border-gray-700/10">
+        <div className="w-72 bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 rounded-xl shadow-2xl overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 dark:from-blue-400/10 dark:to-blue-500/10 p-3 border-b border-white/10 dark:border-gray-700/10">
             <div className="flex justify-between items-center">
-              <h3 className="font-bold text-lg flex items-center text-gray-900 dark:text-white">
-                <div className="relative mr-3">
-                  <Gift className="h-6 w-6 text-blue-500 dark:text-blue-400 drop-shadow-sm" />
+              <h3 className="font-bold text-base flex items-center text-gray-900 dark:text-white">
+                <div className="relative mr-2">
+                  <Gift className="h-5 w-5 text-blue-500 dark:text-blue-400 drop-shadow-sm" />
                   <div className="absolute inset-0 bg-blue-400 blur-sm opacity-30 rounded-full" />
                 </div>
                 Support Our Work
               </h3>
               <button
-                className="relative group rounded-full p-2 hover:bg-white/10 dark:hover:bg-gray-800/10 transition-all duration-300 backdrop-blur-sm"
+                className="relative group rounded-full p-1 hover:bg-white/10 dark:hover:bg-gray-800/10 transition-all duration-300 backdrop-blur-sm"
                 onClick={handleCollapse}
               >
-                <X className="h-4 w-4 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors" />
+                <X className="h-3 w-3 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors" />
                 <div className="absolute inset-0 rounded-full bg-white/5 scale-0 group-hover:scale-100 transition-transform duration-300" />
               </button>
             </div>
           </div>
-          <div className="p-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+          <div className="p-3">
+            <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 leading-relaxed">
               Your support helps us continue our mission of civic education in Kenya.
             </p>
             
-            <div className="space-y-4">
+            <div className="space-y-3">
               {DONATION_OPTIONS.map((option, index) => (
                 <div
                   key={option.id}
-                  className="group relative p-4 rounded-xl hover:bg-white/10 dark:hover:bg-gray-800/10 transition-all duration-300 border border-white/10 dark:border-gray-700/10 backdrop-blur-sm"
+                  className="group relative p-3 rounded-lg flex flex-col hover:bg-white/10 dark:hover:bg-gray-800/10 transition-all duration-300 border border-white/10 dark:border-gray-700/10 backdrop-blur-sm"
                   style={{ animationDelay: `${index * 80}ms` }}
                   aria-label={option.name}
                 >
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-white/5 dark:via-gray-700/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-white/5 dark:via-gray-700/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start flex-1">
-                      <div className="text-2xl mr-3 transition-transform duration-300 group-hover:scale-110" aria-hidden>
+                  <div className="flex items-start justify-between relative z-10 mb-2">
+                    <div className="flex items-start space-x-2 flex-1 min-w-0">
+                      <div className="text-xl mt-0.5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" aria-hidden>
                         {option.icon}
                       </div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-base text-gray-900 dark:text-white mb-1">{option.name}</p>
-
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-xs text-gray-900 dark:text-white truncate">{option.name}</p>
                         {option.description && (
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             {option.description}
                           </p>
                         )}
-
-                        {option.type === 'paybill' && (
-                          <div className="space-y-2">
-                            <div className="flex items-center space-x-3">
-                              <div>
-                                <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Paybill</div>
-                                <div className="text-lg font-bold text-gray-900 dark:text-white">{option.paybillNumber}</div>
-                              </div>
-                              <div>
-                                <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Account</div>
-                                <div className="text-lg font-bold text-gray-900 dark:text-white">{option.accountNumber}</div>
-                              </div>
-                            </div>
-                            
-                            {option.paybillInstruction && (
-                              <div className="text-xs text-gray-500 dark:text-gray-500">
-                                {option.paybillInstruction}
-                              </div>
-                            )}
-
-                            {option.qrImageSrc && (
-                              <div className="mt-3 flex items-center space-x-4">
-                                <div className="flex-shrink-0">
-                                  <img 
-                                    src={option.qrImageSrc} 
-                                    alt={`${option.name} QR Code`} 
-                                    className="w-28 h-28 object-contain rounded-lg border-2 border-gray-200 dark:border-gray-600"
-                                  />
-                                </div>
-                                <div className="flex flex-col space-y-2">
-                                  <button
-                                    onClick={() => safeCopy(`${option.paybillNumber} ${option.accountNumber}`, toast)}
-                                    className="px-4 py-2 text-sm rounded-lg flex items-center bg-white/10 dark:bg-gray-800/10 hover:bg-white/20 dark:hover:bg-gray-700/20 transition-all duration-300 text-gray-700 dark:text-gray-300 shadow"
-                                    aria-label={`Copy ${option.name} details`}
-                                  >
-                                    <Copy className="h-4 w-4 mr-2" />
-                                    Copy Details
-                                  </button>
-                                  <a
-                                    href="https://zenlipa.co.ke/tip/civic-education-kenya"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="px-4 py-2 text-sm rounded-lg flex items-center bg-blue-500/10 dark:bg-blue-600/10 hover:bg-blue-500/20 dark:hover:bg-blue-600/20 transition-all duration-300 text-blue-700 dark:text-blue-300 shadow"
-                                  >
-                                    <ExternalLink className="h-4 w-4 mr-2" />
-                                    ZenLipa
-                                  </a>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
                       </div>
                     </div>
-
+                    
                     {option.type === 'link' && option.url && (
                       <a
                         href={option.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-4 py-2 text-sm rounded-lg flex items-center bg-white/10 dark:bg-gray-800/10 hover:bg-white/20 dark:hover:bg-gray-700/20 transition-all duration-300 text-gray-700 dark:text-gray-300 shadow ml-2"
+                        className="flex-shrink-0 px-3 py-1.5 text-xs rounded-lg flex items-center bg-white/10 dark:bg-gray-800/10 hover:bg-white/20 dark:hover:bg-gray-700/20 transition-all duration-300 text-gray-700 dark:text-gray-300 shadow ml-2"
                       >
-                        <ExternalLink className="h-4 w-4" />
+                        <span>Donate</span>
+                        <ExternalLink className="h-2.5 w-2.5 ml-1" />
                       </a>
                     )}
                   </div>
+
+                  {option.type === 'paybill' && (
+                    <div className="relative z-10 space-y-2">
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="space-y-1">
+                          <div className="font-semibold text-gray-900 dark:text-white">Paybill</div>
+                          <div className="text-gray-700 dark:text-gray-300 font-mono">{option.paybillNumber}</div>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="font-semibold text-gray-900 dark:text-white">Account</div>
+                          <div className="text-gray-700 dark:text-gray-300 font-mono">{option.accountNumber}</div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between space-x-2">
+                        {option.qrImageSrc && (
+                          <div className="flex-shrink-0">
+                            <img 
+                              src={option.qrImageSrc} 
+                              alt={`${option.name} QR Code`} 
+                              className="w-14 h-14 object-contain rounded border border-gray-200 dark:border-gray-700"
+                            />
+                          </div>
+                        )}
+                        
+                        <div className="flex-1 flex flex-col space-y-1">
+                          {Array.isArray(option.extraActions) && option.extraActions.map((act, i) => (
+                            <button
+                              key={i}
+                              onClick={() => {
+                                if (act.onClickAction === 'copy' && act.value) safeCopy(act.value, toast);
+                                else if (act.onClickAction === 'tel' && act.value) window.location.href = `tel:${act.value}`;
+                                else if (act.href) safeOpen(act.href);
+                              }}
+                              className="w-full px-2 py-1.5 text-xs rounded flex items-center justify-center bg-white/10 dark:bg-gray-800/10 hover:bg-white/20 dark:hover:bg-gray-700/20 transition-all duration-300 text-gray-700 dark:text-gray-300 shadow"
+                              aria-label={act.label || `${option.name} action`}
+                            >
+                              {act.onClickAction === 'copy' && <Copy className="h-2.5 w-2.5 mr-1" />}
+                              <span>{act.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
             
             <button
-              className="w-full mt-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 text-white transition-all duration-300 shadow-lg hover:shadow-blue-500/25 hover:scale-[1.02] backdrop-blur-sm"
+              className="w-full mt-4 py-2.5 rounded-lg font-semibold bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 text-white transition-all duration-300 shadow-lg hover:shadow-blue-500/25 hover:scale-[1.02] backdrop-blur-sm text-xs"
               onClick={handleCollapse}
             >
               Maybe Later
