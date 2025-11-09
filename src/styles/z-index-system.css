@@ -150,35 +150,6 @@ body.modal-open {
    ENHANCED Z-INDEX SYSTEM FOR RIDE HAILING
    ============================================ */
 
-:root {
-  /* Enhanced Z-Index Hierarchy */
-  --z-index-map-base: 0;
-  --z-index-map-tiles: 1;
-  --z-index-map-markers: 10;
-  --z-index-map-popups: 20;
-  --z-index-map-routes: 15;
-  
-  /* UI Controls - ABOVE map */
-  --z-index-search-bar: 1000;
-  --z-index-control-buttons: 1001;
-  --z-index-layer-control: 1002;
-  
-  /* Interactive Overlays */
-  --z-index-bottom-sheet: 2000;
-  --z-index-bottom-sheet-backdrop: 1999;
-  --z-index-list-panel: 2001;
-  --z-index-layer-panel: 2002;
-  
-  /* Modal System - HIGHEST PRIORITY */
-  --z-index-uber-modal: 4000;
-  --z-index-modal-backdrop: 3999;
-  
-  /* System Overlays */
-  --z-index-loading-overlay: 3000;
-  --z-index-error-overlay: 3001;
-  --z-index-toast-notifications: 3002;
-}
-
 /* Enhanced BottomSheet with Backdrop */
 .office-bottom-sheet {
   z-index: var(--z-index-bottom-sheet) !important;
