@@ -36,7 +36,7 @@ const DONATION_OPTIONS: DonationOptionBase[] = [
       {
         label: 'Copy Details',
         onClickAction: 'copy',
-        value: '4573966 39928'
+        value: 'Paybill - 4573966, Account - 39928'
       },
       {
         label: 'ZenLipa',
