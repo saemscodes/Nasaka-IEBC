@@ -93,6 +93,70 @@ const safeOpen = (href?: string) => {
   window.open(href, '_blank', 'noopener,noreferrer');
 };
 
+// QR Modal Component
+const QRModal = ({ isOpen, onClose, qrImageSrc, title }: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  qrImageSrc: string; 
+  title: string;
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4">
+      {/* Backdrop with strong contrast for QR readability */}
+      <div 
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity duration-300"
+        onClick={onClose}
+      />
+      
+      {/* Modal Container */}
+      <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-white/20 dark:border-gray-700/20 p-6 max-w-sm w-full mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-lg text-gray-900 dark:text-white flex items-center">
+            <ZoomIn className="h-5 w-5 mr-2 text-blue-500" />
+            Scan QR Code
+          </h3>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors duration-200"
+          >
+            <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+          </button>
+        </div>
+
+        {/* QR Code Image */}
+        <div className="bg-white p-4 rounded-xl border border-gray-200 dark:border-gray-700 mb-4">
+          <img 
+            src={qrImageSrc} 
+            alt={`${title} QR Code`}
+            className="w-full h-auto object-contain rounded-lg"
+          />
+        </div>
+
+        {/* Instructions */}
+        <div className="text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Point your camera at the QR code to scan
+          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+            {title}
+          </p>
+        </div>
+
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="w-full mt-4 py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white transition-all duration-300 shadow-lg hover:shadow-blue-500/25 hover:scale-[1.02]"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const DonationWidget: React.FC<DonationWidgetProps> = ({ 
   onTimedOut, 
   isVisible: controlledVisibility, 
@@ -104,8 +168,9 @@ const DonationWidget: React.FC<DonationWidgetProps> = ({
   const [isHovering, setIsHovering] = useState(false);
   const [hasTimedOut, setHasTimedOut] = useState(false);
   const [opacity, setOpacity] = useState(1);
-  const [qrModalOpen, setQrModalOpen] = useState(false);
-  const [currentQrImage, setCurrentQrImage] = useState<string>('');
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const [currentQrImage, setCurrentQrImage] = useState('');
+  const [currentQrTitle, setCurrentQrTitle] = useState('');
   
   const widgetMountTimeRef = useRef<number>(Date.now());
   const visibilityTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -121,6 +186,16 @@ const DonationWidget: React.FC<DonationWidgetProps> = ({
         timerRef.current = null;
       }
     });
+  };
+
+  const openQrModal = (qrImageSrc: string, title: string) => {
+    setCurrentQrImage(qrImageSrc);
+    setCurrentQrTitle(title);
+    setIsQrModalOpen(true);
+  };
+
+  const closeQrModal = () => {
+    setIsQrModalOpen(false);
   };
 
   useEffect(() => {
@@ -185,16 +260,6 @@ const DonationWidget: React.FC<DonationWidgetProps> = ({
     if (onClose) {
       onClose();
     }
-  };
-
-  const handleQrClick = (qrImageSrc: string) => {
-    setCurrentQrImage(qrImageSrc);
-    setQrModalOpen(true);
-  };
-
-  const handleQrModalClose = () => {
-    setQrModalOpen(false);
-    setCurrentQrImage('');
   };
 
   if (hasTimedOut || !isVisible) return null;
@@ -360,15 +425,15 @@ const DonationWidget: React.FC<DonationWidgetProps> = ({
 
                         <div className="flex items-center justify-between space-x-2">
                           {option.qrImageSrc && (
-                            <div className="flex-shrink-0 relative group">
+                            <div className="flex-shrink-0 relative">
                               <img 
                                 src={option.qrImageSrc} 
                                 alt={`${option.name} QR Code`} 
-                                className="w-14 h-14 object-contain rounded border border-gray-200 dark:border-gray-700 cursor-pointer transition-all duration-300 group-hover:scale-105"
-                                onClick={() => handleQrClick(option.qrImageSrc!)}
+                                className="w-14 h-14 object-contain rounded border border-gray-200 dark:border-gray-700 cursor-pointer hover:scale-105 transition-transform duration-200"
+                                onClick={() => openQrModal(option.qrImageSrc!, option.name)}
                               />
-                              <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer">
-                                <ZoomIn className="h-4 w-4 text-white" />
+                              <div className="absolute -top-1 -right-1 bg-blue-500 rounded-full p-0.5">
+                                <ZoomIn className="h-2.5 w-2.5 text-white" />
                               </div>
                             </div>
                           )}
@@ -408,51 +473,13 @@ const DonationWidget: React.FC<DonationWidgetProps> = ({
         )}
       </div>
 
-      {/* QR Code Modal */}
-      {qrModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
-            onClick={handleQrModalClose}
-          />
-          
-          {/* Modal Content */}
-          <div className="relative bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-lg text-gray-900 dark:text-white">
-                Scan QR Code
-              </h3>
-              <button
-                className="relative group rounded-full p-2 hover:bg-white/10 dark:hover:bg-gray-800/10 transition-all duration-300 backdrop-blur-sm"
-                onClick={handleQrModalClose}
-              >
-                <X className="h-4 w-4 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors" />
-                <div className="absolute inset-0 rounded-full bg-white/5 scale-0 group-hover:scale-100 transition-transform duration-300" />
-              </button>
-            </div>
-            
-            <div className="flex flex-col items-center space-y-4">
-              <img 
-                src={currentQrImage} 
-                alt="QR Code for scanning" 
-                className="w-64 h-64 object-contain rounded-lg border border-white/20 dark:border-gray-700/20"
-              />
-              
-              <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                Point your camera at the QR code to make a payment
-              </p>
-              
-              <button
-                onClick={handleQrModalClose}
-                className="px-4 py-2 text-sm rounded-lg bg-white/10 dark:bg-gray-800/10 hover:bg-white/20 dark:hover:bg-gray-700/20 transition-all duration-300 text-gray-700 dark:text-gray-300 shadow"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* QR Modal */}
+      <QRModal 
+        isOpen={isQrModalOpen}
+        onClose={closeQrModal}
+        qrImageSrc={currentQrImage}
+        title={currentQrTitle}
+      />
     </>
   );
 };
