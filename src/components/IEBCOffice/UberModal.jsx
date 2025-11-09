@@ -114,7 +114,7 @@ const UberModal = ({ isOpen, onClose, onProductSelect, pickup, destination, fare
                 >
                 Select your preferred ride type
                 <br />
-                <span className="text-gray-400 italic">(No discount applied)</span>
+                <span className="text-xs text-gray-400 italic">(No discount applied)</span>
               </p>
             </div>
 
