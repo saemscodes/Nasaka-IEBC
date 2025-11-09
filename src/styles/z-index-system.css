@@ -145,3 +145,196 @@ body.modal-open {
   transform: translateY(100%);
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
+
+/* ============================================
+   ENHANCED Z-INDEX SYSTEM FOR RIDE HAILING
+   ============================================ */
+
+:root {
+  /* Enhanced Z-Index Hierarchy */
+  --z-index-map-base: 0;
+  --z-index-map-tiles: 1;
+  --z-index-map-markers: 10;
+  --z-index-map-popups: 20;
+  --z-index-map-routes: 15;
+  
+  /* UI Controls - ABOVE map */
+  --z-index-search-bar: 1000;
+  --z-index-control-buttons: 1001;
+  --z-index-layer-control: 1002;
+  
+  /* Interactive Overlays */
+  --z-index-bottom-sheet: 2000;
+  --z-index-bottom-sheet-backdrop: 1999;
+  --z-index-list-panel: 2001;
+  --z-index-layer-panel: 2002;
+  
+  /* Modal System - HIGHEST PRIORITY */
+  --z-index-uber-modal: 4000;
+  --z-index-modal-backdrop: 3999;
+  
+  /* System Overlays */
+  --z-index-loading-overlay: 3000;
+  --z-index-error-overlay: 3001;
+  --z-index-toast-notifications: 3002;
+}
+
+/* Enhanced BottomSheet with Backdrop */
+.office-bottom-sheet {
+  z-index: var(--z-index-bottom-sheet) !important;
+  position: fixed !important;
+}
+
+.office-bottom-sheet-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  z-index: var(--z-index-bottom-sheet-backdrop) !important;
+  pointer-events: none;
+}
+
+.office-bottom-sheet-backdrop.active {
+  pointer-events: auto;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+}
+
+/* Uber Modal - Highest Priority */
+.uber-modal-container {
+  z-index: var(--z-index-uber-modal) !important;
+  position: fixed !important;
+}
+
+.uber-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: var(--z-index-modal-backdrop) !important;
+  backdrop-filter: blur(4px);
+}
+
+/* Enhanced button shadows and interactions */
+.shadow-lg {
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+.hover\\:shadow-xl:hover {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Enhanced backdrop transitions */
+.backdrop-transition {
+  transition: opacity 0.3s ease, background-color 0.3s ease;
+}
+
+/* Prevent body scroll when modal is open */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Enhanced dark mode text visibility */
+.dark .text-ios-gray-200 {
+  color: rgba(235, 235, 245, 0.8) !important;
+}
+
+.dark .text-ios-gray-300 {
+  color: rgba(235, 235, 245, 0.6) !important;
+}
+
+.dark .text-ios-gray-400 {
+  color: rgba(235, 235, 245, 0.4) !important;
+}
+
+/* Enhanced button focus states */
+button:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for all interactive elements */
+button, .ios-control-btn, .search-container {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Enhanced fare card gradients */
+.bg-gradient-to-br {
+  background-size: 200% 200%;
+  animation: gradientShift 10s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Improved dark mode contrast */
+.dark .bg-card {
+  background: hsl(var(--card)) !important;
+}
+
+.dark .bg-background {
+  background: hsl(var(--background)) !important;
+}
+
+/* Enhanced scrollbar for bottom sheet */
+.bottom-sheet-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.bottom-sheet-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.bottom-sheet-content::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 3px;
+}
+
+.dark .bottom-sheet-content::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Responsive improvements */
+@media (max-width: 640px) {
+  .office-bottom-sheet.expanded {
+    max-height: 85vh !important;
+  }
+  
+  .bottom-sheet-content {
+    padding: 0 16px 20px !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .office-bottom-sheet,
+  .uber-modal-container > div {
+    border: 2px solid currentColor !important;
+  }
+  
+  button {
+    border: 1px solid currentColor !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
