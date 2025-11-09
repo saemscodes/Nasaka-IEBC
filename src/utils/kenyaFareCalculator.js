@@ -125,23 +125,23 @@ export const TRAFFIC_MULTIPLIERS = {
     timeRange: '07:00-09:30',
     multiplier: 1.3,
     description: 'Morning rush hour',
-    additionalMinutes: 10,
+    additionalMinutes: 15,
     color: 'text-orange-500',
     icon: '🌅'
   },
   rush_evening: {
-    timeRange: '17:00-20:00',
+    timeRange: '16:00-20:00',
     multiplier: 1.4,
     description: 'Evening rush hour',
-    additionalMinutes: 15,
+    additionalMinutes: 20,
     color: 'text-red-500',
     icon: '🌇'
   },
   midday: {
-    timeRange: '09:30-17:00',
+    timeRange: '09:30-16:00',
     multiplier: 1.1,
     description: 'Moderate traffic',
-    additionalMinutes: 5,
+    additionalMinutes: 10,
     color: 'text-yellow-500',
     icon: '☀️'
   },
@@ -155,7 +155,7 @@ export const TRAFFIC_MULTIPLIERS = {
   },
   weekend: {
     multiplier: 0.95,
-    description: 'Weekend - lighter traffic',
+    description: 'Weekend - Lighter traffic',
     additionalMinutes: 0,
     color: 'text-green-500',
     icon: '🎉'
