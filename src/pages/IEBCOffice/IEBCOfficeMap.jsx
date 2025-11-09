@@ -25,7 +25,9 @@ const IEBCOfficeMap = () => {
   const userLocation = state?.userLocation;
   const manualEntry = state?.manualEntry;
 
-  // FIX: Add searchOffices to destructuring
+  // CRITICAL: Determine if we have location access
+  const hasLocationAccess = !!userLocation;
+
   const { offices, loading, error, searchOffices, refetch } = useIEBCOffices();
   const {
     mapCenter,
@@ -66,7 +68,7 @@ const IEBCOfficeMap = () => {
   const dragStartPos = useRef({ x: 0, y: 0 });
   const badgeStartPos = useRef({ x: 0, y: 0 });
 
-  // NEW: Handle URL query parameter on component mount
+  // Handle URL query parameter on component mount
   useEffect(() => {
     const query = searchParams.get('q');
     if (query && !urlQueryProcessed && offices.length > 0 && mapInstanceRef.current) {
@@ -74,7 +76,7 @@ const IEBCOfficeMap = () => {
     }
   }, [searchParams, offices, urlQueryProcessed]);
 
-  // NEW: Function to handle URL query parameter search
+  // Function to handle URL query parameter search
   const handleUrlQuerySearch = async (query) => {
     if (!query.trim()) return;
 
@@ -182,9 +184,9 @@ const IEBCOfficeMap = () => {
     }
   }, [baseMap]);
 
-  // Set initial map center and create accuracy circle
+  // Set initial map center and create accuracy circle - ONLY IF WE HAVE LOCATION ACCESS
   useEffect(() => {
-    if (userLocation?.latitude && userLocation?.longitude) {
+    if (hasLocationAccess && userLocation?.latitude && userLocation?.longitude) {
       flyToLocation(userLocation.latitude, userLocation.longitude, 14);
       
       // Create accuracy circle if accuracy data is available
@@ -212,7 +214,7 @@ const IEBCOfficeMap = () => {
         mapInstanceRef.current.removeLayer(accuracyCircleRef.current);
       }
     };
-  }, [userLocation, flyToLocation]);
+  }, [hasLocationAccess, userLocation, flyToLocation]);
 
   // Enhanced office selection
   const handleOfficeSelect = useCallback(async (office) => {
@@ -241,7 +243,7 @@ const IEBCOfficeMap = () => {
     setRoutingError(null);
   }, [setSelectedOffice, flyToOffice, closeListPanel]);
 
-  // FIXED: Enhanced search handler - REMOVE THE BUGGY LINE 247
+  // Enhanced search handler
   const handleSearch = useCallback(async (result) => {
     if (result.searchQuery) {
       // Perform full search with the query using the correct function
@@ -259,8 +261,10 @@ const IEBCOfficeMap = () => {
     }
   }, [searchOffices, handleOfficeSelect, openListPanel]);
 
-  // Double-tap handler for area search
+  // Double-tap handler for area search - ONLY IF WE HAVE LOCATION ACCESS
   const handleDoubleTap = useCallback(async (latlng) => {
+    if (!hasLocationAccess) return; // Don't allow area search without location access
+    
     setIsSearchingNearby(true);
     setLastTapLocation(latlng);
     
@@ -286,36 +290,36 @@ const IEBCOfficeMap = () => {
     } finally {
       setIsSearchingNearby(false);
     }
-  }, [openListPanel]);
+  }, [hasLocationAccess, openListPanel]);
 
-  // Handle route found event
+  // Handle route found event - ONLY IF WE HAVE LOCATION ACCESS
   const handleRouteFound = useCallback((routes) => {
     setCurrentRoute(routes);
     setRoutingError(null);
   }, []);
 
-  // Handle route error
+  // Handle route error - ONLY IF WE HAVE LOCATION ACCESS
   const handleRouteError = useCallback((error) => {
     console.error('Routing error:', error);
     setRoutingError(error?.message || 'Failed to calculate route');
     setCurrentRoute(null);
   }, []);
 
-  // Find nearest office
+  // Find nearest office - ONLY IF WE HAVE LOCATION ACCESS
   const nearestOffice = useMemo(() => {
-    if (userLocation?.latitude && userLocation?.longitude && offices.length > 0) {
-      return findNearestOffice(userLocation.latitude, userLocation.longitude, offices);
+    if (!hasLocationAccess || !userLocation?.latitude || !userLocation?.longitude || offices.length === 0) {
+      return null;
     }
-    return null;
-  }, [userLocation, offices]);
+    return findNearestOffice(userLocation.latitude, userLocation.longitude, offices);
+  }, [hasLocationAccess, userLocation, offices]);
 
-  // Set nearest office as selected
+  // Set nearest office as selected - ONLY IF WE HAVE LOCATION ACCESS
   useEffect(() => {
-    if (nearestOffice && !selectedOffice && !manualEntry) {
+    if (nearestOffice && !selectedOffice && !manualEntry && hasLocationAccess) {
       setSelectedOffice(nearestOffice);
       setBottomSheetState('peek');
     }
-  }, [nearestOffice, selectedOffice, manualEntry, setSelectedOffice]);
+  }, [nearestOffice, selectedOffice, manualEntry, hasLocationAccess, setSelectedOffice]);
 
   // Get offices for list panel
   const listPanelOffices = useMemo(() => {
@@ -325,7 +329,7 @@ const IEBCOfficeMap = () => {
     if (nearbyOffices.length > 0) {
       return nearbyOffices;
     }
-    if (userLocation?.latitude && userLocation?.longitude) {
+    if (hasLocationAccess && userLocation?.latitude && userLocation?.longitude) {
       return findNearestOffices(
         userLocation.latitude,
         userLocation.longitude,
@@ -334,7 +338,7 @@ const IEBCOfficeMap = () => {
       );
     }
     return offices.slice(0, 20);
-  }, [searchResults, nearbyOffices, userLocation, offices]);
+  }, [hasLocationAccess, searchResults, nearbyOffices, userLocation, offices]);
 
   // Toggle layer visibility
   const toggleLayer = useCallback((layerId) => {
@@ -353,7 +357,6 @@ const IEBCOfficeMap = () => {
   // Navigation handlers
   const handleBack = () => navigate(-1);
   const handleSearchFocus = () => {
-    // This now only opens panel when called from search (on Enter)
     openListPanel();
     setIsPanelBackdropVisible(true);
   };
@@ -415,8 +418,10 @@ const IEBCOfficeMap = () => {
     refetch();
   }, [refetch]);
 
-  // Route badge drag handlers - FIXED IMPLEMENTATION
+  // Route badge drag handlers - ONLY IF WE HAVE LOCATION ACCESS
   const handleRouteBadgeMouseDown = useCallback((e) => {
+    if (!hasLocationAccess) return; // Don't allow dragging without location access
+    
     e.preventDefault();
     e.stopPropagation();
     
@@ -463,7 +468,7 @@ const IEBCOfficeMap = () => {
     document.addEventListener('mouseup', handleUp);
     document.addEventListener('touchmove', handleMove, { passive: false });
     document.addEventListener('touchend', handleUp);
-  }, [routeBadgePosition, isDraggingRouteBadge]);
+  }, [hasLocationAccess, routeBadgePosition, isDraggingRouteBadge]);
 
   // Cleanup event listeners on unmount
   useEffect(() => {
@@ -549,7 +554,7 @@ const IEBCOfficeMap = () => {
             </svg>
           </button>
 
-          {!userLocation && (
+          {!hasLocationAccess && (
             <button
               onClick={handleRetryLocation}
               className="ios-control-btn"
@@ -591,7 +596,7 @@ const IEBCOfficeMap = () => {
             </motion.div>
           )}
 
-          {routingError && (
+          {hasLocationAccess && routingError && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -610,9 +615,9 @@ const IEBCOfficeMap = () => {
         </AnimatePresence>
       </div>
 
-      {/* Draggable Route Badge - FIXED IMPLEMENTATION */}
+      {/* Draggable Route Badge - ONLY WITH LOCATION ACCESS */}
       <AnimatePresence>
-        {currentRoute && currentRoute.length > 0 && (
+        {hasLocationAccess && currentRoute && currentRoute.length > 0 && (
           <motion.div
             ref={routeBadgeRef}
             initial={{ opacity: 0, scale: 0.8 }}
@@ -678,24 +683,26 @@ const IEBCOfficeMap = () => {
         onMapReady={handleMapReady}
         onDoubleTap={handleDoubleTap}
       >
-        {/* User Location Marker with Accuracy Circle */}
-        <UserLocationMarker
-          position={userLocation ? [userLocation.latitude, userLocation.longitude] : null}
-          accuracy={userLocation?.accuracy}
-        />
+        {/* User Location Marker with Accuracy Circle - ONLY WITH LOCATION ACCESS */}
+        {hasLocationAccess && (
+          <UserLocationMarker
+            position={userLocation ? [userLocation.latitude, userLocation.longitude] : null}
+            accuracy={userLocation?.accuracy}
+          />
+        )}
 
-        {/* GeoJSON Layer Manager - FIXED MARKER DISPLAY */}
+        {/* GeoJSON Layer Manager */}
         <GeoJSONLayerManager
           activeLayers={activeLayers}
           onOfficeSelect={handleOfficeSelect}
           selectedOffice={selectedOffice}
           onNearbyOfficesFound={setNearbyOffices}
           baseMap={baseMap}
-          liveOffices={offices} // NEW: Pass live offices for real-time updates
+          liveOffices={offices}
         />
 
-        {/* Last Tap Location Indicator */}
-        {lastTapLocation && (
+        {/* Last Tap Location Indicator - ONLY WITH LOCATION ACCESS */}
+        {hasLocationAccess && lastTapLocation && (
           <UserLocationMarker
             position={[lastTapLocation.lat, lastTapLocation.lng]}
             accuracy={100}
@@ -703,8 +710,8 @@ const IEBCOfficeMap = () => {
           />
         )}
 
-        {/* Routing System */}
-        {userLocation && selectedOffice && (
+        {/* Routing System - ONLY WITH LOCATION ACCESS */}
+        {hasLocationAccess && userLocation && selectedOffice && (
           <RoutingSystem
             userLocation={userLocation}
             destination={selectedOffice}
@@ -753,7 +760,7 @@ const IEBCOfficeMap = () => {
         )}
       </AnimatePresence>
 
-      {/* Office Bottom Sheet */}
+      {/* Office Bottom Sheet - WITH LOCATION ACCESS PROP */}
       <OfficeBottomSheet
         office={selectedOffice || nearestOffice}
         userLocation={userLocation}
@@ -764,6 +771,7 @@ const IEBCOfficeMap = () => {
         onExpand={handleBottomSheetExpand}
         onCollapse={handleBottomSheetCollapse}
         onClose={handleBottomSheetClose}
+        hasLocationAccess={hasLocationAccess} // CRITICAL: Pass location access status
       />
     </div>
   );
