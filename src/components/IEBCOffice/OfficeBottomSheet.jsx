@@ -36,6 +36,7 @@ const OfficeBottomSheet = ({
   const [showUberModal, setShowUberModal] = useState(false);
   const [showFareDetails, setShowFareDetails] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isCollapsingForModal, setIsCollapsingForModal] = useState(false);
   const dragControls = useDragControls();
   const sheetRef = useRef(null);
   const backdropRef = useRef(null);
@@ -142,13 +143,31 @@ const OfficeBottomSheet = ({
   };
 
   const openUber = (productType = null) => {
-    // Only show modal if we have location access and fare estimates
-    if (!productType && hasLocationAccess && fareEstimates) {
-      setShowUberModal(true);
+    // If we have a product type, open directly (from modal selection)
+    if (productType) {
+      openProvider('uber', productType);
+      setShowUberModal(false);
       return;
     }
-    openProvider('uber', productType);
-    setShowUberModal(false);
+
+    // If we're in expanded state and need to show modal, collapse first with smooth animation
+    if (state === 'expanded' && hasLocationAccess && fareEstimates) {
+      setIsCollapsingForModal(true);
+      onCollapse?.();
+      
+      // Wait for collapse animation to complete before showing modal
+      setTimeout(() => {
+        setShowUberModal(true);
+        setIsCollapsingForModal(false);
+      }, 350); // Match the spring animation duration
+    } else {
+      // If already peeked or no location access, open directly or show modal immediately
+      if (!hasLocationAccess || !fareEstimates) {
+        openProvider('uber');
+      } else {
+        setShowUberModal(true);
+      }
+    }
   };
 
   const openBolt = () => openProvider('bolt');
@@ -214,9 +233,15 @@ const OfficeBottomSheet = ({
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
             initial={{ y: '100%' }}
-            animate={{ y: state === 'peek' ? 'calc(100% - 80px)' : 0 }}
+            animate={{ 
+              y: state === 'peek' ? 'calc(100% - 80px)' : 0,
+              transition: { 
+                type: 'spring', 
+                stiffness: 400, 
+                damping: 40 
+              }
+            }}
             exit={{ y: '100%' }}
-            transition={{ type: 'spring', stiffness: 400, damping: 40 }}
             className={`office-bottom-sheet ${state} ${
               isDark
                 ? 'bg-card border-border text-foreground'
@@ -626,50 +651,6 @@ const OfficeBottomSheet = ({
                       Get There
                     </h4>
 
-                    {/* Uber Options Selector - ONLY SHOW IF LOCATION ACCESS GRANTED */}
-                    {hasLocationAccess && showUberModal && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className={`rounded-xl p-3 border mb-3 ${
-                          isDark ? 'bg-ios-gray-800 border-ios-gray-700' : 'bg-gray-50 border-gray-200'
-                        }`}
-                      >
-                        <p className={`text-xs font-medium mb-2 ${
-                          isDark ? 'text-ios-gray-300' : 'text-gray-700'
-                        }`}>Choose Uber Service:</p>
-                        <div className="grid grid-cols-2 gap-2">
-                          {fareEstimates && Object.entries(fareEstimates.uber).map(([key, fare]) => (
-                            <button
-                              key={key}
-                              onClick={() => openUber(UBER_PRODUCTS[key.toUpperCase().replace('UBER', 'UBER_')])}
-                              className={`text-xs py-2 px-3 rounded-lg flex flex-col items-start transition-all duration-200 ${
-                                isDark 
-                                  ? 'bg-gray-700 text-white hover:bg-gray-600' 
-                                  : 'bg-black text-white hover:bg-gray-900'
-                              }`}
-                            >
-                              <span className="font-semibold">{fare.displayName}</span>
-                              <span className={`text-xs ${
-                                isDark ? 'text-green-400' : 'text-green-400'
-                              }`}>
-                                {formatFare(fare.total)}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                        <button
-                          onClick={() => setShowUberModal(false)}
-                          className={`text-xs mt-2 w-full py-1 rounded ${
-                            isDark ? 'text-ios-gray-400' : 'text-gray-600'
-                          }`}
-                        >
-                          Cancel
-                        </button>
-                      </motion.div>
-                    )}
-
                     <div className={`grid gap-3 ${
                       hasLocationAccess ? 'grid-cols-2' : 'grid-cols-1'
                     }`}>
@@ -680,9 +661,7 @@ const OfficeBottomSheet = ({
                       >
                         <div className="flex items-center space-x-2">
                           <span className="text-lg">🚗</span>
-                          <span className={`text-sm font-medium ${
-                            isDark ? 'text-white' : uberColors.text.includes('text-black') ? 'text-black' : 'text-white'
-                          }`}>
+                          <span className="text-sm font-medium">
                             Uber
                           </span>
                         </div>
@@ -705,27 +684,21 @@ const OfficeBottomSheet = ({
                       {/* Bolt Button - Conditional behavior based on location access */}
                       <button
                         onClick={openBolt}
-                        className={`w-full font-semibold py-3 px-4 rounded-2xl flex flex-col items-center justify-center space-y-1 transition-all active:scale-95 duration-300 ${boltColors.bg} ${boltColors.text} ${boltColors.hover} ${boltColors.border} ${boltColors.shadow}`}
+                        className={`w-full font-semibold py-3 px-4 rounded-2xl flex flex-col items-center justify-center space-y-1 transition-all active:scale-95 duration-300 ${boltColors.bg}  ${boltColors.text} ${boltColors.hover} ${boltColors.border} ${boltColors.shadow}`}
                       >
                         <div className="flex items-center space-x-2">
                           <span className="text-lg">⚡</span>
-                          <span className={`text-sm font-medium ${
-                            boltColors.text.includes('text-black') ? 'text-black' : 'text-white'
-                          }`}>
+                          <span className="text-sm font-medium">
                             Bolt
                           </span>
                         </div>
                         {hasLocationAccess && cheapestFare && cheapestFare.provider === 'bolt' && (
-                          <span className={`text-xs font-medium ${
-                            boltColors.text.includes('text-black') ? 'text-gray-800' : 'text-gray-200'
-                          }`}>
+                          <span className="text-xs font-medium text-yellow-300">
                             {formatFare(cheapestFare.total)}
                           </span>
                         )}
                         {!hasLocationAccess && (
-                          <span className={`text-xs font-medium ${
-                            boltColors.text.includes('text-black') ? 'text-gray-700' : 'text-gray-200'
-                          }`}>
+                          <span className="text-xs font-medium text-yellow-200">
                             Open app
                           </span>
                         )}
@@ -793,17 +766,15 @@ const OfficeBottomSheet = ({
         )}
       </AnimatePresence>
 
-      {/* Uber Modal - ONLY WITH LOCATION ACCESS */}
-      {hasLocationAccess && (
-        <UberModal
-          isOpen={showUberModal}
-          onClose={() => setShowUberModal(false)}
-          onProductSelect={(product) => openUber(product.productType)}
-          pickup={pickup}
-          destination={destination}
-          fareEstimates={fareEstimates}
-        />
-      )}
+      {/* Uber Modal - ALWAYS RENDERED BUT CONDITIONALLY SHOWN */}
+      <UberModal
+        isOpen={showUberModal}
+        onClose={() => setShowUberModal(false)}
+        onProductSelect={(product) => openUber(product.productType)}
+        pickup={pickup}
+        destination={destination}
+        fareEstimates={fareEstimates}
+      />
     </>
   );
 };
