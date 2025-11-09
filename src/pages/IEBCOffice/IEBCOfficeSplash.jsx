@@ -238,7 +238,7 @@ const ThemeToggle = () => {
   );
 };
 
-// CEKA Logo Button Component - Top Left
+// CEKA Logo Button Component - Top Left with proper image transitions
 const CekaLogoButton = () => {
   const { theme } = useTheme();
 
@@ -246,35 +246,46 @@ const CekaLogoButton = () => {
     window.open('https://ceka254.vercel.app/join-community', '_blank', 'noopener,noreferrer');
   };
 
+  const logoVariants = {
+    light: { opacity: 1, scale: 1 },
+    dark: { opacity: 0, scale: 0.8 }
+  };
+
+  const logoVariantsDark = {
+    light: { opacity: 0, scale: 0.8 },
+    dark: { opacity: 1, scale: 1 }
+  };
+
   return (
     <motion.button
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={handleCekaClick}
-      className={`w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 ${
+      className={`w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 relative overflow-hidden ${
         theme === 'dark'
           ? 'bg-ios-gray-800 shadow-ios-gray-900/50 border-ios-gray-600'
           : 'bg-white shadow-ios-gray-200/50 border-ios-gray-200'
       }`}
       aria-label="Visit CEKA Community"
     >
-      <motion.div
-        initial={false}
-        animate={{ scale: [1, 1.02, 1] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <svg 
-          className="w-5 h-5" 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path 
-            d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 5.5V7H9V5.5L3 7V9L9 10.5V12H15V10.5L21 9ZM12 14C13.1 14 14 14.9 14 16C14 17.1 13.1 18 12 18C10.9 18 10 17.1 10 16C10 14.9 10.9 14 12 14ZM15 19H9V20.5L3 19V21L9 22.5V21H15V22.5L21 21V19L15 20.5V19Z" 
-            fill={theme === 'dark' ? '#60a5fa' : '#2563eb'}
-          />
-        </svg>
-      </motion.div>
+      <motion.img 
+        src="/assets/logo-coloured.png"
+        alt="CEKA Logo Light"
+        className="w-8 h-8 object-contain rounded-full absolute group-hover:scale-110 transition-transform duration-300"
+        variants={logoVariants}
+        initial="light"
+        animate={theme === 'dark' ? "dark" : "light"}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+      />
+      <motion.img 
+        src="/assets/logo-white.png"
+        alt="CEKA Logo Dark"
+        className="w-8 h-8 object-contain rounded-full absolute group-hover:scale-110 transition-transform duration-300"
+        variants={logoVariantsDark}
+        initial="light"
+        animate={theme === 'dark' ? "dark" : "light"}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+      />
     </motion.button>
   );
 };
