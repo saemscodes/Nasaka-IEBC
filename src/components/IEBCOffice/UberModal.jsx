@@ -8,14 +8,12 @@ const UberModal = ({ isOpen, onClose, onProductSelect, pickup, destination, fare
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  // Prevent body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.classList.add('modal-open');
     } else {
       document.body.classList.remove('modal-open');
     }
-
     return () => {
       document.body.classList.remove('modal-open');
     };
@@ -25,12 +23,12 @@ const UberModal = ({ isOpen, onClose, onProductSelect, pickup, destination, fare
     {
       id: 'chap_chap',
       name: 'Chap Chap',
-      description: 'Affordable motorcycle taxis',
+      description: 'Motorcycle taxis - Fast & affordable',
       icon: '🏍️',
       productType: 'a5a0d0d4-8c0f-4c3c-9e89-0b2d8a2c7f2a'
     },
     {
-      id: 'uber_x',
+      id: 'uberx',
       name: 'UberX',
       description: 'Everyday affordable rides',
       icon: '🚗',
@@ -44,7 +42,7 @@ const UberModal = ({ isOpen, onClose, onProductSelect, pickup, destination, fare
       productType: 'UberComfort'
     },
     {
-      id: 'xl',
+      id: 'uberxl',
       name: 'UberXL',
       description: 'Larger vehicles for groups',
       icon: '🚙',
@@ -57,15 +55,15 @@ const UberModal = ({ isOpen, onClose, onProductSelect, pickup, destination, fare
     onClose();
   };
 
-  const getFareForProduct = (productId) => {
-    if (!fareEstimates || !fareEstimates.uber) return null;
-    return fareEstimates.uber[productId] || fareEstimates.uber[productId.replace('uber', '').toLowerCase()];
-  };
-
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
     }
+  };
+
+  const getFareForProduct = (productId) => {
+    if (!fareEstimates || !fareEstimates.uber) return null;
+    return fareEstimates.uber[productId];
   };
 
   return (
