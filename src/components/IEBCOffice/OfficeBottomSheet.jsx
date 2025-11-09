@@ -1,5 +1,5 @@
 // src/components/IEBCOffice/OfficeBottomSheet.jsx
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { calculateDistance } from '@/utils/geoUtils';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -34,10 +34,31 @@ const OfficeBottomSheet = ({
   const [dragY, setDragY] = useState(0);
   const [showUberModal, setShowUberModal] = useState(false);
   const [showFareDetails, setShowFareDetails] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const dragControls = useDragControls();
   const sheetRef = useRef(null);
+  const backdropRef = useRef(null);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+
+  // Handle backdrop click to minimize
+  const handleBackdropClick = (e) => {
+    if (e.target === backdropRef.current && state === 'expanded' && !showUberModal) {
+      onCollapse?.();
+    }
+  };
+
+  // Handle escape key to minimize
+  useEffect(() => {
+    const handleEscapeKey = (e) => {
+      if (e.key === 'Escape' && state === 'expanded' && !showUberModal) {
+        onCollapse?.();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscapeKey);
+    return () => document.removeEventListener('keydown', handleEscapeKey);
+  }, [state, showUberModal, onCollapse]);
 
   const distanceToOffice = useMemo(() => {
     if (!office || !userLocation?.latitude || !userLocation?.longitude) {
@@ -69,6 +90,7 @@ const OfficeBottomSheet = ({
   const trafficInfo = getTrafficInfo();
 
   const handleDragEnd = (event, info) => {
+    setIsDragging(false);
     const threshold = 100;
     
     if (info.offset.y > threshold) {
@@ -82,6 +104,10 @@ const OfficeBottomSheet = ({
     }
     
     setDragY(0);
+  };
+
+  const handleDragStart = () => {
+    setIsDragging(true);
   };
 
   const coordsAvailable = office && office.latitude != null && office.longitude != null;
@@ -126,7 +152,9 @@ const OfficeBottomSheet = ({
   };
 
   const handlePeekTap = () => {
-    if (state === 'peek') onExpand?.();
+    if (state === 'peek' && !isDragging) {
+      onExpand?.();
+    }
   };
 
   if (!office && state === 'hidden') return null;
@@ -138,6 +166,22 @@ const OfficeBottomSheet = ({
 
   return (
     <>
+      {/* Backdrop for tapping outside - Only when expanded and no modal open */}
+      <AnimatePresence>
+        {state === 'expanded' && !showUberModal && (
+          <motion.div
+            ref={backdropRef}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="office-bottom-sheet-backdrop active backdrop-transition"
+            onClick={handleBackdropClick}
+            style={{ cursor: 'pointer' }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Main Bottom Sheet */}
       <AnimatePresence>
         {office && state !== 'hidden' && (
           <motion.div
@@ -146,6 +190,7 @@ const OfficeBottomSheet = ({
             dragControls={dragControls}
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={0.2}
+            onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
             initial={{ y: '100%' }}
             animate={{ y: state === 'peek' ? 'calc(100% - 80px)' : 0 }}
