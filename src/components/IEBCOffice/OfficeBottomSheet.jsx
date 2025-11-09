@@ -645,9 +645,11 @@ const OfficeBottomSheet = ({
 
                   {/* GET THERE SECTION - CONDITIONAL BASED ON LOCATION ACCESS */}
                   <div className="space-y-3 pt-2">
-                    <h4 className={`text-sm font-semibold mb-2 ${
-                      isDark ? 'text-ios-gray-200' : 'text-gray-900'
-                    }`}>
+                    <h4
+                      className={`text-center text-lg md:text-xl font-semibold mb-3 ${
+                        isDark ? 'text-ios-gray-200' : 'text-gray-900'
+                      }`}
+                      >
                       Get There
                     </h4>
 
