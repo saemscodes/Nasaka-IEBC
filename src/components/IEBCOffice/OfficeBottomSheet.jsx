@@ -60,9 +60,9 @@ const OfficeBottomSheet = ({
     return () => document.removeEventListener('keydown', handleEscapeKey);
   }, [state, showUberModal, onCollapse]);
 
-  // Calculate distance to office
+  // Calculate distance to office - ONLY if we have location access
   const distanceToOffice = useMemo(() => {
-    if (!office || !userLocation?.latitude || !userLocation?.longitude) {
+    if (!hasLocationAccess || !office || !userLocation?.latitude || !userLocation?.longitude) {
       return null;
     }
     return calculateDistance(
@@ -71,27 +71,27 @@ const OfficeBottomSheet = ({
       office.latitude,
       office.longitude
     );
-  }, [office, userLocation]);
+  }, [hasLocationAccess, office, userLocation]);
 
-  // Calculate fare estimates - ONLY if location access is granted
+  // Calculate fare estimates - ONLY if we have location access
   const fareEstimates = useMemo(() => {
-    if (!distanceToOffice || !hasLocationAccess) return null;
+    if (!hasLocationAccess || !distanceToOffice) return null;
 
     const estimatedMinutes = currentRoute?.[0]?.summary?.totalTime 
       ? Math.round(currentRoute[0].summary.totalTime / 60)
       : estimateTravelTime(distanceToOffice);
 
     return calculateAllFares(distanceToOffice, estimatedMinutes, 'nairobi');
-  }, [distanceToOffice, currentRoute, hasLocationAccess]);
+  }, [hasLocationAccess, distanceToOffice, currentRoute]);
 
-  // Get cheapest option
+  // Get cheapest option - ONLY if we have location access
   const cheapestFare = useMemo(() => {
-    if (!fareEstimates || !hasLocationAccess) return null;
+    if (!hasLocationAccess || !fareEstimates) return null;
     return getCheapestOption(fareEstimates);
-  }, [fareEstimates, hasLocationAccess]);
+  }, [hasLocationAccess, fareEstimates]);
 
-  // Get traffic condition
-  const trafficInfo = getTrafficInfo();
+  // Get traffic condition - ONLY if we have location access
+  const trafficInfo = hasLocationAccess ? getTrafficInfo() : null;
 
   // Handle drag end
   const handleDragEnd = (event, info) => {
@@ -132,7 +132,13 @@ const OfficeBottomSheet = ({
       productType 
     });
     openWithAppFallback(urls.app, urls.web);
-    trackProviderOpen(provider, { productType, source: 'bottom_sheet', hasLocationAccess });
+    trackProviderOpen(provider, { 
+      productType, 
+      source: 'bottom_sheet', 
+      hasLocationAccess,
+      hasPickup: !!pickup,
+      hasDestination: !!destination
+    });
   };
 
   const openUber = (productType = null) => {
@@ -244,7 +250,8 @@ const OfficeBottomSheet = ({
                   </p>
                 </div>
                 
-                {distanceToOffice && hasLocationAccess && (
+                {/* Show distance and fare ONLY if we have location access */}
+                {hasLocationAccess && distanceToOffice && (
                   <div className="ml-4 text-right">
                     <span className={`text-sm font-medium transition-colors duration-300 ${
                       isDark ? 'text-ios-blue-400' : 'text-primary'
@@ -260,6 +267,7 @@ const OfficeBottomSheet = ({
                     )}
                   </div>
                 )}
+                {/* Show different message when no location access */}
                 {!hasLocationAccess && (
                   <div className="ml-4 text-right">
                     <span className={`text-sm font-medium transition-colors duration-300 ${
@@ -267,6 +275,11 @@ const OfficeBottomSheet = ({
                     }`}>
                       Tap for directions
                     </span>
+                    <p className={`text-xs mt-1 transition-colors duration-300 ${
+                      isDark ? 'text-ios-gray-400' : 'text-muted-foreground'
+                    }`}>
+                      No location access
+                    </p>
                   </div>
                 )}
               </div>
@@ -302,6 +315,41 @@ const OfficeBottomSheet = ({
                     )}
                   </div>
 
+                  {/* LOCATION ACCESS WARNING - SHOW WHEN NO ACCESS */}
+                  {!hasLocationAccess && (
+                    <div className={`rounded-xl p-4 border transition-colors duration-300 ${
+                      isDark
+                        ? 'bg-yellow-900/20 border-yellow-700/30'
+                        : 'bg-yellow-50 border-yellow-200'
+                    }`}>
+                      <div className="flex items-start space-x-3">
+                        <span className="text-xl mt-0.5">📍</span>
+                        <div className="flex-1">
+                          <h4 className={`text-sm font-semibold mb-1 ${
+                            isDark ? 'text-yellow-300' : 'text-yellow-800'
+                          }`}>
+                            Location Access Required
+                          </h4>
+                          <p className={`text-xs ${
+                            isDark ? 'text-yellow-200' : 'text-yellow-700'
+                          }`}>
+                            Enable location access to see fare estimates, get directions from your current location, and find the nearest route to this office.
+                          </p>
+                          <button
+                            onClick={() => window.location.reload()}
+                            className={`mt-2 text-xs px-3 py-1 rounded-full font-medium transition-colors ${
+                              isDark
+                                ? 'bg-yellow-700 hover:bg-yellow-600 text-white'
+                                : 'bg-yellow-200 hover:bg-yellow-300 text-yellow-900'
+                            }`}
+                          >
+                            Enable Location Access
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* FARE ESTIMATES CARD - ONLY SHOW IF LOCATION ACCESS GRANTED */}
                   {hasLocationAccess && fareEstimates && (
                     <div className={`rounded-xl p-4 border transition-colors duration-300 ${
@@ -319,13 +367,13 @@ const OfficeBottomSheet = ({
                               Estimated Ride Cost
                             </h4>
                             <div className="flex items-center space-x-2 mt-0.5">
-                              <span className={`text-xs ${trafficInfo.color}`}>
-                                {trafficInfo.icon} {trafficInfo.description}
+                              <span className={`text-xs ${trafficInfo?.color || 'text-gray-500'}`}>
+                                {trafficInfo?.icon || '🚗'} {trafficInfo?.description || 'Normal traffic'}
                               </span>
                               <span className={`text-xs ${
                                 isDark ? 'text-ios-gray-400' : 'text-gray-600'
                               }`}>
-                                {distanceToOffice.toFixed(1)} km
+                                {distanceToOffice?.toFixed(1)} km
                               </span>
                             </div>
                           </div>
@@ -439,60 +487,62 @@ const OfficeBottomSheet = ({
                             </div>
 
                             {/* Bolt Options */}
-                            <div>
-                              <p className={`text-xs font-semibold mb-2 ${
-                                isDark ? 'text-ios-gray-300' : 'text-gray-700'
-                              }`}>
-                                Bolt Services
-                              </p>
-                              <div className="grid grid-cols-2 gap-2">
-                                {Object.entries(fareEstimates.bolt).map(([key, fare]) => (
-                                  <div
-                                    key={key}
-                                    className={`p-3 rounded-lg border ${
-                                      isDark 
-                                        ? 'bg-black/20 border-gray-700' 
-                                        : 'bg-white/60 border-gray-200'
-                                    }`}
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <div>
-                                        <div className="flex items-center space-x-2">
-                                          <span className="text-sm">{fare.icon}</span>
-                                          <span className={`text-xs font-medium ${
-                                            isDark ? 'text-white' : 'text-gray-900'
+                            {fareEstimates.bolt && (
+                              <div>
+                                <p className={`text-xs font-semibold mb-2 ${
+                                  isDark ? 'text-ios-gray-300' : 'text-gray-700'
+                                }`}>
+                                  Bolt Services
+                                </p>
+                                <div className="grid grid-cols-2 gap-2">
+                                  {Object.entries(fareEstimates.bolt).map(([key, fare]) => (
+                                    <div
+                                      key={key}
+                                      className={`p-3 rounded-lg border ${
+                                        isDark 
+                                          ? 'bg-black/20 border-gray-700' 
+                                          : 'bg-white/60 border-gray-200'
+                                      }`}
+                                    >
+                                      <div className="flex items-center justify-between">
+                                        <div>
+                                          <div className="flex items-center space-x-2">
+                                            <span className="text-sm">{fare.icon}</span>
+                                            <span className={`text-xs font-medium ${
+                                              isDark ? 'text-white' : 'text-gray-900'
+                                            }`}>
+                                              {fare.displayName}
+                                            </span>
+                                          </div>
+                                          <p className={`text-xs mt-1 ${
+                                            isDark ? 'text-ios-gray-400' : 'text-gray-500'
                                           }`}>
-                                            {fare.displayName}
-                                          </span>
-                                        </div>
-                                        <p className={`text-xs mt-1 ${
-                                          isDark ? 'text-ios-gray-400' : 'text-gray-500'
-                                        }`}>
-                                          {fare.description}
-                                        </p>
-                                      </div>
-                                      <div className="text-right">
-                                        <p className={`text-sm font-bold ${
-                                          isDark ? 'text-green-400' : 'text-green-600'
-                                        }`}>
-                                          {formatFare(fare.total)}
-                                        </p>
-                                        {fare.trafficSurcharge > 0 && (
-                                          <p className={`text-xs ${
-                                            isDark ? 'text-orange-400' : 'text-orange-600'
-                                          }`}>
-                                            +{formatFare(fare.trafficSurcharge)}
+                                            {fare.description}
                                           </p>
-                                        )}
+                                        </div>
+                                        <div className="text-right">
+                                          <p className={`text-sm font-bold ${
+                                            isDark ? 'text-green-400' : 'text-green-600'
+                                          }`}>
+                                            {formatFare(fare.total)}
+                                          </p>
+                                          {fare.trafficSurcharge > 0 && (
+                                            <p className={`text-xs ${
+                                              isDark ? 'text-orange-400' : 'text-orange-600'
+                                            }`}>
+                                              +{formatFare(fare.trafficSurcharge)}
+                                            </p>
+                                          )}
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
-                                ))}
+                                  ))}
+                                </div>
                               </div>
-                            </div>
+                            )}
 
                             {/* Traffic Info */}
-                            {fareEstimates.traffic.multiplier > 1 && (
+                            {fareEstimates.traffic?.multiplier > 1 && (
                               <div className={`text-xs p-2 rounded mt-2 ${
                                 isDark 
                                   ? 'bg-orange-900/20 text-orange-300' 
@@ -576,21 +626,6 @@ const OfficeBottomSheet = ({
                       Get There
                     </h4>
 
-                    {!hasLocationAccess && (
-                      <div className={`rounded-xl p-4 mb-3 border ${
-                        isDark 
-                          ? 'bg-yellow-900/20 border-yellow-700/30 text-yellow-300' 
-                          : 'bg-yellow-50 border-yellow-200 text-yellow-800'
-                      }`}>
-                        <div className="flex items-center space-x-2">
-                          <span>📍</span>
-                          <p className="text-sm font-medium">
-                            Location access not granted. You'll need to set your pickup location in the app.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
                     {/* Uber Options Selector - ONLY SHOW IF LOCATION ACCESS GRANTED */}
                     {hasLocationAccess && showUberModal && (
                       <motion.div
@@ -608,11 +643,19 @@ const OfficeBottomSheet = ({
                           {fareEstimates && Object.entries(fareEstimates.uber).map(([key, fare]) => (
                             <button
                               key={key}
-                              onClick={() => openUber(UBER_PRODUCTS[key.toUpperCase().replace('UBER', '')])}
-                              className="text-xs py-2 px-3 rounded-lg bg-black text-white hover:bg-gray-900 flex flex-col items-start transition-all duration-200"
+                              onClick={() => openUber(UBER_PRODUCTS[key.toUpperCase().replace('UBER', 'UBER_')])}
+                              className={`text-xs py-2 px-3 rounded-lg flex flex-col items-start transition-all duration-200 ${
+                                isDark 
+                                  ? 'bg-gray-700 text-white hover:bg-gray-600' 
+                                  : 'bg-black text-white hover:bg-gray-900'
+                              }`}
                             >
                               <span className="font-semibold">{fare.displayName}</span>
-                              <span className="text-green-400 text-xs">{formatFare(fare.total)}</span>
+                              <span className={`text-xs ${
+                                isDark ? 'text-green-400' : 'text-green-400'
+                              }`}>
+                                {formatFare(fare.total)}
+                              </span>
                             </button>
                           ))}
                         </div>
@@ -627,50 +670,68 @@ const OfficeBottomSheet = ({
                       </motion.div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-3">
-                      {/* Uber Button */}
+                    <div className={`grid gap-3 ${
+                      hasLocationAccess ? 'grid-cols-2' : 'grid-cols-1'
+                    }`}>
+                      {/* Uber Button - Conditional behavior based on location access */}
                       <button
                         onClick={() => openUber()}
                         className={`w-full font-semibold py-3 px-4 rounded-2xl flex flex-col items-center justify-center space-y-1 transition-all active:scale-95 duration-300 ${uberColors.bg} ${uberColors.text} ${uberColors.hover} ${uberColors.border} ${uberColors.shadow}`}
                       >
                         <div className="flex items-center space-x-2">
                           <span className="text-lg">🚗</span>
-                          <span className="text-sm font-medium text-black dark:text-white">Uber</span>
+                          <span className={`text-sm font-medium ${
+                            isDark ? 'text-white' : uberColors.text.includes('text-black') ? 'text-black' : 'text-white'
+                          }`}>
+                            Uber
+                          </span>
                         </div>
                         {hasLocationAccess && cheapestFare && cheapestFare.provider === 'uber' && (
-                          <span className="text-xs text-green-400 font-medium">
+                          <span className={`text-xs font-medium ${
+                            isDark ? 'text-green-400' : 'text-green-600'
+                          }`}>
                             {formatFare(cheapestFare.total)}
                           </span>
                         )}
                         {!hasLocationAccess && (
-                          <span className="text-xs text-gray-300 font-medium">
+                          <span className={`text-xs font-medium ${
+                            isDark ? 'text-gray-300' : 'text-gray-700'
+                          }`}>
                             Open app
                           </span>
                         )}
                       </button>
 
-                      {/* Bolt Button */}
+                      {/* Bolt Button - Conditional behavior based on location access */}
                       <button
                         onClick={openBolt}
                         className={`w-full font-semibold py-3 px-4 rounded-2xl flex flex-col items-center justify-center space-y-1 transition-all active:scale-95 duration-300 ${boltColors.bg} ${boltColors.text} ${boltColors.hover} ${boltColors.border} ${boltColors.shadow}`}
                       >
                         <div className="flex items-center space-x-2">
                           <span className="text-lg">⚡</span>
-                          <span className="text-sm font-medium">Bolt</span>
+                          <span className={`text-sm font-medium ${
+                            boltColors.text.includes('text-black') ? 'text-black' : 'text-white'
+                          }`}>
+                            Bolt
+                          </span>
                         </div>
                         {hasLocationAccess && cheapestFare && cheapestFare.provider === 'bolt' && (
-                          <span className="text-xs text-gray-800 font-medium">
+                          <span className={`text-xs font-medium ${
+                            boltColors.text.includes('text-black') ? 'text-gray-800' : 'text-gray-200'
+                          }`}>
                             {formatFare(cheapestFare.total)}
                           </span>
                         )}
                         {!hasLocationAccess && (
-                          <span className="text-xs text-gray-800 font-medium">
+                          <span className={`text-xs font-medium ${
+                            boltColors.text.includes('text-black') ? 'text-gray-700' : 'text-gray-200'
+                          }`}>
                             Open app
                           </span>
                         )}
                       </button>
 
-                      {/* Google Maps Button */}
+                      {/* Google Maps Button - ALWAYS AVAILABLE */}
                       <button
                         onClick={openGoogleMaps}
                         className={`w-full font-semibold py-3 px-4 rounded-2xl flex items-center justify-center space-x-2 transition-all active:scale-95 duration-300 ${googleColors.bg} ${googleColors.text} ${googleColors.hover} ${googleColors.border} ${googleColors.shadow}`}
@@ -679,7 +740,7 @@ const OfficeBottomSheet = ({
                         <span className="text-sm font-medium">Google Maps</span>
                       </button>
 
-                      {/* Apple Maps Button */}
+                      {/* Apple Maps Button - ALWAYS AVAILABLE */}
                       <button
                         onClick={openAppleMaps}
                         className={`w-full font-semibold py-3 px-4 rounded-2xl flex items-center justify-center space-x-2 transition-all active:scale-95 duration-300 ${appleColors.bg} ${appleColors.text} ${appleColors.hover} ${appleColors.border} ${appleColors.shadow}`}
@@ -689,7 +750,7 @@ const OfficeBottomSheet = ({
                       </button>
                     </div>
 
-                    {/* Copy Coordinates */}
+                    {/* Copy Coordinates - ALWAYS AVAILABLE */}
                     {office.latitude && office.longitude && (
                       <button
                         onClick={copyCoords}
@@ -732,16 +793,17 @@ const OfficeBottomSheet = ({
         )}
       </AnimatePresence>
 
-      {/* Uber Modal */}
-      <UberModal
-        isOpen={showUberModal}
-        onClose={() => setShowUberModal(false)}
-        onProductSelect={(product) => openUber(product.productType)}
-        pickup={pickup}
-        destination={destination}
-        fareEstimates={fareEstimates}
-        hasLocationAccess={hasLocationAccess}
-      />
+      {/* Uber Modal - ONLY WITH LOCATION ACCESS */}
+      {hasLocationAccess && (
+        <UberModal
+          isOpen={showUberModal}
+          onClose={() => setShowUberModal(false)}
+          onProductSelect={(product) => openUber(product.productType)}
+          pickup={pickup}
+          destination={destination}
+          fareEstimates={fareEstimates}
+        />
+      )}
     </>
   );
 };
