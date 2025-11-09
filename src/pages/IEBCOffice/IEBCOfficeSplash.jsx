@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import LoadingSpinner from '../../components/IEBCOffice/LoadingSpinner';
+import DonationWidget from '@/components/Donation/DonationWidget';
 import { useTheme } from '@/contexts/ThemeContext';
-import DonationWidget from '@/components/ui/DonationWidget';
 
 // Enhanced Background Layers with Cursor-Tracking Radial Effects
 const BackgroundLayers = ({ className = "" }) => {
@@ -238,7 +238,7 @@ const ThemeToggle = () => {
   );
 };
 
-// CEKA Logo Button Component - Top Left with proper image transitions
+// CEKA Logo Button Component - Top Left
 const CekaLogoButton = () => {
   const { theme } = useTheme();
 
@@ -261,7 +261,7 @@ const CekaLogoButton = () => {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={handleCekaClick}
-      className={`w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 relative overflow-hidden ${
+      className={`relative w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 overflow-hidden ${
         theme === 'dark'
           ? 'bg-ios-gray-800 shadow-ios-gray-900/50 border-ios-gray-600'
           : 'bg-white shadow-ios-gray-200/50 border-ios-gray-200'
@@ -271,20 +271,20 @@ const CekaLogoButton = () => {
       <motion.img 
         src="/assets/logo-coloured.png"
         alt="CEKA Logo Light"
-        className="w-8 h-8 object-contain rounded-full absolute group-hover:scale-110 transition-transform duration-300"
+        className="w-6 h-6 object-cover rounded-full absolute transition-transform duration-300"
         variants={logoVariants}
         initial="light"
         animate={theme === 'dark' ? "dark" : "light"}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
+        transition={{ duration: 0.3 }}
       />
       <motion.img 
         src="/assets/logo-white.png"
         alt="CEKA Logo Dark"
-        className="w-8 h-8 object-contain rounded-full absolute group-hover:scale-110 transition-transform duration-300"
+        className="w-6 h-6 object-cover rounded-full absolute transition-transform duration-300"
         variants={logoVariantsDark}
         initial="light"
         animate={theme === 'dark' ? "dark" : "light"}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
+        transition={{ duration: 0.3 }}
       />
     </motion.button>
   );
