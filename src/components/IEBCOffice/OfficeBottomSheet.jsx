@@ -605,7 +605,7 @@ const OfficeBottomSheet = ({
                       >
                         <div className="flex items-center space-x-2">
                           <span className="text-lg">🚗</span>
-                          <span className="text-sm font-medium">Uber</span>
+                          <span className="text-sm font-medium text-black dark:text-white">Uber</span>
                         </div>
                         {cheapestFare && cheapestFare.provider === 'uber' && (
                           <span className="text-xs text-green-400 font-medium">
