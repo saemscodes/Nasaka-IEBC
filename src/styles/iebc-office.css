@@ -1113,3 +1113,60 @@
   z-index: 9999 !important;
   position: relative !important;
 }
+
+/* Add to src/styles/iebc-office.css */
+
+/* Enhanced fare calculator styles */
+.fare-estimate-card {
+  background: linear-gradient(135deg, hsl(var(--card)), hsl(var(--primary) / 0.05));
+  backdrop-filter: blur(20px);
+  border: 1px solid hsl(var(--border) / 0.3);
+}
+
+.dark .fare-estimate-card {
+  background: linear-gradient(135deg, hsl(var(--card)), hsl(var(--primary) / 0.1));
+}
+
+.traffic-indicator {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Price highlight animation */
+.price-highlight {
+  animation: highlight 1s ease-in-out;
+}
+
+@keyframes highlight {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Smooth transitions for fare details */
+.fare-details-enter {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+}
+
+.fare-details-enter-active {
+  opacity: 1;
+  max-height: 500px;
+  transition: all 0.3s ease-in-out;
+}
+
+.fare-details-exit {
+  opacity: 1;
+  max-height: 500px;
+}
+
+.fare-details-exit-active {
+  opacity: 0;
+  max-height: 0;
+  transition: all 0.3s ease-in-out;
+}
