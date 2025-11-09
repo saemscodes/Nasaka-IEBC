@@ -11,7 +11,6 @@ import LayerControlPanel from '@/components/IEBCOffice/LayerControlPanel';
 import OfficeBottomSheet from '@/components/IEBCOffice/OfficeBottomSheet';
 import OfficeListPanel from '@/components/IEBCOffice/OfficeListPanel';
 import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
-import DonationWidget from '@/components/ui/DonationWidget';
 import ContributeLocationButton from '@/components/IEBCOffice/ContributeLocationButton';
 import { useIEBCOffices } from '@/hooks/useIEBCOffices';
 import { useMapControls } from '@/hooks/useMapControls';
@@ -61,7 +60,6 @@ const IEBCOfficeMap = () => {
   const [routeBadgePosition, setRouteBadgePosition] = useState({ x: 20, y: 140 });
   const [isDraggingRouteBadge, setIsDraggingRouteBadge] = useState(false);
   const [urlQueryProcessed, setUrlQueryProcessed] = useState(false);
-  const [donationWidgetVisible, setDonationWidgetVisible] = useState(true);
 
   const mapInstanceRef = useRef(null);
   const tileLayersRef = useRef({});
@@ -396,17 +394,6 @@ const IEBCOfficeMap = () => {
     setSelectedOffice(null);
   };
 
-  // Donation widget handlers
-  const handleDonationTimedOut = useCallback(() => {
-    console.log('Donation widget timed out');
-    setDonationWidgetVisible(false);
-  }, []);
-
-  const handleDonationClose = useCallback(() => {
-    console.log('Donation widget closed by user');
-    setDonationWidgetVisible(false);
-  }, []);
-
   // Clear routing error after delay
   useEffect(() => {
     if (routingError) {
@@ -686,14 +673,6 @@ const IEBCOfficeMap = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Donation Widget - Positioned at bottom left */}
-      <DonationWidget 
-        isVisible={donationWidgetVisible}
-        onTimedOut={handleDonationTimedOut}
-        onClose={handleDonationClose}
-        offsetY={160} // Position above bottom sheet
-      />
 
       {/* Map Container - Isolated */}
       <MapContainer
