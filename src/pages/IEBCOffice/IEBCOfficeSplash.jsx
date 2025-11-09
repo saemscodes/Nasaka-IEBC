@@ -280,7 +280,7 @@ const CekaLogoButton = () => {
       <motion.img 
         src="/assets/logo-white.png"
         alt="CEKA Logo Dark"
-        className="w-6 h-6 object-cover rounded-full absolute transition-transform duration-300"
+        className="w-8 h-8 object-cover rounded-full absolute transition-transform duration-300"
         variants={logoVariantsDark}
         initial="light"
         animate={theme === 'dark' ? "dark" : "light"}
