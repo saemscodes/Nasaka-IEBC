@@ -414,7 +414,7 @@ const IEBCOfficeSplash = () => {
         : 'bg-white text-ios-gray-900'
     }`}>
       {/* Top Control Bar - Full width with equal edge padding */}
-      <div className="absolute top-6 left-0 right-0 z-20 flex justify-between items-center px-6">
+      <div className="absolute top-6 left-0 right-0 z-20 flex justify-between items-center px-6 pt-4">
         <CekaLogoButton />
         <ThemeToggle />
       </div>
