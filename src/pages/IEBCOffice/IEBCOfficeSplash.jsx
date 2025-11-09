@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import LoadingSpinner from '../../components/IEBCOffice/LoadingSpinner';
-import DonationWidget from '@/components/Donation/DonationWidget';
+import DonationWidget from '@/components/ui/DonationWidget';
 import { useTheme } from '@/contexts/ThemeContext';
 
 // Enhanced Background Layers with Cursor-Tracking Radial Effects
