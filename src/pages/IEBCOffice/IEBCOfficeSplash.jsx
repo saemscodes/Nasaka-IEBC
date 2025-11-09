@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import LoadingSpinner from '../../components/IEBCOffice/LoadingSpinner';
-import AppFooter from '@/components/UI/AppFooter';
 import { useTheme } from '@/contexts/ThemeContext';
+import DonationWidget from '@/components/Donation/DonationWidget';
 
 // Enhanced Background Layers with Cursor-Tracking Radial Effects
 const BackgroundLayers = ({ className = "" }) => {
@@ -212,7 +212,7 @@ const ThemeToggle = () => {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={toggleTheme}
-      className={`absolute top-6 right-6 z-20 w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 ${
+      className={`w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 ${
         theme === 'dark'
           ? 'bg-ios-gray-800 shadow-ios-gray-900/50 border-ios-gray-600'
           : 'bg-white shadow-ios-gray-200/50 border-ios-gray-200'
@@ -233,6 +233,47 @@ const ThemeToggle = () => {
             <path d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/>
           </svg>
         )}
+      </motion.div>
+    </motion.button>
+  );
+};
+
+// CEKA Logo Button Component - Top Left
+const CekaLogoButton = () => {
+  const { theme } = useTheme();
+
+  const handleCekaClick = () => {
+    window.open('https://ceka254.vercel.app/join-community', '_blank', 'noopener,noreferrer');
+  };
+
+  return (
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={handleCekaClick}
+      className={`w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 ${
+        theme === 'dark'
+          ? 'bg-ios-gray-800 shadow-ios-gray-900/50 border-ios-gray-600'
+          : 'bg-white shadow-ios-gray-200/50 border-ios-gray-200'
+      }`}
+      aria-label="Visit CEKA Community"
+    >
+      <motion.div
+        initial={false}
+        animate={{ scale: [1, 1.02, 1] }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <svg 
+          className="w-5 h-5" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path 
+            d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 5.5V7H9V5.5L3 7V9L9 10.5V12H15V10.5L21 9ZM12 14C13.1 14 14 14.9 14 16C14 17.1 13.1 18 12 18C10.9 18 10 17.1 10 16C10 14.9 10.9 14 12 14ZM15 19H9V20.5L3 19V21L9 22.5V21H15V22.5L21 21V19L15 20.5V19Z" 
+            fill={theme === 'dark' ? '#60a5fa' : '#2563eb'}
+          />
+        </svg>
       </motion.div>
     </motion.button>
   );
@@ -356,12 +397,16 @@ const IEBCOfficeSplash = () => {
   };
 
   return (
-    <div className={`flex flex-col min-h-screen transition-colors duration-500 ${
+    <div className={`relative flex flex-col min-h-screen transition-colors duration-500 overflow-hidden ${
       theme === 'dark' 
         ? 'bg-ios-gray-900 text-white' 
         : 'bg-white text-ios-gray-900'
     }`}>
-      <ThemeToggle />
+      {/* Top Control Bar */}
+      <div className="absolute top-6 left-6 right-6 z-20 flex justify-between items-center">
+        <CekaLogoButton />
+        <ThemeToggle />
+      </div>
       
       <motion.div
         className="relative flex flex-col items-center justify-center flex-1 px-6 overflow-hidden"
@@ -548,8 +593,24 @@ const IEBCOfficeSplash = () => {
         </div>
       </motion.div>
 
-      {/* Footer */}
-      <AppFooter />
+      {/* Donation Widget - Bottom Right */}
+      <DonationWidget offsetY={100} />
+
+      {/* Copyright Footer - Simple Bottom Center */}
+      <div className="absolute bottom-4 left-0 right-0 z-10 text-center">
+        <TextShadowLayer>
+          <motion.p
+            className={`text-xs ${
+              theme === 'dark' ? 'text-ios-gray-500' : 'text-ios-gray-400'
+            }`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+          >
+            © {new Date().getFullYear()} Civic Education Kenya. All rights reserved.
+          </motion.p>
+        </TextShadowLayer>
+      </div>
     </div>
   );
 };
