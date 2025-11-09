@@ -1,4 +1,4 @@
-/* Z-Index Hierarchy System for IEBC Office Finder */
+/* Add to your existing CSS file - Enhanced Z-Index System */
 :root {
   /* Base map layers */
   --z-index-map-base: 0;
@@ -14,8 +14,13 @@
   
   /* Interactive Overlays */
   --z-index-bottom-sheet: 2000;
+  --z-index-bottom-sheet-backdrop: 1999; /* NEW: Backdrop behind bottom sheet */
   --z-index-list-panel: 2001;
   --z-index-layer-panel: 2002;
+  
+  /* Modal System - HIGHEST PRIORITY */
+  --z-index-uber-modal: 4000; /* NEW: Higher than bottom sheet */
+  --z-index-modal-backdrop: 3999; /* NEW: Backdrop for modals */
   
   /* System Overlays */
   --z-index-loading-overlay: 3000;
@@ -26,7 +31,45 @@
   --z-index-max: 9999;
 }
 
-/* Apply z-index to components */
+/* Enhanced Bottom Sheet with Backdrop */
+.office-bottom-sheet {
+  z-index: var(--z-index-bottom-sheet) !important;
+  position: fixed !important;
+}
+
+.office-bottom-sheet-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  z-index: var(--z-index-bottom-sheet-backdrop) !important;
+  pointer-events: none;
+}
+
+.office-bottom-sheet-backdrop.active {
+  pointer-events: auto;
+}
+
+/* Uber Modal - Highest Priority */
+.uber-modal-container {
+  z-index: var(--z-index-uber-modal) !important;
+  position: fixed !important;
+}
+
+.uber-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: var(--z-index-modal-backdrop) !important;
+  backdrop-filter: blur(4px);
+}
+
+/* Ensure other components respect the hierarchy */
 .search-bar-container {
   z-index: var(--z-index-search-bar) !important;
 }
@@ -37,10 +80,6 @@
 
 .layer-control-button {
   z-index: var(--z-index-layer-control) !important;
-}
-
-.office-bottom-sheet {
-  z-index: var(--z-index-bottom-sheet) !important;
 }
 
 .office-list-panel {
@@ -59,23 +98,50 @@
   z-index: var(--z-index-error-overlay) !important;
 }
 
-/* Ensure Leaflet elements respect our z-index hierarchy */
-.leaflet-map-container {
-  z-index: var(--z-index-map-base) !important;
+/* Enhanced touch interactions */
+.touch-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1998; /* Just below bottom sheet backdrop */
+  pointer-events: none;
 }
 
-.leaflet-tile-pane {
-  z-index: var(--z-index-map-tiles) !important;
+.touch-backdrop.active {
+  pointer-events: auto;
 }
 
-.leaflet-marker-pane {
-  z-index: var(--z-index-map-markers) !important;
+/* Smooth transitions for backdrop */
+.backdrop-transition {
+  transition: opacity 0.3s ease, background-color 0.3s ease;
 }
 
-.leaflet-popup-pane {
-  z-index: var(--z-index-map-popups) !important;
+/* Prevent body scroll when modal is open */
+body.modal-open {
+  overflow: hidden;
 }
 
-.leaflet-overlay-pane {
-  z-index: var(--z-index-map-routes) !important;
+/* Enhanced modal animations */
+.modal-enter {
+  opacity: 0;
+  transform: translateY(100%);
+}
+
+.modal-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.modal-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.modal-exit-active {
+  opacity: 0;
+  transform: translateY(100%);
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
