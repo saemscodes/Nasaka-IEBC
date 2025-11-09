@@ -111,8 +111,11 @@ const UberModal = ({ isOpen, onClose, onProductSelect, pickup, destination, fare
               </div>
               <p className={`text-sm ${
                 isDark ? 'text-gray-400' : 'text-gray-600'
-              }`}>
-                Select your preferred ride type
+                 }`}>
+                Select your preferred ride type{' '}
+                <span className={`text-gray-400 italic`}>
+                  (No discount applied)
+                </span>
               </p>
             </div>
 
