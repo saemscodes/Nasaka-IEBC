@@ -29,7 +29,8 @@ const OfficeBottomSheet = ({
   state = 'peek',
   onExpand,
   onCollapse,
-  onClose
+  onClose,
+  hasLocationAccess = false
 }) => {
   const [dragY, setDragY] = useState(0);
   const [showUberModal, setShowUberModal] = useState(false);
@@ -72,22 +73,22 @@ const OfficeBottomSheet = ({
     );
   }, [office, userLocation]);
 
-  // Calculate fare estimates
+  // Calculate fare estimates - ONLY if location access is granted
   const fareEstimates = useMemo(() => {
-    if (!distanceToOffice) return null;
+    if (!distanceToOffice || !hasLocationAccess) return null;
 
     const estimatedMinutes = currentRoute?.[0]?.summary?.totalTime 
       ? Math.round(currentRoute[0].summary.totalTime / 60)
       : estimateTravelTime(distanceToOffice);
 
     return calculateAllFares(distanceToOffice, estimatedMinutes, 'nairobi');
-  }, [distanceToOffice, currentRoute]);
+  }, [distanceToOffice, currentRoute, hasLocationAccess]);
 
   // Get cheapest option
   const cheapestFare = useMemo(() => {
-    if (!fareEstimates) return null;
+    if (!fareEstimates || !hasLocationAccess) return null;
     return getCheapestOption(fareEstimates);
-  }, [fareEstimates]);
+  }, [fareEstimates, hasLocationAccess]);
 
   // Get traffic condition
   const trafficInfo = getTrafficInfo();
@@ -114,24 +115,29 @@ const OfficeBottomSheet = ({
     setIsDragging(true);
   };
 
-  // Coordinates setup
+  // Coordinates setup - pickup only available if location access granted
   const coordsAvailable = office && office.latitude != null && office.longitude != null;
-  const pickup = userLocation && userLocation.latitude != null && userLocation.longitude != null
+  const pickup = hasLocationAccess && userLocation && userLocation.latitude != null && userLocation.longitude != null
     ? { lat: userLocation.latitude, lng: userLocation.longitude }
     : null;
   const destination = coordsAvailable 
     ? { latitude: office.latitude, longitude: office.longitude } 
     : null;
 
-  // Provider opener functions
+  // Provider opener functions - conditional based on location access
   const openProvider = (provider, productType = null) => {
-    const urls = buildUrlsFor(provider, { pickup, destination, productType });
+    const urls = buildUrlsFor(provider, { 
+      pickup: hasLocationAccess ? pickup : null, 
+      destination, 
+      productType 
+    });
     openWithAppFallback(urls.app, urls.web);
-    trackProviderOpen(provider, { productType, source: 'bottom_sheet' });
+    trackProviderOpen(provider, { productType, source: 'bottom_sheet', hasLocationAccess });
   };
 
   const openUber = (productType = null) => {
-    if (!productType) {
+    // Only show modal if we have location access and fare estimates
+    if (!productType && hasLocationAccess && fareEstimates) {
       setShowUberModal(true);
       return;
     }
@@ -238,7 +244,7 @@ const OfficeBottomSheet = ({
                   </p>
                 </div>
                 
-                {distanceToOffice && (
+                {distanceToOffice && hasLocationAccess && (
                   <div className="ml-4 text-right">
                     <span className={`text-sm font-medium transition-colors duration-300 ${
                       isDark ? 'text-ios-blue-400' : 'text-primary'
@@ -252,6 +258,15 @@ const OfficeBottomSheet = ({
                         {formatFare(cheapestFare.total)}
                       </p>
                     )}
+                  </div>
+                )}
+                {!hasLocationAccess && (
+                  <div className="ml-4 text-right">
+                    <span className={`text-sm font-medium transition-colors duration-300 ${
+                      isDark ? 'text-ios-blue-400' : 'text-primary'
+                    }`}>
+                      Tap for directions
+                    </span>
                   </div>
                 )}
               </div>
@@ -287,8 +302,8 @@ const OfficeBottomSheet = ({
                     )}
                   </div>
 
-                  {/* FARE ESTIMATES CARD */}
-                  {fareEstimates && (
+                  {/* FARE ESTIMATES CARD - ONLY SHOW IF LOCATION ACCESS GRANTED */}
+                  {hasLocationAccess && fareEstimates && (
                     <div className={`rounded-xl p-4 border transition-colors duration-300 ${
                       isDark
                         ? 'bg-gradient-to-br from-green-900/20 to-blue-900/20 border-green-700/30'
@@ -519,8 +534,8 @@ const OfficeBottomSheet = ({
                     )}
                   </div>
 
-                  {/* Distance & Route Info */}
-                  {distanceToOffice && (
+                  {/* Distance & Route Info - ONLY SHOW IF LOCATION ACCESS GRANTED */}
+                  {hasLocationAccess && distanceToOffice && (
                     <div className={`rounded-xl p-4 border transition-colors duration-300 ${
                       isDark
                         ? 'bg-ios-blue/20 border-ios-blue/30'
@@ -553,7 +568,7 @@ const OfficeBottomSheet = ({
                     </div>
                   )}
 
-                  {/* GET THERE SECTION - ENHANCED */}
+                  {/* GET THERE SECTION - CONDITIONAL BASED ON LOCATION ACCESS */}
                   <div className="space-y-3 pt-2">
                     <h4 className={`text-sm font-semibold mb-2 ${
                       isDark ? 'text-ios-gray-200' : 'text-gray-900'
@@ -561,8 +576,23 @@ const OfficeBottomSheet = ({
                       Get There
                     </h4>
 
-                    {/* Uber Options Selector */}
-                    {showUberModal && (
+                    {!hasLocationAccess && (
+                      <div className={`rounded-xl p-4 mb-3 border ${
+                        isDark 
+                          ? 'bg-yellow-900/20 border-yellow-700/30 text-yellow-300' 
+                          : 'bg-yellow-50 border-yellow-200 text-yellow-800'
+                      }`}>
+                        <div className="flex items-center space-x-2">
+                          <span>📍</span>
+                          <p className="text-sm font-medium">
+                            Location access not granted. You'll need to set your pickup location in the app.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Uber Options Selector - ONLY SHOW IF LOCATION ACCESS GRANTED */}
+                    {hasLocationAccess && showUberModal && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
@@ -605,11 +635,16 @@ const OfficeBottomSheet = ({
                       >
                         <div className="flex items-center space-x-2">
                           <span className="text-lg">🚗</span>
-                          <span className="text-sm font-medium">Uber</span>
+                          <span className="text-sm font-medium text-black dark:text-white">Uber</span>
                         </div>
-                        {cheapestFare && cheapestFare.provider === 'uber' && (
+                        {hasLocationAccess && cheapestFare && cheapestFare.provider === 'uber' && (
                           <span className="text-xs text-green-400 font-medium">
                             {formatFare(cheapestFare.total)}
+                          </span>
+                        )}
+                        {!hasLocationAccess && (
+                          <span className="text-xs text-gray-300 font-medium">
+                            Open app
                           </span>
                         )}
                       </button>
@@ -623,9 +658,14 @@ const OfficeBottomSheet = ({
                           <span className="text-lg">⚡</span>
                           <span className="text-sm font-medium">Bolt</span>
                         </div>
-                        {cheapestFare && cheapestFare.provider === 'bolt' && (
+                        {hasLocationAccess && cheapestFare && cheapestFare.provider === 'bolt' && (
                           <span className="text-xs text-gray-800 font-medium">
                             {formatFare(cheapestFare.total)}
+                          </span>
+                        )}
+                        {!hasLocationAccess && (
+                          <span className="text-xs text-gray-800 font-medium">
+                            Open app
                           </span>
                         )}
                       </button>
@@ -700,6 +740,7 @@ const OfficeBottomSheet = ({
         pickup={pickup}
         destination={destination}
         fareEstimates={fareEstimates}
+        hasLocationAccess={hasLocationAccess}
       />
     </>
   );
