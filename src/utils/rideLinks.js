@@ -143,8 +143,8 @@ export function getProviderColors(provider, isDark = false) {
   const colors = {
     uber: {
       light: { 
-        bg: 'bg-black', 
-        text: 'text-white', 
+        bg: 'bg-white', 
+        text: 'text-black', 
         hover: 'hover:bg-gray-900',
         border: 'border-black',
         shadow: 'shadow-lg hover:shadow-xl'
