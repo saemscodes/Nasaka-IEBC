@@ -142,20 +142,68 @@ export function openWithAppFallback(appUrl, webUrl, options = {}) {
 export function getProviderColors(provider, isDark = false) {
   const colors = {
     uber: {
-      light: { bg: 'bg-black', text: 'text-white', hover: 'hover:bg-gray-900', border: 'border-black' },
-      dark: { bg: 'bg-black', text: 'text-white', hover: 'hover:bg-gray-800', border: 'border-gray-700' }
+      light: { 
+        bg: 'bg-black', 
+        text: 'text-white', 
+        hover: 'hover:bg-gray-900',
+        border: 'border-black',
+        shadow: 'shadow-lg hover:shadow-xl'
+      },
+      dark: { 
+        bg: 'bg-black', 
+        text: 'text-white', 
+        hover: 'hover:bg-gray-800',
+        border: 'border-gray-700',
+        shadow: 'shadow-lg hover:shadow-xl'
+      }
     },
     bolt: {
-      light: { bg: 'bg-[#34D186]', text: 'text-black', hover: 'hover:bg-[#2BBD75]', border: 'border-[#34D186]' },
-      dark: { bg: 'bg-[#34D186]', text: 'text-black', hover: 'hover:bg-[#2BBD75]', border: 'border-[#34D186]' }
+      light: { 
+        bg: 'bg-[#34D186]', 
+        text: 'text-black', 
+        hover: 'hover:bg-[#2BBD75]',
+        border: 'border-[#34D186]',
+        shadow: 'shadow-lg hover:shadow-xl'
+      },
+      dark: { 
+        bg: 'bg-[#34D186]', 
+        text: 'text-black', 
+        hover: 'hover:bg-[#2BBD75]',
+        border: 'border-[#34D186]',
+        shadow: 'shadow-lg hover:shadow-xl'
+      }
     },
     google: {
-      light: { bg: 'bg-white', text: 'text-gray-900', hover: 'hover:bg-gray-50', border: 'border-gray-300' },
-      dark: { bg: 'bg-[#1F1F1F]', text: 'text-white', hover: 'hover:bg-[#2A2A2A]', border: 'border-gray-700' }
+      light: { 
+        bg: 'bg-white', 
+        text: 'text-gray-900', 
+        hover: 'hover:bg-gray-50',
+        border: 'border-gray-300',
+        shadow: 'shadow-lg hover:shadow-xl'
+      },
+      dark: { 
+        bg: 'bg-[#1F1F1F]', 
+        text: 'text-white', 
+        hover: 'hover:bg-[#2A2A2A]',
+        border: 'border-gray-700',
+        shadow: 'shadow-lg hover:shadow-xl'
+      }
     },
     apple: {
-      light: { bg: 'bg-white', text: 'text-gray-900', hover: 'hover:bg-gray-50', border: 'border-gray-300' },
-      dark: { bg: 'bg-[#1C1C1E]', text: 'text-white', hover: 'hover:bg-[#2C2C2E]', border: 'border-gray-700' }
+      light: { 
+        bg: 'bg-white', 
+        text: 'text-gray-900', 
+        hover: 'hover:bg-gray-50',
+        border: 'border-gray-300',
+        shadow: 'shadow-lg hover:shadow-xl'
+      },
+      dark: { 
+        bg: 'bg-[#1C1C1E]', 
+        text: 'text-white', 
+        hover: 'hover:bg-[#2C2C2E]',
+        border: 'border-gray-700',
+        shadow: 'shadow-lg hover:shadow-xl'
+      }
     }
   };
 
