@@ -9,29 +9,29 @@
 
 // UBER KENYA PRICING (August 2024 Update)
 export const UBER_NAIROBI_RATES = {
-  UberX: {
-    baseFare: 85,
-    perKm: 27,
-    perMinute: 4,
-    minimumFare: 220,
-    bookingFee: 0,
-    displayName: 'UberX',
-    description: 'Affordable, everyday rides',
-    icon: '🚗',
-    provider: 'uber'
-  },
-  UberChap: {
+  chap_chap: {
     baseFare: 70,
     perKm: 22,
     perMinute: 3,
     minimumFare: 150,
     bookingFee: 0,
     displayName: 'Chap Chap',
-    description: 'Quick motorcycle rides',
+    description: 'Motorcycle taxis',
     icon: '🏍️',
     provider: 'uber'
   },
-  Comfort: {
+  uberx: {
+    baseFare: 85,
+    perKm: 27,
+    perMinute: 4,
+    minimumFare: 220,
+    bookingFee: 0,
+    displayName: 'UberX',
+    description: 'Everyday affordable rides',
+    icon: '🚗',
+    provider: 'uber'
+  },
+  comfort: {
     baseFare: 100,
     perKm: 32,
     perMinute: 4.5,
@@ -42,21 +42,21 @@ export const UBER_NAIROBI_RATES = {
     icon: '✨',
     provider: 'uber'
   },
-  UberXL: {
+  uberxl: {
     baseFare: 120,
     perKm: 38,
     perMinute: 5,
     minimumFare: 300,
     bookingFee: 0,
     displayName: 'UberXL',
-    description: 'Affordable rides for groups up to 6',
+    description: 'Larger vehicles for groups',
     icon: '🚙',
     provider: 'uber'
   }
 };
 
 export const UBER_MOMBASA_RATES = {
-  UberX: {
+  uberx: {
     baseFare: 70,
     perKm: 27,
     perMinute: 3,
@@ -71,40 +71,7 @@ export const UBER_MOMBASA_RATES = {
 
 // BOLT KENYA PRICING (October 2023 - Latest available)
 export const BOLT_NAIROBI_RATES = {
-  Economy: {
-    baseFare: 70,
-    perKm: 27.37,
-    perMinute: 4,
-    minimumFare: 200,
-    bookingFee: 0,
-    displayName: 'Bolt Economy',
-    description: 'Budget-friendly rides',
-    icon: '⚡',
-    provider: 'bolt'
-  },
-  Base: {
-    baseFare: 85,
-    perKm: 30,
-    perMinute: 4,
-    minimumFare: 220,
-    bookingFee: 0,
-    displayName: 'Bolt',
-    description: 'Standard rides',
-    icon: '⚡',
-    provider: 'bolt'
-  },
-  XL: {
-    baseFare: 100,
-    perKm: 35,
-    perMinute: 5,
-    minimumFare: 250,
-    bookingFee: 0,
-    displayName: 'Bolt XL',
-    description: 'Larger vehicles for groups',
-    icon: '⚡',
-    provider: 'bolt'
-  },
-  Boda: {
+  boda: {
     baseFare: 50,
     perKm: 20,
     perMinute: 3,
@@ -113,6 +80,39 @@ export const BOLT_NAIROBI_RATES = {
     displayName: 'Bolt Boda',
     description: 'Motorcycle rides',
     icon: '🏍️',
+    provider: 'bolt'
+  },
+  economy: {
+    baseFare: 70,
+    perKm: 27.37,
+    perMinute: 4,
+    minimumFare: 200,
+    bookingFee: 0,
+    displayName: 'Bolt Economy',
+    description: 'Budget-friendly rides',
+    icon: '🚗',
+    provider: 'bolt'
+  },
+  base: {
+    baseFare: 85,
+    perKm: 30,
+    perMinute: 4,
+    minimumFare: 220,
+    bookingFee: 0,
+    displayName: 'Bolt',
+    description: 'Standard rides',
+    icon: '🚙',
+    provider: 'bolt'
+  },
+  xl: {
+    baseFare: 100,
+    perKm: 35,
+    perMinute: 5,
+    minimumFare: 250,
+    bookingFee: 0,
+    displayName: 'Bolt XL',
+    description: 'Larger vehicles for groups',
+    icon: '🚐',
     provider: 'bolt'
   }
 };
@@ -127,8 +127,7 @@ export const TRAFFIC_MULTIPLIERS = {
     description: 'Morning rush hour',
     additionalMinutes: 10,
     color: 'text-orange-500',
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-200'
+    icon: '🌅'
   },
   rush_evening: {
     timeRange: '17:00-20:00',
@@ -136,8 +135,7 @@ export const TRAFFIC_MULTIPLIERS = {
     description: 'Evening rush hour',
     additionalMinutes: 15,
     color: 'text-red-500',
-    bgColor: 'bg-red-50',
-    borderColor: 'border-red-200'
+    icon: '🌇'
   },
   midday: {
     timeRange: '09:30-17:00',
@@ -145,25 +143,22 @@ export const TRAFFIC_MULTIPLIERS = {
     description: 'Moderate traffic',
     additionalMinutes: 5,
     color: 'text-yellow-500',
-    bgColor: 'bg-yellow-50',
-    borderColor: 'border-yellow-200'
+    icon: '☀️'
   },
   night: {
     timeRange: '20:00-07:00',
     multiplier: 1.0,
     description: 'Light traffic',
     additionalMinutes: 0,
-    color: 'text-green-500',
-    bgColor: 'bg-green-50',
-    borderColor: 'border-green-200'
+    color: 'text-blue-400',
+    icon: '🌙'
   },
   weekend: {
     multiplier: 0.95,
     description: 'Weekend - lighter traffic',
     additionalMinutes: 0,
-    color: 'text-blue-500',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200'
+    color: 'text-green-500',
+    icon: '🎉'
   }
 };
 
@@ -193,16 +188,24 @@ export function getCurrentTrafficCondition() {
 }
 
 /**
+ * Get traffic info for display
+ */
+export function getTrafficInfo() {
+  const traffic = getCurrentTrafficCondition();
+  return {
+    ...traffic,
+    displayText: `${traffic.icon} ${traffic.description}`
+  };
+}
+
+/**
  * Calculate fare for a ride
  */
 export function calculateFare(distanceKm, estimatedMinutes, rateCard, options = {}) {
   const { includeTraffic = true, trafficCondition = null } = options;
 
   const traffic = trafficCondition || (includeTraffic ? getCurrentTrafficCondition() : null);
-
-  const adjustedMinutes = traffic 
-    ? estimatedMinutes + traffic.additionalMinutes
-    : estimatedMinutes;
+  const adjustedMinutes = traffic ? estimatedMinutes + traffic.additionalMinutes : estimatedMinutes;
 
   const baseFare = rateCard.baseFare;
   const distanceFare = distanceKm * rateCard.perKm;
@@ -248,15 +251,15 @@ export function calculateAllFares(distanceKm, estimatedMinutes, city = 'nairobi'
     uber: {},
     bolt: {},
     traffic,
-    timestamp: new Date().toISOString(),
-    distance: distanceKm,
-    baseTime: estimatedMinutes
+    timestamp: new Date().toISOString()
   };
 
+  // Calculate Uber fares
   Object.entries(rates).forEach(([key, rateCard]) => {
     results.uber[key] = calculateFare(distanceKm, estimatedMinutes, rateCard, { trafficCondition: traffic });
   });
 
+  // Calculate Bolt fares (Nairobi only for now)
   if (city === 'nairobi') {
     Object.entries(BOLT_NAIROBI_RATES).forEach(([key, rateCard]) => {
       results.bolt[key] = calculateFare(distanceKm, estimatedMinutes, rateCard, { trafficCondition: traffic });
@@ -342,21 +345,7 @@ export function estimateTravelTime(distanceKm) {
 }
 
 /**
- * Get traffic icon and color
- */
-export function getTrafficInfo() {
-  const traffic = getCurrentTrafficCondition();
-  return {
-    icon: traffic.multiplier > 1.2 ? '🚦' : traffic.multiplier > 1 ? '🚗' : '🛣️',
-    color: traffic.color,
-    bgColor: traffic.bgColor,
-    borderColor: traffic.borderColor,
-    ...traffic
-  };
-}
-
-/**
- * DISCLAIMER TEXT
+ * DISCLAIMER TEXT - Important for users
  */
 export const FARE_DISCLAIMER = {
   en: "Estimated fares based on August 2024 rates. Actual fare may vary due to real-time demand, route taken, and traffic conditions. Final price shown in the app before confirming your ride.",
