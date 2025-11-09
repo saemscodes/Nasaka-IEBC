@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import LoadingSpinner from '../../components/IEBCOffice/LoadingSpinner';
 import { useTheme } from '@/contexts/ThemeContext';
-import DonationWidget from '@/components/Donation/DonationWidget';
+import DonationWidget from '@/components/ui/DonationWidget';
 
 // Enhanced Background Layers with Cursor-Tracking Radial Effects
 const BackgroundLayers = ({ className = "" }) => {
