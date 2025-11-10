@@ -4,6 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "prebuild": "node scripts/generateLanguages.js",
+    "predev": "node scripts/generateLanguages.js",
+    "generate:languages": "node scripts/generateLanguages.js",
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
