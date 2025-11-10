@@ -1,9 +1,9 @@
 {
   "splash": {
     "title": "NASAKA",
-    "subtitle": "IEBC OFFICE FINDER",
-    "description": "Locate, verify & navigate to IEBC offices across Kenya",
-    "disclaimer": "Community-driven • Unverified data • Always confirm with IEBC",
+    "subtitle": "IEBC",
+    "description": "Find Your Nearest IEBC Office",
+    "disclaimer": "Allow location access to find the closest IEBC registration center and get turn-by-turn navigation.",
     "allowLocation": "Allow Location Access",
     "manualEntry": "Enter Location Manually",
     "locationBlocked": "Location Blocked",
