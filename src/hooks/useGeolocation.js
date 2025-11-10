@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 
-export const useGeolocation = () => {
+const useGeolocation = () => {
   const [location, setLocation] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -98,3 +98,5 @@ export const useGeolocation = () => {
     clearLocation
   };
 };
+
+export { useGeolocation };
