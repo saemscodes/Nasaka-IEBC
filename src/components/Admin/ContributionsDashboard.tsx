@@ -2,11 +2,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
-import MapContainer from '@/components/IEBCOffice/MapContainer';
+import { MapContainer as LeafletMap, TileLayer } from 'react-leaflet';
 import GeoJSONLayerManager from '@/components/IEBCOffice/GeoJSONLayerManager';
 import UserLocationMarker from '@/components/IEBCOffice/UserLocationMarker';
 import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
 import { useTheme } from '@/contexts/ThemeContext';
+import 'leaflet/dist/leaflet.css';
 
 interface DeviceMetadata {
   user_agent?: string;
@@ -122,9 +123,13 @@ const DashboardMapContainer: React.FC<{
       zIndex: 1,
       isolation: 'isolate'
     }}>
-      <MapContainer center={center} zoom={zoom} className="h-full w-full">
+      <LeafletMap center={center} zoom={zoom} className="h-full w-full" style={{ height: '100%', width: '100%' }}>
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; OpenStreetMap contributors'
+        />
         {children}
-      </MapContainer>
+      </LeafletMap>
     </div>
   );
 };
@@ -248,12 +253,12 @@ const ContributionCard: React.FC<{
               <GeoJSONLayerManager
                 activeLayers={['iebc-offices']}
                 onOfficeSelect={() => {}}
+                onNearbyOfficesFound={() => {}}
                 selectedOffice={null}
               />
               <UserLocationMarker
                 position={[contribution.submitted_latitude, contribution.submitted_longitude]}
                 accuracy={contribution.submitted_accuracy_meters || 50}
-                color="#34C759"
               />
             </DashboardMapContainer>
           </div>
@@ -931,7 +936,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
       console.log('Looking up constituency ID for:', constituencyName, 'county:', countyName);
       
       const { data, error } = await supabase
-        .rpc('get_or_create_constituency', {
+        .rpc('get_or_create_constituency' as any, {
           constituency_name: constituencyName,
           county_name: countyName || ''
         });
@@ -964,7 +969,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
       }
 
       console.log('Found constituency via RPC:', data);
-      return data;
+      return data as number;
 
     } catch (err) {
       console.error('Error in getConstituencyIdFromName:', err);
@@ -976,7 +981,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .rpc('fix_all_constituency_relationships');
+        .rpc('fix_all_constituency_relationships' as any);
 
       if (error) throw error;
 
@@ -994,41 +999,47 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
     try {
       setLoading(true);
       
-      let query = supabase
-        .from('iebc_office_contributions')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { data, error } = await (async (): Promise<any> => {
+        let queryBuilder: any = supabase
+          .from('iebc_office_contributions')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      if (filters.status !== 'all') {
-        query = query.eq('status', filters.status);
-      }
-      if (filters.county !== 'all') {
-        query = query.eq('submitted_county', filters.county);
-      }
-      if (filters.hasPhoto !== 'all') {
-        if (filters.hasPhoto === 'yes') {
-          query = query.not('image_public_url', 'is', null);
-        } else {
-          query = query.is('image_public_url', null);
+        if (filters.status !== 'all') {
+          queryBuilder = queryBuilder.eq('status', filters.status);
         }
-      }
-      if (filters.confidence !== 'all') {
+        if (filters.county !== 'all') {
+          queryBuilder = queryBuilder.eq('submitted_county', filters.county);
+        }
+        if (filters.hasPhoto !== 'all') {
+          if (filters.hasPhoto === 'yes') {
+            queryBuilder = queryBuilder.not('image_public_url', 'is', null);
+          } else {
+            queryBuilder = queryBuilder.is('image_public_url', null);
+          }
+        }
         if (filters.confidence === 'high') {
-          query = query.gte('confidence_score', 80);
+          queryBuilder = queryBuilder.gte('confidence_score', 80);
         } else if (filters.confidence === 'medium') {
-          query = query.gte('confidence_score', 50).lt('confidence_score', 80);
+          queryBuilder = queryBuilder.gte('confidence_score', 50).lt('confidence_score', 80);
         } else if (filters.confidence === 'low') {
-          query = query.lt('confidence_score', 50);
+          queryBuilder = queryBuilder.lt('confidence_score', 50);
         }
-      }
-      if (!filters.showArchived) {
-        query = query.eq('is_archived', false);
-      }
+        if (!filters.showArchived) {
+          queryBuilder = queryBuilder.eq('is_archived', false);
+        }
 
-      const { data, error } = await query;
+        return await queryBuilder;
+      })();
 
       if (error) throw error;
-      setContributions(Array.isArray(data) ? data : []);
+      setContributions(Array.isArray(data) ? data.map((item: any) => ({
+        ...item,
+        device_metadata: (item.device_metadata || {}) as DeviceMetadata,
+        exif_metadata: (item.exif_metadata || {}) as ExifMetadata,
+        reverse_geocode_result: (item.reverse_geocode_result || {}) as ReverseGeocodeResult,
+        nearby_landmarks: Array.isArray(item.nearby_landmarks) ? item.nearby_landmarks : []
+      } as Contribution)) : []);
     } catch (err: any) {
       console.error('Error fetching contributions:', err);
       setError(err.message);
@@ -1039,39 +1050,39 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
 
   const fetchStats = useCallback(async () => {
     try {
-      const { data: pendingData } = await supabase
+      const { data: pendingData } = await (supabase as any)
         .from('iebc_office_contributions')
         .select('id')
         .eq('status', 'pending_review')
         .eq('is_archived', false);
 
       const today = new Date().toISOString().split('T')[0];
-      const { data: todayData } = await supabase
+      const { data: todayData } = await (supabase as any)
         .from('iebc_office_contributions')
         .select('id')
         .eq('status', 'verified')
         .gte('reviewed_at', today)
         .eq('is_archived', false);
 
-      const { data: rejectedData } = await supabase
+      const { data: rejectedData } = await (supabase as any)
         .from('iebc_office_contributions')
         .select('id')
         .eq('status', 'rejected')
         .eq('is_archived', false);
 
-      const { data: totalData } = await supabase
+      const { data: totalData } = await (supabase as any)
         .from('iebc_office_contributions')
         .select('id')
         .eq('is_archived', false);
 
-      const { data: highConfidenceData } = await supabase
+      const { data: highConfidenceData } = await (supabase as any)
         .from('iebc_office_contributions')
         .select('id')
         .gte('confidence_score', 80)
         .eq('status', 'pending_review')
         .eq('is_archived', false);
 
-      const { data: archivedData } = await supabase
+      const { data: archivedData } = await (supabase as any)
         .from('iebc_office_contributions')
         .select('id')
         .eq('is_archived', true);
@@ -1092,13 +1103,13 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
   const fetchArchives = useCallback(async () => {
     try {
       const { data, error } = await supabase
-        .rpc('get_archived_contributions', {
+        .rpc('get_archived_contributions' as any, {
           p_limit: 100,
           p_offset: 0
         });
 
       if (error) throw error;
-      setArchives(data || []);
+      setArchives((data || []) as ArchiveRecord[]);
     } catch (err: any) {
       console.error('Error fetching archives:', err);
       setError(err.message);
@@ -1121,7 +1132,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
   ) => {
     try {
       const { data, error } = await supabase
-        .rpc('archive_contribution', {
+        .rpc('archive_contribution' as any, {
           p_contribution_id: contributionId,
           p_action_type: actionType,
           p_actor: 'admin_dashboard',
@@ -1175,14 +1186,15 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
 
       const { data: newOffice, error: officeError } = await supabase
         .from('iebc_offices')
-        .insert({
-          county: contribution.submitted_county,
+        .insert([{
           constituency: contribution.submitted_constituency,
           constituency_code: finalConstituencyId,
           office_location: contribution.submitted_office_location,
-          landmark: contribution.submitted_landmark,
+          landmark: contribution.submitted_landmark || undefined,
           latitude: contribution.submitted_latitude,
           longitude: contribution.submitted_longitude,
+          county: contribution.submitted_county,
+          constituency_name: contribution.submitted_constituency,
           verification_source: 'admin_manual',
           verified_by: 'admin_dashboard',
           verified_at: new Date().toISOString(),
@@ -1190,7 +1202,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
           confidence_score: contribution.confidence_score,
           submission_method: contribution.submission_method,
           image_url: contribution.image_public_url
-        })
+        }])
         .select()
         .single();
 
