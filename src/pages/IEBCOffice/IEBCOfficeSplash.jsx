@@ -6,6 +6,7 @@ import LoadingSpinner from '../../components/IEBCOffice/LoadingSpinner';
 import DonationWidget from '@/components/ui/DonationWidget';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
+import LanguageSelector from '@/components/LanguageSelector';
 
 // Enhanced Background Layers with Cursor-Tracking Radial Effects
 const BackgroundLayers = ({ className = "" }) => {
@@ -239,229 +240,6 @@ const ThemeToggle = () => {
   );
 };
 
-// Enhanced Language Switcher Component with Dynamic Language Support
-const LanguageSwitcher = () => {
-  const { i18n } = useTranslation();
-  const { theme } = useTheme();
-  const [isRotating, setIsRotating] = useState(false);
-  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
-
-  // Dynamic language configuration - automatically supports any language added to locales
-  const languages = [
-    { code: 'en', name: 'English', nativeName: 'English', color: '#3b82f6', dotColor: '#2563eb' },
-    { code: 'sw', name: 'Swahili', nativeName: 'Kiswahili', color: '#10b981', dotColor: '#059669' },
-    { code: 'ki', name: 'Kikuyu', nativeName: 'Gĩkũyũ', color: '#8b5cf6', dotColor: '#7c3aed' }
-  ];
-
-  const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
-
-  const switchLanguage = (langCode) => {
-    setIsRotating(true);
-    i18n.changeLanguage(langCode);
-    setShowLanguageMenu(false);
-    
-    setTimeout(() => setIsRotating(false), 600);
-  };
-
-  const toggleLanguageMenu = () => {
-    setShowLanguageMenu(!showLanguageMenu);
-  };
-
-  const globeVariants = {
-    initial: { rotate: 0, scale: 1 },
-    rotating: { 
-      rotate: 360,
-      scale: [1, 1.2, 1],
-      transition: {
-        rotate: { duration: 0.6, ease: "easeInOut" },
-        scale: { duration: 0.6, ease: "easeInOut" }
-      }
-    },
-    hover: {
-      scale: 1.1,
-      rotate: [0, -5, 5, 0],
-      transition: {
-        duration: 0.4,
-        ease: "easeInOut"
-      }
-    }
-  };
-
-  const languageDotVariants = {
-    initial: { scale: 1 },
-    active: { 
-      scale: [1, 1.3, 1],
-      transition: { duration: 0.3 }
-    }
-  };
-
-  // Calculate dot positions dynamically based on number of languages
-  const getDotPosition = (index, total) => {
-    const radius = 14;
-    const angle = (index / total) * 2 * Math.PI - Math.PI / 2;
-    return {
-      cx: 12 + radius * Math.cos(angle),
-      cy: 12 + radius * Math.sin(angle)
-    };
-  };
-
-  return (
-    <div className="relative">
-      <motion.button
-        whileHover="hover"
-        whileTap={{ scale: 0.95 }}
-        onClick={toggleLanguageMenu}
-        className={`w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 ${
-          theme === 'dark'
-            ? 'bg-ios-gray-800 shadow-ios-gray-900/50 border-ios-gray-600'
-            : 'bg-white shadow-ios-gray-200/50 border-ios-gray-200'
-        }`}
-        aria-label={`Current language: ${currentLanguage.name}. Switch language`}
-      >
-        <motion.svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          variants={globeVariants}
-          initial="initial"
-          animate={isRotating ? "rotating" : "initial"}
-          whileHover="hover"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          
-          {/* Dynamic language indicator dots */}
-          {languages.map((lang, index) => {
-            const position = getDotPosition(index, languages.length);
-            const isActive = lang.code === i18n.language;
-            
-            return (
-              <motion.circle
-                key={lang.code}
-                cx={position.cx}
-                cy={position.cy}
-                r="1.5"
-                fill={isActive ? lang.dotColor : (theme === 'dark' ? '#6b7280' : '#9ca3af')}
-                variants={languageDotVariants}
-                animate={isActive ? "active" : "initial"}
-                transition={{ duration: 0.3 }}
-              />
-            );
-          })}
-          
-          {/* Connection lines for active language */}
-          {languages.map((lang, index) => {
-            if (lang.code === i18n.language) {
-              const position = getDotPosition(index, languages.length);
-              return (
-                <motion.path
-                  key={`line-${lang.code}`}
-                  d={`M12 12 L${position.cx} ${position.cy}`}
-                  strokeWidth="1"
-                  stroke={lang.color}
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                />
-              );
-            }
-            return null;
-          })}
-        </motion.svg>
-      </motion.button>
-
-      {/* Language Selection Menu */}
-      <AnimatePresence>
-        {showLanguageMenu && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40"
-              onClick={() => setShowLanguageMenu(false)}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: -10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="absolute top-full right-0 mt-2 z-50 w-56 rounded-2xl backdrop-blur-xl border shadow-2xl py-2"
-              style={{
-                background: theme === 'dark' 
-                  ? 'rgba(30, 30, 30, 0.95)' 
-                  : 'rgba(255, 255, 255, 0.95)',
-                borderColor: theme === 'dark' 
-                  ? 'rgba(255, 255, 255, 0.1)' 
-                  : 'rgba(0, 0, 0, 0.1)'
-              }}
-            >
-              <div className="px-3 py-2 border-b" style={{ borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }}>
-                <p className={`text-sm font-medium ${
-                  theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                }`}>
-                  Select Language
-                </p>
-              </div>
-              
-              <div className="max-h-60 overflow-y-auto">
-                {languages.map((lang) => (
-                  <motion.button
-                    key={lang.code}
-                    onClick={() => switchLanguage(lang.code)}
-                    className={`w-full px-4 py-3 text-left transition-all duration-200 flex items-center space-x-3 ${
-                      i18n.language === lang.code
-                        ? theme === 'dark'
-                          ? 'bg-blue-500/20 text-white'
-                          : 'bg-blue-500/10 text-blue-700'
-                        : theme === 'dark'
-                        ? 'hover:bg-white/5 text-gray-300'
-                        : 'hover:bg-black/5 text-gray-700'
-                    }`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <div 
-                      className="w-3 h-3 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: lang.color }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">
-                        {lang.nativeName}
-                      </div>
-                      <div className={`text-xs truncate ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                      }`}>
-                        {lang.name}
-                      </div>
-                    </div>
-                    {i18n.language === lang.code && (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"
-                      />
-                    )}
-                  </motion.button>
-                ))}
-              </div>
-
-              {/* Add Language Prompt */}
-              <div className="px-3 py-2 border-t" style={{ borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }}>
-                <p className={`text-xs ${
-                  theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                }`}>
-                  {languages.length} languages supported
-                </p>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
 // CEKA Logo Button Component - Top Left
 const CekaLogoButton = () => {
   const { theme } = useTheme();
@@ -532,44 +310,6 @@ const TextShadowLayer = ({ children, className = "" }) => {
       {/* Main text content */}
       <div className="relative z-10">{children}</div>
     </div>
-  );
-};
-
-// Enhanced Language Indicator for Splash Screen
-const LanguageIndicator = () => {
-  const { i18n } = useTranslation();
-  const { theme } = useTheme();
-
-  const languages = {
-    en: { name: 'English', flag: '🇺🇸', color: '#3b82f6' },
-    sw: { name: 'Swahili', flag: '🇹🇿', color: '#10b981' },
-    ki: { name: 'Kikuyu', flag: '🇰🇪', color: '#8b5cf6' }
-  };
-
-  const currentLang = languages[i18n.language] || languages.en;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.8 }}
-      className="absolute top-20 left-0 right-0 z-10 flex justify-center"
-    >
-      <TextShadowLayer>
-        <div className={`flex items-center space-x-2 px-4 py-2 rounded-full border backdrop-blur-sm ${
-          theme === 'dark'
-            ? 'bg-black/20 border-white/10 text-white'
-            : 'bg-white/50 border-gray-200 text-gray-700'
-        }`}>
-          <span className="text-sm">{currentLang.flag}</span>
-          <span className="text-xs font-medium">{currentLang.name}</span>
-          <div 
-            className="w-2 h-2 rounded-full"
-            style={{ backgroundColor: currentLang.color }}
-          />
-        </div>
-      </TextShadowLayer>
-    </motion.div>
   );
 };
 
@@ -680,13 +420,10 @@ const IEBCOfficeSplash = () => {
       <div className="absolute top-6 left-0 right-0 z-20 flex justify-between items-center px-6 pt-4">
         <CekaLogoButton />
         <div className="flex space-x-3">
-          <LanguageSwitcher />
+          <LanguageSelector />
           <ThemeToggle />
         </div>
       </div>
-
-      {/* Language Indicator Banner */}
-      <LanguageIndicator />
       
       <motion.div
         className="relative flex flex-col items-center justify-center flex-1 px-6 overflow-hidden"
