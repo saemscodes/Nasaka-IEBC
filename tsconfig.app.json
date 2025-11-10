@@ -6,12 +6,16 @@
     "module": "ESNext",
     "skipLibCheck": true,
 
-    /* Bundler mode */
+    /* Bundler mode - remove isolatedModules for composite build */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    "isolatedModules": true,
+    "isolatedModules": false,
     "moduleDetection": "force",
+
+    /* Composite (required for project references) */
     "composite": true,
+    "noEmit": false,
+    "declaration": true,
     "emitDeclarationOnly": true,
     "jsx": "react-jsx",
 
@@ -36,7 +40,10 @@
     "forceConsistentCasingInFileNames": true,
     "strictNullChecks": false,
     "noImplicitReturns": false,
-    "noImplicitThis": false
+    "noImplicitThis": false,
+
+    /* build info location to avoid collisions */
+    "tsBuildInfoFile": "./node_modules/.cache/tsbuildinfo/tsconfig.app.tsbuildinfo"
   },
   "include": ["src/**/*", "src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts", "src/**/*.json"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx"]
