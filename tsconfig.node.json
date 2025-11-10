@@ -8,8 +8,10 @@
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    "isolatedModules": true,
+    "isolatedModules": false,
     "moduleDetection": "force",
+
+    /* emit allowed for referenced project */
     "noEmit": false,
 
     /* Linting */
@@ -20,8 +22,12 @@
 
     /* Node-specific options */
     "composite": true,
+    "declaration": true,
     "allowSyntheticDefaultImports": true,
-    "types": ["node"]
+    "types": ["node"],
+
+    /* build info file */
+    "tsBuildInfoFile": "./node_modules/.cache/tsbuildinfo/tsconfig.node.tsbuildinfo"
   },
   "include": ["vite.config.ts", "package.json", "scripts/**/*", "**/*.d.ts"],
   "exclude": ["node_modules", "dist"]
