@@ -55,19 +55,21 @@ const FloatingLanguageButton: React.FC<FloatingLanguageButtonProps> = ({
   const floatAnimationRef = useRef<number>();
   const lastTimeRef = useRef<number>(0);
   const currentPhaseRef = useRef<number>(personality.floatPhase);
-  const velocityXRef = useRef<number>((Math.random() - 0.5) * 20);
-  const velocityYRef = useRef<number>((Math.random() - 0.5) * 20);
+  const baseXRef = useRef<number>(position.x);
+  const baseYRef = useRef<number>(position.y);
 
   // Initialize or update physics state
   useEffect(() => {
     const stateId = `${language.code}-${index}`;
-    
+    baseXRef.current = position.x;
+    baseYRef.current = position.y;
+
     if (!physicsStatesRef.current.has(stateId)) {
       physicsStatesRef.current.set(stateId, {
         x: position.x,
         y: position.y,
-        velocityX: (Math.random() - 0.5) * 50,
-        velocityY: (Math.random() - 0.5) * 50,
+        velocityX: (Math.random() - 0.5) * 20, // Reduced velocity for closer range
+        velocityY: (Math.random() - 0.5) * 20,
         rotation: 0
       });
     }
@@ -84,8 +86,8 @@ const FloatingLanguageButton: React.FC<FloatingLanguageButtonProps> = ({
       if (floatAnimationRef.current) {
         cancelAnimationFrame(floatAnimationRef.current);
       }
-      x.set(position.x);
-      y.set(position.y);
+      x.set(baseXRef.current);
+      y.set(baseYRef.current);
       rotation.set(0);
       return;
     }
@@ -102,16 +104,16 @@ const FloatingLanguageButton: React.FC<FloatingLanguageButtonProps> = ({
         // Update phase for floating motion
         currentPhaseRef.current += deltaTime * personality.floatFrequency;
         
-        // Calculate floating offset based on personality
-        const floatX = Math.sin(currentPhaseRef.current + personality.floatPhase) * personality.floatAmplitude;
-        const floatY = Math.cos(currentPhaseRef.current * 0.7 + personality.floatPhase) * personality.floatAmplitude;
+        // Calculate floating offset based on personality (reduced amplitude for closer positioning)
+        const floatX = Math.sin(currentPhaseRef.current + personality.floatPhase) * (personality.floatAmplitude * 0.6);
+        const floatY = Math.cos(currentPhaseRef.current * 0.7 + personality.floatPhase) * (personality.floatAmplitude * 0.6);
         
         // Gentle rotation
-        const targetRotation = Math.sin(currentPhaseRef.current * 0.5) * personality.rotationRange;
+        const targetRotation = Math.sin(currentPhaseRef.current * 0.5) * (personality.rotationRange * 0.5);
         
         // Update position with floating motion
-        const targetX = position.x + floatX;
-        const targetY = position.y + floatY;
+        const targetX = baseXRef.current + floatX;
+        const targetY = baseYRef.current + floatY;
         
         x.set(targetX);
         y.set(targetY);
@@ -149,6 +151,9 @@ const FloatingLanguageButton: React.FC<FloatingLanguageButtonProps> = ({
   ]);
 
   const handleClick = () => {
+    // Add a little bounce effect when selected
+    rotation.set(rotation.get() + 10);
+    setTimeout(() => rotation.set(0), 200);
     onSelect(language.code);
   };
 
@@ -160,27 +165,30 @@ const FloatingLanguageButton: React.FC<FloatingLanguageButtonProps> = ({
         y: springY,
         rotate: springRotation
       }}
-      initial={{ scale: 0, opacity: 0 }}
+      initial={{ scale: 0, opacity: 0, x: 0, y: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      exit={{ scale: 0, opacity: 0 }}
+      exit={{ scale: 0, opacity: 0, x: 0, y: 0 }}
       transition={{
         type: "spring",
-        stiffness: 300,
-        damping: 20,
-        delay: index * 0.1
+        stiffness: 400, // Increased stiffness for snappier movement
+        damping: 25,
+        delay: index * 0.08 // Reduced delay for faster appearance
       }}
       whileHover={{ 
-        scale: 1.15,
-        transition: { duration: 0.2 }
+        scale: 1.2,
+        transition: { duration: 0.15 }
       }}
       whileTap={{ scale: 0.9 }}
       onClick={handleClick}
-      aria-label={`Switch to ${language.name}`}
+      aria-label={`Switch to ${language.nativeName}`}
     >
       <span 
         className="language-code"
         style={{
-          color: personality.color
+          color: personality.color,
+          fontWeight: '800',
+          fontSize: '10px',
+          letterSpacing: '0.5px'
         }}
       >
         {language.code.toUpperCase()}
@@ -193,11 +201,11 @@ const FloatingLanguageButton: React.FC<FloatingLanguageButtonProps> = ({
           backgroundColor: personality.color
         }}
         animate={{
-          opacity: [0.3, 0.6, 0.3],
-          scale: [1, 1.1, 1]
+          opacity: [0.2, 0.4, 0.2],
+          scale: [1, 1.05, 1]
         }}
         transition={{
-          duration: personality.floatFrequency * 2,
+          duration: personality.floatFrequency * 1.5,
           repeat: Infinity,
           ease: "easeInOut"
         }}
