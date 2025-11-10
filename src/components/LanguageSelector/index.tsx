@@ -26,6 +26,7 @@ const LanguageSelector: React.FC = () => {
   const [isHovering, setIsHovering] = useState(false);
   const [longPressProgress, setLongPressProgress] = useState(0);
   const mainButtonRef = useRef<HTMLButtonElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const longPressTimerRef = useRef<NodeJS.Timeout>();
   const progressTimerRef = useRef<NodeJS.Timeout>();
   const physicsStatesRef = useRef<Map<string, PhysicsState>>(new Map());
@@ -70,7 +71,6 @@ const LanguageSelector: React.FC = () => {
 
   const handleMainButtonClick = () => {
     if (!isExpanded) {
-      // Quick tap toggles if already expanded by hover
       setIsExpanded(true);
     } else {
       setIsExpanded(false);
@@ -79,10 +79,6 @@ const LanguageSelector: React.FC = () => {
 
   const handleMainButtonHover = () => {
     setIsHovering(true);
-    if (isExpanded) {
-      // When hovering main button while expanded, restore floating buttons to positions
-      physicsStatesRef.current.clear();
-    }
   };
 
   const handleMainButtonHoverEnd = () => {
@@ -99,7 +95,7 @@ const LanguageSelector: React.FC = () => {
   // Close when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (mainButtonRef.current && !mainButtonRef.current.contains(event.target as Node)) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsExpanded(false);
         setIsHovering(false);
       }
@@ -114,44 +110,22 @@ const LanguageSelector: React.FC = () => {
   const getButtonPositions = () => {
     if (!mainButtonRef.current) return [];
 
-    const mainRect = mainButtonRef.current.getBoundingClientRect();
-    const centerX = mainRect.left + mainRect.width / 2;
-    const centerY = mainRect.top + mainRect.height / 2;
-    
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    const radius = 80; // Distance from center
-    
+    const radius = 60; // Reduced from 80 to 60px for closer positioning
     const positions = visibleLanguages.map((_, index) => {
-      const angle = (index * (2 * Math.PI)) / visibleLanguages.length;
-      let x = Math.cos(angle) * radius;
-      let y = Math.sin(angle) * radius;
-
-      // Viewport edge avoidance
-      const proposedX = centerX + x;
-      const proposedY = centerY + y;
-      const buttonSize = 32;
-      const padding = 20;
-
-      // Check left edge
-      if (proposedX - buttonSize / 2 < padding) {
-        x += padding - (proposedX - buttonSize / 2);
-      }
-      // Check right edge
-      if (proposedX + buttonSize / 2 > viewportWidth - padding) {
-        x -= (proposedX + buttonSize / 2) - (viewportWidth - padding);
-      }
-      // Check top edge
-      if (proposedY - buttonSize / 2 < padding) {
-        y += padding - (proposedY - buttonSize / 2);
-      }
-      // Check bottom edge
-      if (proposedY + buttonSize / 2 > viewportHeight - padding) {
-        y -= (proposedY + buttonSize / 2) - (viewportHeight - padding);
-      }
+      const angle = (index * (2 * Math.PI)) / visibleLanguages.length - Math.PI / 2;
+      const x = Math.cos(angle) * radius;
+      const y = Math.sin(angle) * radius;
 
       return { x, y };
     });
+
+    // Position for overflow button (if needed)
+    if (hasOverflow) {
+      const overflowAngle = (visibleLanguages.length * (2 * Math.PI)) / (visibleLanguages.length + 1) - Math.PI / 2;
+      const overflowX = Math.cos(overflowAngle) * radius;
+      const overflowY = Math.sin(overflowAngle) * radius;
+      positions.push({ x: overflowX, y: overflowY });
+    }
 
     return positions;
   };
@@ -159,7 +133,7 @@ const LanguageSelector: React.FC = () => {
   const currentLanguage = getCurrentLanguage();
 
   return (
-    <div className="language-selector-container">
+    <div className="language-selector-container" ref={containerRef}>
       {/* Main Language Selector Button */}
       <motion.button
         ref={mainButtonRef}
@@ -263,7 +237,11 @@ const LanguageSelector: React.FC = () => {
                 }}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={() => console.log('Show all languages modal')} // Implement modal here
+                onClick={() => {
+                  // Simple alert for now - can be replaced with modal
+                  const remainingLanguages = languages.slice(maxVisibleButtons);
+                  alert(`Additional languages: ${remainingLanguages.map(l => l.nativeName).join(', ')}`);
+                }}
               >
                 <span className="overflow-dots">•••</span>
               </motion.button>
