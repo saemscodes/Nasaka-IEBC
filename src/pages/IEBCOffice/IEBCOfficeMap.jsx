@@ -12,6 +12,7 @@ import OfficeBottomSheet from '@/components/IEBCOffice/OfficeBottomSheet';
 import OfficeListPanel from '@/components/IEBCOffice/OfficeListPanel';
 import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
 import ContributeLocationButton from '@/components/IEBCOffice/ContributeLocationButton';
+import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 import { useIEBCOffices } from '@/hooks/useIEBCOffices';
 import { useMapControls } from '@/hooks/useMapControls';
 import { findNearestOffice, findNearestOffices } from '@/utils/geoUtils';
@@ -533,6 +534,9 @@ const IEBCOfficeMap = () => {
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="flex flex-col space-y-3"
         >
+          {/* Language Switcher - Map Variant */}
+          <LanguageSwitcher variant="map" />
+
           {/* Contribute Location Button */}
           <ContributeLocationButton 
             userLocation={userLocation}
