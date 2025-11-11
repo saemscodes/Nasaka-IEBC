@@ -43,7 +43,9 @@
     "noOfficesFound": "No offices found",
     "noMatchQuery": "No offices match \"{{query}}\". Try a different search.",
     "noOfficesInArea": "No IEBC offices found in your area.",
-    "useCurrentLocation": "Use current location"
+    "useCurrentLocation": "Use current location",
+    "searchResult": "Search Result",
+    "query": "Query"
   },
   "office": {
     "tapForDirections": "Tap for directions",
@@ -100,12 +102,19 @@
     "confirming": "Confirming...",
     "distanceAway": "You're {{distance}}m away. Please move within {{maxDistance}}m of the office to confirm.",
     "confirmationFailed": "Failed to submit confirmation. Please try again.",
-    "locationPermissionRequired": "Location permission is required to confirm. Please enable location access and try again."
+    "locationPermissionRequired": "Location permission is required to confirm. Please enable location access and try again.",
+    "routingUnavailable": "Routing unavailable",
+    "tapForGoogleMaps": "Tap office for Google Maps directions.",
+    "routesFound_one": "{{count}} route found",
+    "routesFound_other": "{{count}} routes found",
+    "bestRoute": "Best: {{distance}} km, {{time}} min",
+    "routingError": "Failed to calculate route"
   },
   "officeList": {
     "searchResults": "Search Results",
     "nearbyOffices": "Nearby Offices",
-    "closePanel": "Close panel"
+    "closePanel": "Close panel",
+    "showAllOffices": "Show all offices"
   },
   "layers": {
     "mapLayers": "Map Layers",
