@@ -48,7 +48,7 @@
     "tapForGoogleMaps": "Bonyeza upate ramani ya mahali ofisi ipo.",
     "routesFound_one": "Njia {{count}} imepatikana",
     "routesFound_other": "Njia {{count}} zimepatikana",
-    "bestRoute": "Njia bora kwako ipo kilomita {{distance}}, na itakugharimu kadri dakika {{time}}",
+    "bestRoute": "Njia bora kwako ni kilomita {{distance}}, na itakugharimu kadri dakika {{time}}",
     "routingError": "Tumewezwa na kupiga hesabu ya njia hii, ebu jaribu tena",
     "normalTraffic": "Msongamano wa kawaida",
     "showAll": "Onyesha Zote",
