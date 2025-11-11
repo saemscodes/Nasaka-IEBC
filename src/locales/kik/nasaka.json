@@ -24,6 +24,8 @@
     "noMatchQuery": "Gũtirĩ wabici ĩngĩigana ya \"{{query}}\". Geria njĩra ĩngĩ ya gũcaria.",
     "noOfficesInArea": "Gũtirĩ wabici ya IEBC yonekire gĩcigo-inĩ kĩanyu.",
     "useCurrentLocation": "Hũthĩra harĩa ũrĩ rĩu"
+    "searchResult": "Moimĩrĩro ma ũthuthuria"
+    "query": "Kĩũria"
   },
   "office": {
     "tapForDirections": "Hũra nĩguo ũmenye njĩra",
@@ -42,7 +44,13 @@
     "locationAccessDesc": "Hũthĩra njĩra ya gũkinya kũrĩa ũikaraga nĩguo ũhote kuona thogora wa ngari, ũheo njĩra cia kũrĩa ũikaraga, na wone njĩra ĩrĩa ĩrĩ hakuhĩ ya gũthiĩ wabici-inĩ ĩno.",
     "enableLocationAccess": "Kũhingũra Kũhingũra",
     "estimatedRideCost": "Ngarama ĩrĩa ĩratanywo ya Gũtwarwo",
-    "normalTraffic": "Njira ĩiyũrĩte ngari ",
+    "routingUnavailable": "Njĩra ndĩonekaga"
+    "tapForGoogleMaps": "Hũthĩra wabici nĩguo ũmenye njĩra ya gũthiĩ."
+    "routesFound_one": "{{count}} njĩra ĩrĩa yonekire"
+    "routesFound_other": "{{count}} njĩra iria cionekete"
+    "bestRoute": "Njĩra yaku ĩrĩa njega mũno nĩ kilomita {{distance}}, na nĩ ĩgũgũteithagia ndagĩka {{time}}"
+    "routingError": "Gũtiahotire gũthoma njĩra"    
+    "normalTraffic": "Njira ĩiyũrĩte ngari",
     "showAll": "Onania Mothe",
     "hide": "Hitha",
     "cheapestOption": "Ũrĩa ũtarĩ goro mũno",
@@ -86,6 +94,7 @@
     "searchResults": "Moimĩrĩro ma Gũthuthuria",
     "nearbyOffices": "Wabici irĩ hakuhĩ",
     "closePanel": "No ũhinge panel ya programu"
+    "showAllOffices": "Onania wabici ciothe"
   },
   "layers": {
     "mapLayers": "Rora icunjĩ cia mepu",
