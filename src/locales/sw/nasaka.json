@@ -42,6 +42,12 @@
     "locationAccessDesc": "Wezesha ufikiaji wa eneo ili kuona makadirio ya nauli, pata maelekezo kutoka eneo lako la sasa, na upate njia ya karibu zaidi kwenda ofisi hii.",
     "enableLocationAccess": "Wezesha Ufikiaji wa Eneo",
     "estimatedRideCost": "Gharama ya Kukokotolewa Inayokadiriwa",
+    "routingUnavailable": "Njia haipatikani"
+    "tapForGoogleMaps": "Bonyeza upate ramani ya mahali ofisi ipo."
+    "routesFound_one": "Njia {{count}} imepatikana"
+    "routesFound_other": "Njia {{count}} zimepatikana"
+    "bestRoute": "Njia bora kwako ipo kilomita {{distance}}, na itakugharimu kadri dakika {{time}}"
+    "routingError": "Tumewezwa na kupiga hesabu ya njia hii, ebu jaribu tena"
     "normalTraffic": "Msongamano wa kawaida",
     "showAll": "Onyesha Zote",
     "hide": "Ficha",
@@ -86,6 +92,7 @@
     "searchResults": "Matokeo ya Utafutaji",
     "nearbyOffices": "Ofisi za Karibu",
     "closePanel": "Funga paneli"
+    "showAllOffices": "Ona Ofisi Zote"
   },
   "layers": {
     "mapLayers": "Safu za Ramani",
