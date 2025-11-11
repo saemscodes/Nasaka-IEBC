@@ -12,11 +12,7 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      // Force single React copy to prevent hook errors
-      "react": path.resolve(__dirname, "node_modules", "react"),
-      "react-dom": path.resolve(__dirname, "node_modules", "react-dom"),
     },
-    dedupe: ["react", "react-dom"],
   },
 
   server: {
@@ -51,17 +47,7 @@ export default defineConfig(({ mode }) => ({
 
   optimizeDeps: {
     include: ["leaflet", "react-leaflet"],
-    exclude: [
-      "lovable-tagger",
-      "osrm-text-instructions", // Exclude Node.js-only packages
-      "leaflet-routing-machine",
-    ],
-    esbuildOptions: {
-      // Define global for packages that expect it
-      define: {
-        global: 'globalThis'
-      },
-    },
+    exclude: ["lovable-tagger"],
   },
 
   css: {
