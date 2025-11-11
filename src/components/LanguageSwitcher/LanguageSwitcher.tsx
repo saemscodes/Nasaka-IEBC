@@ -4,6 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
+import type { LanguageCode } from '@/i18n';
 
 interface LanguageSwitcherProps {
   variant?: 'splash' | 'map';
@@ -146,16 +147,15 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
       rotate: 360,
       scale: [1, 1.2, 1],
       transition: {
-        rotate: { duration: 0.6, ease: "easeInOut" },
-        scale: { duration: 0.6, ease: "easeInOut" }
+        rotate: { duration: 0.6 },
+        scale: { duration: 0.6 }
       }
     },
     hover: {
       scale: 1.1,
       rotate: [0, -5, 5, 0],
       transition: {
-        duration: 0.4,
-        ease: "easeInOut"
+        duration: 0.4
       }
     }
   };

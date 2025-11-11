@@ -322,12 +322,21 @@ i18n
     defaultNS: 'nasaka',
     ns: ['nasaka'],
     
-    // Enhanced interpolation settings
+    // Enhanced interpolation settings - CRITICAL FIX
     interpolation: {
       escapeValue: false,
       nestingPrefix: '{{',
       nestingSuffix: '}}',
-      alwaysFormat: true,
+      // CRITICAL: Always format interpolated values as strings
+      format: (value, format, lng) => {
+        // Ensure value is always a string to prevent split() errors
+        if (value === null || value === undefined) {
+          console.warn('Interpolation value is null/undefined:', { format, lng });
+          return '';
+        }
+        // Convert to string if not already
+        return String(value);
+      }
     },
 
     // Enhanced error handling - CRITICAL FIX
@@ -361,8 +370,7 @@ i18n
     detection: {
       order: ['localStorage', 'navigator'],
       caches: ['localStorage'],
-      lookupLocalStorage: 'nasaka_language',
-      checkWhitelist: true
+      lookupLocalStorage: 'nasaka_language'
     }
   });
 
