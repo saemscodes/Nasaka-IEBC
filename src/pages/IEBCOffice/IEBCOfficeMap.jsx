@@ -1,7 +1,7 @@
-// src/pages/IEBCOffice/IEBCOfficeMap.jsx
 import React, { useEffect, useMemo, useCallback, useState, useRef } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import MapContainer from '@/components/IEBCOffice/MapContainer';
 import SearchBar from '@/components/IEBCOffice/SearchBar';
 import GeoJSONLayerManager, { searchNearbyOffices } from '@/components/IEBCOffice/GeoJSONLayerManager';
@@ -25,6 +25,7 @@ const IEBCOfficeMap = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const userLocation = state?.userLocation;
   const manualEntry = state?.manualEntry;
+  const { t } = useTranslation('nasaka');
 
   // CRITICAL: Determine if we have location access
   const hasLocationAccess = !!userLocation;
@@ -115,9 +116,9 @@ const IEBCOfficeMap = () => {
             .addTo(mapInstanceRef.current)
             .bindPopup(`
               <div class="p-2">
-                <h3 class="font-semibold">Search Result</h3>
+                <h3 class="font-semibold">${t('search.searchResult', 'Search Result')}</h3>
                 <p class="text-sm">${result.display_name}</p>
-                <p class="text-xs text-gray-500">Query: "${query}"</p>
+                <p class="text-xs text-gray-500">${t('search.query', 'Query')}: "${query}"</p>
               </div>
             `)
             .openPopup();
@@ -302,9 +303,9 @@ const IEBCOfficeMap = () => {
   // Handle route error - ONLY IF WE HAVE LOCATION ACCESS
   const handleRouteError = useCallback((error) => {
     console.error('Routing error:', error);
-    setRoutingError(error?.message || 'Failed to calculate route');
+    setRoutingError(error?.message || t('bottomSheet.routingError', 'Failed to calculate route'));
     setCurrentRoute(null);
-  }, []);
+  }, [t]);
 
   // Find nearest office - ONLY IF WE HAVE LOCATION ACCESS
   const nearestOffice = useMemo(() => {
@@ -486,7 +487,7 @@ const IEBCOfficeMap = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background">
         <LoadingSpinner size="large" />
-        <p className="text-muted-foreground mt-4">Loading IEBC offices...</p>
+        <p className="text-muted-foreground mt-4">{t('common.loading', 'Loading IEBC offices...')}</p>
       </div>
     );
   }
@@ -500,13 +501,13 @@ const IEBCOfficeMap = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold text-foreground mb-2">Unable to Load Data</h2>
+          <h2 className="text-xl font-semibold text-foreground mb-2">{t('common.error', 'Unable to Load Data')}</h2>
           <p className="text-muted-foreground mb-6">{error}</p>
           <button
             onClick={() => window.location.reload()}
             className="bg-primary text-primary-foreground px-6 py-3 rounded-2xl font-medium"
           >
-            Try Again
+            {t('common.retry', 'Try Again')}
           </button>
         </div>
       </div>
@@ -523,7 +524,7 @@ const IEBCOfficeMap = () => {
           onFocus={handleSearchFocus}
           onSearch={handleSearch}
           onLocationSearch={handleRetryLocation}
-          placeholder="Search IEBC offices by county, constituency, or location..."
+          placeholder={t('search.placeholder', 'Search IEBC offices by county, constituency, or location...')}
         />
       </div>
 
@@ -546,7 +547,7 @@ const IEBCOfficeMap = () => {
           <button
             onClick={openLayerPanel}
             className="ios-control-btn"
-            aria-label="Map layers"
+            aria-label={t('layers.mapLayers', 'Map layers')}
             >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path 
@@ -562,7 +563,7 @@ const IEBCOfficeMap = () => {
             <button
               onClick={handleRetryLocation}
               className="ios-control-btn"
-              aria-label="Use my location"
+              aria-label={t('search.useCurrentLocation', 'Use my location')}
             >
               <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -574,7 +575,7 @@ const IEBCOfficeMap = () => {
           <button
             onClick={handleSearchFocus}
             className="ios-control-btn"
-            aria-label="Show all offices"
+            aria-label={t('officeList.showAllOffices', 'Show all offices')}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -595,7 +596,7 @@ const IEBCOfficeMap = () => {
             >
               <div className="flex items-center space-x-2">
                 <LoadingSpinner size="small" />
-                <span className="text-sm font-medium">Searching nearby offices...</span>
+                <span className="text-sm font-medium">{t('search.searching', 'Searching nearby offices...')}</span>
               </div>
             </motion.div>
           )}
@@ -611,9 +612,9 @@ const IEBCOfficeMap = () => {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
-                <span className="text-sm font-medium">Routing unavailable</span>
+                <span className="text-sm font-medium">{t('bottomSheet.routingUnavailable', 'Routing unavailable')}</span>
               </div>
-              <p className="text-xs mt-1 opacity-90">Tap office for Google Maps directions.</p>
+              <p className="text-xs mt-1 opacity-90">{t('bottomSheet.tapForGoogleMaps', 'Tap office for Google Maps directions.')}</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -664,12 +665,15 @@ const IEBCOfficeMap = () => {
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-sm font-medium">
-                {currentRoute.length} route{currentRoute.length > 1 ? 's' : ''} found
+                {currentRoute.length} {t('bottomSheet.routesFound', 'route{{count}} found', { count: currentRoute.length > 1 ? 's' : '' })}
               </span>
             </div>
             {currentRoute[0] && (
               <div className="text-muted-foreground text-xs mt-1">
-                Best: {(currentRoute[0].summary.totalDistance / 1000).toFixed(1)} km, {Math.round(currentRoute[0].summary.totalTime / 60)} min
+                {t('bottomSheet.bestRoute', 'Best: {{distance}} km, {{time}} min', {
+                  distance: (currentRoute[0].summary.totalDistance / 1000).toFixed(1),
+                  time: Math.round(currentRoute[0].summary.totalTime / 60)
+                })}
               </div>
             )}
             {/* Drag handle indicator */}
