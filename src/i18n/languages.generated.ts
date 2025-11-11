@@ -1,50 +1,20 @@
-// Auto-generated languages configuration
-import { LanguageConfig } from './languageRegistry';
+// AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
+// This file is generated automatically by scripts/generateLanguages.js
 
-export const languages: LanguageConfig[] = [
+export const LANGUAGES = [
   {
-    code: 'en',
-    name: 'English',
-    flag: '🇺🇸',
-    personality: {
-      stiffness: 100,
-      damping: 10,
-      mass: 1,
-      floatAmplitude: 2,
-      floatFrequency: 0.5,
-      floatPhase: 0,
-      rotationRange: 5,
-      color: '#3b82f6'
-    }
+    "code": "en",
+    "name": "English",
+    "nativeName": "English"
   },
   {
-    code: 'sw',
-    name: 'Kiswahili',
-    flag: '🇹🇿',
-    personality: {
-      stiffness: 80,
-      damping: 8,
-      mass: 1.2,
-      floatAmplitude: 3,
-      floatFrequency: 0.3,
-      floatPhase: 1,
-      rotationRange: 8,
-      color: '#10b981'
-    }
+    "code": "ki",
+    "name": "Kikuyu", 
+    "nativeName": "Kikuyu"
   },
   {
-    code: 'ki',
-    name: 'Gikuyu',
-    flag: '🇰🇪',
-    personality: {
-      stiffness: 120,
-      damping: 12,
-      mass: 0.8,
-      floatAmplitude: 1.5,
-      floatFrequency: 0.7,
-      floatPhase: 2,
-      rotationRange: 3,
-      color: '#8b5cf6'
-    }
+    "code": "sw",
+    "name": "Kiswahili",
+    "nativeName": "Kiswahili"
   }
 ];
