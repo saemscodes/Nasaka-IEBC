@@ -1,20 +1,28 @@
-// AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
-// This file is generated automatically by scripts/generateLanguages.js
+// src/i18n/languages.generated.ts
+/* Auto-generated — do NOT edit by hand */
+/* eslint-disable */
 
-export const LANGUAGES = [
+import type { LanguageConfig } from './languageRegistry';
+
+export const LANGUAGES: LanguageConfig[] = [
   {
-    "code": "en",
-    "name": "English",
-    "nativeName": "English"
+    code: 'en',
+    name: 'English',
+    nativeName: 'English',
+    flag: '🇺🇸'
   },
   {
-    "code": "ki",
-    "name": "Kikuyu", 
-    "nativeName": "Kikuyu"
+    code: 'sw',
+    name: 'Kiswahili',
+    nativeName: 'Kiswahili',
+    flag: '🇹🇿'
   },
   {
-    "code": "sw",
-    "name": "Kiswahili",
-    "nativeName": "Kiswahili"
+    code: 'ki',
+    name: 'Gikuyu',
+    nativeName: 'Gikuyu',
+    flag: '🇰🇪'
   }
 ];
+
+export default LANGUAGES;
