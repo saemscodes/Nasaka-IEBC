@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SUPPORTED_LANGUAGES, LanguageCode, loadLanguage } from '@/i18n';
+import { SUPPORTED_LANGUAGES, LanguageCode, loadLanguage } from '@/i18n/index.ts';
 
 interface LanguageContextType {
   currentLanguage: LanguageCode;
