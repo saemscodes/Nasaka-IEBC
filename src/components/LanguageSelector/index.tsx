@@ -141,11 +141,13 @@ const LanguageSelector: React.FC = () => {
         onClick={handleMainButtonClick}
         onMouseDown={startLongPress}
         onMouseUp={cancelLongPress}
-        onMouseLeave={cancelLongPress}
+        onMouseLeave={(e) => {
+            cancelLongPress();
+            handleMainButtonHoverEnd();
+          }}
         onTouchStart={startLongPress}
         onTouchEnd={cancelLongPress}
         onMouseEnter={handleMainButtonHover}
-        onMouseLeave={handleMainButtonHoverEnd}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         aria-label="Change language"
