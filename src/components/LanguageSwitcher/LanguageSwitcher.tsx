@@ -24,7 +24,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   } = useLanguage();
   
   const { theme } = useTheme();
-  const { t, i18n } = useTranslation('nasaka');
+  const { t } = useTranslation('nasaka');
   const location = useLocation();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -96,8 +96,8 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
 
   // FIXED: Language selection handler
   const handleLanguageSelect = async (languageCode: string) => {
-    console.log('Selecting language:', languageCode);
-    const success = await changeLanguage(languageCode as any);
+    console.log('Language selected:', languageCode);
+    const success = await changeLanguage(languageCode as LanguageCode);
     if (success) {
       console.log('Language selection successful');
     } else {
@@ -109,7 +109,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     const flags: Record<string, string> = {
       en: '🇺🇸',
       sw: '🇹🇿', 
-      kik: '🇰🇪',
+      ki: '🇰🇪',
     };
     return flags[code] || '🌐';
   };
@@ -190,7 +190,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
         onClick={() => !isLongPressing && setDropdownOpen(!isDropdownOpen)}
         className={buttonClass}
         disabled={isLoading}
-        aria-label={t('common.changeLanguage') || "Change language"}
+        aria-label={t('common.changeLanguage', 'Change language')}
       >
         <motion.div
           variants={globeVariants}
@@ -236,7 +236,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
             >
               <div className="p-2">
                 <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider opacity-60">
-                  {t('common.language') || "Language"}
+                  {t('common.language', 'Language')}
                 </div>
                 
                 {Object.entries(availableLanguages).map(([code, language]) => (
@@ -268,7 +268,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
 
                 {/* Add language hint */}
                 <div className="px-3 py-2 mt-2 text-xs opacity-50 border-t border-current border-opacity-20">
-                  {t('common.longPressHint') || "Long press for quick access"}
+                  {t('common.longPressHint', 'Long press for quick access')}
                 </div>
               </div>
             </motion.div>
