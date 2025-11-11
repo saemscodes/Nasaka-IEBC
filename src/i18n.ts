@@ -13,7 +13,7 @@ interface LanguageResources {
 export const SUPPORTED_LANGUAGES = {
   en: { code: 'en', name: 'English', nativeName: 'English' },
   sw: { code: 'sw', name: 'Swahili', nativeName: 'Kiswahili' },
-  kik: { code: 'ki', name: 'Kikuyu', nativeName: 'Gĩkũyũ' },
+  ki: { code: 'ki', name: 'Kikuyu', nativeName: 'Gĩkũyũ' },
 };
 
 export type LanguageCode = keyof typeof SUPPORTED_LANGUAGES;
@@ -234,14 +234,17 @@ const resources: LanguageResources = {
   }
 };
 
-// Function to dynamically load a language
+// Function to dynamically load a language - FIXED IMPLEMENTATION
 export const loadLanguage = async (lng: LanguageCode): Promise<boolean> => {
   // If we already have the language loaded, return true
   if (resources[lng]) {
+    console.log(`Language ${lng} already loaded`);
     return true;
   }
 
   try {
+    console.log(`Loading language: ${lng}`);
+    
     // Dynamic import based on language code
     let module;
     switch (lng) {
@@ -266,9 +269,10 @@ export const loadLanguage = async (lng: LanguageCode): Promise<boolean> => {
       nasaka: module.default
     };
     
-    // Update i18n with the new resources
+    // CRITICAL FIX: Update i18n with the new resources
     i18n.addResourceBundle(lng, 'nasaka', module.default, true, true);
     
+    console.log(`Successfully loaded language: ${lng}`);
     return true;
   } catch (error) {
     console.error(`Failed to load language ${lng}:`, error);
@@ -276,30 +280,38 @@ export const loadLanguage = async (lng: LanguageCode): Promise<boolean> => {
   }
 };
 
-// Enhanced language detector
+// Enhanced language detector - FIXED IMPLEMENTATION
 const customLanguageDetector = {
   type: 'languageDetector' as const,
   async: true,
   init: () => {},
   detect: (callback: (lng: string) => void) => {
     const savedLanguage = localStorage.getItem('nasaka_language');
+    console.log('Saved language from storage:', savedLanguage);
+    
     if (savedLanguage && SUPPORTED_LANGUAGES[savedLanguage as LanguageCode]) {
+      console.log('Using saved language:', savedLanguage);
       return callback(savedLanguage);
     }
 
     const browserLanguage = navigator.language.split('-')[0];
+    console.log('Browser language detected:', browserLanguage);
+    
     if (SUPPORTED_LANGUAGES[browserLanguage as LanguageCode]) {
+      console.log('Using browser language:', browserLanguage);
       return callback(browserLanguage);
     }
 
+    console.log('Falling back to English');
     callback('en');
   },
   cacheUserLanguage: (lng: string) => {
+    console.log('Caching language:', lng);
     localStorage.setItem('nasaka_language', lng);
   }
 };
 
-// Initialize i18n
+// Initialize i18n - FIXED CONFIGURATION
 i18n
   .use(customLanguageDetector)
   .use(initReactI18next)
@@ -337,7 +349,7 @@ i18n
 
     // Performance optimizations
     react: {
-      useSuspense: true,
+      useSuspense: false, // CHANGED TO FALSE FOR BETTER ERROR HANDLING
       bindI18n: 'languageChanged loaded',
       bindI18nStore: 'added removed',
       transEmptyNodeValue: '',
@@ -357,22 +369,23 @@ i18n
 // Preload supported languages on startup
 export const preloadLanguages = async () => {
   const languages = Object.keys(SUPPORTED_LANGUAGES) as LanguageCode[];
+  console.log('Preloading languages:', languages);
   
   for (const lng of languages) {
     if (lng !== 'en') {
       await loadLanguage(lng);
     }
   }
+  console.log('Language preloading completed');
 };
 
 // Auto-discover available languages
 export const discoverLanguages = async (): Promise<LanguageCode[]> => {
-  // In a real implementation, you might want to fetch this from an API
-  // or scan the filesystem. For now, we return our predefined languages.
   return Object.keys(SUPPORTED_LANGUAGES) as LanguageCode[];
 };
 
 // Initialize language loading
 preloadLanguages().catch(console.error);
 
+// Export the i18n instance
 export default i18n;
