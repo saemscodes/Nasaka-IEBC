@@ -13,7 +13,7 @@ interface LanguageResources {
 export const SUPPORTED_LANGUAGES = {
   en: { code: 'en', name: 'English', nativeName: 'English' },
   sw: { code: 'sw', name: 'Swahili', nativeName: 'Kiswahili' },
-  ki: { code: 'ki', name: 'Kikuyu', nativeName: 'Gĩkũyũ' },
+  ki: { code: 'kik', name: 'Kikuyu', nativeName: 'Gĩkũyũ' },
 };
 
 export type LanguageCode = keyof typeof SUPPORTED_LANGUAGES;
