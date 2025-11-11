@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { useLenis } from "./hooks/useLenis";
 // import Index from "./pages/Index";
 // import SignPetition from "./pages/SignPetition";
@@ -18,6 +19,9 @@ import { IEBCOfficeSplash, IEBCOfficeMap } from './pages/IEBCOffice';
 import './styles/iebc-office.css';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+
+// Import i18n configuration
+import '@/i18n';
 
 // ✅ Enhanced Query Client
 const queryClient = new QueryClient({
@@ -291,13 +295,15 @@ const AppContent = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
-      <TooltipProvider delayDuration={0}>
-        <Toaster />
-        <Sonner position="top-right" expand={false} richColors closeButton />
-        <AppContent />
-        <Analytics />
-        <SpeedInsights />
-      </TooltipProvider>
+      <LanguageProvider>
+        <TooltipProvider delayDuration={0}>
+          <Toaster />
+          <Sonner position="top-right" expand={false} richColors closeButton />
+          <AppContent />
+          <Analytics />
+          <SpeedInsights />
+        </TooltipProvider>
+      </LanguageProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );
