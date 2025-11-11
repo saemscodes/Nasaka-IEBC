@@ -46,8 +46,8 @@
     "estimatedRideCost": "Ngarama ĩrĩa ĩratanywo ya Gũtwarwo",
     "routingUnavailable": "Njĩra ndĩonekaga"
     "tapForGoogleMaps": "Hũthĩra wabici nĩguo ũmenye njĩra ya gũthiĩ."
-    "routesFound_one": "{{count}} njĩra ĩrĩa yonekire"
-    "routesFound_other": "{{count}} njĩra iria cionekete"
+    "routesFound_one": "Njĩra {{count}} ĩrĩa yonekire"
+    "routesFound_other": "Njĩra {{count}} iria cionekete"
     "bestRoute": "Njĩra yaku ĩrĩa njega mũno nĩ kilomita {{distance}}, na nĩ ĩgũgũteithagia ndagĩka {{time}}"
     "routingError": "Gũtiahotire gũthoma njĩra"    
     "normalTraffic": "Njira ĩiyũrĩte ngari",
