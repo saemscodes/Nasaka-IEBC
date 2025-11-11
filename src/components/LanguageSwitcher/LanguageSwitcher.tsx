@@ -109,7 +109,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     const flags: Record<string, string> = {
       en: '🇺🇸',
       sw: '🇹🇿', 
-      ki: '🇰🇪',
+      kik: '🇰🇪',
     };
     return flags[code] || '🌐';
   };
