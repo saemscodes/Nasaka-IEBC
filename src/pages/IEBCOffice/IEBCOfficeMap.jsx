@@ -623,65 +623,65 @@ const IEBCOfficeMap = () => {
       {/* Draggable Route Badge - ONLY WITH LOCATION ACCESS */}
       <AnimatePresence>
         {hasLocationAccess && currentRoute && currentRoute.length > 0 && (
-          <motion.div
-            ref={routeBadgeRef}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ 
-              opacity: 1, 
-              scale: isDraggingRouteBadge ? 1.05 : 1,
-              x: routeBadgePosition.x,
-              y: routeBadgePosition.y
-            }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{
-              type: "spring",
-              stiffness: isDraggingRouteBadge ? 1000 : 500,
-              damping: 30,
-              mass: 1
-            }}
-            className={`route-badge-draggable ${isDraggingRouteBadge ? 'dragging' : ''}`}
-            style={{
-              position: 'fixed',
-              left: 0,
-              top: 0,
-              transform: `translate(${routeBadgePosition.x}px, ${routeBadgePosition.y}px)`,
-              zIndex: 1000,
-              cursor: isDraggingRouteBadge ? 'grabbing' : 'grab',
-              userSelect: 'none',
-              WebkitUserSelect: 'none',
-              MozUserSelect: 'none',
-              msUserSelect: 'none',
-              touchAction: 'none'
-            }}
-            onMouseDown={handleRouteBadgeMouseDown}
-            onTouchStart={handleRouteBadgeMouseDown}
-            onClick={(e) => {
-              // Only trigger click if not dragging (small movement threshold)
-              if (!isDraggingRouteBadge && selectedOffice) {
-                setBottomSheetState('expanded');
-              }
-            }}
-          >
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium">
-                {currentRoute.length} {t('bottomSheet.routesFound', 'route{{count}} found', { count: currentRoute.length > 1 ? 's' : '' })}
-              </span>
-            </div>
-            {currentRoute[0] && (
-              <div className="text-muted-foreground text-xs mt-1">
-                {t('bottomSheet.bestRoute', 'Best: {{distance}} km, {{time}} min', {
-                  distance: (currentRoute[0].summary.totalDistance / 1000).toFixed(1),
-                  time: Math.round(currentRoute[0].summary.totalTime / 60)
-                })}
-              </div>
-            )}
-            {/* Drag handle indicator */}
-            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-1 bg-gray-400 rounded-full opacity-60 transition-opacity duration-200 hover:opacity-80"></div>
-          </motion.div>
+      <motion.div
+        ref={routeBadgeRef}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ 
+          opacity: 1, 
+          scale: isDraggingRouteBadge ? 1.05 : 1,
+          x: routeBadgePosition.x,
+          y: routeBadgePosition.y
+        }}
+        exit={{ opacity: 0, scale: 0.8 }}
+        transition={{
+          type: "spring",
+          stiffness: isDraggingRouteBadge ? 1000 : 500,
+          damping: 30,
+          mass: 1
+        }}
+        className={`route-badge-draggable ${isDraggingRouteBadge ? 'dragging' : ''}`}
+        style={{
+          position: 'fixed',
+          left: 0,
+          top: 0,
+          transform: `translate(${routeBadgePosition.x}px, ${routeBadgePosition.y}px)`,
+          zIndex: 1000,
+          cursor: isDraggingRouteBadge ? 'grabbing' : 'grab',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+          touchAction: 'none'
+        }}
+        onMouseDown={handleRouteBadgeMouseDown}
+        onTouchStart={handleRouteBadgeMouseDown}
+        onClick={(e) => {
+          // Only trigger click if not dragging (small movement threshold)
+          if (!isDraggingRouteBadge && selectedOffice) {
+            setBottomSheetState('expanded');
+          }
+        }}
+        >
+        <div className="flex items-center space-x-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span className="text-sm font-medium">
+            {t('bottomSheet.routesFound', { count: currentRoute.length })}
+          </span>
+        </div>
+        {currentRoute[0] && (
+          <div className="text-muted-foreground text-xs mt-1">
+            {t('bottomSheet.bestRoute', {
+            distance: (currentRoute[0].summary.totalDistance / 1000).toFixed(1),
+            time: Math.round(currentRoute[0].summary.totalTime / 60)
+          })}
+          </div>
         )}
+        {/* Drag handle indicator */}
+        <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-1 bg-gray-400 rounded-full opacity-60 transition-opacity duration-200 hover:opacity-80"></div>
+      </motion.div>
+    )}
       </AnimatePresence>
-
+      
       {/* Map Container - Isolated */}
       <MapContainer
         ref={mapRef}
