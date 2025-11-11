@@ -6,6 +6,7 @@ import LoadingSpinner from '../../components/IEBCOffice/LoadingSpinner';
 import DonationWidget from '@/components/ui/DonationWidget';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 
 // Enhanced Background Layers with Cursor-Tracking Radial Effects
 const BackgroundLayers = ({ className = "" }) => {
@@ -239,122 +240,6 @@ const ThemeToggle = () => {
   );
 };
 
-// Enhanced Language Switcher Component with Globe Icon and Animations
-const LanguageSwitcher = () => {
-  const { i18n } = useTranslation();
-  const { theme } = useTheme();
-  const [isRotating, setIsRotating] = useState(false);
-
-  const toggleLanguage = () => {
-    setIsRotating(true);
-    const newLang = i18n.language === 'en' ? 'sw' : 'en';
-    i18n.changeLanguage(newLang);
-    
-    // Reset rotation state after animation completes
-    setTimeout(() => setIsRotating(false), 600);
-  };
-
-  const globeVariants = {
-    initial: { rotate: 0, scale: 1 },
-    rotating: { 
-      rotate: 360,
-      scale: [1, 1.2, 1],
-      transition: {
-        rotate: { duration: 0.6, ease: "easeInOut" },
-        scale: { duration: 0.6, ease: "easeInOut" }
-      }
-    },
-    hover: {
-      scale: 1.1,
-      rotate: [0, -5, 5, 0],
-      transition: {
-        duration: 0.4,
-        ease: "easeInOut"
-      }
-    }
-  };
-
-  const languageDotVariants = {
-    en: { 
-      cx: i18n.language === 'en' ? "8" : "16",
-      fill: theme === 'dark' ? "#3b82f6" : "#2563eb"
-    },
-    sw: { 
-      cx: i18n.language === 'sw' ? "16" : "8",
-      fill: theme === 'dark' ? "#10b981" : "#059669"
-    }
-  };
-
-  return (
-    <motion.button
-      whileHover="hover"
-      whileTap={{ scale: 0.95 }}
-      onClick={toggleLanguage}
-      className={`w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 ${
-        theme === 'dark'
-          ? 'bg-ios-gray-800 shadow-ios-gray-900/50 border-ios-gray-600'
-          : 'bg-white shadow-ios-gray-200/50 border-ios-gray-200'
-      }`}
-      aria-label={`Switch to ${i18n.language === 'en' ? 'Swahili' : 'English'}`}
-    >
-      <motion.svg
-        className="w-5 h-5"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        variants={globeVariants}
-        initial="initial"
-        animate={isRotating ? "rotating" : "initial"}
-        whileHover="hover"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        
-        {/* Language indicator dots */}
-        <motion.circle
-          cx="8"
-          cy="19"
-          r="1.5"
-          variants={languageDotVariants}
-          animate={i18n.language === 'en' ? 'en' : 'sw'}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
-        />
-        <motion.circle
-          cx="16"
-          cy="19"
-          r="1.5"
-          variants={languageDotVariants}
-          animate={i18n.language === 'sw' ? 'sw' : 'en'}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
-        />
-        
-        {/* Subtle language indicator lines */}
-        <motion.path
-          d="M7 19 L7 21"
-          strokeWidth="1"
-          stroke={theme === 'dark' ? "#3b82f6" : "#2563eb"}
-          initial={{ pathLength: 0 }}
-          animate={{ 
-            pathLength: i18n.language === 'en' ? 1 : 0,
-            opacity: i18n.language === 'en' ? 1 : 0.3
-          }}
-          transition={{ duration: 0.3 }}
-        />
-        <motion.path
-          d="M17 19 L17 21"
-          strokeWidth="1"
-          stroke={theme === 'dark' ? "#10b981" : "#059669"}
-          initial={{ pathLength: 0 }}
-          animate={{ 
-            pathLength: i18n.language === 'sw' ? 1 : 0,
-            opacity: i18n.language === 'sw' ? 1 : 0.3
-          }}
-          transition={{ duration: 0.3 }}
-        />
-      </motion.svg>
-    </motion.button>
-  );
-};
-
 // CEKA Logo Button Component - Top Left
 const CekaLogoButton = () => {
   const { theme } = useTheme();
@@ -535,7 +420,7 @@ const IEBCOfficeSplash = () => {
       <div className="absolute top-6 left-0 right-0 z-20 flex justify-between items-center px-6 pt-4">
         <CekaLogoButton />
         <div className="flex space-x-3">
-          <LanguageSwitcher />
+          <LanguageSwitcher variant="splash" />
           <ThemeToggle />
         </div>
       </div>
@@ -596,7 +481,7 @@ const IEBCOfficeSplash = () => {
               <h1 className={`text-6xl font-black mb-2 tracking-tight leading-none ${
                 theme === 'dark' ? 'text-white' : 'text-ios-gray-900'
               }`}>
-                {t('splash.title')}
+                {t('splash.title', 'NASAKA')}
               </h1>
               <div className="flex items-center justify-center space-x-2">
                 <div className={`h-px w-8 ${
@@ -605,7 +490,7 @@ const IEBCOfficeSplash = () => {
                 <h2 className={`text-xl font-semibold tracking-wide ${
                   theme === 'dark' ? 'text-ios-blue-400' : 'text-ios-blue'
                 }`}>
-                  {t('splash.subtitle')}
+                  {t('splash.subtitle', 'IEBC')}
                 </h2>
                 <div className={`h-px w-8 ${
                   theme === 'dark' ? 'bg-ios-blue/60' : 'bg-ios-blue/40'
@@ -623,7 +508,7 @@ const IEBCOfficeSplash = () => {
               initial="initial"
               animate="animate"
             >
-              {t('splash.description')}
+              {t('splash.description', 'Find Your Nearest IEBC Office')}
             </motion.h2>
           </TextShadowLayer>
 
@@ -636,7 +521,7 @@ const IEBCOfficeSplash = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
             >
-              {t('splash.disclaimer')}
+              {t('splash.disclaimer', 'Allow location access to find the closest IEBC registration center and get turn-by-turn navigation.')}
             </motion.p>
           </TextShadowLayer>
 
@@ -656,8 +541,8 @@ const IEBCOfficeSplash = () => {
                   }`}>
                     <p className="text-sm font-medium">
                       {error === 'Permission denied' 
-                        ? t('splash.locationBlockedDescription')
-                        : 'Unable to access your location. You can still search for offices manually.'
+                        ? t('splash.locationBlockedDescription', 'Please enable location in your browser settings and reload')
+                        : t('splash.locationBlockedDescription', 'Unable to access your location. You can still search for offices manually.')
                       }
                     </p>
                   </div>
@@ -685,14 +570,14 @@ const IEBCOfficeSplash = () => {
               {loading ? (
                 <>
                   <LoadingSpinner size="small" />
-                  <span>{t('splash.locating')}</span>
+                  <span>{t('splash.locating', 'Getting your location...')}</span>
                 </>
               ) : (
                 <>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
-                  <span>{t('splash.allowLocation')}</span>
+                  <span>{t('splash.allowLocation', 'Allow Location Access')}</span>
                 </>
               )}
             </motion.button>
@@ -706,7 +591,7 @@ const IEBCOfficeSplash = () => {
                   : 'text-ios-blue border-ios-gray-300 bg-white hover:bg-ios-gray-50 hover:border-ios-gray-400'
               }`}
             >
-              {t('splash.manualEntry')}
+              {t('splash.manualEntry', 'Enter Location Manually')}
             </motion.button>
           </motion.div>
 
