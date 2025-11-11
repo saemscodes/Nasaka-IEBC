@@ -24,7 +24,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   } = useLanguage();
   
   const { theme } = useTheme();
-  const { t } = useTranslation('nasaka');
+  const { t, i18n } = useTranslation('nasaka');
   const location = useLocation();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -94,16 +94,22 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     };
   }, []);
 
+  // FIXED: Language selection handler
   const handleLanguageSelect = async (languageCode: string) => {
-    await changeLanguage(languageCode as any);
+    console.log('Selecting language:', languageCode);
+    const success = await changeLanguage(languageCode as any);
+    if (success) {
+      console.log('Language selection successful');
+    } else {
+      console.error('Language selection failed');
+    }
   };
 
   const getLanguageFlag = (code: string) => {
     const flags: Record<string, string> = {
       en: '🇺🇸',
-      sw: '🇹🇿',
+      sw: '🇹🇿', 
       kik: '🇰🇪',
-      // Add more flags as needed
     };
     return flags[code] || '🌐';
   };
