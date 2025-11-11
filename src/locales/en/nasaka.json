@@ -1,4 +1,24 @@
 {
+  "common": {
+    "changeLanguage": "Change language",
+    "language": "Language",
+    "longPressHint": "Long press for quick access",
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "close": "Close",
+    "save": "Save",
+    "continue": "Continue",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "search": "Search",
+    "filter": "Filter",
+    "select": "Select",
+    "optional": "Optional",
+    "required": "Required"
+  },
   "splash": {
     "title": "NASAKA",
     "subtitle": "IEBC",
@@ -186,22 +206,5 @@
     "uberXLDesc": "Larger vehicles for groups",
     "priceUnavailable": "Price unavailable",
     "cancel": "Cancel"
-  },
-  "common": {
-    "loading": "Loading...",
-    "error": "Error",
-    "retry": "Retry",
-    "cancel": "Cancel",
-    "close": "Close",
-    "save": "Save",
-    "continue": "Continue",
-    "back": "Back",
-    "next": "Next",
-    "submit": "Submit",
-    "search": "Search",
-    "filter": "Filter",
-    "select": "Select",
-    "optional": "Optional",
-    "required": "Required"
   }
 }
