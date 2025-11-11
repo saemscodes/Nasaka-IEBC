@@ -44,7 +44,7 @@
     "locationAccessDesc": "Wezesha ufikiaji wa eneo ili kuona makadirio ya nauli, pata maelekezo kutoka eneo lako la sasa, na upate njia ya karibu zaidi kwenda ofisi hii.",
     "enableLocationAccess": "Wezesha Ufikiaji wa Eneo",
     "estimatedRideCost": "Gharama ya Kukokotolewa Inayokadiriwa",
-    "routingUnavailable": "Njia haipatikani"
+    "routingUnavailable": "Njia haipatikani",
     "tapForGoogleMaps": "Bonyeza upate ramani ya mahali ofisi ipo.",
     "routesFound_one": "Njia {{count}} imepatikana",
     "routesFound_other": "Njia {{count}} zimepatikana",
