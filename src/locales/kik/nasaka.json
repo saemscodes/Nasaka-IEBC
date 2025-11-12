@@ -87,6 +87,7 @@
     "openInMaps": "Hingũra Thĩinĩ wa Maps",
     "confirming": "Tũrathuthuria...",
     "distanceAway": "Ũrĩ mita {{distance}} kuuma harĩa ndĩ. Tũragwĩkĩra ngoro ũthiĩ o mita {{maxDistance}} kuuma wabici nĩguo ũmenye.",
+    "distance": "Ûraihu",
     "confirmationFailed": "Nĩ wagire kũruta ũira waku wa kũrĩa ũrĩ. Geria rĩngĩ.",
     "locationPermissionRequired": "Rutha ya gwetha handũ nĩ ũrabatarania nĩguo ũmenyithanio. Hũra kamũtĩ ka kũhingũra ũhoro wa Handũ na ũgerie rĩngĩ."
   },
