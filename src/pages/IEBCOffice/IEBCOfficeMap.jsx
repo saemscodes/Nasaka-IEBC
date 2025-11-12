@@ -665,12 +665,14 @@ const IEBCOfficeMap = () => {
         <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
           <span className="text-sm font-medium">
-            {Number(currentRoute.length)}{' '}
+            {(currentRoute?.length ?? 0)}{' '}
               {t('bottomSheet.routesFound', {
-                count: Number(currentRoute.length),
-                defaultValue: Number(currentRoute.length) === 1 ? '{{count}} route found' : '{{count}} routes found'
-              })
-            }
+                count: Number(currentRoute?.length ?? 0),
+                defaultValue: Number(currentRoute?.length ?? 0) === 1
+                  ? '{{count}} route found'
+                  : '{{count}} routes found'
+                })
+              }
           </span>
         </div>
         {currentRoute[0] && (
