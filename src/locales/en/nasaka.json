@@ -105,6 +105,7 @@
     "locationPermissionRequired": "Location permission is required to confirm. Please enable location access and try again.",
     "routingUnavailable": "Routing unavailable",
     "tapForGoogleMaps": "Tap office for Google Maps directions.",
+    "routesFound": "{{count}} route found",
     "routesFound_one": "{{count}} route found",
     "routesFound_other": "{{count}} routes found",
     "bestRoute": "Best: {{distance}} km, {{time}} min",
