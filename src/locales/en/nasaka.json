@@ -68,7 +68,7 @@
     "showAll": "Show All",
     "hide": "Hide",
     "cheapestOption": "Cheapest Option",
-    "estimatedTime": "Estimated Time",
+    "estimatedTime": "minutes",
     "breakdown": "Breakdown",
     "baseFare": "Base Fare",
     "perKmRate": "Per KM Rate",
