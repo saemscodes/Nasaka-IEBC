@@ -18,6 +18,7 @@ import { useMapControls } from '@/hooks/useMapControls';
 import { findNearestOffice, findNearestOffices } from '@/utils/geoUtils';
 import { supabase } from '@/integrations/supabase/client';
 import L from 'leaflet';
+import i18next from 'i18next';
 
 const IEBCOfficeMap = () => {
   const navigate = useNavigate();
@@ -686,6 +687,8 @@ const IEBCOfficeMap = () => {
       </motion.div>
     )}
       </AnimatePresence>
+
+      console.log('routesFound test:', i18next.t('bottomSheet.routesFound', { count: 2 }));
       
       {/* Map Container - Isolated */}
       <MapContainer
