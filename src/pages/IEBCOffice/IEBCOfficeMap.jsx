@@ -665,7 +665,7 @@ const IEBCOfficeMap = () => {
         <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
           <span className="text-sm font-medium">
-            {t('bottomSheet.routesFound', { count: currentRoute.length })}
+            {currentRoute.length} {t('bottomSheet.routesFound', 'route{{count}} found', { count: currentRoute.length > 1 ? 's' : '' })}
           </span>
         </div>
         {currentRoute[0] && (
