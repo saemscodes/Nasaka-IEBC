@@ -66,7 +66,9 @@ const resources: LanguageResources = {
         noOfficesFound: "No offices found",
         noMatchQuery: "No offices match \"{{query}}\". Try a different search.",
         noOfficesInArea: "No IEBC offices found in your area.",
-        useCurrentLocation: "Use current location"
+        useCurrentLocation: "Use current location",
+        searchResult: "Search Result",
+        query: "Query"
       },
       office: {
         tapForDirections: "Tap for directions",
@@ -85,6 +87,11 @@ const resources: LanguageResources = {
         locationAccessDesc: "Enable location access to see fare estimates, get directions from your current location, and find the nearest route to this office.",
         enableLocationAccess: "Enable Location Access",
         estimatedRideCost: "Estimated Ride Cost",
+        routesFound: "{{count}} route found",
+        routesFound_one: "{{count}} route found",
+        routesFound_other: "{{count}} routes found",
+        bestRoute: "Best: {{distance}} km, {{time}} min",
+        routingError: "Failed to calculate route",
         normalTraffic: "Normal traffic",
         showAll: "Show All",
         hide: "Hide",
@@ -128,7 +135,8 @@ const resources: LanguageResources = {
       officeList: {
         searchResults: "Search Results",
         nearbyOffices: "Nearby Offices",
-        closePanel: "Close panel"
+        closePanel: "Close panel",
+        showAllOffices: "Show all offices"
       },
       layers: {
         mapLayers: "Map Layers",
