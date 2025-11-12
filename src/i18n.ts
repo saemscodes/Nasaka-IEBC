@@ -86,7 +86,7 @@ const resources: LanguageResources = {
         locationAccessRequired: "Location Access Required",
         locationAccessDesc: "Enable location access to see fare estimates, get directions from your current location, and find the nearest route to this office.",
         enableLocationAccess: "Enable Location Access",
-        estimatedRideCost: "Estimated Ride Cost",
+        estimatedRideCost: "minutes",
         routesFound: "{{count}} route found",
         routesFound_one: "{{count}} route found",
         routesFound_other: "{{count}} routes found",
