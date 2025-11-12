@@ -109,7 +109,14 @@
     "routesFound_one": "{{count}} route found",
     "routesFound_other": "{{count}} routes found",
     "bestRoute": "Best: {{distance}} km, {{time}} min",
-    "routingError": "Failed to calculate route"
+    "routingError": "Failed to calculate route",
+    "uberServices": "Uber Services",
+    "boltServices": "Bolt Services", 
+    "driveTime": "Drive Time",
+    "openApp": "Open app",
+    "trafficSurchargeIncluded": "Prices include traffic surcharge",
+    "coordinatesCopied": "Coordinates copied to clipboard!",
+    "copyCoordinatesPrompt": "Copy coordinates:"
   },
   "officeList": {
     "searchResults": "Search Results",
