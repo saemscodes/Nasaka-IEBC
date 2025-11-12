@@ -130,7 +130,14 @@ const resources: LanguageResources = {
         confirming: "Confirming...",
         distanceAway: "You're {{distance}}m away. Please move within {{maxDistance}}m of the office to confirm.",
         confirmationFailed: "Failed to submit confirmation. Please try again.",
-        locationPermissionRequired: "Location permission is required to confirm. Please enable location access and try again."
+        locationPermissionRequired: "Location permission is required to confirm. Please enable location access and try again.",
+        uberServices: "Uber Services",
+        boltServices: "Bolt Services", 
+        driveTime: "Drive Time",
+        openApp: "Open app",
+        trafficSurchargeIncluded: "Prices include traffic surcharge",
+        coordinatesCopied: "Coordinates copied to clipboard!",
+        copyCoordinatesPrompt: "Copy coordinates:"
       },
       officeList: {
         searchResults: "Search Results",
