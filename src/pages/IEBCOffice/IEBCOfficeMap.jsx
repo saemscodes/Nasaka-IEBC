@@ -666,11 +666,11 @@ const IEBCOfficeMap = () => {
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
           <span className="text-sm font-medium">
             {Number(currentRoute.length)}{' '}
-            {t('bottomSheet.routesFound', {
-          count: Number(currentRoute.length),
-          // explicit English fallback if the translation is missing
-          defaultValue: Number(currentRoute.length) === 1 ? '{{count}} route found' : '{{count}} routes found'
-        })}
+              {t('bottomSheet.routesFound', {
+                count: Number(currentRoute.length),
+                defaultValue: Number(currentRoute.length) === 1 ? '{{count}} route found' : '{{count}} routes found'
+              })
+            }
           </span>
         </div>
         {currentRoute[0] && (
