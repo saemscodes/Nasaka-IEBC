@@ -91,6 +91,7 @@ const resources: LanguageResources = {
         routesFound_one: "{{count}} route found",
         routesFound_other: "{{count}} routes found",
         bestRoute: "Best: {{distance}} km, {{time}} min",
+        "distance": "Distance",
         routingError: "Failed to calculate route",
         normalTraffic: "Normal traffic",
         showAll: "Show All",
