@@ -578,56 +578,9 @@ const OfficeBottomSheet = ({
                                 ⚠️ {fareEstimates.traffic.description} - {t('bottomSheet.trafficSurchargeIncluded', 'Prices include traffic surcharge')}
                               </div>
                             )}
-
-                            {/* Fare Breakdown */}
-                            {showFareDetails && cheapestFare && (
-                              <div className={`rounded-lg p-3 border ${
-                                isDark ? 'bg-black/20 border-gray-700' : 'bg-white/60 border-gray-200'
-                              }`}>
-                                <p className={`text-xs font-semibold mb-2 ${
-                                  isDark ? 'text-ios-gray-300' : 'text-gray-700'
-                                }`}>
-                                  {t('bottomSheet.breakdown', 'Breakdown')}:
-                                </p>
-                                <div className="space-y-1 text-xs">
-                                  <div className="flex justify-between">
-                                    <span>{t('bottomSheet.baseFare', 'Base Fare')}:</span>
-                                    <span>{formatFare(cheapestFare.baseFare)}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span>{t('bottomSheet.perKmRate', 'Per KM Rate')}:</span>
-                                    <span>{formatFare(cheapestFare.distanceCost)}</span>
-                                  </div>
-                                  {cheapestFare.trafficSurcharge > 0 && (
-                                    <div className="flex justify-between">
-                                      <span>{t('bottomSheet.trafficSurcharge', 'Traffic Surcharge')}:</span>
-                                      <span>+{formatFare(cheapestFare.trafficSurcharge)}</span>
-                                    </div>
-                                  )}
-                                  <div className="flex justify-between font-semibold border-t pt-1">
-                                    <span>{t('bottomSheet.total', 'Total')}:</span>
-                                    <span>{formatFare(cheapestFare.total)}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
                           </motion.div>
                         )}
                       </AnimatePresence>
-
-                      {/* View All Options Button */}
-                      {!showFareDetails && (
-                        <button
-                          onClick={() => setShowFareDetails(true)}
-                          className={`w-full text-center py-2 text-sm font-medium rounded-lg transition-colors ${
-                            isDark 
-                              ? 'bg-ios-gray-700 hover:bg-ios-gray-600 text-ios-gray-300' 
-                              : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-300'
-                          }`}
-                        >
-                          {t('bottomSheet.viewAllOptions', 'View All Ride Options')}
-                        </button>
-                      )}
 
                       {/* Disclaimer */}
                       <p className={`text-xs mt-3 italic ${
@@ -813,6 +766,7 @@ const OfficeBottomSheet = ({
                       </button>
                     )}
                   </div>
+                </div>
 
                 {/* Close Button */}
                 <div className={`sticky bottom-0 pt-4 pb-2 mt-6 border-t transition-colors duration-300 ${
