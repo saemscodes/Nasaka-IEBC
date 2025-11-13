@@ -19,7 +19,6 @@
     "optional": "Ok ochuno",
     "required": "Ochuno"
   },
-  {
   "splash": {
     "title": "NASAKA",
     "subtitle": "IEBC",
@@ -60,7 +59,6 @@
     "locationUnavailable": "Onge kar dak ma yudore",
     "officeName": "Ofis mar IEBC"
   },
-  {
   "bottomSheet": {
     "locationAccessRequired": "Dwarore thuolo mar donjo kama intie",
     "locationAccessDesc": "Yie thuolo mar donjo kama intie mondo inene nengo wuoth, one yo, kendo imany ofis machiegni ahinya gi kama intie.",
@@ -107,7 +105,6 @@
     "locationPermissionRequired": "Dwarore yie mondo adier. Yie thuolo mar donjo kama intie, eka item apiewi.",
     "routingUnavailable": "Onge yo ma oyudore",
     "tapForGoogleMaps": "Tap ofis mondo one yo e Google Maps.",
-    "routesFound": "Yo {{count}} oyudore",
     "routesFound_one": "Yo {{count}} oyudore",
     "routesFound_other": "Yo {{count}} ma oyudore",
     "distance": "Mamaalo",
