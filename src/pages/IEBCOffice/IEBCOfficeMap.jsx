@@ -18,7 +18,6 @@ import { useMapControls } from '@/hooks/useMapControls';
 import { findNearestOffice, findNearestOffices } from '@/utils/geoUtils';
 import { supabase } from '@/integrations/supabase/client';
 import L from 'leaflet';
-import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
 const IEBCOfficeMap = () => {
   const navigate = useNavigate();
@@ -70,28 +69,6 @@ const IEBCOfficeMap = () => {
   const routeBadgeRef = useRef(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const badgeStartPos = useRef({ x: 0, y: 0 });
-
-  // Pull-to-refresh configuration
-  const handleRefresh = useCallback(() => {
-    console.log('Pull-to-refresh triggered - reloading page...');
-    window.location.reload();
-  }, []);
-
-  // Initialize pull-to-refresh with map exclusion
-  usePullToRefresh({
-    onRefresh: handleRefresh,
-    excludeSelectors: [
-      '.map-wrapper',
-      '.leaflet-container',
-      '.ios-control-btn',
-      '.search-container',
-      '.office-bottom-sheet',
-      '.office-list-panel',
-      '.layer-control-panel',
-      '.route-badge-draggable',
-    ],
-    enabled: true
-  });
 
   // Handle URL query parameter on component mount
   useEffect(() => {
@@ -558,7 +535,7 @@ const IEBCOfficeMap = () => {
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="flex flex-col space-y-3"
         >
-          {/* Language Switcher - Map Variant (USES rounded-lg) */}
+          {/* Language Switcher - Map Variant */}
           <LanguageSwitcher variant="map" />
 
           {/* Contribute Location Button */}
@@ -588,10 +565,9 @@ const IEBCOfficeMap = () => {
               className="ios-control-btn"
               aria-label={t('search.useCurrentLocation', 'Use my location')}
             >
-              {/* REPLACED SVG WITH HOME ICON */}
-              <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M2 12.2039C2 9.91549 2 8.77128 2.5192 7.82274C3.0384 6.87421 3.98695 6.28551 5.88403 5.10813L7.88403 3.86687C9.88939 2.62229 10.8921 2 12 2C13.1079 2 14.1106 2.62229 16.116 3.86687L18.116 5.10812C20.0131 6.28551 20.9616 6.87421 21.4808 7.82274C22 8.77128 22 9.91549 22 12.2039V13.725C22 17.6258 22 19.5763 20.8284 20.7881C19.6569 22 17.7712 22 14 22H10C6.22876 22 4.34315 22 3.17157 20.7881C2 19.5763 2 17.6258 2 13.725V12.2039Z" stroke="currentColor" strokeWidth="2"/>
-                <path d="M9 16C9.85038 16.6303 10.8846 17 12 17C13.1154 17 14.1496 16.6303 15 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </button>
           )}
