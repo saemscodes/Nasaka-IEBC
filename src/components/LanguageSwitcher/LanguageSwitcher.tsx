@@ -34,7 +34,13 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   const [isShortPressModalOpen, setIsShortPressModalOpen] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const longPressTimer = useRef<NodeJS.Timeout>();
+  const shortPressTimer = useRef<NodeJS.Timeout>();
   const [pressProgress, setPressProgress] = useState(0);
+
+  // Constants for timing
+  const SHORT_PRESS_THRESHOLD = 150; // milliseconds
+  const LONG_PRESS_THRESHOLD = 400; // milliseconds
+  const LONG_PRESS_TOTAL = 700; // milliseconds
 
   // Detect touch device
   useEffect(() => {
@@ -74,35 +80,64 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   const handleMouseDown = () => {
     if (!isTouchDevice) return;
     
-    setIsLongPressing(true);
+    // Clear any existing timers
+    if (shortPressTimer.current) {
+      clearTimeout(shortPressTimer.current);
+    }
+    if (longPressTimer.current) {
+      clearInterval(longPressTimer.current);
+    }
+    
+    setIsLongPressing(false);
     setPressProgress(0);
     
-    longPressTimer.current = setInterval(() => {
-      setPressProgress(prev => {
-        const newProgress = prev + 3.33; // Complete in 300ms
-        if (newProgress >= 100) {
-          clearInterval(longPressTimer.current);
-          setDropdownOpen(true);
-          setIsLongPressing(false);
-          setPressProgress(0);
-          return 100;
-        }
-        return newProgress;
-      });
-    }, 10);
+    // Set short press timer
+    shortPressTimer.current = setTimeout(() => {
+      // This was a short press - show limited modal
+      setIsShortPressModalOpen(true);
+    }, SHORT_PRESS_THRESHOLD);
+    
+    // Set long press timer
+    longPressTimer.current = setTimeout(() => {
+      // Clear the short press timer since we're now in long press territory
+      if (shortPressTimer.current) {
+        clearTimeout(shortPressTimer.current);
+      }
+      
+      setIsLongPressing(true);
+      setPressProgress(0);
+      
+      // Start progress animation for long press
+      const progressTimer = setInterval(() => {
+        setPressProgress(prev => {
+          const timeElapsed = prev * (LONG_PRESS_TOTAL - LONG_PRESS_THRESHOLD) / 100;
+          const newProgress = prev + (100 / ((LONG_PRESS_TOTAL - LONG_PRESS_THRESHOLD) / 10));
+          
+          if (newProgress >= 100) {
+            clearInterval(progressTimer);
+            setDropdownOpen(true);
+            setIsLongPressing(false);
+            setPressProgress(0);
+            return 100;
+          }
+          return newProgress;
+        });
+      }, 10);
+      
+      // Update the longPressTimer reference to the progress timer
+      longPressTimer.current = progressTimer;
+    }, LONG_PRESS_THRESHOLD);
   };
 
   const handleMouseUp = () => {
     if (!isTouchDevice) return;
     
+    // Clear all timers
+    if (shortPressTimer.current) {
+      clearTimeout(shortPressTimer.current);
+    }
     if (longPressTimer.current) {
       clearInterval(longPressTimer.current);
-      longPressTimer.current = undefined;
-    }
-    
-    if (isLongPressing && pressProgress < 80) {
-      // This was a short press - show limited modal
-      setIsShortPressModalOpen(true);
     }
     
     setIsLongPressing(false);
@@ -112,6 +147,9 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      if (shortPressTimer.current) {
+        clearTimeout(shortPressTimer.current);
+      }
       if (longPressTimer.current) {
         clearInterval(longPressTimer.current);
       }
@@ -150,7 +188,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
 
   // Get top 5 most used languages for quick access
   const getQuickAccessLanguages = () => {
-    const languagePriority = ['en', 'sw', 'kik', 'luo']; // Add more as needed
+    const languagePriority = ['en', 'sw', 'kik', 'luo'];
     return Object.entries(availableLanguages)
       .sort(([a], [b]) => {
         const aIndex = languagePriority.indexOf(a);
@@ -163,9 +201,9 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   const quickAccessLanguages = getQuickAccessLanguages();
   const allLanguages = Object.entries(availableLanguages);
 
-  // Button styles based on variant - UPDATED FOR MAP VARIANT TO USE rounded-lg
+  // Button styles based on variant - FIXED: Always use rounded-lg for map variant
   const buttonClass = effectiveVariant 
-    ? `w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 ${
+    ? `w-10 h-10 rounded-lg shadow-lg border flex items-center justify-center transition-all duration-300 ${
         theme === 'dark'
           ? 'bg-ios-gray-800 shadow-ios-gray-900/50 border-ios-gray-600'
           : 'bg-white shadow-ios-gray-200/50 border-ios-gray-200'
