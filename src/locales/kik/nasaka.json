@@ -198,6 +198,9 @@
     "cancel": "Gũthira"
   },
   "common": {
+    "changeLanguage": "Cenja rũrĩmĩ",
+    "language": "Rũrĩmĩ",
+    "longPressHint": "Finya ihinda iraihu nĩgetha ũgĩe na ũhoti wa kĩeha",
     "loading": "Kũharũrũka...",
     "error": "Hĩtia",
     "retry": "Kĩgerie rĩngĩ",
