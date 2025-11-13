@@ -54,7 +54,7 @@
     "showAll": "Onyesha Zote",
     "hide": "Ficha",
     "cheapestOption": "Chaguo la Bei Nafuu",
-    "estimatedTime": "Muda Unaokadiriwa",
+    "estimatedTime": "Dakika {{min}}",
     "breakdown": "Mgawanyo",
     "baseFare": "Nauli ya Msingi",
     "perKmRate": "Kiwango cha Kila KM",
