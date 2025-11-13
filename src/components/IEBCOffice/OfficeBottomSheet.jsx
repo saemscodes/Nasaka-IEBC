@@ -641,7 +641,7 @@ const OfficeBottomSheet = ({
                             <p className={`text-2xl font-bold mt-1 transition-colors duration-300 ${
                               isDark ? 'text-ios-blue-400' : 'text-primary'
                             }`}>
-                              {Math.round(currentRoute[0].summary.totalTime / 60)} {t('bottomSheet.estimatedTime', 'min')}
+                              {t('bottomSheet.estimatedTime', 'min')} {Math.round(currentRoute[0].summary.totalTime / 60)}
                             </p>
                           </div>
                         )}
