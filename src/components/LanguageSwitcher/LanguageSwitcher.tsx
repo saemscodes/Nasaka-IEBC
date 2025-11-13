@@ -108,9 +108,10 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
 
   const getLanguageFlag = (code: string) => {
     const flags: Record<string, string> = {
-      en: '🇺🇸',
-      sw: '🇹🇿', 
+      en: '🇬🇧',
+      sw: '🇰🇪', 
       kik: '🇰🇪',
+      luo: '🇰🇪',
     };
     return flags[code] || '🌐';
   };
