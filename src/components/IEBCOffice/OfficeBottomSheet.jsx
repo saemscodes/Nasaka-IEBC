@@ -21,6 +21,8 @@ import {
   FARE_DISCLAIMER
 } from '@/utils/kenyaFareCalculator';
 import UberModal from './UberModal';
+import i18next from 'i18next';
+
 
 const OfficeBottomSheet = ({
   office,
@@ -638,10 +640,14 @@ const OfficeBottomSheet = ({
                             }`}>
                               {t('bottomSheet.driveTime', 'Drive Time')}
                             </p>
-                            <p className={`text-2xl font-bold mt-1 transition-colors duration-300 ${
-                              isDark ? 'text-ios-blue-400' : 'text-primary'
-                            }`}>
-                              {t('bottomSheet.estimatedTime', 'min')} {Math.round(currentRoute[0].summary.totalTime / 60)}
+                            <p
+                              className={`text-2xl font-bold mt-1 transition-colors duration-300 ${
+                                isDark ? 'text-ios-blue-400' : 'text-primary'
+                              }`}
+                              >
+                              {i18next.language === 'en'
+                              ? `${Math.round(currentRoute[0].summary.totalTime / 60)} ${t('bottomSheet.estimatedTime', 'min')}`
+                              : `${t('bottomSheet.estimatedTime', 'min')} ${Math.round(currentRoute[0].summary.totalTime / 60)}`}
                             </p>
                           </div>
                         )}
