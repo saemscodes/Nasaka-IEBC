@@ -211,8 +211,8 @@
     "filter": "Chuja",
     "select": "Chagua",
     "optional": "Si lazima",
-    "required": "Inahitajika"
-    "language": "Lugha"
+    "required": "Inahitajika",
+    "language": "Lugha",
     "changeLanguage": "Badili lugha",
     "longPressHint": "Bonyeza kwa urefu kupata jawabu lako kwa haraka"
   }
