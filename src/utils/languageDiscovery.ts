@@ -3,7 +3,7 @@ export const discoverLanguages = async (): Promise<string[]> => {
   try {
     // In a real implementation, this would fetch available languages from an API
     // or scan the filesystem. For now, we'll return our predefined languages.
-    const availableLanguages = ['en', 'sw', 'kik'];
+    const availableLanguages = ['en', 'sw', 'kik', 'luo'];
     
     // You could extend this to fetch from an API endpoint that lists available languages
     // const response = await fetch('/api/languages');
