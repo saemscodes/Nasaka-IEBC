@@ -18,6 +18,7 @@ import { useMapControls } from '@/hooks/useMapControls';
 import { findNearestOffice, findNearestOffices } from '@/utils/geoUtils';
 import { supabase } from '@/integrations/supabase/client';
 import L from 'leaflet';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
 const IEBCOfficeMap = () => {
   const navigate = useNavigate();
@@ -69,6 +70,28 @@ const IEBCOfficeMap = () => {
   const routeBadgeRef = useRef(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const badgeStartPos = useRef({ x: 0, y: 0 });
+
+  // Pull-to-refresh configuration
+  const handleRefresh = useCallback(() => {
+    console.log('Pull-to-refresh triggered - reloading page...');
+    window.location.reload();
+  }, []);
+
+  // Initialize pull-to-refresh with map exclusion
+  usePullToRefresh({
+    onRefresh: handleRefresh,
+    excludeSelectors: [
+      '.map-wrapper',
+      '.leaflet-container',
+      '.ios-control-btn',
+      '.search-container',
+      '.office-bottom-sheet',
+      '.office-list-panel',
+      '.layer-control-panel',
+      '.route-badge-draggable',
+    ],
+    enabled: true
+  });
 
   // Handle URL query parameter on component mount
   useEffect(() => {
