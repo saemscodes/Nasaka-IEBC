@@ -14,6 +14,7 @@ export const SUPPORTED_LANGUAGES = {
   en: { code: 'en', name: 'English', nativeName: 'English' },
   sw: { code: 'sw', name: 'Swahili', nativeName: 'Kiswahili' },
   kik: { code: 'kik', name: 'Kikuyu', nativeName: 'Gĩkũyũ' },
+  luo: { code: 'luo', name: 'Luo', nativeName: 'Dholuo' },
 };
 
 export type LanguageCode = keyof typeof SUPPORTED_LANGUAGES;
