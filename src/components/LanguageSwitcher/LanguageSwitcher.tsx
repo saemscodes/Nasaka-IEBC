@@ -153,20 +153,22 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     return flags[code] || '🌐';
   };
 
-  // Button styles based on variant - iOS inspired design
+  // UPDATED: Button styles based on variant - Different shapes for splash vs map
   const buttonClass = effectiveVariant 
-    ? `w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 ${
+    ? // Splash variant - rounded-full (existing behavior)
+      `w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 ${
         theme === 'dark'
           ? 'bg-ios-dark-surface shadow-ios-high-dark border-ios-dark-border'
           : 'bg-white shadow-ios-high border-ios-light-border'
       }`
-    : `w-10 h-10 rounded-lg shadow-lg border flex items-center justify-center transition-all duration-300 ${
+    : // Map variant - rounded-lg to match other map controls
+      `w-10 h-10 rounded-lg shadow-lg border flex items-center justify-center transition-all duration-300 ${
         theme === 'dark'
           ? 'bg-ios-dark-surface shadow-ios-high-dark border-ios-dark-border'
           : 'bg-white shadow-ios-high border-ios-light-border'
       }`;
 
-  // Modal styles based on variant - iOS inspired design
+  // Modal styles based on variant
   const modalClass = effectiveVariant
     ? `fixed top-20 right-4 w-80 rounded-2xl shadow-2xl border backdrop-blur-2xl z-50 ${
         theme === 'dark'
