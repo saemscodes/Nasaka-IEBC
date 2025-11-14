@@ -55,7 +55,7 @@ const DONATION_OPTIONS: DonationOptionBase[] = [
   },
   {
     id: 'zenlipa_mpesa',
-    name: 'Use Your Card or Other M-Pesa contribution method',
+    name: 'Zenlipa - MPesa, Card',
     type: 'link',
     icon: '🔗',
     url: 'https://zenlipa.co.ke/tip/civic-education-kenya',
