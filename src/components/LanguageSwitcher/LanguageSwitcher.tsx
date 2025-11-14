@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Search, X, Globe } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
@@ -11,7 +12,7 @@ interface LanguageSwitcherProps {
   className?: string;
 }
 
-// Debounce hook for search optimization [citation:8]
+// Custom debounce hook
 const useDebounce = (value: string, delay: number) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
@@ -49,14 +50,53 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   const [isQuickAccessOpen, setIsQuickAccessOpen] = useState(false);
   const [isFullListOpen, setIsFullListOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearchQuery = useDebounce(searchQuery, 300); // 300ms debounce delay [citation:8]
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const debouncedSearchQuery = useDebounce(searchQuery, 200);
 
   // Determine variant based on current route if not explicitly set
   const effectiveVariant = variant === 'splash' 
     ? location.pathname === '/iebc-office' || location.pathname === '/nasaka-iebc'
     : variant === 'map';
 
-  // Close dropdown when clicking outside [citation:6]
+  // Convert available languages to searchable array
+  const languagesArray = useMemo(() => 
+    Object.entries(availableLanguages).map(([code, language]) => ({
+      code,
+      ...language
+    })), [availableLanguages]
+  );
+
+  // Filter languages based on search query with priority to current language
+  const getFilteredLanguages = useCallback(() => {
+    if (!debouncedSearchQuery.trim()) {
+      // When no search, prioritize current language and common languages
+      const priorityLanguages = ['en', 'sw', 'kik', 'luo'];
+      return languagesArray.sort((a, b) => {
+        if (a.code === currentLanguage) return -1;
+        if (b.code === currentLanguage) return 1;
+        const aIndex = priorityLanguages.indexOf(a.code);
+        const bIndex = priorityLanguages.indexOf(b.code);
+        return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
+      });
+    }
+
+    const query = debouncedSearchQuery.toLowerCase();
+    return languagesArray.filter(language => 
+      language.name.toLowerCase().includes(query) || 
+      language.nativeName.toLowerCase().includes(query) ||
+      language.code.toLowerCase().includes(query)
+    );
+  }, [debouncedSearchQuery, languagesArray, currentLanguage]);
+
+  // Get top 5 languages for quick access
+  const quickAccessLanguages = useMemo(() => {
+    const filtered = getFilteredLanguages();
+    return filtered.slice(0, 5);
+  }, [getFilteredLanguages]);
+
+  const filteredLanguages = useMemo(() => getFilteredLanguages(), [getFilteredLanguages]);
+
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
@@ -64,6 +104,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
         setIsQuickAccessOpen(false);
         setIsFullListOpen(false);
         setSearchQuery('');
+        setIsSearchFocused(false);
       }
     };
 
@@ -81,7 +122,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     if (isFullListOpen && searchInputRef.current) {
       setTimeout(() => {
         searchInputRef.current?.focus();
-      }, 100);
+      }, 150);
     }
   }, [isFullListOpen]);
 
@@ -92,39 +133,9 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
       setIsQuickAccessOpen(false);
       setIsFullListOpen(false);
       setSearchQuery('');
+      setIsSearchFocused(false);
     }
   };
-
-  // Get top 5 most used languages for quick access (prioritizing current language)
-  const getQuickAccessLanguages = () => {
-    const languagePriority = [currentLanguage, 'en', 'sw', 'kik', 'luo'];
-    const uniquePriority = [...new Set(languagePriority)];
-    
-    return Object.entries(availableLanguages)
-      .sort(([a], [b]) => {
-        const aIndex = uniquePriority.indexOf(a);
-        const bIndex = uniquePriority.indexOf(b);
-        return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
-      })
-      .slice(0, 5);
-  };
-
-  // Filter languages based on search query [citation:3]
-  const getFilteredLanguages = () => {
-    if (!debouncedSearchQuery) {
-      return Object.entries(availableLanguages);
-    }
-
-    const query = debouncedSearchQuery.toLowerCase();
-    return Object.entries(availableLanguages).filter(([code, language]) => 
-      language.name.toLowerCase().includes(query) || 
-      language.nativeName.toLowerCase().includes(query) ||
-      code.toLowerCase().includes(query)
-    );
-  };
-
-  const quickAccessLanguages = getQuickAccessLanguages();
-  const filteredLanguages = getFilteredLanguages();
 
   const getLanguageFlag = (code: string) => {
     const flags: Record<string, string> = {
@@ -132,6 +143,12 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
       sw: '🇰🇪', 
       kik: '🇰🇪',
       luo: '🇰🇪',
+      fr: '🇫🇷',
+      es: '🇪🇸',
+      pt: '🇵🇹',
+      ar: '🇸🇦',
+      zh: '🇨🇳',
+      hi: '🇮🇳',
     };
     return flags[code] || '🌐';
   };
@@ -140,26 +157,26 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   const buttonClass = effectiveVariant 
     ? `w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 ${
         theme === 'dark'
-          ? 'bg-ios-gray-800 shadow-ios-gray-900/50 border-ios-gray-600'
-          : 'bg-white shadow-ios-gray-200/50 border-ios-gray-200'
+          ? 'bg-ios-dark-surface shadow-ios-high-dark border-ios-dark-border'
+          : 'bg-white shadow-ios-high border-ios-light-border'
       }`
     : `w-10 h-10 rounded-lg shadow-lg border flex items-center justify-center transition-all duration-300 ${
         theme === 'dark'
-          ? 'bg-ios-gray-800 shadow-ios-gray-900/50 border-ios-gray-600'
-          : 'bg-white shadow-ios-gray-200/50 border-ios-gray-200'
+          ? 'bg-ios-dark-surface shadow-ios-high-dark border-ios-dark-border'
+          : 'bg-white shadow-ios-high border-ios-light-border'
       }`;
 
   // Modal styles based on variant - iOS inspired design
   const modalClass = effectiveVariant
-    ? `absolute top-12 right-0 w-72 rounded-2xl shadow-xl border backdrop-blur-lg z-50 ${
+    ? `fixed top-20 right-4 w-80 rounded-2xl shadow-2xl border backdrop-blur-2xl z-50 ${
         theme === 'dark'
-          ? 'bg-ios-gray-800/95 border-ios-gray-600 text-white'
-          : 'bg-white/95 border-ios-gray-200 text-ios-gray-900'
+          ? 'bg-ios-dark-surface/95 border-ios-dark-border shadow-ios-high-dark'
+          : 'bg-white/95 border-ios-light-border shadow-ios-high'
       }`
-    : `absolute top-12 right-0 w-72 rounded-xl shadow-xl border backdrop-blur-lg z-50 ${
+    : `fixed top-20 right-4 w-80 rounded-xl shadow-2xl border backdrop-blur-2xl z-50 ${
         theme === 'dark'
-          ? 'bg-ios-gray-800/95 border-ios-gray-600 text-white'
-          : 'bg-white/95 border-ios-gray-200 text-ios-gray-900'
+          ? 'bg-ios-dark-surface/95 border-ios-dark-border shadow-ios-high-dark'
+          : 'bg-white/95 border-ios-light-border shadow-ios-high'
       }`;
 
   const globeVariants = {
@@ -181,12 +198,12 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     }
   };
 
-  // Animation variants for modals [citation:7]
+  // Animation variants for modals
   const modalVariants = {
     hidden: { 
       opacity: 0, 
       scale: 0.9,
-      y: -8
+      y: -20
     },
     visible: { 
       opacity: 1, 
@@ -196,16 +213,27 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
         type: "spring",
         damping: 25,
         stiffness: 500,
-        duration: 0.2
+        duration: 0.3
       }
     },
     exit: { 
       opacity: 0, 
       scale: 0.9,
-      y: -8,
+      y: -20,
       transition: {
-        duration: 0.15
+        duration: 0.2
       }
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    searchInputRef.current?.focus();
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && searchQuery.trim() && filteredLanguages.length > 0) {
+      handleLanguageSelect(filteredLanguages[0].code);
     }
   };
 
@@ -226,13 +254,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
           initial="initial"
           animate={isLoading ? "rotating" : "initial"}
         >
-          <svg 
-            className="w-5 h-5" 
-            fill="currentColor" 
-            viewBox="0 0 30 30"
-          >
-            <path d="M 15 3 C 8.3844276 3 3 8.38443 3 15 C 3 21.61557 8.3844276 27 15 27 C 21.615572 27 27 21.61557 27 15 C 27 8.38443 21.615572 3 15 3 z M 15 5 C 15.180732 5 15.437682 5.095605 15.798828 5.515625 C 16.159974 5.935695 16.554657 6.6459131 16.888672 7.5644531 C 17.115929 8.1894125 17.304067 8.9365703 17.470703 9.7304688 C 16.703865 9.8785271 15.876434 9.9726562 15 9.9726562 C 14.123023 9.9726562 13.296096 9.8786981 12.529297 9.7304688 C 12.695933 8.9365703 12.884071 8.1894125 13.111328 7.5644531 C 13.445343 6.6459131 13.840026 5.935695 14.201172 5.515625 C 14.562318 5.095565 14.819268 5 15 5 z M 18.177734 5.5273438 C 19.440264 5.9517667 20.593097 6.6119807 21.574219 7.46875 C 21.366969 7.940571 20.863197 8.4539899 19.978516 8.9140625 C 19.80473 9.0044394 19.595144 9.080595 19.398438 9.1621094 C 19.219955 8.3461149 19.017233 7.5674091 18.767578 6.8808594 C 18.589626 6.3914913 18.39284 5.9423147 18.177734 5.5273438 z M 11.820312 5.5292969 C 11.605676 5.9436531 11.410049 6.3923842 11.232422 6.8808594 C 10.982991 7.5667918 10.781906 8.345 10.603516 9.1601562 C 10.407143 9.0787293 10.197012 9.0043297 10.023438 8.9140625 C 9.1387547 8.4539899 8.6349848 7.940571 8.4277344 7.46875 C 9.4080415 6.6129419 10.559365 5.9538637 11.820312 5.5292969 z M 7.015625 8.9882812 C 7.5214194 9.6734654 8.2551269 10.247316 9.1015625 10.6875 C 9.4599876 10.873898 9.8490096 11.03711 10.253906 11.185547 C 10.137722 12.08094 10.0662 13.022574 10.035156 14 L 5.0488281 14 C 5.2340606 12.125261 5.9434897 10.411484 7.015625 8.9882812 z M 22.986328 8.9902344 C 24.057534 10.413013 24.766034 12.12622 24.951172 14 L 19.964844 14 C 19.9338 13.022574 19.862278 12.08094 19.746094 11.185547 C 20.151204 11.037095 20.541919 10.873922 20.900391 10.6875 C 21.746291 10.247594 22.480555 9.6748411 22.986328 8.9902344 z M 12.210938 11.703125 C 13.091093 11.8684 14.02009 11.972656 15 11.972656 C 15.979105 11.972656 16.909116 11.870089 17.789062 11.705078 C 17.87699 12.437782 17.934937 13.202467 17.962891 14 L 12.037109 14 C 12.065087 13.201772 12.122886 12.4364 12.210938 11.703125 z M 5.0488281 16 L 10.035156 16 C 10.065402 16.952275 10.134934 17.869416 10.246094 18.744141 C 9.8442815 18.891786 9.4573931 19.053233 9.1015625 19.238281 C 8.2400662 19.686299 7.4949739 20.273273 6.9882812 20.974609 C 5.9317731 19.558613 5.2324623 17.858562 5.0488281 16 z M 12.037109 16 L 17.962891 16 C 17.935852 16.771422 17.882121 17.511531 17.798828 18.222656 C 16.916823 18.056457 15.984298 17.953243 15.001953 17.953125 L 15 17.953125 C 14.017654 17.953243 13.085547 18.056457 12.203125 18.222656 C 12.119818 17.511466 12.064151 16.771501 12.037109 16 z M 19.964844 16 L 24.951172 16 C 24.767538 17.858562 24.068227 19.558613 23.011719 20.974609 C 22.505026 20.273273 21.759933 19.686299 20.898438 19.238281 C 20.542607 19.053233 20.155565 18.891786 19.753906 18.744141 C 19.865066 17.869416 19.934598 16.952275 19.964844 16 z M 15 19.953125 C 15.882043 19.953125 16.713979 20.047437 17.484375 20.197266 C 17.314908 21.019302 17.122694 21.791984 16.888672 22.435547 C 16.554657 23.354087 16.159974 24.064305 15.798828 24.484375 C 15.437682 24.904435 15.180732 25 15 25 C 14.819268 25 14.562318 24.904395 14.201172 24.484375 C 13.840026 24.064305 13.445343 23.354087 13.111328 22.435547 C 12.877306 21.791984 12.685092 21.019302 12.515625 20.197266 C 13.28606 20.047611 14.118507 19.953125 15 19.953125 z M 10.589844 20.769531 C 10.77107 21.610927 10.975985 22.413943 11.232422 23.119141 C 11.410049 23.607616 11.605676 24.056347 11.820312 24.470703 C 10.547922 24.0423 9.3864034 23.374862 8.4003906 22.507812 C 8.5948402 22.022275 9.1057924 21.487923 10.021484 21.011719 C 10.191668 20.923215 10.397657 20.84955 10.589844 20.769531 z M 19.410156 20.771484 C 19.601393 20.851209 19.807085 20.923582 19.976562 21.011719 C 20.893482 21.488559 21.403801 22.02371 21.597656 22.509766 C 20.611788 23.376206 19.451682 24.042657 18.179688 24.470703 C 18.394324 24.056347 18.589951 23.607616 18.767578 23.119141 C 19.023827 22.414458 19.229004 21.612176 19.410156 20.771484 z" />
-          </svg>
+          <Globe className="w-5 h-5" />
         </motion.div>
       </motion.button>
 
@@ -240,12 +262,20 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
       <AnimatePresence>
         {isQuickAccessOpen && (
           <>
-            {/* Backdrop */}
+            {/* Enhanced Backdrop Overlay */}
             <motion.div
+              className="fixed inset-0 z-40"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40"
+              transition={{ duration: 0.2 }}
+              style={{
+                background: theme === 'dark' 
+                  ? 'radial-gradient(ellipse at center, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.6) 100%)'
+                  : 'radial-gradient(ellipse at center, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.6) 100%)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)'
+              }}
               onClick={() => {
                 setIsQuickAccessOpen(false);
                 setSearchQuery('');
@@ -262,56 +292,61 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
               className={modalClass}
             >
               <div className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-sm text-ios-gray-600 dark:text-ios-gray-400">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-base text-ios-light-text-primary dark:text-ios-dark-text-primary">
                     Quick Access
                   </h3>
-                  <span className="text-xs text-ios-gray-500 dark:text-ios-gray-500 bg-ios-gray-100 dark:bg-ios-gray-800 px-2 py-1 rounded-full">
+                  <span className="text-xs text-ios-light-text-tertiary dark:text-ios-dark-text-tertiary bg-ios-light-surface-hover dark:bg-ios-dark-surface-hover px-2 py-1 rounded-full">
                     {quickAccessLanguages.length}/5
                   </span>
                 </div>
 
                 {/* Quick Access Languages */}
-                <div className="space-y-1 mb-3">
-                  {quickAccessLanguages.map(([code, language]) => (
+                <div className="space-y-2 mb-4">
+                  {quickAccessLanguages.map((language) => (
                     <motion.button
-                      key={code}
+                      key={language.code}
                       whileHover={{ 
                         backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,122,255,0.08)'
                       }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => handleLanguageSelect(code)}
-                      className={`w-full flex items-center px-3 py-2.5 rounded-xl text-left transition-all ${
-                        currentLanguage === code 
+                      onClick={() => handleLanguageSelect(language.code)}
+                      className={`w-full flex items-center px-3 py-3 rounded-xl text-left transition-all ${
+                        currentLanguage === language.code 
                           ? theme === 'dark' 
-                            ? 'bg-blue-500 text-white shadow-sm' 
-                            : 'bg-blue-500 text-white shadow-sm'
-                          : 'hover:bg-ios-gray-100 dark:hover:bg-ios-gray-700'
+                            ? 'bg-blue-500 text-white shadow-lg' 
+                            : 'bg-blue-500 text-white shadow-lg'
+                          : 'hover:bg-ios-light-surface-hover dark:hover:bg-ios-dark-surface-hover'
                       }`}
                     >
-                      <span className="text-lg mr-3">{getLanguageFlag(code)}</span>
+                      <span className="text-xl mr-3">{getLanguageFlag(language.code)}</span>
                       <div className="flex-1">
                         <div className={`font-medium text-sm ${
-                          currentLanguage === code ? 'text-white' : 'text-ios-gray-900 dark:text-white'
+                          currentLanguage === language.code ? 'text-white' : 'text-ios-light-text-primary dark:text-ios-dark-text-primary'
                         }`}>
                           {language.nativeName}
                         </div>
                         <div className={`text-xs ${
-                          currentLanguage === code ? 'text-blue-100' : 'text-ios-gray-500 dark:text-ios-gray-400'
+                          currentLanguage === language.code ? 'text-blue-100' : 'text-ios-light-text-secondary dark:text-ios-dark-text-secondary'
                         }`}>
                           {language.name}
                         </div>
                       </div>
-                      {currentLanguage === code && (
-                        <svg className="w-4 h-4 ml-2 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
+                      {currentLanguage === language.code && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center"
+                        >
+                          <div className="w-2 h-2 rounded-full bg-white" />
+                        </motion.div>
                       )}
                     </motion.button>
                   ))}
                 </div>
 
-                {/* View All Languages Button */}
+                {/* Search All Languages Button */}
                 <motion.button
                   whileHover={{ backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }}
                   whileTap={{ scale: 0.98 }}
@@ -319,12 +354,10 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
                     setIsQuickAccessOpen(false);
                     setIsFullListOpen(true);
                   }}
-                  className="w-full flex items-center justify-center px-3 py-2.5 rounded-xl border border-ios-gray-200 dark:border-ios-gray-600 text-sm font-medium text-blue-500 dark:text-blue-400 transition-colors"
+                  className="w-full flex items-center justify-center px-3 py-3 rounded-xl border border-ios-light-border dark:border-ios-dark-border text-sm font-medium text-blue-500 dark:text-blue-400 transition-colors hover:bg-ios-light-surface-hover dark:hover:bg-ios-dark-surface-hover"
                 >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  Search All Languages ({Object.keys(availableLanguages).length})
+                  <Search className="w-4 h-4 mr-2" />
+                  Search All Languages ({languagesArray.length})
                 </motion.button>
               </div>
             </motion.div>
@@ -332,19 +365,28 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
         )}
       </AnimatePresence>
 
-      {/* FULL LANGUAGE LIST MODAL - With Search */}
+      {/* FULL LANGUAGE LIST MODAL - With Enhanced Search */}
       <AnimatePresence>
         {isFullListOpen && (
           <>
-            {/* Backdrop */}
+            {/* Enhanced Backdrop Overlay */}
             <motion.div
+              className="fixed inset-0 z-40"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40"
+              transition={{ duration: 0.2 }}
+              style={{
+                background: theme === 'dark' 
+                  ? 'radial-gradient(ellipse at center, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.6) 100%)'
+                  : 'radial-gradient(ellipse at center, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.6) 100%)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)'
+              }}
               onClick={() => {
                 setIsFullListOpen(false);
                 setSearchQuery('');
+                setIsSearchFocused(false);
               }}
             />
             
@@ -358,30 +400,45 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
               className={`${modalClass} max-h-96 overflow-hidden flex flex-col`}
             >
               {/* Search Header */}
-              <div className="p-4 border-b border-ios-gray-200 dark:border-ios-gray-600">
+              <div className="p-4 border-b border-ios-light-border dark:border-ios-dark-border">
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-4 w-4 text-ios-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+                    <Search className={`h-4 w-4 transition-colors duration-300 ${
+                      theme === 'dark' ? 'text-ios-dark-text-secondary' : 'text-ios-light-text-secondary'
+                    }`} />
                   </div>
                   <input
                     ref={searchInputRef}
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-ios-gray-100 dark:bg-ios-gray-800 border-0 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-ios-gray-700 transition-colors"
+                    onFocus={() => setIsSearchFocused(true)}
+                    onBlur={() => setIsSearchFocused(false)}
+                    onKeyPress={handleKeyPress}
+                    className={`w-full pl-10 pr-10 py-3 bg-ios-light-surface-hover dark:bg-ios-dark-surface-hover border-0 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-ios-dark-surface transition-colors duration-300 ${
+                      theme === 'dark' 
+                        ? 'text-ios-dark-text-primary placeholder-ios-dark-text-tertiary' 
+                        : 'text-ios-light-text-primary placeholder-ios-light-text-tertiary'
+                    }`}
                     placeholder="Search languages..."
+                    style={{ 
+                      caretColor: theme === 'dark' ? '#FFFFFF' : '#1C1C1E'
+                    }}
                   />
                   {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    <motion.button
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      onClick={handleClearSearch}
+                      className={`absolute inset-y-0 right-0 pr-3 flex items-center transition-colors duration-300 ${
+                        theme === 'dark'
+                          ? 'hover:text-ios-dark-text-primary text-ios-dark-text-secondary'
+                          : 'hover:text-ios-light-text-primary text-ios-light-text-secondary'
+                      }`}
                     >
-                      <svg className="h-4 w-4 text-ios-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                      <X className="h-4 w-4" />
+                    </motion.button>
                   )}
                 </div>
               </div>
@@ -389,7 +446,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
               {/* Language List */}
               <div className="flex-1 overflow-y-auto">
                 <div className="p-2">
-                  <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-ios-gray-500 dark:text-ios-gray-400 flex justify-between items-center">
+                  <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-ios-light-text-tertiary dark:text-ios-dark-text-tertiary flex justify-between items-center">
                     <span>
                       {searchQuery ? 'Search Results' : 'All Languages'}
                     </span>
@@ -399,47 +456,65 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
                   </div>
                   
                   {filteredLanguages.length === 0 ? (
-                    <div className="text-center py-8 text-ios-gray-500 dark:text-ios-gray-400">
-                      <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <p className="text-sm">No languages found</p>
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-center py-8 text-ios-light-text-tertiary dark:text-ios-dark-text-tertiary"
+                    >
+                      <div className={`w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center ${
+                        theme === 'dark' ? 'bg-ios-dark-surface-hover' : 'bg-ios-light-surface-hover'
+                      }`}>
+                        <Search className="w-6 h-6 opacity-50" />
+                      </div>
+                      <p className="text-sm font-medium">No languages found</p>
                       <p className="text-xs mt-1">Try a different search term</p>
-                    </div>
+                    </motion.div>
                   ) : (
-                    filteredLanguages.map(([code, language]) => (
+                    filteredLanguages.map((language, index) => (
                       <motion.button
-                        key={code}
+                        key={language.code}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ 
+                          delay: index * 0.02,
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 25
+                        }}
                         whileHover={{ 
                           backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,122,255,0.08)'
                         }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => handleLanguageSelect(code)}
-                        className={`w-full flex items-center px-3 py-2.5 rounded-lg text-left transition-all ${
-                          currentLanguage === code 
+                        onClick={() => handleLanguageSelect(language.code)}
+                        className={`w-full flex items-center px-3 py-3 rounded-lg text-left transition-all ${
+                          currentLanguage === language.code 
                             ? theme === 'dark' 
-                              ? 'bg-blue-500 text-white shadow-sm' 
-                              : 'bg-blue-500 text-white shadow-sm'
+                              ? 'bg-blue-500 text-white shadow-lg' 
+                              : 'bg-blue-500 text-white shadow-lg'
                             : ''
                         }`}
                       >
-                        <span className="text-lg mr-3">{getLanguageFlag(code)}</span>
+                        <span className="text-xl mr-3">{getLanguageFlag(language.code)}</span>
                         <div className="flex-1">
                           <div className={`font-medium text-sm ${
-                            currentLanguage === code ? 'text-white' : 'text-ios-gray-900 dark:text-white'
+                            currentLanguage === language.code ? 'text-white' : 'text-ios-light-text-primary dark:text-ios-dark-text-primary'
                           }`}>
                             {language.nativeName}
                           </div>
                           <div className={`text-xs ${
-                            currentLanguage === code ? 'text-blue-100' : 'text-ios-gray-500 dark:text-ios-gray-400'
+                            currentLanguage === language.code ? 'text-blue-100' : 'text-ios-light-text-secondary dark:text-ios-dark-text-secondary'
                           }`}>
                             {language.name}
                           </div>
                         </div>
-                        {currentLanguage === code && (
-                          <svg className="w-4 h-4 ml-2 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
+                        {currentLanguage === language.code && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center"
+                          >
+                            <div className="w-2 h-2 rounded-full bg-white" />
+                          </motion.div>
                         )}
                       </motion.button>
                     ))
@@ -447,16 +522,40 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
                 </div>
               </div>
 
+              {/* Footer with Keyboard Hint */}
+              {filteredLanguages.length > 0 && searchQuery && (
+                <div className={`p-3 border-t transition-all duration-300 ${
+                  theme === 'dark' 
+                    ? 'border-ios-dark-border bg-ios-dark-surface/80' 
+                    : 'border-ios-light-border bg-ios-light-surface/90'
+                }`}>
+                  <div className={`text-sm text-center transition-colors duration-300 ${
+                    theme === 'dark' ? 'text-ios-dark-text-tertiary' : 'text-ios-light-text-tertiary'
+                  }`}>
+                    Press <kbd className={`px-2 py-1 border rounded text-sm font-mono transition-all duration-300 ${
+                      theme === 'dark'
+                        ? 'bg-ios-dark-surface border-ios-dark-border text-ios-dark-text-secondary shadow-lg'
+                        : 'bg-white border-ios-light-border text-ios-light-text-secondary shadow-md'
+                    }`}>Enter</kbd> to select first result
+                  </div>
+                </div>
+              )}
+
               {/* Close Button */}
-              <div className="p-3 border-t border-ios-gray-200 dark:border-ios-gray-600">
+              <div className="p-3 border-t border-ios-light-border dark:border-ios-dark-border">
                 <motion.button
                   whileHover={{ backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => {
                     setIsFullListOpen(false);
                     setSearchQuery('');
+                    setIsSearchFocused(false);
                   }}
-                  className="w-full py-2.5 text-sm font-medium text-ios-gray-600 dark:text-ios-gray-300 rounded-xl bg-ios-gray-100 dark:bg-ios-gray-800 transition-colors"
+                  className={`w-full py-3 text-sm font-medium rounded-xl transition-colors duration-300 ${
+                    theme === 'dark' 
+                      ? 'text-ios-dark-text-secondary bg-ios-dark-surface-hover hover:bg-ios-dark-surface-hover/80' 
+                      : 'text-ios-light-text-secondary bg-ios-light-surface-hover hover:bg-ios-light-surface-hover/80'
+                  }`}
                 >
                   Close
                 </motion.button>
@@ -465,6 +564,116 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
           </>
         )}
       </AnimatePresence>
+
+      {/* Enhanced CSS for iOS-style glassmorphism */}
+      <style jsx>{`
+        /* Enhanced glassmorphism with better backdrop support */
+        .backdrop-blur-2xl {
+          backdrop-filter: blur(40px);
+          -webkit-backdrop-filter: blur(40px);
+        }
+
+        /* iOS-style color system */
+        .bg-ios-dark-surface {
+          background-color: rgba(28, 28, 30, 0.95);
+        }
+
+        .bg-ios-dark-surface\\/95 {
+          background-color: rgba(28, 28, 30, 0.95);
+        }
+
+        .bg-ios-dark-surface-hover {
+          background-color: rgba(44, 44, 46, 0.8);
+        }
+
+        .border-ios-dark-border {
+          border-color: rgba(84, 84, 88, 0.65);
+        }
+
+        .text-ios-dark-text-primary {
+          color: rgba(255, 255, 255, 0.95);
+        }
+
+        .text-ios-dark-text-secondary {
+          color: rgba(235, 235, 245, 0.8);
+        }
+
+        .text-ios-dark-text-tertiary {
+          color: rgba(235, 235, 245, 0.6);
+        }
+
+        .bg-ios-light-surface {
+          background-color: rgba(255, 255, 255, 0.98);
+        }
+
+        .bg-ios-light-surface\\/95 {
+          background-color: rgba(255, 255, 255, 0.95);
+        }
+
+        .bg-ios-light-surface-hover {
+          background-color: rgba(242, 242, 247, 0.9);
+        }
+
+        .border-ios-light-border {
+          border-color: rgba(216, 216, 220, 0.8);
+        }
+
+        .text-ios-light-text-primary {
+          color: rgba(28, 28, 30, 0.95);
+        }
+
+        .text-ios-light-text-secondary {
+          color: rgba(60, 60, 67, 0.8);
+        }
+
+        .text-ios-light-text-tertiary {
+          color: rgba(60, 60, 67, 0.6);
+        }
+
+        /* iOS shadows */
+        .shadow-ios-high {
+          box-shadow: 
+            0 24px 48px rgba(0, 0, 0, 0.18),
+            0 12px 24px rgba(0, 0, 0, 0.12),
+            0 0 0 1px rgba(0, 0, 0, 0.05);
+        }
+
+        .shadow-ios-high-dark {
+          box-shadow: 
+            0 24px 48px rgba(0, 0, 0, 0.35),
+            0 12px 24px rgba(0, 0, 0, 0.25),
+            0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Enhanced scrollbar */
+        .overflow-y-auto::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .overflow-y-auto::-webkit-scrollbar-track {
+          background: ${theme === 'dark' ? 'rgba(44, 44, 46, 0.4)' : 'rgba(242, 242, 247, 0.8)'};
+          border-radius: 3px;
+        }
+
+        .overflow-y-auto::-webkit-scrollbar-thumb {
+          background: ${theme === 'dark' ? 'rgba(120, 120, 128, 0.6)' : 'rgba(174, 174, 178, 0.6)'};
+          border-radius: 3px;
+        }
+
+        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+          background: ${theme === 'dark' ? 'rgba(150, 150, 160, 0.8)' : 'rgba(142, 142, 147, 0.8)'};
+        }
+
+        /* Input styling */
+        input {
+          color: ${theme === 'dark' ? '#FFFFFF' : '#1C1C1E'} !important;
+          caret-color: ${theme === 'dark' ? '#FFFFFF' : '#1C1C1E'} !important;
+        }
+
+        input::placeholder {
+          color: ${theme === 'dark' ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)'} !important;
+        }
+      `}</style>
     </div>
   );
 };
