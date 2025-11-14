@@ -36,6 +36,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   const longPressTimer = useRef<NodeJS.Timeout>();
   const shortPressTimer = useRef<NodeJS.Timeout>();
   const [pressProgress, setPressProgress] = useState(0);
+  const [longPressCompleted, setLongPressCompleted] = useState(false);
 
   // Detect touch device
   useEffect(() => {
@@ -77,22 +78,24 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     
     setIsLongPressing(true);
     setPressProgress(0);
+    setLongPressCompleted(false);
     
-    // Set short press timer (150ms threshold)
+    // Set short press timer (300ms threshold)
     shortPressTimer.current = setTimeout(() => {
-      // This is still a short press - wait for more time
-    }, 150);
+      // This will be a short press if long press doesn't complete
+    }, 300);
     
-    // Set long press timer (300ms total)
+    // Set long press timer (500ms total)
     longPressTimer.current = setInterval(() => {
       setPressProgress(prev => {
-        const newProgress = prev + 3.33; // Complete in 300ms
+        const newProgress = prev + 2; // Complete in 500ms
         if (newProgress >= 100) {
           clearInterval(longPressTimer.current);
           clearTimeout(shortPressTimer.current);
           setDropdownOpen(true);
           setIsLongPressing(false);
           setPressProgress(0);
+          setLongPressCompleted(true); // Mark long press as completed
           return 100;
         }
         return newProgress;
@@ -111,8 +114,10 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     
     if (shortPressTimer.current) {
       clearTimeout(shortPressTimer.current);
-      // If short press timer is still active and we haven't reached long press threshold
-      if (pressProgress < 50) { // 50% progress = 150ms threshold
+      
+      // Only trigger short press modal if long press was NOT completed
+      // and we haven't reached the long press threshold
+      if (!longPressCompleted && pressProgress < 70) { // 70% progress = 350ms threshold
         setIsShortPressModalOpen(true);
       }
       shortPressTimer.current = undefined;
@@ -120,7 +125,18 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     
     setIsLongPressing(false);
     setPressProgress(0);
+    // Don't reset longPressCompleted here - we need it for the current press cycle
   };
+
+  // Reset longPressCompleted when interaction is completely done
+  useEffect(() => {
+    if (!isLongPressing && !isDropdownOpen && !isShortPressModalOpen) {
+      const timeout = setTimeout(() => {
+        setLongPressCompleted(false);
+      }, 100);
+      return () => clearTimeout(timeout);
+    }
+  }, [isLongPressing, isDropdownOpen, isShortPressModalOpen]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -141,7 +157,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     }
   };
 
-  // FIXED: Language selection handler
+  // Language selection handler
   const handleLanguageSelect = async (languageCode: string) => {
     console.log('Language selected:', languageCode);
     const success = await changeLanguage(languageCode as LanguageCode);
@@ -179,7 +195,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   const quickAccessLanguages = getQuickAccessLanguages();
   const allLanguages = Object.entries(availableLanguages);
 
-  // Button styles based on variant - EXACTLY AS REQUESTED
+  // Button styles based on variant
   const buttonClass = effectiveVariant 
     ? `w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 ${
         theme === 'dark'
