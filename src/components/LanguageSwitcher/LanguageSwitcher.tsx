@@ -70,7 +70,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   const getFilteredLanguages = useCallback(() => {
     if (!debouncedSearchQuery.trim()) {
       // When no search, prioritize current language and common languages
-      const priorityLanguages = ['en', 'sw', 'kik', 'luo'];
+      const priorityLanguages = ['en', 'sw', 'kik', 'luo', 'maa'];
       return languagesArray.sort((a, b) => {
         if (a.code === currentLanguage) return -1;
         if (b.code === currentLanguage) return 1;
@@ -143,6 +143,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
       sw: '🇰🇪', 
       kik: '🇰🇪',
       luo: '🇰🇪',
+      maa: '🇰🇪',
       fr: '🇫🇷',
       es: '🇪🇸',
       pt: '🇵🇹',
