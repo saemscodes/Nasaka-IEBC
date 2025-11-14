@@ -28,7 +28,7 @@ const DONATION_OPTIONS: DonationOptionBase[] = [
     name: 'M-Pesa Paybill',
     type: 'paybill',
     icon: '🏦',
-    description: 'Support our civic education mission',
+    description: 'Donate via Paybill (scan QR code below)',
     paybillNumber: '4573966',
     accountNumber: '39928',
     qrImageSrc: '/assets/qr-code-donations.png',
@@ -39,7 +39,7 @@ const DONATION_OPTIONS: DonationOptionBase[] = [
         value: 'Paybill - 4573966, Account - 39928'
       },
       {
-        label: 'ZenLipa',
+        label: 'Link for Direct Payments',
         href: 'https://zenlipa.co.ke/tip/civic-education-kenya',
         onClickAction: 'open'
       }
@@ -55,7 +55,7 @@ const DONATION_OPTIONS: DonationOptionBase[] = [
   },
   {
     id: 'zenlipa_mpesa',
-    name: 'ZenLipa',
+    name: 'Use Your Card or Other M-Pesa contribution method',
     type: 'link',
     icon: '🔗',
     url: 'https://zenlipa.co.ke/tip/civic-education-kenya',
@@ -369,7 +369,7 @@ const DonationWidget: React.FC<DonationWidgetProps> = ({
             </div>
             <div className="p-3">
               <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 leading-relaxed">
-                Your support helps us continue our mission of civic education in Kenya.
+                Your support helps us continue our mission of civic education in Kenya & advances across the globe.
               </p>
               
               <div className="space-y-3">
