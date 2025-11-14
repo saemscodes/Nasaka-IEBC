@@ -11,6 +11,23 @@ interface LanguageSwitcherProps {
   className?: string;
 }
 
+// Debounce hook for search optimization [citation:8]
+const useDebounce = (value: string, delay: number) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
+
 const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ 
   variant = 'splash', 
   className = '' 
@@ -19,9 +36,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     currentLanguage,
     availableLanguages,
     changeLanguage,
-    isLoading,
-    isDropdownOpen,
-    setDropdownOpen
+    isLoading
   } = useLanguage();
   
   const { theme } = useTheme();
@@ -29,146 +44,87 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   const location = useLocation();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   
-  const [isLongPressing, setIsLongPressing] = useState(false);
-  const [isShortPressModalOpen, setIsShortPressModalOpen] = useState(false);
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
-  const longPressTimer = useRef<NodeJS.Timeout>();
-  const shortPressTimer = useRef<NodeJS.Timeout>();
-  const [pressProgress, setPressProgress] = useState(0);
-  const [longPressCompleted, setLongPressCompleted] = useState(false);
-
-  // Detect touch device
-  useEffect(() => {
-    const checkTouchDevice = () => {
-      setIsTouchDevice(('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
-    };
-    checkTouchDevice();
-    window.addEventListener('resize', checkTouchDevice);
-    return () => window.removeEventListener('resize', checkTouchDevice);
-  }, []);
+  const [isQuickAccessOpen, setIsQuickAccessOpen] = useState(false);
+  const [isFullListOpen, setIsFullListOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300); // 300ms debounce delay [citation:8]
 
   // Determine variant based on current route if not explicitly set
   const effectiveVariant = variant === 'splash' 
     ? location.pathname === '/iebc-office' || location.pathname === '/nasaka-iebc'
     : variant === 'map';
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside [citation:6]
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
           buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
-        setDropdownOpen(false);
-        setIsShortPressModalOpen(false);
+        setIsQuickAccessOpen(false);
+        setIsFullListOpen(false);
+        setSearchQuery('');
       }
     };
 
-    if (isDropdownOpen || isShortPressModalOpen) {
+    if (isQuickAccessOpen || isFullListOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isDropdownOpen, isShortPressModalOpen, setDropdownOpen]);
+  }, [isQuickAccessOpen, isFullListOpen]);
 
-  // Long press handlers - MOBILE ONLY
-  const handleMouseDown = () => {
-    if (!isTouchDevice) return;
-    
-    setIsLongPressing(true);
-    setPressProgress(0);
-    setLongPressCompleted(false);
-    
-    // Set short press timer (300ms threshold)
-    shortPressTimer.current = setTimeout(() => {
-      // This will be a short press if long press doesn't complete
-    }, 300);
-    
-    // Set long press timer (500ms total)
-    longPressTimer.current = setInterval(() => {
-      setPressProgress(prev => {
-        const newProgress = prev + 2; // Complete in 500ms
-        if (newProgress >= 100) {
-          clearInterval(longPressTimer.current);
-          clearTimeout(shortPressTimer.current);
-          setDropdownOpen(true);
-          setIsLongPressing(false);
-          setPressProgress(0);
-          setLongPressCompleted(true); // Mark long press as completed
-          return 100;
-        }
-        return newProgress;
-      });
-    }, 10);
-  };
-
-  const handleMouseUp = () => {
-    if (!isTouchDevice) return;
-    
-    // Clear both timers
-    if (longPressTimer.current) {
-      clearInterval(longPressTimer.current);
-      longPressTimer.current = undefined;
-    }
-    
-    if (shortPressTimer.current) {
-      clearTimeout(shortPressTimer.current);
-      
-      // Only trigger short press modal if long press was NOT completed
-      // and we haven't reached the long press threshold
-      if (!longPressCompleted && pressProgress < 70) { // 70% progress = 350ms threshold
-        setIsShortPressModalOpen(true);
-      }
-      shortPressTimer.current = undefined;
-    }
-    
-    setIsLongPressing(false);
-    setPressProgress(0);
-    // Don't reset longPressCompleted here - we need it for the current press cycle
-  };
-
-  // Reset longPressCompleted when interaction is completely done
+  // Focus search input when full list opens
   useEffect(() => {
-    if (!isLongPressing && !isDropdownOpen && !isShortPressModalOpen) {
-      const timeout = setTimeout(() => {
-        setLongPressCompleted(false);
+    if (isFullListOpen && searchInputRef.current) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
       }, 100);
-      return () => clearTimeout(timeout);
     }
-  }, [isLongPressing, isDropdownOpen, isShortPressModalOpen]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (longPressTimer.current) {
-        clearInterval(longPressTimer.current);
-      }
-      if (shortPressTimer.current) {
-        clearTimeout(shortPressTimer.current);
-      }
-    };
-  }, []);
-
-  // Desktop click handler
-  const handleDesktopClick = () => {
-    if (!isTouchDevice) {
-      setIsShortPressModalOpen(true);
-    }
-  };
+  }, [isFullListOpen]);
 
   // Language selection handler
   const handleLanguageSelect = async (languageCode: string) => {
-    console.log('Language selected:', languageCode);
     const success = await changeLanguage(languageCode as LanguageCode);
     if (success) {
-      console.log('Language selection successful');
-      setDropdownOpen(false);
-      setIsShortPressModalOpen(false);
-    } else {
-      console.error('Language selection failed');
+      setIsQuickAccessOpen(false);
+      setIsFullListOpen(false);
+      setSearchQuery('');
     }
   };
+
+  // Get top 5 most used languages for quick access (prioritizing current language)
+  const getQuickAccessLanguages = () => {
+    const languagePriority = [currentLanguage, 'en', 'sw', 'kik', 'luo'];
+    const uniquePriority = [...new Set(languagePriority)];
+    
+    return Object.entries(availableLanguages)
+      .sort(([a], [b]) => {
+        const aIndex = uniquePriority.indexOf(a);
+        const bIndex = uniquePriority.indexOf(b);
+        return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
+      })
+      .slice(0, 5);
+  };
+
+  // Filter languages based on search query [citation:3]
+  const getFilteredLanguages = () => {
+    if (!debouncedSearchQuery) {
+      return Object.entries(availableLanguages);
+    }
+
+    const query = debouncedSearchQuery.toLowerCase();
+    return Object.entries(availableLanguages).filter(([code, language]) => 
+      language.name.toLowerCase().includes(query) || 
+      language.nativeName.toLowerCase().includes(query) ||
+      code.toLowerCase().includes(query)
+    );
+  };
+
+  const quickAccessLanguages = getQuickAccessLanguages();
+  const filteredLanguages = getFilteredLanguages();
 
   const getLanguageFlag = (code: string) => {
     const flags: Record<string, string> = {
@@ -180,22 +136,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     return flags[code] || '🌐';
   };
 
-  // Get top 5 most used languages for quick access
-  const getQuickAccessLanguages = () => {
-    const languagePriority = ['en', 'sw', 'kik', 'luo'];
-    return Object.entries(availableLanguages)
-      .sort(([a], [b]) => {
-        const aIndex = languagePriority.indexOf(a);
-        const bIndex = languagePriority.indexOf(b);
-        return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
-      })
-      .slice(0, 5);
-  };
-
-  const quickAccessLanguages = getQuickAccessLanguages();
-  const allLanguages = Object.entries(availableLanguages);
-
-  // Button styles based on variant
+  // Button styles based on variant - iOS inspired design
   const buttonClass = effectiveVariant 
     ? `w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 ${
         theme === 'dark'
@@ -208,14 +149,14 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
           : 'bg-white shadow-ios-gray-200/50 border-ios-gray-200'
       }`;
 
-  // Modal styles based on variant
+  // Modal styles based on variant - iOS inspired design
   const modalClass = effectiveVariant
-    ? `absolute top-12 right-0 min-w-64 rounded-2xl shadow-xl border backdrop-blur-lg z-50 ${
+    ? `absolute top-12 right-0 w-72 rounded-2xl shadow-xl border backdrop-blur-lg z-50 ${
         theme === 'dark'
           ? 'bg-ios-gray-800/95 border-ios-gray-600 text-white'
           : 'bg-white/95 border-ios-gray-200 text-ios-gray-900'
       }`
-    : `absolute top-12 right-0 min-w-64 rounded-lg shadow-xl border backdrop-blur-lg z-50 ${
+    : `absolute top-12 right-0 w-72 rounded-xl shadow-xl border backdrop-blur-lg z-50 ${
         theme === 'dark'
           ? 'bg-ios-gray-800/95 border-ios-gray-600 text-white'
           : 'bg-white/95 border-ios-gray-200 text-ios-gray-900'
@@ -240,34 +181,42 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     }
   };
 
+  // Animation variants for modals [citation:7]
+  const modalVariants = {
+    hidden: { 
+      opacity: 0, 
+      scale: 0.9,
+      y: -8
+    },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        damping: 25,
+        stiffness: 500,
+        duration: 0.2
+      }
+    },
+    exit: { 
+      opacity: 0, 
+      scale: 0.9,
+      y: -8,
+      transition: {
+        duration: 0.15
+      }
+    }
+  };
+
   return (
     <div className={`relative ${className}`}>
-      {/* Long press progress indicator - MOBILE ONLY */}
-      <AnimatePresence>
-        {isTouchDevice && isLongPressing && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            className="absolute -inset-4 rounded-full pointer-events-none z-10"
-            style={{
-              background: `conic-gradient(#007AFF ${pressProgress}%, transparent ${pressProgress}%)`
-            }}
-          />
-        )}
-      </AnimatePresence>
-
       {/* Main language button */}
       <motion.button
         ref={buttonRef}
         whileHover="hover"
         whileTap={{ scale: 0.95 }}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onTouchStart={handleMouseDown}
-        onTouchEnd={handleMouseUp}
-        onClick={handleDesktopClick}
+        onClick={() => setIsQuickAccessOpen(true)}
         className={buttonClass}
         disabled={isLoading}
         aria-label={t('common.changeLanguage', 'Change language')}
@@ -276,9 +225,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
           variants={globeVariants}
           initial="initial"
           animate={isLoading ? "rotating" : "initial"}
-          className="relative"
         >
-          {/* NEW LANGUAGE SVG */}
           <svg 
             className="w-5 h-5" 
             fill="currentColor" 
@@ -289,9 +236,9 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
         </motion.div>
       </motion.button>
 
-      {/* SHORT PRESS MODAL - Quick Access & Donation Prompt */}
+      {/* QUICK ACCESS MODAL - 5 Languages */}
       <AnimatePresence>
-        {isShortPressModalOpen && (
+        {isQuickAccessOpen && (
           <>
             {/* Backdrop */}
             <motion.div
@@ -299,71 +246,64 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-40"
-              onClick={() => setIsShortPressModalOpen(false)}
+              onClick={() => {
+                setIsQuickAccessOpen(false);
+                setSearchQuery('');
+              }}
             />
             
             {/* Quick Access Modal */}
             <motion.div
               ref={dropdownRef}
-              initial={{ opacity: 0, y: -10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              variants={modalVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
               className={modalClass}
             >
               <div className="p-4">
-                {/* Donation/App Promotion Section */}
-                <div className="text-center mb-4">
-                  <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                  </div>
-                  <h3 className="font-semibold text-sm mb-1">Support NASAKA IEBC</h3>
-                  <p className="text-xs opacity-70 mb-3">Help us improve civic education in Kenya</p>
-                  
-                  {isTouchDevice && (
-                    <motion.div 
-                      className="flex items-center justify-center space-x-2 text-xs bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 rounded-lg py-2 px-3 mb-3"
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.2 }}
-                    >
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 5.5V7H9V5.5L3 7V9L9 10.5V12L5 13V15L9 13.5V15H15V13.5L21 15V13L15 11.5V10.5L21 9Z"/>
-                      </svg>
-                      <span>Long press for all languages</span>
-                    </motion.div>
-                  )}
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-sm text-ios-gray-600 dark:text-ios-gray-400">
+                    Quick Access
+                  </h3>
+                  <span className="text-xs text-ios-gray-500 dark:text-ios-gray-500 bg-ios-gray-100 dark:bg-ios-gray-800 px-2 py-1 rounded-full">
+                    {quickAccessLanguages.length}/5
+                  </span>
                 </div>
 
                 {/* Quick Access Languages */}
-                <div className="mb-3">
-                  <div className="px-2 py-1 text-xs font-semibold uppercase tracking-wider opacity-60 mb-2">
-                    Quick Access
-                  </div>
-                  
+                <div className="space-y-1 mb-3">
                   {quickAccessLanguages.map(([code, language]) => (
                     <motion.button
                       key={code}
-                      whileHover={{ backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}
+                      whileHover={{ 
+                        backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,122,255,0.08)'
+                      }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handleLanguageSelect(code)}
-                      className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors ${
+                      className={`w-full flex items-center px-3 py-2.5 rounded-xl text-left transition-all ${
                         currentLanguage === code 
                           ? theme === 'dark' 
-                            ? 'bg-blue-600 text-white' 
-                            : 'bg-blue-100 text-blue-700'
-                          : ''
+                            ? 'bg-blue-500 text-white shadow-sm' 
+                            : 'bg-blue-500 text-white shadow-sm'
+                          : 'hover:bg-ios-gray-100 dark:hover:bg-ios-gray-700'
                       }`}
                     >
                       <span className="text-lg mr-3">{getLanguageFlag(code)}</span>
                       <div className="flex-1">
-                        <div className="font-medium text-sm">{language.nativeName}</div>
-                        <div className="text-xs opacity-70">{language.name}</div>
+                        <div className={`font-medium text-sm ${
+                          currentLanguage === code ? 'text-white' : 'text-ios-gray-900 dark:text-white'
+                        }`}>
+                          {language.nativeName}
+                        </div>
+                        <div className={`text-xs ${
+                          currentLanguage === code ? 'text-blue-100' : 'text-ios-gray-500 dark:text-ios-gray-400'
+                        }`}>
+                          {language.name}
+                        </div>
                       </div>
                       {currentLanguage === code && (
-                        <svg className="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-4 h-4 ml-2 text-white" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       )}
@@ -371,38 +311,20 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
                   ))}
                 </div>
 
-                {/* See All Languages Button */}
-                {allLanguages.length > 5 && (
-                  <motion.button
-                    whileHover={{ backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => {
-                      setIsShortPressModalOpen(false);
-                      setDropdownOpen(true);
-                    }}
-                    className="w-full flex items-center justify-center px-3 py-2 rounded-lg border border-current border-opacity-20 text-sm font-medium transition-colors"
-                  >
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                    See All Languages ({allLanguages.length})
-                  </motion.button>
-                )}
-
-                {/* Donation Button */}
+                {/* View All Languages Button */}
                 <motion.button
-                  whileHover={{ backgroundColor: theme === 'dark' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)' }}
+                  whileHover={{ backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => {
-                    window.open('https://civicedkenya.vercel.app/donate', '_blank');
-                    setIsShortPressModalOpen(false);
+                    setIsQuickAccessOpen(false);
+                    setIsFullListOpen(true);
                   }}
-                  className="w-full flex items-center justify-center px-3 py-2 rounded-lg bg-green-500 text-white text-sm font-medium mt-2 transition-colors hover:bg-green-600"
+                  className="w-full flex items-center justify-center px-3 py-2.5 rounded-xl border border-ios-gray-200 dark:border-ios-gray-600 text-sm font-medium text-blue-500 dark:text-blue-400 transition-colors"
                 >
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                  Support Our Mission
+                  Search All Languages ({Object.keys(availableLanguages).length})
                 </motion.button>
               </div>
             </motion.div>
@@ -410,9 +332,9 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
         )}
       </AnimatePresence>
 
-      {/* FULL LANGUAGE DROPDOWN - All Languages */}
+      {/* FULL LANGUAGE LIST MODAL - With Search */}
       <AnimatePresence>
-        {isDropdownOpen && (
+        {isFullListOpen && (
           <>
             {/* Backdrop */}
             <motion.div
@@ -420,58 +342,124 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-40"
-              onClick={() => setDropdownOpen(false)}
+              onClick={() => {
+                setIsFullListOpen(false);
+                setSearchQuery('');
+              }}
             />
             
-            {/* Full Language Dropdown */}
+            {/* Full Language List Modal */}
             <motion.div
               ref={dropdownRef}
-              initial={{ opacity: 0, y: -10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
-              className={`${modalClass} max-h-80 overflow-y-auto`}
+              variants={modalVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className={`${modalClass} max-h-96 overflow-hidden flex flex-col`}
             >
-              <div className="p-2">
-                <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider opacity-60 flex justify-between items-center">
-                  <span>All Languages</span>
-                  <span className="text-xs opacity-50">{allLanguages.length} languages</span>
-                </div>
-                
-                {allLanguages.map(([code, language]) => (
-                  <motion.button
-                    key={code}
-                    whileHover={{ backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleLanguageSelect(code)}
-                    className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors ${
-                      currentLanguage === code 
-                        ? theme === 'dark' 
-                          ? 'bg-blue-600 text-white' 
-                          : 'bg-blue-100 text-blue-700'
-                        : ''
-                    }`}
-                  >
-                    <span className="text-lg mr-3">{getLanguageFlag(code)}</span>
-                    <div className="flex-1">
-                      <div className="font-medium text-sm">{language.nativeName}</div>
-                      <div className="text-xs opacity-70">{language.name}</div>
-                    </div>
-                    {currentLanguage === code && (
-                      <svg className="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              {/* Search Header */}
+              <div className="p-4 border-b border-ios-gray-200 dark:border-ios-gray-600">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-4 w-4 text-ios-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-ios-gray-100 dark:bg-ios-gray-800 border-0 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-ios-gray-700 transition-colors"
+                    placeholder="Search languages..."
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    >
+                      <svg className="h-4 w-4 text-ios-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
-                    )}
-                  </motion.button>
-                ))}
-
-                {/* Language hint based on device */}
-                <div className="px-3 py-2 mt-2 text-xs opacity-50 border-t border-current border-opacity-20">
-                  {isTouchDevice 
-                    ? 'Long press for quick access to all languages'
-                    : 'Click for quick access to common languages'
-                  }
+                    </button>
+                  )}
                 </div>
+              </div>
+
+              {/* Language List */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="p-2">
+                  <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-ios-gray-500 dark:text-ios-gray-400 flex justify-between items-center">
+                    <span>
+                      {searchQuery ? 'Search Results' : 'All Languages'}
+                    </span>
+                    <span className="text-xs opacity-70">
+                      {filteredLanguages.length} languages
+                    </span>
+                  </div>
+                  
+                  {filteredLanguages.length === 0 ? (
+                    <div className="text-center py-8 text-ios-gray-500 dark:text-ios-gray-400">
+                      <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-sm">No languages found</p>
+                      <p className="text-xs mt-1">Try a different search term</p>
+                    </div>
+                  ) : (
+                    filteredLanguages.map(([code, language]) => (
+                      <motion.button
+                        key={code}
+                        whileHover={{ 
+                          backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,122,255,0.08)'
+                        }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => handleLanguageSelect(code)}
+                        className={`w-full flex items-center px-3 py-2.5 rounded-lg text-left transition-all ${
+                          currentLanguage === code 
+                            ? theme === 'dark' 
+                              ? 'bg-blue-500 text-white shadow-sm' 
+                              : 'bg-blue-500 text-white shadow-sm'
+                            : ''
+                        }`}
+                      >
+                        <span className="text-lg mr-3">{getLanguageFlag(code)}</span>
+                        <div className="flex-1">
+                          <div className={`font-medium text-sm ${
+                            currentLanguage === code ? 'text-white' : 'text-ios-gray-900 dark:text-white'
+                          }`}>
+                            {language.nativeName}
+                          </div>
+                          <div className={`text-xs ${
+                            currentLanguage === code ? 'text-blue-100' : 'text-ios-gray-500 dark:text-ios-gray-400'
+                          }`}>
+                            {language.name}
+                          </div>
+                        </div>
+                        {currentLanguage === code && (
+                          <svg className="w-4 h-4 ml-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </motion.button>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <div className="p-3 border-t border-ios-gray-200 dark:border-ios-gray-600">
+                <motion.button
+                  whileHover={{ backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    setIsFullListOpen(false);
+                    setSearchQuery('');
+                  }}
+                  className="w-full py-2.5 text-sm font-medium text-ios-gray-600 dark:text-ios-gray-300 rounded-xl bg-ios-gray-100 dark:bg-ios-gray-800 transition-colors"
+                >
+                  Close
+                </motion.button>
               </div>
             </motion.div>
           </>
