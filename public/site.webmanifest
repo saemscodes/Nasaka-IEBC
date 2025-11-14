@@ -39,12 +39,6 @@
       "purpose": "any"
     },
     {
-      "src": "/nasaka-logo-round-blacknblue.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
       "src": "/nasaka-logo-round-black.png",
       "sizes": "512x512",
       "type": "image/png",
