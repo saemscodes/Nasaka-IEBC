@@ -1,4 +1,5 @@
 // src/App.tsx
+import i18n from "@/i18n";
 import React, { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -314,5 +315,6 @@ const App = () => {
     </ThemeProvider>
   </QueryClientProvider>
 );
+};
 
 export default App;
