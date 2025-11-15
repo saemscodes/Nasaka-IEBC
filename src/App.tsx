@@ -299,7 +299,7 @@ const App = () => {
     document.documentElement.dir = dir;
   }, [i18n.language]);
 
-  
+  return (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <LanguageProvider>
