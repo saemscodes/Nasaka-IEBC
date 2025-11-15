@@ -1,5 +1,5 @@
 // src/App.tsx
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -292,7 +292,14 @@ const AppContent = () => {
   );
 };
 
-const App = () => (
+const App = () => {
+  // 🔥 RTL direction switch - this is the core fix
+  useEffect(() => {
+    const dir = i18n.language === "ar" ? "rtl" : "ltr";
+    document.documentElement.dir = dir;
+  }, [i18n.language]);
+
+  
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <LanguageProvider>
