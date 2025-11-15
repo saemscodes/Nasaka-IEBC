@@ -145,6 +145,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
       luo: '🇰🇪',
       maa: '🇰🇪',
       mer: '🇰🇪',
+      kam: '🇰🇪',
       fr: '🇫🇷',
       es: '🇪🇸',
       pt: '🇵🇹',
