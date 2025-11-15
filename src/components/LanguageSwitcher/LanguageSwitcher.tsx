@@ -162,27 +162,27 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     ? // Splash variant - rounded-full (existing behavior)
       `w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 ${
         theme === 'dark'
-          ? 'bg-ios-dark-surface shadow-ios-high-dark border-ios-dark-border'
-          : 'bg-white shadow-ios-high border-ios-light-border'
+          ? 'bg-[#1C1C1E] shadow-[0_24px_48px_rgba(0,0,0,0.35),0_12px_24px_rgba(0,0,0,0.25),0_0_0_1px_rgba(255,255,255,0.1)] border-[#38383A]'
+          : 'bg-white shadow-[0_24px_48px_rgba(0,0,0,0.18),0_12px_24px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.05)] border-[#D8D8DC]'
       }`
     : // Map variant - rounded-lg to match other map controls
       `w-10 h-10 rounded-lg shadow-lg border flex items-center justify-center transition-all duration-300 ${
         theme === 'dark'
-          ? 'bg-ios-dark-surface shadow-ios-high-dark border-ios-dark-border'
-          : 'bg-white shadow-ios-high border-ios-light-border'
+          ? 'bg-[#1C1C1E] shadow-[0_24px_48px_rgba(0,0,0,0.35),0_12px_24px_rgba(0,0,0,0.25),0_0_0_1px_rgba(255,255,255,0.1)] border-[#38383A]'
+          : 'bg-white shadow-[0_24px_48px_rgba(0,0,0,0.18),0_12px_24px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.05)] border-[#D8D8DC]'
       }`;
 
   // Modal styles based on variant
   const modalClass = effectiveVariant
     ? `fixed top-20 right-4 w-80 rounded-2xl shadow-2xl border backdrop-blur-2xl z-50 ${
         theme === 'dark'
-          ? 'bg-ios-dark-surface/95 border-ios-dark-border shadow-ios-high-dark'
-          : 'bg-white/95 border-ios-light-border shadow-ios-high'
+          ? 'bg-[#1C1C1E]/95 border-[#38383A] shadow-[0_24px_48px_rgba(0,0,0,0.35),0_12px_24px_rgba(0,0,0,0.25),0_0_0_1px_rgba(255,255,255,0.1)]'
+          : 'bg-white/95 border-[#D8D8DC] shadow-[0_24px_48px_rgba(0,0,0,0.18),0_12px_24px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.05)]'
       }`
     : `fixed top-20 right-4 w-80 rounded-xl shadow-2xl border backdrop-blur-2xl z-50 ${
         theme === 'dark'
-          ? 'bg-ios-dark-surface/95 border-ios-dark-border shadow-ios-high-dark'
-          : 'bg-white/95 border-ios-light-border shadow-ios-high'
+          ? 'bg-[#1C1C1E]/95 border-[#38383A] shadow-[0_24px_48px_rgba(0,0,0,0.35),0_12px_24px_rgba(0,0,0,0.25),0_0_0_1px_rgba(255,255,255,0.1)]'
+          : 'bg-white/95 border-[#D8D8DC] shadow-[0_24px_48px_rgba(0,0,0,0.18),0_12px_24px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.05)]'
       }`;
 
   const globeVariants = {
@@ -243,6 +243,18 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     }
   };
 
+  // Text colors based on theme
+  const textPrimary = theme === 'dark' ? 'text-[#FFFFFF]' : 'text-[#1C1C1E]';
+  const textSecondary = theme === 'dark' ? 'text-[#EBEBF5]' : 'text-[#3C3C43]';
+  const textTertiary = theme === 'dark' ? 'text-[#EBEBF5]' : 'text-[#3C3C43]';
+  
+  // Background colors based on theme
+  const bgSurfaceHover = theme === 'dark' ? 'bg-[#2C2C2E]' : 'bg-[#F2F2F7]';
+  const bgSurface = theme === 'dark' ? 'bg-[#1C1C1E]' : 'bg-white';
+  
+  // Border colors based on theme
+  const borderColor = theme === 'dark' ? 'border-[#38383A]' : 'border-[#D8D8DC]';
+
   return (
     <div className={`relative ${className}`}>
       {/* Main language button */}
@@ -260,7 +272,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
           initial="initial"
           animate={isLoading ? "rotating" : "initial"}
         >
-          <Globe className="w-5 h-5" />
+          <Globe className={`w-5 h-5 ${theme === 'dark' ? 'text-[#FFFFFF]' : 'text-[#1C1C1E]'}`} />
         </motion.div>
       </motion.button>
 
@@ -300,10 +312,10 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
               <div className="p-4">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-base text-ios-light-text-primary dark:text-ios-dark-text-primary">
+                  <h3 className={`font-semibold text-base ${textPrimary}`}>
                     Quick Access
                   </h3>
-                  <span className="text-xs text-ios-light-text-tertiary dark:text-ios-dark-text-tertiary bg-ios-light-surface-hover dark:bg-ios-dark-surface-hover px-2 py-1 rounded-full">
+                  <span className={`text-xs ${textTertiary} ${bgSurfaceHover} px-2 py-1 rounded-full`}>
                     {quickAccessLanguages.length}/5
                   </span>
                 </div>
@@ -323,18 +335,18 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
                           ? theme === 'dark' 
                             ? 'bg-blue-500 text-white shadow-lg' 
                             : 'bg-blue-500 text-white shadow-lg'
-                          : 'hover:bg-ios-light-surface-hover dark:hover:bg-ios-dark-surface-hover'
+                          : `hover:${bgSurfaceHover}`
                       }`}
                     >
                       <span className="text-xl mr-3">{getLanguageFlag(language.code)}</span>
                       <div className="flex-1">
                         <div className={`font-medium text-sm ${
-                          currentLanguage === language.code ? 'text-white' : 'text-ios-light-text-primary dark:text-ios-dark-text-primary'
+                          currentLanguage === language.code ? 'text-white' : textPrimary
                         }`}>
                           {language.nativeName}
                         </div>
                         <div className={`text-xs ${
-                          currentLanguage === language.code ? 'text-blue-100' : 'text-ios-light-text-secondary dark:text-ios-dark-text-secondary'
+                          currentLanguage === language.code ? 'text-blue-100' : textSecondary
                         }`}>
                           {language.name}
                         </div>
@@ -360,7 +372,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
                     setIsQuickAccessOpen(false);
                     setIsFullListOpen(true);
                   }}
-                  className="w-full flex items-center justify-center px-3 py-3 rounded-xl border border-ios-light-border dark:border-ios-dark-border text-sm font-medium text-blue-500 dark:text-blue-400 transition-colors hover:bg-ios-light-surface-hover dark:hover:bg-ios-dark-surface-hover"
+                  className={`w-full flex items-center justify-center px-3 py-3 rounded-xl ${borderColor} text-sm font-medium text-blue-500 dark:text-blue-400 transition-colors hover:${bgSurfaceHover}`}
                 >
                   <Search className="w-4 h-4 mr-2" />
                   Search All Languages ({languagesArray.length})
@@ -406,12 +418,10 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
               className={`${modalClass} max-h-96 overflow-hidden flex flex-col`}
             >
               {/* Search Header */}
-              <div className="p-4 border-b border-ios-light-border dark:border-ios-dark-border">
+              <div className={`p-4 border-b ${borderColor}`}>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className={`h-4 w-4 transition-colors duration-300 ${
-                      theme === 'dark' ? 'text-ios-dark-text-secondary' : 'text-ios-light-text-secondary'
-                    }`} />
+                    <Search className={`h-4 w-4 transition-colors duration-300 ${textSecondary}`} />
                   </div>
                   <input
                     ref={searchInputRef}
@@ -421,11 +431,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
                     onFocus={() => setIsSearchFocused(true)}
                     onBlur={() => setIsSearchFocused(false)}
                     onKeyPress={handleKeyPress}
-                    className={`w-full pl-10 pr-10 py-3 bg-ios-light-surface-hover dark:bg-ios-dark-surface-hover border-0 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-ios-dark-surface transition-colors duration-300 ${
-                      theme === 'dark' 
-                        ? 'text-ios-dark-text-primary placeholder-ios-dark-text-tertiary' 
-                        : 'text-ios-light-text-primary placeholder-ios-light-text-tertiary'
-                    }`}
+                    className={`w-full pl-10 pr-10 py-3 ${bgSurfaceHover} border-0 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-[#1C1C1E] transition-colors duration-300 ${textPrimary} placeholder-${textTertiary}`}
                     placeholder="Search languages..."
                     style={{ 
                       caretColor: theme === 'dark' ? '#FFFFFF' : '#1C1C1E'
@@ -437,11 +443,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ scale: 0, opacity: 0 }}
                       onClick={handleClearSearch}
-                      className={`absolute inset-y-0 right-0 pr-3 flex items-center transition-colors duration-300 ${
-                        theme === 'dark'
-                          ? 'hover:text-ios-dark-text-primary text-ios-dark-text-secondary'
-                          : 'hover:text-ios-light-text-primary text-ios-light-text-secondary'
-                      }`}
+                      className={`absolute inset-y-0 right-0 pr-3 flex items-center transition-colors duration-300 ${textSecondary} hover:${textPrimary}`}
                     >
                       <X className="h-4 w-4" />
                     </motion.button>
@@ -452,7 +454,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
               {/* Language List */}
               <div className="flex-1 overflow-y-auto">
                 <div className="p-2">
-                  <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-ios-light-text-tertiary dark:text-ios-dark-text-tertiary flex justify-between items-center">
+                  <div className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider ${textTertiary} flex justify-between items-center`}>
                     <span>
                       {searchQuery ? 'Search Results' : 'All Languages'}
                     </span>
@@ -465,11 +467,9 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="text-center py-8 text-ios-light-text-tertiary dark:text-ios-dark-text-tertiary"
+                      className={`text-center py-8 ${textTertiary}`}
                     >
-                      <div className={`w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center ${
-                        theme === 'dark' ? 'bg-ios-dark-surface-hover' : 'bg-ios-light-surface-hover'
-                      }`}>
+                      <div className={`w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center ${bgSurfaceHover}`}>
                         <Search className="w-6 h-6 opacity-50" />
                       </div>
                       <p className="text-sm font-medium">No languages found</p>
@@ -503,12 +503,12 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
                         <span className="text-xl mr-3">{getLanguageFlag(language.code)}</span>
                         <div className="flex-1">
                           <div className={`font-medium text-sm ${
-                            currentLanguage === language.code ? 'text-white' : 'text-ios-light-text-primary dark:text-ios-dark-text-primary'
+                            currentLanguage === language.code ? 'text-white' : textPrimary
                           }`}>
                             {language.nativeName}
                           </div>
                           <div className={`text-xs ${
-                            currentLanguage === language.code ? 'text-blue-100' : 'text-ios-light-text-secondary dark:text-ios-dark-text-secondary'
+                            currentLanguage === language.code ? 'text-blue-100' : textSecondary
                           }`}>
                             {language.name}
                           </div>
@@ -530,25 +530,19 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
 
               {/* Footer with Keyboard Hint */}
               {filteredLanguages.length > 0 && searchQuery && (
-                <div className={`p-3 border-t transition-all duration-300 ${
-                  theme === 'dark' 
-                    ? 'border-ios-dark-border bg-ios-dark-surface/80' 
-                    : 'border-ios-light-border bg-ios-light-surface/90'
-                }`}>
-                  <div className={`text-sm text-center transition-colors duration-300 ${
-                    theme === 'dark' ? 'text-ios-dark-text-tertiary' : 'text-ios-light-text-tertiary'
-                  }`}>
+                <div className={`p-3 border-t transition-all duration-300 ${borderColor} ${theme === 'dark' ? 'bg-[#1C1C1E]/80' : 'bg-white/90'}`}>
+                  <div className={`text-sm text-center transition-colors duration-300 ${textTertiary}`}>
                     Press <kbd className={`px-2 py-1 border rounded text-sm font-mono transition-all duration-300 ${
                       theme === 'dark'
-                        ? 'bg-ios-dark-surface border-ios-dark-border text-ios-dark-text-secondary shadow-lg'
-                        : 'bg-white border-ios-light-border text-ios-light-text-secondary shadow-md'
+                        ? 'bg-[#1C1C1E] border-[#38383A] text-[#EBEBF5] shadow-lg'
+                        : 'bg-white border-[#D8D8DC] text-[#3C3C43] shadow-md'
                     }`}>Enter</kbd> to select first result
                   </div>
                 </div>
               )}
 
               {/* Close Button */}
-              <div className="p-3 border-t border-ios-light-border dark:border-ios-dark-border">
+              <div className={`p-3 border-t ${borderColor}`}>
                 <motion.button
                   whileHover={{ backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }}
                   whileTap={{ scale: 0.98 }}
@@ -557,11 +551,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
                     setSearchQuery('');
                     setIsSearchFocused(false);
                   }}
-                  className={`w-full py-3 text-sm font-medium rounded-xl transition-colors duration-300 ${
-                    theme === 'dark' 
-                      ? 'text-ios-dark-text-secondary bg-ios-dark-surface-hover hover:bg-ios-dark-surface-hover/80' 
-                      : 'text-ios-light-text-secondary bg-ios-light-surface-hover hover:bg-ios-light-surface-hover/80'
-                  }`}
+                  className={`w-full py-3 text-sm font-medium rounded-xl transition-colors duration-300 ${textSecondary} ${bgSurfaceHover} hover:opacity-80`}
                 >
                   Close
                 </motion.button>
@@ -577,78 +567,6 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
         .backdrop-blur-2xl {
           backdrop-filter: blur(40px);
           -webkit-backdrop-filter: blur(40px);
-        }
-
-        /* iOS-style color system */
-        .bg-ios-dark-surface {
-          background-color: rgba(28, 28, 30, 0.95);
-        }
-
-        .bg-ios-dark-surface\\/95 {
-          background-color: rgba(28, 28, 30, 0.95);
-        }
-
-        .bg-ios-dark-surface-hover {
-          background-color: rgba(44, 44, 46, 0.8);
-        }
-
-        .border-ios-dark-border {
-          border-color: rgba(84, 84, 88, 0.65);
-        }
-
-        .text-ios-dark-text-primary {
-          color: rgba(255, 255, 255, 0.95);
-        }
-
-        .text-ios-dark-text-secondary {
-          color: rgba(235, 235, 245, 0.8);
-        }
-
-        .text-ios-dark-text-tertiary {
-          color: rgba(235, 235, 245, 0.6);
-        }
-
-        .bg-ios-light-surface {
-          background-color: rgba(255, 255, 255, 0.98);
-        }
-
-        .bg-ios-light-surface\\/95 {
-          background-color: rgba(255, 255, 255, 0.95);
-        }
-
-        .bg-ios-light-surface-hover {
-          background-color: rgba(242, 242, 247, 0.9);
-        }
-
-        .border-ios-light-border {
-          border-color: rgba(216, 216, 220, 0.8);
-        }
-
-        .text-ios-light-text-primary {
-          color: rgba(28, 28, 30, 0.95);
-        }
-
-        .text-ios-light-text-secondary {
-          color: rgba(60, 60, 67, 0.8);
-        }
-
-        .text-ios-light-text-tertiary {
-          color: rgba(60, 60, 67, 0.6);
-        }
-
-        /* iOS shadows */
-        .shadow-ios-high {
-          box-shadow: 
-            0 24px 48px rgba(0, 0, 0, 0.18),
-            0 12px 24px rgba(0, 0, 0, 0.12),
-            0 0 0 1px rgba(0, 0, 0, 0.05);
-        }
-
-        .shadow-ios-high-dark {
-          box-shadow: 
-            0 24px 48px rgba(0, 0, 0, 0.35),
-            0 12px 24px rgba(0, 0, 0, 0.25),
-            0 0 0 1px rgba(255, 255, 255, 0.1);
         }
 
         /* Enhanced scrollbar */
