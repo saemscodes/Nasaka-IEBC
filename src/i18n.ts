@@ -20,7 +20,8 @@ export const SUPPORTED_LANGUAGES = {
   kam: { code: 'kam', name: 'Kamba', nativeName: 'Kikamba'},
   tai: { code: 'tai', name: 'Taita', nativeName: 'Taita'},
   kis: { code: 'kis', name: 'Kisii', nativeName: 'Ekegusii'},
-  ar: { code: 'ar', name: 'Arabic', nativeName: 'Arabic'}
+  ar: { code: 'ar', name: 'Arabic', nativeName: 'Arabic'},
+  luh: { code: 'luh', name: 'Luhya', nativeName: 'Maragoli'}
 };
 
 export type LanguageCode = keyof typeof SUPPORTED_LANGUAGES;
@@ -298,6 +299,9 @@ export const loadLanguage = async (lng: LanguageCode): Promise<boolean> => {
       case 'ar': 
         module = await import('@/locales/ar/nasaka.json');
         break;  
+      case 'luh': 
+        module = await import('@/locales/luh/nasaka.json');
+        break;   
       default:
         // For any other language, try to import dynamically
         try {
