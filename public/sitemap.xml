@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  
+  <!-- MAIN IEBC OFFICE PAGE - OPTIMIZED FOR ALL 153 IEBC OFFICES -->
+  <url>
+    <loc>https://recall254.vercel.app/iebc-office</loc>
+    <lastmod>2025-11-18</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- IEBC OFFICE MAP PAGE - INTERACTIVE WITH MODALS FOR ALL 153 OFFICES -->
+  <url>
+    <loc>https://recall254.vercel.app/iebc-office/map</loc>
+    <lastmod>2025-11-18</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+</urlset>
