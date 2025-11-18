@@ -1,7 +1,7 @@
 {
-  "name": "Nasaka IEBC — Locate & Verify IEBC Offices",
+  "name": "Nasaka IEBC — Find IEBC Offices near You, anywhere across Kenya",
   "short_name": "Nasaka IEBC",
-  "description": "Find, verify and engage with IEBC offices across Kenya — maps, directions and civic reporting.",
+  "description": "Find IEBC offices in all 47 counties and 290 constituencies. Nasaka IEBC helps Kenyans locate, verify and engage with IEBC service points. Interactive maps, directions, ride-hailing services support, verification and civic reporting for trustworthy electoral access. Learn how to register to vote, check status, transfer registration at your nearest IEBC office.",
   "start_url": "/?utm_source=web_app_manifest",
   "display": "standalone",
   "orientation": "portrait",
