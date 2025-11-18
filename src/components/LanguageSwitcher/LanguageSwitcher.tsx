@@ -151,12 +151,14 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
       luh: '🇰🇪',
       som: '🇰🇪',
       trk: '🇰🇪',
+      hnd: '🇮🇳',
       fr: '🇫🇷',
       es: '🇪🇸',
       pt: '🇵🇹',
       ar: '🇸🇦',
       zh: '🇨🇳',
       hi: '🇮🇳',
+      ur: '🇮🇳',
     };
     return flags[code] || '🌐';
   };
