@@ -279,6 +279,9 @@ export const loadLanguage = async (lng: LanguageCode): Promise<boolean> => {
       case 'sw':
         module = await import('@/locales/sw/nasaka.json');
         break;
+      case 'shn':
+        module = await import('@/locales/shn/nasaka.json');
+        break;  
       case 'kik':
         module = await import('@/locales/kik/nasaka.json');
         break;
