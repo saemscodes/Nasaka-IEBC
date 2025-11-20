@@ -13,6 +13,7 @@ interface LanguageResources {
 export const SUPPORTED_LANGUAGES = {
   en: { code: 'en', name: 'English', nativeName: 'English' },
   sw: { code: 'sw', name: 'Swahili', nativeName: 'Kiswahili' },
+  shn: { code: 'shn', name: 'Sheng', nativeName: 'Sheng' },
   kik: { code: 'kik', name: 'Kikuyu', nativeName: 'Gĩkũyũ' },
   luo: { code: 'luo', name: 'Luo', nativeName: 'Dholuo' },
   maa: { code: 'maa', name: 'Maasai', nativeName: 'Maa' },
