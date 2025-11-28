@@ -106,7 +106,6 @@ interface Constituency {
 }
 
 interface ContributionsDashboardProps {
-  onLogout: () => void;
   counties: string[];
 }
 
@@ -901,7 +900,7 @@ const ConstituencyManager: React.FC<{
   );
 };
 
-const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogout, counties = [] }) => {
+const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ counties = [] }) => {
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [archives, setArchives] = useState<ArchiveRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -925,6 +924,13 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
     archived: 0
   });
   const { theme } = useTheme();
+
+  // Handle logout
+  const handleLogout = () => {
+    sessionStorage.removeItem('admin_authenticated');
+    sessionStorage.removeItem('admin_auth_timestamp');
+    window.location.href = '/';
+  };
 
   const safeCounties = Array.isArray(counties) ? counties : [];
   const safeContributions = Array.isArray(contributions) ? contributions : [];
@@ -1498,7 +1504,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
                 <span>View Archive</span>
               </button>
               <button
-                onClick={onLogout}
+                onClick={handleLogout}
                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1586,7 +1592,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ onLogou
                 <div className="w-8 h-8 bg-gray-100 dark:bg-gray-900 rounded-lg flex items-center justify-center">
                   <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                  </svg>
+                </svg>
                 </div>
               </div>
               <div className="ml-4">
