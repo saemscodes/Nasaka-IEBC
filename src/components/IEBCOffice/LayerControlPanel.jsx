@@ -26,7 +26,7 @@ const LayerControlPanel = ({
     {
       id: 'constituencies',
       name: 'Kenya Constituencies',
-      description: 'Parliamentary and electoral boundaries across Kenya as defined by IEBC. Each polygon represents one constituency with its corresponding code and name.',
+      description: 'Distribution of constituency borders across the country',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6.5v11l6 2 6-2 6 2V6.5l-6-2-6 2-6-2z" />
