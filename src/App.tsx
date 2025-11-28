@@ -211,21 +211,10 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     return <AdminLogin onLogin={handleLogin} />;
   }
 
-  // Pass counties as props to the child component
-  return (
-    <>
-      {React.Children.map(children, child =>
-        React.isValidElement(child)
-          ? React.cloneElement(child as React.ReactElement<any>, {
-              counties: KENYAN_COUNTIES
-            })
-          : child
-      )}
-    </>
-  );
+  return <>{children}</>;
 };
 
-// ✅ Contributions Dashboard Component (Now directly included to avoid lazy loading issues)
+// ✅ Contributions Dashboard Component
 const ContributionsDashboard = React.lazy(() => import('@/components/Admin/ContributionsDashboard'));
 
 const AppContent = () => {
@@ -269,11 +258,7 @@ const AppContent = () => {
                   </div>
                 </div>
               }>
-                <ContributionsDashboard onLogout={() => {
-                  sessionStorage.removeItem('admin_authenticated');
-                  sessionStorage.removeItem('admin_auth_timestamp');
-                  window.location.href = '/';
-                }} counties={KENYAN_COUNTIES} />
+                <ContributionsDashboard counties={KENYAN_COUNTIES} />
               </React.Suspense>
             </AdminRoute>
           } 
@@ -301,20 +286,20 @@ const App = () => {
   }, [i18n.language]);
 
   return (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <LanguageProvider>
-        <TooltipProvider delayDuration={0}>
-          <Toaster />
-          <Sonner position="top-right" expand={false} richColors closeButton />
-          <AppContent />
-          <Analytics />
-          <SpeedInsights />
-        </TooltipProvider>
-      </LanguageProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <LanguageProvider>
+          <TooltipProvider delayDuration={0}>
+            <Toaster />
+            <Sonner position="top-right" expand={false} richColors closeButton />
+            <AppContent />
+            <Analytics />
+            <SpeedInsights />
+          </TooltipProvider>
+        </LanguageProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
 };
 
 export default App;
