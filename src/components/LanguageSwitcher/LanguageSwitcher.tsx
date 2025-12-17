@@ -211,7 +211,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     }
   };
 
-  // Animation variants for modals
+  // Animation variants for modals - FIXED TYPE DEFINITIONS
   const modalVariants = {
     hidden: { 
       opacity: 0, 
@@ -223,7 +223,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
       scale: 1,
       y: 0,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         damping: 25,
         stiffness: 500,
         duration: 0.3
@@ -568,43 +568,42 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Enhanced CSS for iOS-style glassmorphism */}
-      <style jsx>{`
-        /* Enhanced glassmorphism with better backdrop support */
-        .backdrop-blur-2xl {
-          backdrop-filter: blur(40px);
-          -webkit-backdrop-filter: blur(40px);
-        }
+      {/* ENHANCED CSS FOR iOS-STYLE GLASSMORPHISM - REPLACED JSX STYLE WITH INLINE */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          .backdrop-blur-2xl {
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+          }
 
-        /* Enhanced scrollbar */
-        .overflow-y-auto::-webkit-scrollbar {
-          width: 6px;
-        }
+          .overflow-y-auto::-webkit-scrollbar {
+            width: 6px;
+          }
 
-        .overflow-y-auto::-webkit-scrollbar-track {
-          background: ${theme === 'dark' ? 'rgba(44, 44, 46, 0.4)' : 'rgba(242, 242, 247, 0.8)'};
-          border-radius: 3px;
-        }
+          .overflow-y-auto::-webkit-scrollbar-track {
+            background: ${theme === 'dark' ? 'rgba(44, 44, 46, 0.4)' : 'rgba(242, 242, 247, 0.8)'};
+            border-radius: 3px;
+          }
 
-        .overflow-y-auto::-webkit-scrollbar-thumb {
-          background: ${theme === 'dark' ? 'rgba(120, 120, 128, 0.6)' : 'rgba(174, 174, 178, 0.6)'};
-          border-radius: 3px;
-        }
+          .overflow-y-auto::-webkit-scrollbar-thumb {
+            background: ${theme === 'dark' ? 'rgba(120, 120, 128, 0.6)' : 'rgba(174, 174, 178, 0.6)'};
+            border-radius: 3px;
+          }
 
-        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-          background: ${theme === 'dark' ? 'rgba(150, 150, 160, 0.8)' : 'rgba(142, 142, 147, 0.8)'};
-        }
+          .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+            background: ${theme === 'dark' ? 'rgba(150, 150, 160, 0.8)' : 'rgba(142, 142, 147, 0.8)'};
+          }
 
-        /* Input styling */
-        input {
-          color: ${theme === 'dark' ? '#FFFFFF' : '#1C1C1E'} !important;
-          caret-color: ${theme === 'dark' ? '#FFFFFF' : '#1C1C1E'} !important;
-        }
+          input {
+            color: ${theme === 'dark' ? '#FFFFFF' : '#1C1C1E'} !important;
+            caret-color: ${theme === 'dark' ? '#FFFFFF' : '#1C1C1E'} !important;
+          }
 
-        input::placeholder {
-          color: ${theme === 'dark' ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)'} !important;
-        }
-      `}</style>
+          input::placeholder {
+            color: ${theme === 'dark' ? 'rgba(235, 235, 245, 0.6)' : 'rgba(60, 60, 67, 0.6)'} !important;
+          }
+        `
+      }} />
     </div>
   );
 };
