@@ -1,6 +1,6 @@
 // src/App.tsx
 import i18n from "@/i18n";
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +20,9 @@ import { IEBCOfficeSplash, IEBCOfficeMap } from './pages/IEBCOffice';
 import './styles/iebc-office.css';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+
+// Import supabase client from existing location
+import { supabase } from "@/integrations/supabase/client";
 
 // Import i18n configuration
 import '@/i18n';
@@ -50,32 +53,91 @@ const KENYAN_COUNTIES = [
   "Vihiga", "Wajir", "West Pokot"
 ];
 
-// ✅ Simple Admin Login Component
+// ✅ SECURE Admin Login Component - Uses Supabase Auth
 const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
-  const [password, setPassword] = React.useState('');
-  const [error, setError] = React.useState('');
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    // Simulate API call delay for security
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      // Attempt Supabase authentication
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password
+      });
+
+      if (authError) {
+        console.error('Auth error:', authError);
+        setError('Invalid credentials. Please check your email and password.');
+        return;
+      }
+
+      if (!data.user) {
+        setError('Authentication failed. No user returned.');
+        return;
+      }
+
+      // Check if user is in core_team table and is admin
+      const { data: coreTeam, error: coreError } = await supabase
+        .from('core_team')
+        .select('is_admin')
+        .eq('user_id', data.user.id)
+        .eq('is_admin', true)
+        .single();
+
+      if (coreError || !coreTeam) {
+        console.error('Admin check failed:', coreError);
+        setError('You do not have admin privileges.');
+        
+        // Sign out since they're not an admin
+        await supabase.auth.signOut();
+        return;
+      }
+
+      // Successful admin authentication
+      onLogin(true);
+      
+    } catch (err) {
+      console.error('Admin login error:', err);
+      setError('Authentication failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!email.trim()) {
+      setError('Please enter your email address first.');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
 
     try {
-      // Check against environment variable or fallback
-      const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'IEBC2024Admin!';
-      
-      if (password === adminPassword) {
-        onLogin(true);
-      } else {
-        setError('Invalid admin password');
-        console.warn('Failed admin login attempt');
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        email.trim(),
+        {
+          redirectTo: `${window.location.origin}/admin/reset-password`,
+        }
+      );
+
+      if (resetError) {
+        setError(resetError.message);
+        return;
       }
+
+      setIsPasswordReset(true);
+      setError('');
     } catch (err) {
-      setError('Authentication failed. Please try again.');
+      setError('Failed to send reset email.');
     } finally {
       setIsLoading(false);
     }
@@ -92,67 +154,116 @@ const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Admin Access</h1>
-          <p className="text-gray-600">Enter admin credentials to continue</p>
+          <p className="text-gray-600">Sign in with your admin account</p>
         </div>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Admin Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              placeholder="Enter admin password"
-              required
-              disabled={isLoading}
-            />
-          </div>
-          
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <div className="flex items-center space-x-2">
-                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-                <span className="text-sm font-medium text-red-700">{error}</span>
-              </div>
-            </div>
-          )}
-
-          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-            <div className="flex items-start space-x-3">
-              <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        {isPasswordReset ? (
+          <div className="text-center py-6">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
-              <div className="text-sm text-blue-700">
-                <p className="font-medium">Security Notice</p>
-                <p>This area is restricted to authorized personnel only. Unauthorized access is prohibited.</p>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Check Your Email</h3>
+            <p className="text-gray-600 mb-4">
+              We've sent a password reset link to <span className="font-medium">{email}</span>
+            </p>
+            <button
+              onClick={() => {
+                setIsPasswordReset(false);
+                setError('');
+              }}
+              className="text-blue-600 hover:text-blue-800 font-medium"
+            >
+              ← Back to login
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Admin Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="admin@example.com"
+                required
+                disabled={isLoading}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="Enter your password"
+                required
+                disabled={isLoading}
+              />
+            </div>
+            
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2">
+                  <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  <span className="text-sm font-medium text-red-700">{error}</span>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={handlePasswordReset}
+                disabled={isLoading}
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50"
+              >
+                Forgot password?
+              </button>
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <div className="flex items-start space-x-3">
+                <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="text-sm text-blue-700">
+                  <p className="font-medium">Secure Admin Portal</p>
+                  <p>This area requires both authentication and admin privileges. All access is logged.</p>
+                </div>
               </div>
             </div>
-          </div>
-          
-          <button
-            type="submit"
-            disabled={isLoading || !password}
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
-          >
-            {isLoading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Verifying...</span>
-              </>
-            ) : (
-              <span>Access Dashboard</span>
-            )}
-          </button>
-        </form>
+            
+            <button
+              type="submit"
+              disabled={isLoading || !email || !password}
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Signing in...</span>
+                </>
+              ) : (
+                <span>Sign In</span>
+              )}
+            </button>
+          </form>
+        )}
 
         <div className="mt-6 pt-6 border-t border-gray-200">
           <p className="text-xs text-gray-500 text-center">
-            Secure Admin Portal • IEBC Office Verification System
+            Secure Admin Portal • IEBC Office Verification System v1.1.0
           </p>
         </div>
       </div>
@@ -160,40 +271,76 @@ const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
   );
 };
 
-// ✅ Admin Route Protection Component
+// ✅ SECURE Admin Route Protection Component
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
-  const [isChecking, setIsChecking] = React.useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isChecking, setIsChecking] = useState(true);
 
-  React.useEffect(() => {
-    const checkAuth = () => {
-      const adminAuth = sessionStorage.getItem('admin_authenticated');
-      const authTimestamp = sessionStorage.getItem('admin_auth_timestamp');
-      
-      if (adminAuth === 'true' && authTimestamp) {
-        const timestamp = parseInt(authTimestamp);
-        const now = Date.now();
-        const sessionDuration = 2 * 60 * 60 * 1000; // 2 hours
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // Get current session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (now - timestamp < sessionDuration) {
-          setIsAuthenticated(true);
-        } else {
-          sessionStorage.removeItem('admin_authenticated');
-          sessionStorage.removeItem('admin_auth_timestamp');
+        if (sessionError || !session) {
+          setIsAuthenticated(false);
+          setIsChecking(false);
+          return;
         }
+
+        // Check if user is admin via core_team table
+        const { data: coreTeam, error: coreError } = await supabase
+          .from('core_team')
+          .select('is_admin')
+          .eq('user_id', session.user.id)
+          .eq('is_admin', true)
+          .single();
+
+        if (coreError || !coreTeam) {
+          console.error('Admin verification failed:', coreError);
+          setIsAuthenticated(false);
+          
+          // Sign out non-admin users
+          await supabase.auth.signOut();
+        } else {
+          setIsAuthenticated(true);
+        }
+      } catch (err) {
+        console.error('Auth check error:', err);
+        setIsAuthenticated(false);
+      } finally {
+        setIsChecking(false);
       }
-      setIsChecking(false);
     };
 
     checkAuth();
+
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_OUT') {
+          setIsAuthenticated(false);
+        } else if (event === 'SIGNED_IN' && session) {
+          // Re-check admin status on sign in
+          const { data: coreTeam } = await supabase
+            .from('core_team')
+            .select('is_admin')
+            .eq('user_id', session.user.id)
+            .eq('is_admin', true)
+            .single();
+          
+          setIsAuthenticated(!!coreTeam);
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleLogin = (success: boolean) => {
-    if (success) {
-      setIsAuthenticated(true);
-      sessionStorage.setItem('admin_authenticated', 'true');
-      sessionStorage.setItem('admin_auth_timestamp', Date.now().toString());
-    }
+    setIsAuthenticated(success);
   };
 
   if (isChecking) {
@@ -201,7 +348,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Verifying admin access...</p>
+          <p className="text-gray-600">Verifying admin privileges...</p>
         </div>
       </div>
     );
@@ -261,6 +408,27 @@ const AppContent = () => {
                 <ContributionsDashboard counties={KENYAN_COUNTIES} />
               </React.Suspense>
             </AdminRoute>
+          } 
+        />
+
+        {/* ✅ Admin password reset route */}
+        <Route 
+          path="/admin/reset-password" 
+          element={
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Reset Password</h2>
+                <p className="text-gray-600 mb-6">
+                  Please check your email for the password reset link. If you didn't receive it, contact your administrator.
+                </p>
+                <button
+                  onClick={() => window.location.href = '/admin/contributions'}
+                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                >
+                  Return to Login
+                </button>
+              </div>
+            </div>
           } 
         />
 
