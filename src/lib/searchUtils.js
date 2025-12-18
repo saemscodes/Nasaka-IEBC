@@ -1,64 +1,13 @@
 // src/lib/searchUtils.js
 /**
  * Comprehensive search utilities for IEBC Office Finder
- * Enhanced with advanced query normalization and URL handling
+ * Enhanced with advanced query normalization, URL handling, and offline support
  */
 
-/**
- * Normalizes search queries with comprehensive cleaning and validation
- * @param {string} raw - Raw input query
- * @returns {string} Normalized and sanitized query
- */
-export function normalizeQuery(raw) {
-  if (!raw || typeof raw !== 'string') return '';
-  
-  try {
-    // Decode URL components first
-    let decoded = decodeURIComponent(raw);
-    
-    // Comprehensive cleaning sequence
-    decoded = decoded
-      // Replace URL encoding with spaces
-      .replace(/\+/g, ' ')
-      .replace(/%20/g, ' ')
-      .replace(/%2B/g, ' ')
-      // Remove excessive whitespace
-      .replace(/\s+/g, ' ')
-      // Trim and normalize
-      .trim()
-      // Remove special characters that might break search
-      .replace(/[<>"']/g, '')
-      // Normalize to consistent case for better matching
-      .toLowerCase();
-    
-    // Additional normalization for common IEBC office patterns
-    decoded = decoded
-      // Handle county suffixes
-      .replace(/\bcounty\b/gi, '')
-      .replace(/\bconstituency\b/gi, '')
-      // Remove extra spaces from normalization
-      .replace(/\s+/g, ' ')
-      .trim();
-    
-    // Limit length for performance and security
-    return decoded.slice(0, 200);
-    
-  } catch (e) {
-    // Fallback normalization if decode fails
-    console.warn('Query normalization failed, using fallback:', e);
-    let fallback = String(raw || '')
-      .replace(/\+/g, ' ')
-      .replace(/%20/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .toLowerCase();
-    
-    return fallback.slice(0, 200);
-  }
-}
+// ==================== CORE UTILITIES ====================
 
 /**
- * Advanced debounce with immediate execution option and cancellation
+ * Enhanced debounce with immediate execution option and cancellation
  * @param {Function} func - Function to debounce
  * @param {number} wait - Debounce wait time in ms
  * @param {Object} options - Additional options
@@ -163,13 +112,290 @@ export function debounce(func, wait = 300, options = {}) {
 }
 
 /**
+ * Simple throttle function for performance optimization
+ * @param {Function} func - Function to throttle
+ * @param {number} limit - Time limit in ms
+ * @returns {Function} Throttled function
+ */
+export function throttle(func, limit) {
+  let inThrottle;
+  return function() {
+    const args = arguments;
+    const context = this;
+    if (!inThrottle) {
+      func.apply(context, args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  };
+}
+
+// ==================== QUERY NORMALIZATION ====================
+
+/**
+ * Normalizes search queries with comprehensive cleaning and validation
+ * @param {string} raw - Raw input query
+ * @returns {string} Normalized and sanitized query
+ */
+export function normalizeQuery(raw) {
+  if (!raw || typeof raw !== 'string') return '';
+  
+  try {
+    // Decode URL components first
+    let decoded = decodeURIComponent(raw);
+    
+    // Comprehensive cleaning sequence
+    decoded = decoded
+      // Replace URL encoding with spaces
+      .replace(/\+/g, ' ')
+      .replace(/%20/g, ' ')
+      .replace(/%2B/g, ' ')
+      // Remove excessive whitespace
+      .replace(/\s+/g, ' ')
+      // Trim and normalize
+      .trim()
+      // Remove special characters that might break search
+      .replace(/[<>"']/g, '')
+      // Normalize to consistent case for better matching
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove accents
+      .replace(/[^a-z0-9\s]/g, ' '); // Replace special chars with space
+    
+    // Additional normalization for common IEBC office patterns
+    decoded = decoded
+      // Handle county suffixes
+      .replace(/\bcounty\b/gi, '')
+      .replace(/\bconstituency\b/gi, '')
+      // Remove extra spaces from normalization
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    // Limit length for performance and security
+    return decoded.slice(0, 200);
+    
+  } catch (e) {
+    // Fallback normalization if decode fails
+    console.warn('Query normalization failed, using fallback:', e);
+    let fallback = String(raw || '')
+      .replace(/\+/g, ' ')
+      .replace(/%20/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+    
+    return fallback.slice(0, 200);
+  }
+}
+
+/**
+ * Alternative simple normalization (compatibility)
+ * @param {string} term - Search term to normalize
+ * @returns {string} Normalized term
+ */
+export function normalizeSearchTerm(term) {
+  return term
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove accents
+    .replace(/[^a-z0-9\s]/g, ' ') // Replace special chars with space
+    .replace(/\s+/g, ' ') // Collapse multiple spaces
+    .trim();
+}
+
+// ==================== TEXT MANIPULATION ====================
+
+/**
+ * Escape special regex characters in a string
+ * @param {string} string - String to escape
+ * @returns {string} Escaped string
+ */
+export function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Highlight matching text in search results
+ * @param {string} text - Text to highlight
+ * @param {string} query - Search query
+ * @returns {string} HTML with highlighted text
+ */
+export function highlightText(text, query) {
+  if (!query || !text) return text;
+  
+  const escapedQuery = escapeRegExp(query);
+  const regex = new RegExp(`(${escapedQuery})`, 'gi');
+  return text.replace(regex, '<mark>$1</mark>');
+}
+
+/**
+ * Advanced search highlighting with match boundaries
+ * @param {string} text - Text to highlight
+ * @param {string} query - Search query
+ * @param {Object} options - Highlighting options
+ * @returns {string} Highlighted text
+ */
+export function highlightSearchMatches(text, query, options = {}) {
+  if (!text || !query) return text;
+  
+  const {
+    highlightTag = 'mark',
+    highlightClass = 'search-highlight',
+    caseSensitive = false
+  } = options;
+  
+  const normalizedText = String(text);
+  const normalizedQuery = normalizeQuery(query);
+  
+  if (!normalizedQuery) return normalizedText;
+  
+  const queryWords = normalizedQuery.split(/\s+/).filter(word => word.length > 0);
+  let result = normalizedText;
+  
+  queryWords.forEach(word => {
+    const regex = new RegExp(`(${escapeRegExp(word)})`, caseSensitive ? 'g' : 'gi');
+    result = result.replace(regex, `<${highlightTag} class="${highlightClass}">$1</${highlightTag}>`);
+  });
+  
+  return result;
+}
+
+// ==================== RELEVANCE SCORING ====================
+
+/**
+ * Advanced query scoring for search relevance
+ * @param {string} query - Search query
+ * @param {string} text - Text to score against
+ * @param {Object} options - Scoring options
+ * @returns {number} Relevance score (0-1)
+ */
+export function calculateRelevanceScore(query, text, options = {}) {
+  if (!query || !text) return 0;
+  
+  const {
+    exactMatchBoost = 2.0,
+    partialMatchBoost = 1.0,
+    wordOrderPenalty = 0.1,
+    minMatchThreshold = 0.3
+  } = options;
+  
+  const normalizedQuery = normalizeQuery(query).toLowerCase();
+  const normalizedText = String(text || '').toLowerCase();
+  
+  if (normalizedQuery === normalizedText) {
+    return 1.0; // Perfect match
+  }
+  
+  let score = 0;
+  
+  // Exact substring match
+  if (normalizedText.includes(normalizedQuery)) {
+    score += exactMatchBoost;
+  }
+  
+  // Word-based matching
+  const queryWords = normalizedQuery.split(/\s+/).filter(word => word.length > 1);
+  const textWords = normalizedText.split(/\s+/);
+  
+  let matchedWords = 0;
+  let wordPositionScore = 0;
+  
+  queryWords.forEach((queryWord, queryIndex) => {
+    textWords.forEach((textWord, textIndex) => {
+      if (textWord.includes(queryWord)) {
+        matchedWords++;
+        // Reward words that appear in similar positions
+        const positionSimilarity = 1 - Math.abs(queryIndex - textIndex) / Math.max(queryWords.length, textWords.length);
+        wordPositionScore += positionSimilarity;
+      }
+    });
+  });
+  
+  if (matchedWords > 0) {
+    const wordMatchRatio = matchedWords / queryWords.length;
+    const positionScore = wordPositionScore / matchedWords;
+    
+    score += (wordMatchRatio * partialMatchBoost) + (positionScore * (1 - wordOrderPenalty));
+  }
+  
+  // Normalize score to 0-1 range
+  const maxPossibleScore = exactMatchBoost + (queryWords.length * partialMatchBoost);
+  const normalizedScore = Math.min(score / maxPossibleScore, 1.0);
+  
+  return normalizedScore >= minMatchThreshold ? normalizedScore : 0;
+}
+
+/**
+ * Calculate relevance score for IEBC office items
+ * @param {Object} item - Office item
+ * @param {string} query - Search query
+ * @param {Object} weights - Weight configuration
+ * @returns {number} Relevance score
+ */
+export function calculateItemRelevanceScore(item, query, weights = {
+  exactMatch: 10,
+  startsWith: 5,
+  contains: 1,
+  fuzzyMatch: 0.5
+}) {
+  const normalizedQuery = normalizeSearchTerm(query);
+  let score = 0;
+  
+  // Search in various fields
+  const searchFields = [
+    item.county,
+    item.constituency_name,
+    item.constituency,
+    item.office_location,
+    item.landmark,
+    item.formatted_address
+  ].filter(Boolean);
+  
+  for (const field of searchFields) {
+    const normalizedField = normalizeSearchTerm(field);
+    
+    if (normalizedField === normalizedQuery) {
+      score += weights.exactMatch;
+    } else if (normalizedField.startsWith(normalizedQuery)) {
+      score += weights.startsWith;
+    } else if (normalizedField.includes(normalizedQuery)) {
+      score += weights.contains;
+    } else {
+      // Simple fuzzy matching
+      const queryWords = normalizedQuery.split(' ');
+      const fieldWords = normalizedField.split(' ');
+      const matches = queryWords.filter(qw => 
+        fieldWords.some(fw => fw.includes(qw))
+      );
+      score += matches.length * weights.fuzzyMatch;
+    }
+  }
+  
+  return score;
+}
+
+/**
+ * Sort items by relevance to query
+ * @param {Array} items - Items to sort
+ * @param {string} query - Search query
+ * @returns {Array} Sorted items
+ */
+export function sortByRelevance(items, query) {
+  return items
+    .map(item => ({
+      ...item,
+      relevanceScore: calculateItemRelevanceScore(item, query)
+    }))
+    .filter(item => item.relevanceScore > 0)
+    .sort((a, b) => b.relevanceScore - a.relevanceScore);
+}
+
+// ==================== URL HANDLING ====================
+
+/**
  * Enhanced URL query management with history state preservation
  * @param {string} query - Search query to set in URL
  * @param {Object} options - Configuration options
- * @param {boolean} options.replace - Use replaceState instead of pushState
- * @param {Object} options.additionalParams - Additional parameters to set
- * @param {string} options.paramName - URL parameter name (default: 'q')
- * @param {boolean} options.preserveHash - Whether to preserve URL hash
  */
 export function updateUrlQuery(query, options = {}) {
   if (typeof window === 'undefined' || !window.location) return;
@@ -236,7 +462,7 @@ export function updateUrlQuery(query, options = {}) {
 
 /**
  * Parse current URL search parameters with normalization
- * @param {URLSearchParams} searchParams - URLSearchParams instance (default: current URL)
+ * @param {URLSearchParams} searchParams - URLSearchParams instance
  * @returns {Object} Parsed and normalized parameters
  */
 export function parseUrlSearchParams(searchParams = null) {
@@ -291,68 +517,7 @@ export function removeUrlParam(param, replace = true) {
   }
 }
 
-/**
- * Advanced query scoring for search relevance
- * @param {string} query - Search query
- * @param {string} text - Text to score against
- * @param {Object} options - Scoring options
- * @returns {number} Relevance score (0-1)
- */
-export function calculateRelevanceScore(query, text, options = {}) {
-  if (!query || !text) return 0;
-  
-  const {
-    exactMatchBoost = 2.0,
-    partialMatchBoost = 1.0,
-    wordOrderPenalty = 0.1,
-    minMatchThreshold = 0.3
-  } = options;
-  
-  const normalizedQuery = normalizeQuery(query).toLowerCase();
-  const normalizedText = String(text || '').toLowerCase();
-  
-  if (normalizedQuery === normalizedText) {
-    return 1.0; // Perfect match
-  }
-  
-  let score = 0;
-  
-  // Exact substring match
-  if (normalizedText.includes(normalizedQuery)) {
-    score += exactMatchBoost;
-  }
-  
-  // Word-based matching
-  const queryWords = normalizedQuery.split(/\s+/).filter(word => word.length > 1);
-  const textWords = normalizedText.split(/\s+/);
-  
-  let matchedWords = 0;
-  let wordPositionScore = 0;
-  
-  queryWords.forEach((queryWord, queryIndex) => {
-    textWords.forEach((textWord, textIndex) => {
-      if (textWord.includes(queryWord)) {
-        matchedWords++;
-        // Reward words that appear in similar positions
-        const positionSimilarity = 1 - Math.abs(queryIndex - textIndex) / Math.max(queryWords.length, textWords.length);
-        wordPositionScore += positionSimilarity;
-      }
-    });
-  });
-  
-  if (matchedWords > 0) {
-    const wordMatchRatio = matchedWords / queryWords.length;
-    const positionScore = wordPositionScore / matchedWords;
-    
-    score += (wordMatchRatio * partialMatchBoost) + (positionScore * (1 - wordOrderPenalty));
-  }
-  
-  // Normalize score to 0-1 range
-  const maxPossibleScore = exactMatchBoost + (queryWords.length * partialMatchBoost);
-  const normalizedScore = Math.min(score / maxPossibleScore, 1.0);
-  
-  return normalizedScore >= minMatchThreshold ? normalizedScore : 0;
-}
+// ==================== SEARCH GENERATION ====================
 
 /**
  * Generate search suggestions based on query and available data
@@ -424,46 +589,7 @@ export function generateSearchSuggestions(query, data = [], options = {}) {
   return result;
 }
 
-/**
- * Advanced search highlighting with match boundaries
- * @param {string} text - Text to highlight
- * @param {string} query - Search query
- * @param {Object} options - Highlighting options
- * @returns {Array|string} Highlighted text segments
- */
-export function highlightSearchMatches(text, query, options = {}) {
-  if (!text || !query) return text;
-  
-  const {
-    highlightTag = 'mark',
-    highlightClass = 'search-highlight',
-    caseSensitive = false
-  } = options;
-  
-  const normalizedText = String(text);
-  const normalizedQuery = normalizeQuery(query);
-  
-  if (!normalizedQuery) return normalizedText;
-  
-  const queryWords = normalizedQuery.split(/\s+/).filter(word => word.length > 0);
-  let result = normalizedText;
-  
-  queryWords.forEach(word => {
-    const regex = new RegExp(`(${escapeRegex(word)})`, caseSensitive ? 'g' : 'gi');
-    result = result.replace(regex, `<${highlightTag} class="${highlightClass}">$1</${highlightTag}>`);
-  });
-  
-  return result;
-}
-
-/**
- * Escape special regex characters in a string
- * @param {string} string - String to escape
- * @returns {string} Escaped string
- */
-function escapeRegex(string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
+// ==================== BATCH PROCESSING ====================
 
 /**
  * Performance-optimized batch search processing
@@ -530,6 +656,8 @@ export function batchSearch(items, query, options = {}) {
   return results.slice(0, maxResults);
 }
 
+// ==================== ANALYTICS & TRACKING ====================
+
 /**
  * Search analytics and tracking utilities
  * @param {string} action - Analytics action
@@ -567,6 +695,8 @@ export function trackSearchEvent(action, data = {}) {
     console.log('Search Analytics:', eventData);
   }
 }
+
+// ==================== CACHE MANAGEMENT ====================
 
 /**
  * Cache management for search results
@@ -634,18 +764,43 @@ export const globalSearchCache = new SearchCache({
   ttl: 10 * 60 * 1000 // 10 minutes
 });
 
+// ==================== DEFAULT EXPORT ====================
+
 export default {
-  normalizeQuery,
+  // Core utilities
   debounce,
+  throttle,
+  escapeRegExp,
+  
+  // Normalization
+  normalizeQuery,
+  normalizeSearchTerm,
+  
+  // Text manipulation
+  highlightText,
+  highlightSearchMatches,
+  
+  // Relevance scoring
+  calculateRelevanceScore,
+  calculateItemRelevanceScore,
+  sortByRelevance,
+  
+  // URL handling
   updateUrlQuery,
   parseUrlSearchParams,
   getUrlParam,
   removeUrlParam,
-  calculateRelevanceScore,
+  
+  // Search generation
   generateSearchSuggestions,
-  highlightSearchMatches,
+  
+  // Batch processing
   batchSearch,
+  
+  // Analytics
   trackSearchEvent,
+  
+  // Cache
   SearchCache,
   globalSearchCache
 };
