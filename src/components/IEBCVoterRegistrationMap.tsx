@@ -11,8 +11,9 @@ import {
   CheckCircle, XCircle, RefreshCw, Filter,
   ExternalLink, Users, Target, AlertTriangle
 } from 'lucide-react';
-import L from 'leaflet';
+import * as L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { getCachedOffices, setCachedOffices } from '@/utils/offlineStorage';
 
 // Fix for default markers in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -133,7 +134,7 @@ const IEBCVoterRegistrationMap: React.FC<IEBCVoterRegistrationMapProps> = ({
     });
   }, []);
 
-  // Load GeoJSON data with error handling
+  // Load GeoJSON data with error handling and offline support
   const loadGeoJsonData = useCallback(async () => {
     try {
       setLoading(true);
@@ -148,7 +149,29 @@ const IEBCVoterRegistrationMap: React.FC<IEBCVoterRegistrationMapProps> = ({
       }
       
       if (!officesResponse || !officesResponse.ok) {
-        console.warn('IEBC offices data not available - data may need to be uploaded');
+        console.warn('IEBC offices data not available online, checking cache...');
+        
+        // Try to load from cache
+        const cachedOffices = await getCachedOffices();
+        if (cachedOffices) {
+          console.log('Loaded offices from cache');
+          setOfficesGeoJson(cachedOffices.data);
+          setFilteredOffices(cachedOffices.data);
+          
+          toast({
+            title: "Offline Mode",
+            description: `Loaded ${cachedOffices.data.length} cached IEBC offices`,
+            variant: "default",
+          });
+        } else {
+          console.warn('No cached data available');
+          toast({
+            title: "Offline Mode",
+            description: "No cached data available. Please connect to internet to load office data.",
+            variant: "destructive",
+          });
+        }
+        
         setLoading(false);
         return;
       }
@@ -161,27 +184,48 @@ const IEBCVoterRegistrationMap: React.FC<IEBCVoterRegistrationMapProps> = ({
       }
       
       if (officesData) {
-        setOfficesGeoJson(officesData.features || []);
-        setFilteredOffices(officesData.features || []);
+        const officesFeatures = officesData.features || [];
+        setOfficesGeoJson(officesFeatures);
+        setFilteredOffices(officesFeatures);
+        
+        // Cache the offices data for offline use
+        try {
+          await setCachedOffices(officesFeatures);
+          console.log('Offices data cached for offline use');
+        } catch (cacheError) {
+          console.warn('Failed to cache offices data:', cacheError);
+        }
         
         toast({
           title: "Data Loaded Successfully",
-          description: `Loaded ${officesData.features?.length || 0} IEBC offices${recallData ? ` and ${recallData.features?.length || 0} constituencies` : ''}`,
+          description: `Loaded ${officesFeatures.length} IEBC offices${recallData ? ` and ${recallData.features?.length || 0} constituencies` : ''}`,
         });
       }
       
     } catch (error) {
       console.error('Error loading GeoJSON data:', error);
-      toast({
-        title: "Data Loading Error",
-        description: error instanceof Error ? error.message : "Failed to load map data",
-        variant: "destructive",
-        action: (
-          <ToastAction altText="Retry" onClick={loadGeoJsonData}>
-            Retry
-          </ToastAction>
-        ),
-      });
+      
+      // Try cache as fallback
+      try {
+        const cachedOffices = await getCachedOffices();
+        if (cachedOffices) {
+          setOfficesGeoJson(cachedOffices.data);
+          setFilteredOffices(cachedOffices.data);
+          
+          toast({
+            title: "Offline Mode",
+            description: `Loaded ${cachedOffices.data.length} cached IEBC offices`,
+            variant: "default",
+          });
+        }
+      } catch (cacheError) {
+        console.error('Cache loading failed:', cacheError);
+        toast({
+          title: "Data Loading Error",
+          description: "Failed to load data online and no cache available",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
