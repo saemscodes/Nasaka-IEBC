@@ -11,7 +11,8 @@ const config: CapacitorConfig = {
     allowNavigation: [
       '*.supabase.co',
       'nominatim.openstreetmap.org',
-      '*.openstreetmap.org'
+      '*.openstreetmap.org',
+      '*.tile.openstreetmap.org'
     ]
   },
   android: {
@@ -24,16 +25,20 @@ const config: CapacitorConfig = {
     },
     allowMixedContent: true,
     captureInput: true,
-    webContentsDebuggingEnabled: true
+    webContentsDebuggingEnabled: process.env.NODE_ENV === 'development'
   },
   ios: {
     scheme: 'Nasaka IEBC',
     scrollEnabled: true,
-    allowsLinkPreview: false
+    allowsLinkPreview: false,
+    // REMOVED: hideLogs - This property doesn't exist in Capacitor 5+
+    // Instead, use loggingLevel in build.json for iOS
+    contentInset: 'always',
+    preferredContentMode: 'mobile'
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 3000,
+      launchShowDuration: 2000,
       launchAutoHide: true,
       backgroundColor: '#007AFF',
       androidSplashResourceName: 'splash',
@@ -59,8 +64,12 @@ const config: CapacitorConfig = {
     },
     Haptics: {
       enabled: true
+    },
+    App: {
+      // REMOVED: hideLogs - Use loggingLevel in iOS build settings instead
     }
-  }
+  },
+  loggingBehavior: 'debug' // ✅ Correct property for controlling logs
 };
 
 export default config;

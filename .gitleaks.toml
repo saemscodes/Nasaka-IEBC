@@ -1,0 +1,154 @@
+title = "Nasaka IEBC - Secrets Detection Configuration"
+
+# Default entropy threshold
+[general]
+regexes = []
+
+# Rule definitions
+[[rules]]
+description = "Supabase API Key (Long format)"
+id = "supabase-long-key"
+regex = '''eyJ[a-zA-Z0-9]{10,}\\.[a-zA-Z0-9_\\-]{10,}\\.[a-zA-Z0-9_\\-]{10,}'''
+tags = ["supabase", "api-key", "jwt"]
+entropy = 3.5
+[groups]
+- "supabase"
+
+[[rules]]
+description = "Supabase Anon/Service Key"
+id = "supabase-key"
+regex = '''(?i)(supabase|service_role|anon)[_\\-]?key["'\\s:=]*([a-zA-Z0-9_\\-]{20,})'''
+tags = ["supabase", "api-key"]
+entropy = 3.0
+[groups]
+- "supabase"
+
+[[rules]]
+description = "Google Maps API Key"
+id = "google-maps-key"
+regex = '''AIza[0-9A-Za-z\\-_]{35}'''
+tags = ["google", "api-key", "maps"]
+entropy = 4.0
+[groups]
+- "google"
+
+[[rules]]
+description = "General API Key Pattern"
+id = "general-api-key"
+regex = '''(?i)(api|access|secret|private|auth)[_\\-]?key["'\\s:=]*([a-zA-Z0-9_\\-]{20,})'''
+tags = ["api-key", "secret"]
+entropy = 3.0
+
+[[rules]]
+description = "AWS Access Key ID"
+id = "aws-access-key"
+regex = '''(?i)AKIA[0-9A-Z]{16}'''
+tags = ["aws", "api-key"]
+entropy = 4.0
+
+[[rules]]
+description = "AWS Secret Access Key"
+id = "aws-secret-key"
+regex = '''(?i)(aws)?[_\\-]?secret[_\\-]?(access)?[_\\-]?key["'\\s:=]*([a-zA-Z0-9/+]{40})'''
+tags = ["aws", "api-key", "secret"]
+entropy = 4.0
+
+[[rules]]
+description = "Password in source code"
+id = "password-in-code"
+regex = '''(?i)password["'\\s:=]*["']?([^"'\s]{6,})["']?'''
+tags = ["password", "credentials"]
+entropy = 2.5
+
+[[rules]]
+description = "Authorization Bearer Token"
+id = "bearer-token"
+regex = '''[Bb]earer\s+([a-zA-Z0-9_\\-\\.]{20,})'''
+tags = ["auth", "token", "jwt"]
+entropy = 3.0
+
+[[rules]]
+description = "Private RSA Key"
+id = "rsa-private-key"
+regex = '''-----BEGIN RSA PRIVATE KEY-----'''
+tags = ["private-key", "rsa", "crypto"]
+entropy = 5.0
+
+[[rules]]
+description = "Email with password pattern"
+id = "email-password"
+regex = '''(?i)(email|username)["'\\s:=]*["']?([^"'\s@]+@[^"'\s.]+\\.[^"'\s]+)["']?[\s\\S]{0,100}password["'\\s:=]*["']?([^"'\s]{6,})["']?'''
+tags = ["credentials", "email", "password"]
+entropy = 3.0
+
+# Allowlist specific files and paths
+[allowlist]
+description = "Allowed patterns and paths for Nasaka IEBC"
+paths = [
+  ".env.example",
+  "**/*.test.ts",
+  "**/*.test.js",
+  "**/__tests__/**",
+  "**/test-data/**",
+  "supabase/migrations/**",
+  "public/**",
+  "docs/**",
+  "*.md",
+  "*.txt",
+  "*.json"
+]
+commits = []
+regexes = [
+  "public_.*_key",  # Allow public keys in test data
+  "test_key_.*",    # Allow test keys
+  "example_.*",     # Allow example patterns
+  "dummy_.*",       # Allow dummy data
+  "mock_.*",        # Allow mock data
+  "placeholder.*"   # Allow placeholders
+]
+stopwords = [
+  "supabase_url",
+  "example.com",
+  "test@example.com",
+  "changeme",
+  "placeholder",
+  "your-key-here",
+  "YOUR_KEY_HERE"
+]
+
+# Ignore specific commits
+[allowlist.commits]
+[
+  "initial-commit",
+  "setup-project",
+  "add-readme"
+]
+
+# Output configuration
+[output]
+format = "json"
+report = "gitleaks-report.json"
+verbose = true
+redact = true
+
+# Git configuration
+[git]
+max_depth = 1000
+log_opts = ""
+clone_path = ""
+[git.branch]
+name = "main"
+regex = false
+
+# Time range for scanning
+[time]
+start = "2023-01-01T00:00:00Z"
+end = ""
+
+# Additional settings
+[extend]
+use_default = true
+[extend.path]
+allow = []
+[extend.regex]
+allow = []
