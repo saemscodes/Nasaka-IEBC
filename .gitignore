@@ -26,3 +26,29 @@ dist-ssr
 .env
 __pycache__/
 *.pyc
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# Keystore files
+*.keystore
+*.jks
+*.p12
+
+# Android/iOS build files
+android/app/build/
+ios/App/build/
+dist/
+capacitor.config.json
+
+# Secrets
+secrets.json
+service-account.json
+firebase-config.json
+
+# Temporary files
+*.tmp
+*.temp

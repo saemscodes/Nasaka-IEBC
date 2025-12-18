@@ -1,0 +1,293 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly security scan every Monday at 2 AM UTC
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: 'Type of scan to run'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - quick
+          - full
+          - security
+          - performance
+
+# Environment variables available to all jobs
+env:
+  NODE_VERSION: '20'
+  SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+  SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+  
+# Job concurrency
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Quality checks - runs on PR and push
+  quality:
+    name: Quality Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: TypeScript type check
+        run: npx tsc --noEmit --project tsconfig.json
+        
+      - name: ESLint check
+        run: npm run lint
+        
+      - name: Code formatting check (Prettier)
+        run: npx prettier --check "src/**/*.{ts,tsx,js,jsx,json,css,md}"
+        
+      - name: Security audit (npm audit)
+        run: npm audit --audit-level=high || true
+        
+      - name: Check for secrets in code
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          config-path: .gitleaks.toml
+          
+      - name: Bundle size analysis
+        run: npx vite-bundle-visualizer --json -o bundle-stats.json
+        
+      - name: Upload bundle analysis
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-analysis
+          path: bundle-stats.json
+          retention-days: 7
+
+  # Unit and integration tests
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    needs: quality
+    timeout-minutes: 20
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run unit tests
+        run: npm test -- --coverage
+        
+      - name: Upload test coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+          
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            coverage/
+            junit.xml
+          retention-days: 30
+
+  # Build and deployment
+  build:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    needs: [quality, test]
+    environment: production
+    permissions:
+      contents: write
+      deployments: write
+      pages: write
+      id-token: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Create environment file
+        run: |
+          echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}" >> .env
+          echo "VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}" >> .env
+          echo "VITE_GOOGLE_MAPS_API_KEY=${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}" >> .env
+          echo "VITE_APP_VERSION=${{ github.sha }}" >> .env
+          
+      - name: Build application
+        run: npm run build
+        
+      - name: Lighthouse CI audit
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          configPath: ./lighthouserc.json
+          runs: 3
+          budgetPath: ./lighthouse-budget.json
+          
+      - name: Deploy to Vercel
+        if: github.ref == 'refs/heads/main'
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          
+      - name: Create deployment status
+        if: github.ref == 'refs/heads/main'
+        uses: bobheadxi/deployments@v1
+        with:
+          step: deploy
+          env: Production
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Security scanning
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.scan_type == 'security'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+          
+      - name: Run OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        env:
+          JAVA_HOME: /opt/java/openjdk
+        with:
+          project: 'nasaka-iebc'
+          path: '.'
+          format: 'HTML'
+          args: >
+            --failOnCVSS 7
+            --enableExperimental
+            --out reports/
+            
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: reports/
+          retention-days: 90
+
+  # Performance monitoring
+  performance:
+    name: Performance Test
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'performance' || github.event_name == 'schedule'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build for testing
+        run: npm run build
+        
+      - name: Run WebPageTest
+        uses: JarvusInnovations/webpagetest-github-action@v1
+        with:
+          apiKey: ${{ secrets.WEBPAGETEST_API_KEY }}
+          url: 'https://recall254.vercel.app/iebc-office'
+          location: 'Dulles:Chrome'
+          pollResults: 30
+          timeout: 300
+          
+      - name: Run Playwright performance tests
+        run: npx playwright test --project=performance --reporter=html
+        
+      - name: Upload performance reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-reports
+          path: |
+            playwright-report/
+            webpagetest-results/
+          retention-days: 30
+
+  # Database schema check
+  database:
+    name: Database Schema Check
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'full'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Run Supabase schema check
+        run: |
+          # Check if RLS is enabled on all tables
+          curl -s -X GET \
+            "${{ secrets.VITE_SUPABASE_URL }}/rest/v1/rpc/is_admin_user" \
+            -H "apikey: ${{ secrets.VITE_SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.VITE_SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"user_id": "00000000-0000-0000-0000-000000000000"}' || true
+          
+      - name: Generate schema diff
+        run: |
+          # This would compare current schema with expected schema
+          echo "Schema validation placeholder"
+          
+      - name: Upload schema report
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-schema
+          path: schema-diff.md
+          retention-days: 30

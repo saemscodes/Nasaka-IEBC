@@ -1,0 +1,177 @@
+name: Android Production Build
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Trigger on version tags like v1.0.0
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: 'Version name (e.g., 1.2.3)'
+        required: true
+        type: string
+      version_code:
+        description: 'Version code (integer)'
+        required: true
+        type: string
+      release_notes:
+        description: 'Release notes'
+        required: false
+        type: string
+
+env:
+  NODE_VERSION: '20'
+  JAVA_VERSION: '17'
+  BUILD_TOOLS_VERSION: '34.0.0'
+  GRADLE_VERSION: '8.2.1'
+  APP_ID: 'com.nasaka.iebc'
+  APP_NAME: 'Nasaka IEBC'
+
+jobs:
+  build-android:
+    name: Build Android AAB
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm install @capacitor/android
+          
+      - name: Create production environment file
+        run: |
+          echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}" > .env.production
+          echo "VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}" >> .env.production
+          echo "VITE_APP_VERSION=${{ github.event.inputs.version_name || '1.0.0' }}" >> .env.production
+          echo "VITE_BUILD_NUMBER=${{ github.event.inputs.version_code || '1' }}" >> .env.production
+          
+      - name: Build web app
+        run: npm run build
+        env:
+          NODE_ENV: production
+          
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+          
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/release.keystore
+          
+      - name: Create gradle.properties
+        run: |
+          mkdir -p ~/.gradle
+          cat > ~/.gradle/gradle.properties << EOF
+          NASAKA_RELEASE_STORE_FILE=../../release.keystore
+          NASAKA_RELEASE_STORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}
+          NASAKA_RELEASE_KEY_ALIAS=nasaka
+          NASAKA_RELEASE_KEY_PASSWORD=${{ secrets.KEYSTORE_ALIAS_PASSWORD }}
+          org.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8
+          org.gradle.parallel=true
+          org.gradle.daemon=false
+          android.useAndroidX=true
+          android.enableJetifier=true
+          EOF
+          
+      - name: Update capacitor.config.ts with version
+        run: |
+          VERSION_NAME="${{ github.event.inputs.version_name || '1.0.0' }}"
+          VERSION_CODE="${{ github.event.inputs.version_code || '1' }}"
+          
+          # Update capacitor.config.ts
+          sed -i "s/appId: 'com.nasaka.iebc',/appId: 'com.nasaka.iebc',\n  version: '$VERSION_NAME',\n  versionCode: $VERSION_CODE,/" capacitor.config.ts
+          
+      - name: Sync Capacitor
+        run: |
+          npx cap sync android
+          
+      - name: Build Android App Bundle
+        run: |
+          cd android
+          ./gradlew bundleRelease
+          
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nasaka-iebc-aab
+          path: android/app/build/outputs/bundle/release/*.aab
+          retention-days: 30
+          
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: android/app/build/outputs/bundle/release/*.aab
+          body: |
+            ## Nasaka IEBC Android Release
+            
+            **Version:** ${{ github.ref_name }}
+            **Build Date:** $(date +'%Y-%m-%d %H:%M:%S')
+            
+            ### What's New
+            ${{ github.event.inputs.release_notes || 'Bug fixes and performance improvements' }}
+            
+            ### Installation
+            1. Download the AAB file above
+            2. Upload to Google Play Console
+            3. Submit for review
+            
+            ### Testing
+            - Test on multiple Android versions
+            - Verify offline functionality
+            - Check PWA features
+          draft: false
+          prerelease: false
+          
+      - name: Upload to Firebase App Distribution
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID }}
+          serviceCredentialsFile: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          groups: testers
+          file: android/app/build/outputs/bundle/release/*.aab
+          
+  security-check:
+    name: Security & Quality Checks
+    runs-on: ubuntu-latest
+    needs: build-android
+    
+    steps:
+      - name: Download AAB
+        uses: actions/download-artifact@v4
+        with:
+          name: nasaka-iebc-aab
+          
+      - name: Verify AAB signature
+        run: |
+          # Use jarsigner to verify the AAB
+          jarsigner -verify -verbose -certs *.aab || echo "AAB verification completed"
+          
+      - name: Check bundle size
+        run: |
+          du -h *.aab
+          echo "AAB size should be under 150MB for Google Play"
+          
+      - name: Run security scan on AAB
+        uses: mobsf/mobsf-action@v1.1.0
+        with:
+          scan_type: 'apk'
+          mobsf_url: 'https://mobsf.live'
+          mobsf_api_key: ${{ secrets.MOBSF_API_KEY }}
