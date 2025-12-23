@@ -133,3 +133,6 @@ export function useErrorBoundary() {
   
   return { error, handleError, resetError };
 }
+
+// Default export for backward compatibility
+export default ErrorBoundary;

@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MapPin, Globe, ExternalLink, Layers, RefreshCw } from 'lucide-react';
-import ErrorBoundary from "@/components/ErrorBoundary";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import GeoJsonIoViewer from "@/components/GeoJsonIoViewer";
 import UMapViewer from "@/components/UMapViewer";
 import MapTilerViewer from "@/components/MapTilerViewer";

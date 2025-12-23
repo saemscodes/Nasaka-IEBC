@@ -27,7 +27,8 @@ import { supabase } from "@/integrations/supabase/client";
 // Import i18n configuration
 import '@/i18n';
 import { PWAInstallBanner } from "./components/PWAInstallBanner";
-import OfflineIndicator from "./components/OfflineIndicator";
+import { PWARegistration } from "./components/PWARegistration";
+import { OfflineBanner } from "./components/OfflineBanner";
 
 // ✅ Enhanced Query Client
 const queryClient = new QueryClient({
@@ -462,11 +463,11 @@ const App = () => {
           <TooltipProvider delayDuration={0}>
             <Toaster />
             <Sonner position="top-right" expand={false} richColors closeButton />
+            <PWARegistration />
             <AppContent />
             <Analytics />
             <SpeedInsights />
             <PWAInstallBanner />
-            <OfflineIndicator />
           </TooltipProvider>
         </LanguageProvider>
       </ThemeProvider>

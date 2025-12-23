@@ -7,6 +7,7 @@ import DonationWidget from '@/components/ui/DonationWidget';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
+import { OfflineBanner } from '@/components/OfflineBanner';
 
 // Enhanced Background Layers with Cursor-Tracking Radial Effects
 const BackgroundLayers = ({ className = "" }) => {
@@ -416,6 +417,8 @@ const IEBCOfficeSplash = () => {
         ? 'bg-ios-gray-900 text-white' 
         : 'bg-white text-ios-gray-900'
     }`}>
+      {/* Offline Status Banner */}
+      <OfflineBanner className="absolute top-0 left-0 right-0 z-30" compact />
       {/* Top Control Bar - Full width with equal edge padding and proper spacing */}
       <div className="absolute top-6 left-0 right-0 z-20 flex justify-between items-center px-6 pt-4">
         <CekaLogoButton />

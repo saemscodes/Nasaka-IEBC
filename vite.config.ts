@@ -200,7 +200,7 @@ export default defineConfig(({ mode }) => ({
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]'
       },
-      external: ['virtual:pwa-register']
+      
     },
     target: 'es2020',
     minify: 'terser',
@@ -220,7 +220,7 @@ export default defineConfig(({ mode }) => ({
 
   optimizeDeps: {
     include: ["leaflet", "react-leaflet", "fuse.js"],
-    exclude: ["lovable-tagger", "virtual:pwa-register"]
+    exclude: ["lovable-tagger"]
   },
 
   css: {

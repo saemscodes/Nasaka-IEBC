@@ -1337,7 +1337,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
             await archiveContribution(
               contribution.id,
               'merged',
-              `Merged with existing office: ${selectedOffice.office_name}`,
+              `Merged with existing office: ${selectedOffice.office_location}`,
               officeId
             );
 
@@ -1347,7 +1347,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
               action: 'merged_existing',
               actor: 'admin:dashboard',
               details: {
-                existing_office: selectedOffice.office_name,
+                existing_office: selectedOffice.office_location,
                 distance: selectedOffice.distance_meters,
                 confidence_score: contribution.confidence_score,
                 archived: true
@@ -1357,7 +1357,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
             await fetchContributions();
             await fetchStats();
             
-            alert(`Contribution merged and archived successfully with office: ${selectedOffice.office_name}`);
+            alert(`Contribution merged and archived successfully with office: ${selectedOffice.office_location}`);
           } else {
             alert('Invalid office ID selected.');
           }

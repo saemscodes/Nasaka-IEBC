@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from 'lucide-react';
 import AnimatedSearchIcon from './AnimatedSearchIcon';
-import ErrorBoundary from './ErrorBoundary';
+import { ErrorBoundary } from './ErrorBoundary';
 
 interface SearchBoxProps<T> {
 placeholder: string;

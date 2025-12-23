@@ -10,6 +10,7 @@ import OfficeBottomSheet from '../../components/IEBCOffice/OfficeBottomSheet';
 import OfficeListPanel from '../../components/IEBCOffice/OfficeListPanel';
 import SearchBar from '../../components/IEBCOffice/SearchBar';
 import LoadingSpinner from '../../components/IEBCOffice/LoadingSpinner';
+import { OfflineBanner } from '@/components/OfflineBanner';
 import { useIEBCOffices } from '../../hooks/useIEBCOffices';
 import { useMapControls } from '../../hooks/useMapControls';
 import { findNearestOffice, findNearestOffices } from '../../utils/geoUtils';
@@ -164,6 +165,9 @@ const EnhancedIEBCOfficeMap = () => {
 
   return (
     <div className="relative h-screen w-full bg-ios-bg overflow-hidden">
+      {/* Offline Status Banner */}
+      <OfflineBanner className="absolute top-0 left-0 right-0 z-50" />
+
       {/* Enhanced Map Container */}
       <EnhancedMapContainer
         ref={mapRef}
