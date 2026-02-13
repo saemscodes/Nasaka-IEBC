@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# TypeScript declaration files (auto-generated)
+**/*.d.ts
+!src/types/**/*.d.ts
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -27,13 +31,7 @@ dist-ssr
 __pycache__/
 *.pyc
 
-# Add this to .gitignore
-**/*.d.ts
-dist/
-node_modules/
-
 # Environment files
-.env
 .env.local
 .env.production
 .env.development
@@ -46,7 +44,6 @@ node_modules/
 # Android/iOS build files
 android/app/build/
 ios/App/build/
-dist/
 capacitor.config.json
 
 # Secrets
