@@ -18,7 +18,8 @@
     "noImplicitAny": false,
     "noUnusedParameters": false,
     "skipLibCheck": true,
-    "allowJs": true,
+    "allowJs": false,
+    "declaration": true,
     "noUnusedLocals": false,
     "strictNullChecks": false,
     "strict": true,
@@ -39,9 +40,12 @@
     "useDefineForClassFields": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.jsx"
   ],
   "exclude": [
+    "src/**/*.js",
     "node_modules",
     "dist"
   ]
