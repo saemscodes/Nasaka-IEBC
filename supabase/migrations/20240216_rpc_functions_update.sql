@@ -3,8 +3,10 @@
 -- Date: 2024-02-16
 
 -- ============================================================================
--- 1. UPDATE get_office_stats TO HANDLE NULL office_id IN confirmations
+-- 1. UPDATE get_office_stats TO USE contribution_id PATH (no office_id in confirmations)
 -- ============================================================================
+DROP FUNCTION IF EXISTS public.get_office_stats(INTEGER);
+
 CREATE OR REPLACE FUNCTION public.get_office_stats(office_id_param INTEGER)
 RETURNS TABLE (
   office_id INTEGER,
@@ -28,16 +30,10 @@ BEGIN
     COUNT(DISTINCT cu.id) AS contact_updates_count,
     COUNT(DISTINCT cont.id) AS contributions_count
   FROM public.iebc_offices o
-  LEFT JOIN public.confirmations c ON (
-    o.id = c.office_id OR 
-    (c.contribution_id IS NOT NULL AND EXISTS (
-      SELECT 1 FROM public.iebc_office_contributions cont2 
-      WHERE cont2.id = c.contribution_id AND cont2.original_office_id = o.id
-    ))
-  )
+  LEFT JOIN public.iebc_office_contributions cont ON o.id = cont.original_office_id
+  LEFT JOIN public.confirmations c ON cont.id = c.contribution_id
   LEFT JOIN public.operational_status_history os ON o.id = os.office_id
   LEFT JOIN public.contact_update_requests cu ON o.id = cu.office_id
-  LEFT JOIN public.iebc_office_contributions cont ON o.id = cont.original_office_id
   WHERE o.id = office_id_param
   GROUP BY o.id;
 END;
@@ -58,13 +54,8 @@ SELECT
   MAX(c.confirmed_at) AS last_confirmed_at,
   COUNT(DISTINCT CASE WHEN c.confirmed_at > NOW() - INTERVAL '30 days' THEN c.id END) AS recent_confirmations
 FROM public.iebc_offices o
-LEFT JOIN public.confirmations c ON (
-  o.id = c.office_id OR 
-  (c.contribution_id IS NOT NULL AND EXISTS (
-    SELECT 1 FROM public.iebc_office_contributions cont 
-    WHERE cont.id = c.contribution_id AND cont.original_office_id = o.id
-  ))
-)
+LEFT JOIN public.iebc_office_contributions cont ON o.id = cont.original_office_id
+LEFT JOIN public.confirmations c ON cont.id = c.contribution_id
 WHERE o.verified = true
 GROUP BY o.id, o.county, o.constituency_name;
 
@@ -74,6 +65,9 @@ CREATE INDEX idx_office_verification_stats_county ON public.office_verification_
 -- ============================================================================
 -- 3. NEW FUNCTION: GET ARCHIVED CONTRIBUTIONS
 -- ============================================================================
+-- Drop function if it exists with different signature
+DROP FUNCTION IF EXISTS public.get_archived_contributions(TEXT, INTEGER, INTEGER);
+
 CREATE OR REPLACE FUNCTION public.get_archived_contributions(
   p_action_type TEXT DEFAULT NULL,
   p_limit INTEGER DEFAULT 50,
@@ -111,6 +105,9 @@ $$ LANGUAGE plpgsql STABLE;
 -- ============================================================================
 -- 4. NEW FUNCTION: GET VERIFICATION LOG FOR OFFICE
 -- ============================================================================
+-- Drop function if it exists with different signature
+DROP FUNCTION IF EXISTS public.get_office_verification_log(INTEGER, INTEGER);
+
 CREATE OR REPLACE FUNCTION public.get_office_verification_log(
   p_office_id INTEGER,
   p_limit INTEGER DEFAULT 50
@@ -140,6 +137,9 @@ $$ LANGUAGE plpgsql STABLE;
 -- ============================================================================
 -- 5. NEW FUNCTION: GET VERIFICATION LOG FOR CONTRIBUTION
 -- ============================================================================
+-- Drop function if it exists with different signature
+DROP FUNCTION IF EXISTS public.get_contribution_verification_log(INTEGER, INTEGER);
+
 CREATE OR REPLACE FUNCTION public.get_contribution_verification_log(
   p_contribution_id INTEGER,
   p_limit INTEGER DEFAULT 50
@@ -169,6 +169,9 @@ $$ LANGUAGE plpgsql STABLE;
 -- ============================================================================
 -- 6. NEW FUNCTION: GET OFFICE CONTRIBUTION LINKS
 -- ============================================================================
+-- Drop function if it exists with different signature
+DROP FUNCTION IF EXISTS public.get_office_contribution_links(INTEGER);
+
 CREATE OR REPLACE FUNCTION public.get_office_contribution_links(
   p_office_id INTEGER
 )
@@ -188,8 +191,10 @@ END;
 $$ LANGUAGE plpgsql STABLE;
 
 -- ============================================================================
--- 7. UPDATE get_most_verified_offices TO HANDLE NULL office_id
+-- 7. UPDATE get_most_verified_offices TO USE contribution_id PATH
 -- ============================================================================
+DROP FUNCTION IF EXISTS public.get_most_verified_offices(INTEGER);
+
 CREATE OR REPLACE FUNCTION public.get_most_verified_offices(
   limit_count INTEGER DEFAULT 20
 )
@@ -211,13 +216,8 @@ BEGIN
     AVG(c.confirmation_weight) AS avg_weight,
     MAX(c.confirmed_at) AS last_confirmed_at
   FROM public.iebc_offices o
-  JOIN public.confirmations c ON (
-    o.id = c.office_id OR 
-    (c.contribution_id IS NOT NULL AND EXISTS (
-      SELECT 1 FROM public.iebc_office_contributions cont 
-      WHERE cont.id = c.contribution_id AND cont.original_office_id = o.id
-    ))
-  )
+  JOIN public.iebc_office_contributions cont ON o.id = cont.original_office_id
+  JOIN public.confirmations c ON cont.id = c.contribution_id
   WHERE o.verified = true
   GROUP BY o.id, o.county, o.constituency_name
   ORDER BY confirmation_count DESC, avg_weight DESC
@@ -226,8 +226,10 @@ END;
 $$ LANGUAGE plpgsql STABLE;
 
 -- ============================================================================
--- 8. UPDATE get_offices_needing_verification TO HANDLE NULL office_id
+-- 8. UPDATE get_offices_needing_verification TO USE contribution_id PATH
 -- ============================================================================
+DROP FUNCTION IF EXISTS public.get_offices_needing_verification(INTEGER, INTEGER);
+
 CREATE OR REPLACE FUNCTION public.get_offices_needing_verification(
   min_confirmations INTEGER DEFAULT 2,
   limit_count INTEGER DEFAULT 50
@@ -250,13 +252,8 @@ BEGIN
     o.created_at,
     MAX(c.confirmed_at) AS last_confirmed_at
   FROM public.iebc_offices o
-  LEFT JOIN public.confirmations c ON (
-    o.id = c.office_id OR 
-    (c.contribution_id IS NOT NULL AND EXISTS (
-      SELECT 1 FROM public.iebc_office_contributions cont 
-      WHERE cont.id = c.contribution_id AND cont.original_office_id = o.id
-    ))
-  )
+  LEFT JOIN public.iebc_office_contributions cont ON o.id = cont.original_office_id
+  LEFT JOIN public.confirmations c ON cont.id = c.contribution_id
   WHERE o.verified = true
   GROUP BY o.id, o.county, o.constituency_name, o.created_at
   HAVING COUNT(DISTINCT c.id) < min_confirmations
