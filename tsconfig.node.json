@@ -1,35 +1,37 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2023"],
+    "lib": [
+      "ES2023"
+    ],
     "module": "ESNext",
     "skipLibCheck": true,
-
-    /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    "emitDeclarationOnly": true,
+    "emitDeclarationOnly": false,
     "isolatedModules": false,
     "moduleDetection": "force",
-
-    /* emit allowed for referenced project */
-    "noEmit": false,
-
-    /* Linting */
+    "noEmit": true,
     "strict": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
-
-    /* Node-specific options */
     "composite": true,
-    "declaration": true,
+    "declaration": false,
     "allowSyntheticDefaultImports": true,
-    "types": ["node"],
-
-    /* build info file */
+    "types": [
+      "node"
+    ],
     "tsBuildInfoFile": "./node_modules/.cache/tsbuildinfo/tsconfig.node.tsbuildinfo"
   },
-  "include": ["vite.config.ts", "package.json", "scripts/**/*", "**/*.d.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "vite.config.ts",
+    "package.json",
+    "scripts/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/**/*.d.ts"
+  ]
 }
