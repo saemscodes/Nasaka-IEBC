@@ -6,9 +6,20 @@
 -- 1. UPDATE CONFIRMATIONS TABLE to match actual database schema
 -- ============================================================================
 
--- Make office_id nullable to match actual schema (confirmations can link via contribution_id)
-ALTER TABLE public.confirmations
-ALTER COLUMN office_id DROP NOT NULL;
+-- Remove office_id column if it exists (confirmations only link via contribution_id)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' 
+    AND table_name = 'confirmations' 
+    AND column_name = 'office_id'
+  ) THEN
+    -- Drop dependent objects first
+    DROP INDEX IF EXISTS public.idx_confirmations_office_id;
+    ALTER TABLE public.confirmations DROP COLUMN office_id;
+  END IF;
+END $$;
 
 -- Add missing columns to confirmations table
 ALTER TABLE public.confirmations
@@ -136,6 +147,11 @@ CREATE POLICY "Authenticated users can insert office contribution links"
 -- ============================================================================
 -- 5. ENSURE OPERATIONAL_STATUS_HISTORY EXISTS (Our new table)
 -- ============================================================================
+-- Add missing columns if table already exists from another migration
+ALTER TABLE public.operational_status_history
+  ADD COLUMN IF NOT EXISTS reported_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT now();
+
 -- Already created in 20240215_iebc_complete_schema.sql, but ensure it exists
 CREATE TABLE IF NOT EXISTS public.operational_status_history (
   id BIGSERIAL PRIMARY KEY,
@@ -144,6 +160,7 @@ CREATE TABLE IF NOT EXISTS public.operational_status_history (
   reason TEXT,
   reported_by TEXT,
   reported_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   verified BOOLEAN DEFAULT false,
   verified_by TEXT,
   verified_at TIMESTAMP WITH TIME ZONE,
