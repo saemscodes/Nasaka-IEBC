@@ -1,12 +1,13 @@
 // src/components/IEBCOffice/UberModal.jsx
 import React, { useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { useTheme } from '@/contexts/ThemeContext';
 import { formatFare } from '@/utils/kenyaFareCalculator';
 
 const UberModal = ({ isOpen, onClose, onProductSelect, pickup, destination, fareEstimates }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const dragControls = useDragControls();
 
   useEffect(() => {
     if (isOpen) {
@@ -61,6 +62,12 @@ const UberModal = ({ isOpen, onClose, onProductSelect, pickup, destination, fare
     }
   };
 
+  const handleDragEnd = (event, info) => {
+    if (info.offset.y > 100) {
+      onClose();
+    }
+  };
+
   const getFareForProduct = (productId) => {
     if (!fareEstimates || !fareEstimates.uber) return null;
     return fareEstimates.uber[productId];
@@ -78,31 +85,48 @@ const UberModal = ({ isOpen, onClose, onProductSelect, pickup, destination, fare
             className="uber-modal-backdrop"
             onClick={handleBackdropClick}
           />
-          
+
           {/* Modal Content */}
           <motion.div
+            drag="y"
+            dragControls={dragControls}
+            dragListener={false}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={0.2}
+            onDragEnd={handleDragEnd}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className={`fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md rounded-t-3xl overflow-hidden ${
-              isDark ? 'bg-gray-900' : 'bg-white'
-            } shadow-2xl`}
+            className={`fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md rounded-t-3xl overflow-hidden ${isDark ? 'bg-gray-900' : 'bg-white'
+              } shadow-2xl`}
           >
-            <div className={`p-6 border-b ${
-              isDark ? 'border-gray-700' : 'border-gray-200'
-            }`}>
+            {/* Drag Handle Area - visual handle + large hit area for dragging */}
+            <div
+              className="w-full h-6 flex items-center justify-center cursor-grab active:cursor-grabbing"
+              onPointerDown={(e) => dragControls.start(e)}
+            >
+              <div
+                className={`bottom-sheet-handle !m-0 ${isDark ? 'bg-gray-600' : 'bg-gray-300'
+                  }`}
+              />
+            </div>
+
+            <div className={`p-6 pt-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'
+              }`}>
               <div className="flex items-center justify-between mb-2">
-                <h3 className={`text-xl font-bold ${
-                  isDark ? 'text-white' : 'text-gray-900'
-                }`}>
-                  Choose Uber Ride
+                <h3
+                  className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'
+                    }`}
+                  // Optional: Allow dragging from header title too
+                  onPointerDown={(e) => dragControls.start(e)}
+                >
+                  Choose Your Ride
                 </h3>
                 <button
                   onClick={onClose}
-                  className={`p-2 rounded-full ${
-                    isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                  }`}
+                  className={`p-2 rounded-full ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
+                    }`}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -111,7 +135,7 @@ const UberModal = ({ isOpen, onClose, onProductSelect, pickup, destination, fare
               </div>
               <p
                 className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}
-                >
+              >
                 Select your preferred ride type
                 <br />
                 <span className="text-xs text-gray-400 italic">(No discount applied)</span>
@@ -126,24 +150,21 @@ const UberModal = ({ isOpen, onClose, onProductSelect, pickup, destination, fare
                     key={product.id}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleProductSelect(product)}
-                    className={`w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 ${
-                      isDark 
-                        ? 'bg-gray-800 border-gray-700 hover:border-gray-600' 
-                        : 'bg-gray-50 border-gray-200 hover:border-gray-300'
-                    }`}
+                    className={`w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 ${isDark
+                      ? 'bg-gray-800 border-gray-700 hover:border-gray-600'
+                      : 'bg-gray-50 border-gray-200 hover:border-gray-300'
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
                         <span className="text-2xl">{product.icon}</span>
                         <div>
-                          <h4 className={`font-semibold ${
-                            isDark ? 'text-white' : 'text-gray-900'
-                          }`}>
+                          <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'
+                            }`}>
                             {product.name}
                           </h4>
-                          <p className={`text-sm ${
-                            isDark ? 'text-gray-400' : 'text-gray-600'
-                          }`}>
+                          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'
+                            }`}>
                             {product.description}
                           </p>
                         </div>
@@ -151,21 +172,18 @@ const UberModal = ({ isOpen, onClose, onProductSelect, pickup, destination, fare
                       <div className="text-right">
                         {fare ? (
                           <>
-                            <span className={`text-lg font-bold ${
-                              isDark ? 'text-white' : 'text-gray-900'
-                            }`}>
+                            <span className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'
+                              }`}>
                               {formatFare(fare.total)}
                             </span>
-                            <p className={`text-xs mt-1 ${
-                              isDark ? 'text-gray-400' : 'text-gray-500'
-                            }`}>
+                            <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'
+                              }`}>
                               ~{fare.estimatedMinutes} min
                             </p>
                           </>
                         ) : (
-                          <span className={`text-sm ${
-                            isDark ? 'text-gray-400' : 'text-gray-500'
-                          }`}>
+                          <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'
+                            }`}>
                             Price unavailable
                           </span>
                         )}
@@ -176,16 +194,14 @@ const UberModal = ({ isOpen, onClose, onProductSelect, pickup, destination, fare
               })}
             </div>
 
-            <div className={`p-4 border-t ${
-              isDark ? 'border-gray-700' : 'border-gray-200'
-            }`}>
+            <div className={`p-4 border-t ${isDark ? 'border-gray-700' : 'border-gray-200'
+              }`}>
               <button
                 onClick={onClose}
-                className={`w-full py-3 px-6 rounded-2xl font-medium ${
-                  isDark
-                    ? 'bg-gray-800 hover:bg-gray-700 text-white'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
-                }`}
+                className={`w-full py-3 px-6 rounded-2xl font-medium ${isDark
+                  ? 'bg-gray-800 hover:bg-gray-700 text-white'
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                  }`}
               >
                 Cancel
               </button>
