@@ -1,0 +1,35 @@
+{
+  "started_at": "2026-02-14T02:44:42.156693",
+  "phases": {
+    "extraction": {
+      "offices_extracted": 148,
+      "output_file": "data\\processed\\raw_iebc_offices.csv"
+    },
+    "cleaning": {
+      "offices_cleaned": 72,
+      "output_file": "data\\processed\\cleaned_iebc_offices.csv"
+    },
+    "geocoding": {
+      "offices_geocoded": 72,
+      "stats": {
+        "nominatim": 1,
+        "google": 0,
+        "mapbox": 0,
+        "cached": 0,
+        "failed": 71
+      },
+      "output_file": "data\\processed\\geocoded_iebc_offices.csv"
+    },
+    "geojson": {
+      "output_file": "data\\outputs\\iebc_offices.geojson"
+    },
+    "ingestion": {
+      "total": 72,
+      "ingested": 0,
+      "errors": 72
+    }
+  },
+  "completed_at": "2026-02-14T02:47:02.760040",
+  "duration_seconds": 140.603347,
+  "success": true
+}

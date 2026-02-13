@@ -55,7 +55,8 @@ PIPELINE_REPORT = OUTPUT_DIR / "pipeline_report.json"
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
 MAPBOX_API_KEY = os.getenv("MAPBOX_API_KEY")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
 # Kenyan Counties (for validation)
 KENYAN_COUNTIES = [
@@ -250,7 +251,7 @@ class DataCleaner:
         if county_lower in self.counties_map:
             return self.counties_map[county_lower]
         
-        matched = process.extractOne(county, KENYAN_COUNTIES, scorer=fuzz.ratio)
+        matched = process.extractOne(county, KENYAN_COUNTIES, scorer=fuzz.partial_ratio)
         if matched and matched[1] >= 80:
             return matched[0]
         
@@ -432,10 +433,15 @@ class SupabaseIngester:
     """Ingest data to Supabase"""
     
     def __init__(self):
-        if not SUPABASE_URL or not SUPABASE_KEY:
-            raise ValueError("Supabase credentials not found in environment")
+        if not SUPABASE_URL:
+            raise ValueError("Supabase URL not found in environment")
         
-        self.supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        # Prefer Service Role Key for admin operations (ingestion), fallback to Anon Key if necessary
+        key = SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY
+        if not key:
+             raise ValueError("Supabase API Key (Service Role or Anon) not found in environment")
+        
+        self.supabase: Client = create_client(SUPABASE_URL, key)
     
     def ingest(self, offices: List[Dict], batch_size: int = 50) -> Dict:
         """Ingest offices to Supabase in batches"""

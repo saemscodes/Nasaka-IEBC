@@ -1,0 +1,29 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.174724,
+          -0.7432287
+        ]
+      },
+      "properties": {
+        "id": null,
+        "county": "Murang'a",
+        "constituency_name": null,
+        "constituency_code": "000",
+        "office_location": "Mukuyu Mukuyu",
+        "landmark": null,
+        "formatted_address": "Mukuyu-Kambirwa, Kiharu, Murang`a, 10200, Kenya",
+        "geocode_method": "nominatim",
+        "geocode_confidence": 0.8,
+        "geocode_service": "OpenStreetMap Nominatim",
+        "verified": false,
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya"
+      }
+    }
+  ]
+}
