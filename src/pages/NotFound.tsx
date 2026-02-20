@@ -16,7 +16,13 @@ const NotFound = () => {
   useEffect(() => {
     // Generate contextual IEBC 404 message
     const ctx = handle404(location.pathname);
-    setContextualMessage(ctx);
+    setContextualMessage({
+      message: ctx.message,
+      suggestion: ctx.bestMatch ? {
+        path: ctx.bestMatch,
+        label: ctx.bestMatch.split('/').pop() || "Related Page"
+      } : null
+    });
 
     // Initialize dark mode
     const savedDarkMode = localStorage.getItem('darkMode');

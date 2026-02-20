@@ -38,6 +38,16 @@ import { PWAInstallBanner } from "./components/PWAInstallBanner";
 import { PWARegistration } from "./components/PWARegistration";
 import { OfflineBanner } from "./components/OfflineBanner";
 
+// ✅ Internal loading component for Suspense fallbacks
+const LoadingState = () => (
+  <div className="flex items-center justify-center min-h-screen bg-background">
+    <div className="relative w-12 h-12">
+      <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
+      <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  </div>
+);
+
 // ✅ Enhanced Query Client
 const queryClient = new QueryClient({
   defaultOptions: {

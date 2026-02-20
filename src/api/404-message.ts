@@ -110,11 +110,11 @@ function findClosestRoute(path: string): { route: string; distance: number } | n
     return null;
 }
 
-export const handle404 = async (
+export const handle404 = (
     path: string,
-    search: string,
-    referrer: string,
-    _userAgent: string
+    search: string = "",
+    referrer: string = "",
+    _userAgent: string = ""
 ) => {
     try {
         const count = 1;

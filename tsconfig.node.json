@@ -8,16 +8,14 @@
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    "emitDeclarationOnly": false,
-    "isolatedModules": false,
-    "moduleDetection": "force",
+    "emitDeclarationOnly": true,
     "noEmit": false,
     "strict": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "composite": true,
-    "declaration": false,
+    "declaration": true,
     "allowSyntheticDefaultImports": true,
     "types": [
       "node"
