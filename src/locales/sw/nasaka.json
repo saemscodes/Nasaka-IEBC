@@ -2,10 +2,10 @@
   "splash": {
     "title": "NASAKA",
     "subtitle": "IEBC",
-    "description": "Pata ofisi ya IEBC iliyo karibu na wewe au kokote nchini Kenya",
+    "description": "Pata ofisi ya IEBC iliyo karibu na wewe",
     "disclaimer": "Ruhusu ufikiaji wa eneo kupata kituo cha usajili cha karibu zaidi cha IEBC na upate urambazaji wa kugeuka-na-zamu",
     "allowLocation": "Tupe Ruhusa Kupata Eneo",
-    "manualEntry": "Weka Eneo Mwenyewe",
+    "manualEntry": "Tafuta Mwenyewe",
     "locationBlocked": "Eneo Limezuiliwa",
     "locationBlockedDescription": "Tafadhali wezesha tovuti kupata eneo alafu jaribu tena",
     "locating": "Tunapata eneo lako...",
@@ -215,24 +215,5 @@
     "language": "Lugha",
     "changeLanguage": "Badili lugha",
     "longPressHint": "Bonyeza kwa urefu kupata jawabu lako kwa haraka"
-  },
-  "seo": {
-    "siteTitle": "Nasaka IEBC — Pata Ofisi Yoyote ya IEBC nchini Kenya",
-    "siteDescription": "Pata ofisi zote 290+ za usajili wa wapiga kura na majimbo za IEBC nchini Kenya. Ramani ya kivinjari na maeneo yaliyothibitishwa na jamii na maelekezo ya hatua kwa hatua.",
-    "splashTitle": "Pata Ofisi ya IEBC Iliyo Karibu Nawe — Nasaka IEBC",
-    "splashDescription": "Pata ofisi ya jimbo au usajili wa wapiga kura ya IEBC iliyo karibu nawe nchini Kenya. Pata maelekezo, saa za kufungua, na data ya eneo iliyothibitishwa na jamii.",
-    "mapTitle": "Ramani ya Ofisi za IEBC — Kaunti Zote 47 | Nasaka IEBC",
-    "mapDescription": "Tafuta na uelekezwe kwa ofisi yoyote ya IEBC nchini Kenya. Ramani ya kivinjari na maelekezo ya wakati halisi, makadirio ya nauli, na msaada nje ya mtandao.",
-    "officeTitle": "Ofisi ya IEBC {{office}}, Kaunti ya {{county}} — Usajili wa Wapiga Kura & Huduma | Nasaka IEBC",
-    "officeDescription": "Pata ofisi ya jimbo la IEBC la {{office}} katika Kaunti ya {{county}}, Kenya. Pata maelekezo, saa za kufungua, na maelezo ya usajili wa wapiga kura.",
-    "notFoundTitle": "Ukurasa Haujapatikana — Nasaka IEBC",
-    "notFoundDescription": "Ukurasa unaoutafuta haupo. Tumia ramani yetu ya kivinjari kupata ofisi za IEBC nchini Kenya.",
-    "keywords": "IEBC Kenya, ofisi ya IEBC karibu na mimi, usajili wa wapiga kura Kenya, CVR Kenya, ofisi za jimbo za IEBC, Tume Huru ya Uchaguzi na Mipaka, sajili ya wapiga kura Kenya, uchaguzi wa Kenya 2027, ramani ya ofisi za IEBC, Nasaka IEBC, pata ofisi ya IEBC, ofisi ya IEBC iliyo karibu",
-    "voterRegistration": "Jinsi ya Kusajiliwa Kupiga Kura katika IEBC",
-    "voterRegistrationDesc": "Mwongozo wa hatua kwa hatua wa kusajiliwa kama mpiga kura nchini Kenya — leta Kitambulisho chako cha Kitaifa kwa ofisi yoyote ya jimbo la IEBC wakati wa CVR.",
-    "openingHours": "Jumatatu — Ijumaa, Saa 2:00 asubuhi — Saa 11:00 jioni",
-    "verifiedBadge": "Imethibitishwa na Jamii",
-    "unverifiedBadge": "Haijathibitishwa",
-    "lastVerified": "Ilithibitishwa Mwisho: {{date}}"
   }
 }

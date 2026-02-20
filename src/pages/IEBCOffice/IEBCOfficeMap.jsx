@@ -18,7 +18,6 @@ import { useMapControls } from '@/hooks/useMapControls';
 import { findNearestOffice, findNearestOffices } from '@/utils/geoUtils';
 import { supabase } from '@/integrations/supabase/client';
 import L from 'leaflet';
-import { SEOHead } from '@/components/SEO/SEOHead';
 
 const IEBCOfficeMap = () => {
   const navigate = useNavigate();
@@ -517,13 +516,6 @@ const IEBCOfficeMap = () => {
 
   return (
     <div className="ios-map-container relative">
-      {/* SEO Head for the interactive map page */}
-      <SEOHead
-        title={t('seo.mapTitle', 'Interactive IEBC Office Map — All 47 Counties | Nasaka IEBC')}
-        description={t('seo.mapDescription', 'Search and navigate to any IEBC office in Kenya. Interactive map with real-time directions, ride-hailing estimates, and offline support.')}
-        canonical="/iebc-office/map"
-        keywords={t('seo.keywords', 'IEBC office map Kenya, find IEBC office, voter registration Kenya, Nasaka IEBC map')}
-      />
       {/* FIXED UI Controls - ALWAYS ON TOP */}
       <div className="fixed-search-container">
         <SearchBar

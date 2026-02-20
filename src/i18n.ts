@@ -257,27 +257,7 @@ const resources: LanguageResources = {
         uberXLDesc: "Larger vehicles for groups",
         priceUnavailable: "Price unavailable",
         cancel: "Cancel"
-      },
-      seo: {
-        siteTitle: "Nasaka IEBC — Find Any IEBC Office in Kenya",
-        siteDescription: "Locate all 290+ IEBC voter registration and constituency offices across Kenya. Interactive map with community-verified locations and turn-by-turn directions.",
-        splashTitle: "Find Your Nearest IEBC Office — Nasaka IEBC",
-        splashDescription: "Locate the nearest IEBC constituency or voter registration office in Kenya. Get directions, opening hours, and community-verified location data.",
-        mapTitle: "Interactive IEBC Office Map — All 47 Counties | Nasaka IEBC",
-        mapDescription: "Search and navigate to any IEBC office in Kenya. Interactive map with real-time directions, ride-hailing estimates, and offline support.",
-        officeTitle: "IEBC Office {{office}}, {{county}} County — Voter Registration & Services | Nasaka IEBC",
-        officeDescription: "Find the IEBC constituency office for {{office}} in {{county}} County, Kenya. Get directions, opening hours, and voter registration details.",
-        notFoundTitle: "Page Not Found — Nasaka IEBC",
-        notFoundDescription: "The page you're looking for doesn't exist. Use our interactive map to find IEBC offices across Kenya.",
-        keywords: "IEBC Kenya, IEBC office near me, voter registration Kenya, CVR Kenya, IEBC constituency offices, Independent Electoral and Boundaries Commission, Kenya voter register, 2027 Kenya election, IEBC office map, Nasaka IEBC, find IEBC office, nearest IEBC office",
-        voterRegistration: "How to Register to Vote at IEBC",
-        voterRegistrationDesc: "Step-by-step guide to register as a voter in Kenya — bring your National ID to any IEBC constituency office during CVR periods.",
-        openingHours: "Monday — Friday, 8:00 AM — 5:00 PM",
-        verifiedBadge: "Community Verified",
-        unverifiedBadge: "Unverified",
-        lastVerified: "Last Verified: {{date}}"
       }
-
     }
   }
 };

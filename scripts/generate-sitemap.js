@@ -1,53 +1,37 @@
 #!/usr/bin/env node
 /**
- * scripts/generate-sitemap.js
+ * generate-sitemap.js
  * ─────────────────────────────────────────────────────────────────────────
- * Fetches all verified IEBC offices from Supabase and generates a complete
- * sitemap.xml. Designed to run autonomously via GitHub Actions or locally.
+ * Autonomous sitemap generator for Nasaka IEBC.
+ * Fetches verified IEBC offices from Supabase, generates sitemap.xml
+ * with hreflang alternates, and pings Google/Bing after writing.
  *
  * Usage:
- *   node scripts/generate-sitemap.js
- *
- * Requires:
- *   SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY env vars (or .env file).
+ *   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/generate-sitemap.js
+ *   npm run seo:sitemap  (if env vars are in .env)
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { writeFileSync, existsSync, mkdirSync } from 'fs';
+import { writeFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// ─── Configuration ────────────────────────────────────────────────────────────
 const SITE_URL = 'https://recall254.vercel.app';
 const OUTPUT_PATH = resolve(__dirname, '..', 'public', 'sitemap.xml');
-
-// Load env from .env if running locally
-try {
-    const dotenvPath = resolve(__dirname, '..', '.env');
-    if (existsSync(dotenvPath)) {
-        const { config } = await import('dotenv');
-        config({ path: dotenvPath });
-    }
-} catch {
-    // dotenv not available, rely on system env
-}
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-    console.error('❌ SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required.');
+    console.error('❌ Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
     process.exit(1);
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ─── Slug Utility ─────────────────────────────────────────────────────────────
 function slugify(text) {
-    if (!text) return '';
     return text
         .toString()
         .toLowerCase()
@@ -59,36 +43,7 @@ function slugify(text) {
         .replace(/-+$/, '');
 }
 
-// ─── Sitemap XML Builder ──────────────────────────────────────────────────────
-function buildSitemapXml(urls) {
-    const header = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">`;
-    const footer = `\n</urlset>`;
-
-    const entries = urls.map((entry) => {
-        let xml = `\n  <url>`;
-        xml += `\n    <loc>${escapeXml(entry.loc)}</loc>`;
-        if (entry.lastmod) xml += `\n    <lastmod>${entry.lastmod}</lastmod>`;
-        if (entry.changefreq) xml += `\n    <changefreq>${entry.changefreq}</changefreq>`;
-        if (entry.priority) xml += `\n    <priority>${entry.priority}</priority>`;
-
-        // Add hreflang alternates
-        if (entry.alternates) {
-            for (const alt of entry.alternates) {
-                xml += `\n    <xhtml:link rel="alternate" hreflang="${alt.hreflang}" href="${escapeXml(alt.href)}" />`;
-            }
-        }
-
-        xml += `\n  </url>`;
-        return xml;
-    }).join('');
-
-    return header + entries + footer;
-}
-
-function escapeXml(str) {
+function xmlEscape(str) {
     return str
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -97,136 +52,117 @@ function escapeXml(str) {
         .replace(/'/g, '&apos;');
 }
 
-function buildAlternates(path) {
-    return [
-        { hreflang: 'en-KE', href: `${SITE_URL}${path}` },
-        { hreflang: 'sw-KE', href: `${SITE_URL}${path}?lang=sw` },
-        { hreflang: 'x-default', href: `${SITE_URL}${path}` },
-    ];
+function urlEntry(loc, lastmod, changefreq = 'weekly', priority = '0.7') {
+    const hreflangs = [
+        `    <xhtml:link rel="alternate" hreflang="en-KE" href="${xmlEscape(loc)}" />`,
+        `    <xhtml:link rel="alternate" hreflang="sw-KE" href="${xmlEscape(loc)}" />`,
+        `    <xhtml:link rel="alternate" hreflang="x-default" href="${xmlEscape(loc)}" />`,
+    ].join('\n');
+
+    return `  <url>
+    <loc>${xmlEscape(loc)}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
+${hreflangs}
+  </url>`;
 }
 
-// ─── Main Generation ──────────────────────────────────────────────────────────
 async function generateSitemap() {
-    console.log('🗺️  Generating Nasaka IEBC sitemap...');
     const today = new Date().toISOString().split('T')[0];
 
-    // 1. Static pages
     const staticPages = [
-        { loc: `${SITE_URL}/`, changefreq: 'daily', priority: '1.0', lastmod: today, alternates: buildAlternates('/') },
-        { loc: `${SITE_URL}/iebc-office`, changefreq: 'daily', priority: '1.0', lastmod: today, alternates: buildAlternates('/iebc-office') },
-        { loc: `${SITE_URL}/iebc-office/map`, changefreq: 'daily', priority: '0.9', lastmod: today, alternates: buildAlternates('/iebc-office/map') },
-        { loc: `${SITE_URL}/nasaka-iebc`, changefreq: 'weekly', priority: '0.8', lastmod: today, alternates: buildAlternates('/nasaka-iebc') },
+        { loc: `${SITE_URL}/`, priority: '1.0', changefreq: 'daily' },
+        { loc: `${SITE_URL}/iebc-office`, priority: '1.0', changefreq: 'daily' },
+        { loc: `${SITE_URL}/iebc-office/map`, priority: '0.9', changefreq: 'daily' },
+        { loc: `${SITE_URL}/voter-services`, priority: '0.9', changefreq: 'monthly' },
+        { loc: `${SITE_URL}/boundary-review`, priority: '0.9', changefreq: 'monthly' },
+        { loc: `${SITE_URL}/election-resources`, priority: '0.9', changefreq: 'monthly' },
+        { loc: `${SITE_URL}/data-api`, priority: '0.8', changefreq: 'monthly' },
+        { loc: `${SITE_URL}/nasaka-iebc`, priority: '0.8', changefreq: 'weekly' },
+        { loc: `${SITE_URL}/privacy`, priority: '0.3', changefreq: 'monthly' },
+        { loc: `${SITE_URL}/terms`, priority: '0.3', changefreq: 'monthly' },
     ];
 
-    // 2. Fetch all verified offices from Supabase
-    console.log('📡 Fetching offices from Supabase...');
-    let allOffices = [];
-    let page = 0;
-    const pageSize = 1000;
-    let hasMore = true;
+    console.log('📡 Fetching verified IEBC offices from Supabase...');
+    const { data: offices, error } = await supabase
+        .from('iebc_offices')
+        .select('constituency_name, county, updated_at, verified')
+        .eq('verified', true)
+        .order('county', { ascending: true });
 
-    while (hasMore) {
-        const { data, error } = await supabase
-            .from('iebc_offices')
-            .select('id, county, constituency, constituency_name, office_location, latitude, longitude, updated_at, verified_at, verified')
-            .eq('verified', true)
-            .not('latitude', 'is', null)
-            .not('longitude', 'is', null)
-            .range(page * pageSize, (page + 1) * pageSize - 1)
-            .order('county')
-            .order('constituency_name');
+    if (error) {
+        console.error('❌ Supabase fetch failed:', error.message);
+        process.exit(1);
+    }
 
-        if (error) {
-            console.error('❌ Supabase error:', error.message);
-            process.exit(1);
+    console.log(`✅ Fetched ${offices.length} verified offices`);
+
+    const urls = [];
+
+    for (const page of staticPages) {
+        urls.push(urlEntry(page.loc, today, page.changefreq, page.priority));
+    }
+
+    const seenCounties = new Set();
+    for (const office of offices) {
+        const countySlug = slugify(office.county || '');
+        const constituencySlug = slugify(office.constituency_name || '');
+        const lastmod = office.updated_at
+            ? new Date(office.updated_at).toISOString().split('T')[0]
+            : today;
+
+        if (countySlug && constituencySlug) {
+            urls.push(
+                urlEntry(
+                    `${SITE_URL} / iebc - office / ${countySlug} / ${constituencySlug}`,
+                    lastmod,
+                    'weekly',
+                    '0.8'
+                )
+            );
         }
 
-        allOffices = allOffices.concat(data || []);
-        hasMore = data && data.length === pageSize;
-        page++;
+        if (countySlug && !seenCounties.has(countySlug)) {
+            seenCounties.add(countySlug);
+            urls.push(
+                urlEntry(
+                    `${SITE_URL} / iebc - office / ${countySlug}`,
+                    lastmod,
+                    'weekly',
+                    '0.7'
+                )
+            );
+        }
     }
 
-    console.log(`✅ Fetched ${allOffices.length} verified offices.`);
-
-    // 3. Generate office URLs
-    const officePages = [];
-    const countySet = new Set();
-
-    for (const office of allOffices) {
-        const countySlug = slugify(office.county || '');
-        const constituencySlug = slugify(office.constituency_name || office.constituency || office.office_location || '');
-
-        if (!countySlug || !constituencySlug) continue;
-
-        countySet.add(countySlug);
-
-        const path = `/iebc-office/${countySlug}/${constituencySlug}`;
-        const lastmod = (office.verified_at || office.updated_at || today).split('T')[0];
-
-        officePages.push({
-            loc: `${SITE_URL}${path}`,
-            changefreq: 'weekly',
-            priority: '0.8',
-            lastmod,
-            alternates: buildAlternates(path),
-        });
-    }
-
-    // 4. Generate county landing page URLs
-    const countyPages = Array.from(countySet).map((countySlug) => {
-        const path = `/iebc-office/${countySlug}`;
-        return {
-            loc: `${SITE_URL}${path}`,
-            changefreq: 'weekly',
-            priority: '0.9',
-            lastmod: today,
-            alternates: buildAlternates(path),
-        };
-    });
-
-    // 5. Combine all URLs
-    const allUrls = [...staticPages, ...countyPages, ...officePages];
-    console.log(`📝 Total URLs: ${allUrls.length} (${staticPages.length} static + ${countyPages.length} counties + ${officePages.length} offices)`);
-
-    // 6. Write sitemap
-    const xml = buildSitemapXml(allUrls);
-
-    // Ensure output directory exists
-    const outputDir = dirname(OUTPUT_PATH);
-    if (!existsSync(outputDir)) {
-        mkdirSync(outputDir, { recursive: true });
-    }
+    const xml = `<? xml version = "1.0" encoding = "UTF-8" ?>
+            <urlset
+                xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+                xmlns:xhtml="http://www.w3.org/1999/xhtml"
+            >
+                ${urls.join('\n')}
+            </urlset>`;
 
     writeFileSync(OUTPUT_PATH, xml, 'utf-8');
-    console.log(`✅ Sitemap written to ${OUTPUT_PATH}`);
-    console.log(`📊 Summary:`);
-    console.log(`   - Static pages: ${staticPages.length}`);
-    console.log(`   - County pages: ${countyPages.length}`);
-    console.log(`   - Office pages: ${officePages.length}`);
-    console.log(`   - Total URLs: ${allUrls.length}`);
+    console.log(`✅ Sitemap written to ${OUTPUT_PATH}(${urls.length} URLs)`);
 
-    // 7. Ping search engines
-    console.log('🔔 Pinging search engines...');
-    const sitemapUrl = `${SITE_URL}/sitemap.xml`;
+    const pingUrls = [
+        `https://www.google.com/ping?sitemap=${encodeURIComponent(`${SITE_URL}/sitemap.xml`)}`,
+        `https://www.bing.com/ping?sitemap=${encodeURIComponent(`${SITE_URL}/sitemap.xml`)}`,
+    ];
 
-    try {
-        const googlePing = await fetch(`https://www.google.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`);
-        console.log(`   Google: ${googlePing.ok ? '✅' : '❌'} (${googlePing.status})`);
-    } catch {
-        console.log('   Google: ⚠️ Ping failed (network error)');
+    for (const ping of pingUrls) {
+        try {
+            const res = await fetch(ping);
+            console.log(`📣 Pinged ${new URL(ping).hostname}: ${res.status}`);
+        } catch (e) {
+            console.warn(`⚠️  Ping to ${new URL(ping).hostname} failed:`, e.message);
+        }
     }
-
-    try {
-        const bingPing = await fetch(`https://www.bing.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`);
-        console.log(`   Bing: ${bingPing.ok ? '✅' : '❌'} (${bingPing.status})`);
-    } catch {
-        console.log('   Bing: ⚠️ Ping failed (network error)');
-    }
-
-    console.log('\n🎉 Sitemap generation complete!');
 }
 
 generateSitemap().catch((err) => {
-    console.error('💥 Fatal error:', err);
+    console.error('💥 Sitemap generation failed:', err);
     process.exit(1);
 });

@@ -18,8 +18,14 @@ import NotFound from "./pages/NotFound";
 // import VoterRegistrationPage from "@/pages/VoterRegistration";
 import { IEBCOfficeSplash, IEBCOfficeMap } from './pages/IEBCOffice';
 import { HelmetProvider } from 'react-helmet-async';
-const OfficeDetail = React.lazy(() => import('./pages/IEBCOffice/OfficeDetail'));
 import './styles/iebc-office.css';
+
+// Lazy load the rich office detail page
+const OfficeDetail = React.lazy(() => import('./pages/IEBCOffice/OfficeDetail'));
+const VoterServices = React.lazy(() => import('./pages/SEO/VoterServices'));
+const BoundaryReview = React.lazy(() => import('./pages/SEO/BoundaryReview'));
+const ElectionResources = React.lazy(() => import('./pages/SEO/ElectionResources'));
+const DataAPI = React.lazy(() => import('./pages/SEO/DataAPI'));
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
@@ -396,6 +402,14 @@ const AppContent = () => {
         <Route path="/iebc-office" element={<IEBCOfficeSplash />} />
         <Route path="/nasaka-iebc" element={<IEBCOfficeSplash />} />
         <Route path="/iebc-office/map" element={<IEBCOfficeMap />} />
+
+        {/* ✅ SEO PILLAR PAGES (Go Ham) */}
+        <Route path="/voter-services" element={<React.Suspense fallback={<LoadingState />}><VoterServices /></React.Suspense>} />
+        <Route path="/boundary-review" element={<React.Suspense fallback={<LoadingState />}><BoundaryReview /></React.Suspense>} />
+        <Route path="/election-resources" element={<React.Suspense fallback={<LoadingState />}><ElectionResources /></React.Suspense>} />
+        <Route path="/data-api" element={<React.Suspense fallback={<LoadingState />}><DataAPI /></React.Suspense>} />
+
+        {/* ✅ DYNAMIC IEBC OFFICE ROUTES (Restore) */}
         <Route
           path="/iebc-office/:county/:constituency"
           element={

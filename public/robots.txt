@@ -1,8 +1,5 @@
-# ══════════════════════════════════════════════════════════════════════
-# robots.txt — Nasaka IEBC (recall254.vercel.app)
-# Comprehensive crawl directives for Nasaka IEBC platform.
-# Updated: 2026-02-20
-# ══════════════════════════════════════════════════════════════════════
+# Nasaka IEBC - Robots.txt
+# Comprehensive crawl directives for Nasaka IEBC platform
 
 User-agent: *
 Allow: /
@@ -10,10 +7,15 @@ Allow: /
 # Critical Nasaka IEBC pages - ensure crawling
 Allow: /iebc-office
 Allow: /iebc-office/map
-Allow: /iebc-office/*
 Allow: /VoterRegistration
 Allow: /SignPetition
 Allow: /VerifySignature
+Allow: /iebc-office/
+Allow: /iebc-office/*
+Allow: /voter-services
+Allow: /boundary-review
+Allow: /election-resources
+Allow: /data-api
 
 # Static assets
 Allow: /assets/
@@ -22,25 +24,15 @@ Allow: /nasaka-logo-white.png
 Allow: /nasaka-logo-black.png
 Allow: /nasaka-logo-bnw.png
 Allow: /nasaka.svg
-Allow: /og-image.png
-Allow: /sitemap.xml
 
-# Disallow admin, sensitive areas, and build artifacts
+# Disallow admin and sensitive areas
 Disallow: /admin
 Disallow: /Admin
 Disallow: /api/
 Disallow: /private/
 Disallow: /secure/
-Disallow: /dev/
-Disallow: /scripts/
-Disallow: /.github/
-Disallow: /supabase/
-Disallow: /src/
-Disallow: /*.env
-Disallow: /admin/contributions
-Disallow: /admin/reset-password
 
-# Sitemap location — submit this URL to Google Search Console
+# Sitemap location
 Sitemap: https://recall254.vercel.app/sitemap.xml
 
 # Crawl delay (optional - adjust based on server capacity)
