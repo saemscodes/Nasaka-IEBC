@@ -18,11 +18,11 @@ export const SUPPORTED_LANGUAGES = {
   luo: { code: 'luo', name: 'Luo', nativeName: 'Dholuo' },
   maa: { code: 'maa', name: 'Maasai', nativeName: 'Maa' },
   mer: { code: 'mer', name: 'Meru', nativeName: 'Kĩmĩĩru' },
-  kam: { code: 'kam', name: 'Kamba', nativeName: 'Kikamba'},
-  tai: { code: 'tai', name: 'Taita', nativeName: 'Taita'},
-  kis: { code: 'kis', name: 'Kisii', nativeName: 'Ekegusii'},
-  ar: { code: 'ar', name: 'Arabic', nativeName: 'Arabic'},
-  luh: { code: 'luh', name: 'Luhya', nativeName: 'Maragoli'},
+  kam: { code: 'kam', name: 'Kamba', nativeName: 'Kikamba' },
+  tai: { code: 'tai', name: 'Taita', nativeName: 'Taita' },
+  kis: { code: 'kis', name: 'Kisii', nativeName: 'Ekegusii' },
+  ar: { code: 'ar', name: 'Arabic', nativeName: 'Arabic' },
+  luh: { code: 'luh', name: 'Luhya', nativeName: 'Maragoli' },
   som: { code: 'som', name: 'Somali', nativeName: 'Somali' },
   trk: { code: 'trk', name: 'Turkana', nativeName: 'Turkana' },
   hnd: { code: 'hnd', name: 'Hindi', nativeName: 'Urdu' }
@@ -145,7 +145,7 @@ const resources: LanguageResources = {
         confirmationFailed: "Failed to submit confirmation. Please try again.",
         locationPermissionRequired: "Location permission is required to confirm. Please enable location access and try again.",
         uberServices: "Uber Services",
-        boltServices: "Bolt Services", 
+        boltServices: "Bolt Services",
         driveTime: "Drive Time",
         openApp: "Open app",
         trafficSurchargeIncluded: "Prices include traffic surcharge",
@@ -257,7 +257,27 @@ const resources: LanguageResources = {
         uberXLDesc: "Larger vehicles for groups",
         priceUnavailable: "Price unavailable",
         cancel: "Cancel"
+      },
+      seo: {
+        siteTitle: "Nasaka IEBC — Find Any IEBC Office in Kenya",
+        siteDescription: "Locate all 290+ IEBC voter registration and constituency offices across Kenya. Interactive map with community-verified locations and turn-by-turn directions.",
+        splashTitle: "Find Your Nearest IEBC Office — Nasaka IEBC",
+        splashDescription: "Locate the nearest IEBC constituency or voter registration office in Kenya. Get directions, opening hours, and community-verified location data.",
+        mapTitle: "Interactive IEBC Office Map — All 47 Counties | Nasaka IEBC",
+        mapDescription: "Search and navigate to any IEBC office in Kenya. Interactive map with real-time directions, ride-hailing estimates, and offline support.",
+        officeTitle: "IEBC Office {{office}}, {{county}} County — Voter Registration & Services | Nasaka IEBC",
+        officeDescription: "Find the IEBC constituency office for {{office}} in {{county}} County, Kenya. Get directions, opening hours, and voter registration details.",
+        notFoundTitle: "Page Not Found — Nasaka IEBC",
+        notFoundDescription: "The page you're looking for doesn't exist. Use our interactive map to find IEBC offices across Kenya.",
+        keywords: "IEBC Kenya, IEBC office near me, voter registration Kenya, CVR Kenya, IEBC constituency offices, Independent Electoral and Boundaries Commission, Kenya voter register, 2027 Kenya election, IEBC office map, Nasaka IEBC, find IEBC office, nearest IEBC office",
+        voterRegistration: "How to Register to Vote at IEBC",
+        voterRegistrationDesc: "Step-by-step guide to register as a voter in Kenya — bring your National ID to any IEBC constituency office during CVR periods.",
+        openingHours: "Monday — Friday, 8:00 AM — 5:00 PM",
+        verifiedBadge: "Community Verified",
+        unverifiedBadge: "Unverified",
+        lastVerified: "Last Verified: {{date}}"
       }
+
     }
   }
 };
@@ -272,7 +292,7 @@ export const loadLanguage = async (lng: LanguageCode): Promise<boolean> => {
 
   try {
     console.log(`Loading language: ${lng}`);
-    
+
     // Dynamic import based on language code
     let module;
     switch (lng) {
@@ -281,43 +301,43 @@ export const loadLanguage = async (lng: LanguageCode): Promise<boolean> => {
         break;
       case 'shn':
         module = await import('@/locales/shn/nasaka.json');
-        break;  
+        break;
       case 'kik':
         module = await import('@/locales/kik/nasaka.json');
         break;
-      case 'luo': 
+      case 'luo':
         module = await import('@/locales/luo/nasaka.json');
         break;
-      case 'maa': 
+      case 'maa':
         module = await import('@/locales/maa/nasaka.json');
         break;
-      case 'mer': 
+      case 'mer':
         module = await import('@/locales/mer/nasaka.json');
-        break;  
-      case 'kam': 
+        break;
+      case 'kam':
         module = await import('@/locales/kam/nasaka.json');
-        break; 
-      case 'tai': 
+        break;
+      case 'tai':
         module = await import('@/locales/tai/nasaka.json');
-        break; 
-      case 'kis': 
+        break;
+      case 'kis':
         module = await import('@/locales/kis/nasaka.json');
-        break;  
-      case 'ar': 
+        break;
+      case 'ar':
         module = await import('@/locales/ar/nasaka.json');
-        break;  
-      case 'luh': 
+        break;
+      case 'luh':
         module = await import('@/locales/luh/nasaka.json');
-        break;   
-      case 'som': 
+        break;
+      case 'som':
         module = await import('@/locales/som/nasaka.json');
         break;
-      case 'trk': 
+      case 'trk':
         module = await import('@/locales/trk/nasaka.json');
-        break;  
-      case 'hnd': 
+        break;
+      case 'hnd':
         module = await import('@/locales/hnd/nasaka.json');
-        break;   
+        break;
       default:
         // For any other language, try to import dynamically
         try {
@@ -327,15 +347,15 @@ export const loadLanguage = async (lng: LanguageCode): Promise<boolean> => {
           return false;
         }
     }
-    
+
     // Add the loaded resources
     resources[lng] = {
       nasaka: module.default
     };
-    
+
     // CRITICAL FIX: Update i18n with the new resources
     i18n.addResourceBundle(lng, 'nasaka', module.default, true, true);
-    
+
     console.log(`Successfully loaded language: ${lng}`);
     return true;
   } catch (error) {
@@ -348,11 +368,11 @@ export const loadLanguage = async (lng: LanguageCode): Promise<boolean> => {
 const customLanguageDetector = {
   type: 'languageDetector' as const,
   async: true,
-  init: () => {},
+  init: () => { },
   detect: (callback: (lng: string) => void) => {
     const savedLanguage = localStorage.getItem('nasaka_language');
     console.log('Saved language from storage:', savedLanguage);
-    
+
     if (savedLanguage && SUPPORTED_LANGUAGES[savedLanguage as LanguageCode]) {
       console.log('Using saved language:', savedLanguage);
       return callback(savedLanguage);
@@ -360,7 +380,7 @@ const customLanguageDetector = {
 
     const browserLanguage = navigator.language.split('-')[0];
     console.log('Browser language detected:', browserLanguage);
-    
+
     if (SUPPORTED_LANGUAGES[browserLanguage as LanguageCode]) {
       console.log('Using browser language:', browserLanguage);
       return callback(browserLanguage);
@@ -385,7 +405,7 @@ i18n
     supportedLngs: Object.keys(SUPPORTED_LANGUAGES),
     defaultNS: 'nasaka',
     ns: ['nasaka'],
-    
+
     // Enhanced interpolation settings - CRITICAL FIX
     interpolation: {
       escapeValue: false,
@@ -442,7 +462,7 @@ i18n
 export const preloadLanguages = async () => {
   const languages = Object.keys(SUPPORTED_LANGUAGES) as LanguageCode[];
   console.log('Preloading languages:', languages);
-  
+
   for (const lng of languages) {
     if (lng !== 'en') {
       await loadLanguage(lng);

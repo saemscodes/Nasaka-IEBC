@@ -1,0 +1,20 @@
+# ══════════════════════════════════════════════════════════════════════
+# robots.txt — Nasaka IEBC (recall254.vercel.app)
+# ══════════════════════════════════════════════════════════════════════
+# Allow Google and all crawlers to index all public map pages.
+# Disallow dev/internal paths that waste crawl budget.
+
+User-agent: *
+Allow: /
+
+# Block non-public paths
+Disallow: /dev/
+Disallow: /scripts/
+Disallow: /.github/
+Disallow: /supabase/
+Disallow: /api/admin/
+Disallow: /*.env
+Disallow: /src/
+
+# Sitemap location — submit this URL to Google Search Console too
+Sitemap: https://recall254.vercel.app/sitemap.xml

@@ -18,6 +18,7 @@ import { useMapControls } from '@/hooks/useMapControls';
 import { findNearestOffice, findNearestOffices } from '@/utils/geoUtils';
 import { supabase } from '@/integrations/supabase/client';
 import L from 'leaflet';
+import { SEOHead } from '@/components/SEO/SEOHead';
 
 const IEBCOfficeMap = () => {
   const navigate = useNavigate();
@@ -97,20 +98,20 @@ const IEBCOfficeMap = () => {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodedQuery}&limit=1`
       );
-      
+
       if (!response.ok) throw new Error('Geocoding failed');
-      
+
       const data = await response.json();
-      
+
       if (data.length > 0) {
         const result = data[0];
         const lat = parseFloat(result.lat);
         const lon = parseFloat(result.lon);
-        
+
         // Fly to the location
         if (mapInstanceRef.current) {
           mapInstanceRef.current.flyTo([lat, lon], 15, { duration: 2 });
-          
+
           // Create a temporary marker for the search result
           const marker = L.marker([lat, lon])
             .addTo(mapInstanceRef.current)
@@ -122,7 +123,7 @@ const IEBCOfficeMap = () => {
               </div>
             `)
             .openPopup();
-          
+
           // Remove marker after 10 seconds
           setTimeout(() => {
             if (marker && mapInstanceRef.current) {
@@ -131,7 +132,7 @@ const IEBCOfficeMap = () => {
           }, 10000);
         }
       }
-      
+
       setUrlQueryProcessed(true);
     } catch (error) {
       console.error('URL query search error:', error);
@@ -190,14 +191,14 @@ const IEBCOfficeMap = () => {
   useEffect(() => {
     if (hasLocationAccess && userLocation?.latitude && userLocation?.longitude) {
       flyToLocation(userLocation.latitude, userLocation.longitude, 14);
-      
+
       // Create accuracy circle if accuracy data is available
       if (userLocation.accuracy && mapInstanceRef.current) {
         // Remove existing accuracy circle
         if (accuracyCircleRef.current) {
           mapInstanceRef.current.removeLayer(accuracyCircleRef.current);
         }
-        
+
         // Create new accuracy circle
         accuracyCircleRef.current = L.circle([userLocation.latitude, userLocation.longitude], {
           radius: userLocation.accuracy,
@@ -221,7 +222,7 @@ const IEBCOfficeMap = () => {
   // Enhanced office selection
   const handleOfficeSelect = useCallback(async (office) => {
     let enhancedOffice = office;
-    
+
     if (office.id && (!office.constituency_name || !office.county)) {
       try {
         const { data: fullOffice, error } = await supabase
@@ -229,7 +230,7 @@ const IEBCOfficeMap = () => {
           .select('*')
           .eq('id', office.id)
           .single();
-        
+
         if (!error && fullOffice) {
           enhancedOffice = fullOffice;
         }
@@ -237,7 +238,7 @@ const IEBCOfficeMap = () => {
         console.error('Error fetching full office details:', err);
       }
     }
-    
+
     setSelectedOffice(enhancedOffice);
     flyToOffice(enhancedOffice);
     closeListPanel();
@@ -266,24 +267,24 @@ const IEBCOfficeMap = () => {
   // Double-tap handler for area search - ONLY IF WE HAVE LOCATION ACCESS
   const handleDoubleTap = useCallback(async (latlng) => {
     if (!hasLocationAccess) return; // Don't allow area search without location access
-    
+
     setIsSearchingNearby(true);
     setLastTapLocation(latlng);
-    
+
     try {
       const nearby = await searchNearbyOffices(latlng.lat, latlng.lng, 5000);
       setNearbyOffices(nearby);
       setSearchResults(nearby);
-      
+
       if (mapInstanceRef.current) {
         mapInstanceRef.current.flyTo([latlng.lat, latlng.lng], 14, {
           duration: 1
         });
       }
-      
+
       openListPanel();
       setIsPanelBackdropVisible(true);
-      
+
       setTimeout(() => {
         setLastTapLocation(null);
       }, 3000);
@@ -362,14 +363,14 @@ const IEBCOfficeMap = () => {
     openListPanel();
     setIsPanelBackdropVisible(true);
   };
-  
+
   const handleRetryLocation = () => navigate('/nasaka-iebc', { replace: true });
 
   const openLayerPanel = () => {
     setIsLayerPanelOpen(true);
     setIsPanelBackdropVisible(true);
   };
-  
+
   const closeLayerPanel = () => {
     setIsLayerPanelOpen(false);
     setIsPanelBackdropVisible(false);
@@ -423,34 +424,34 @@ const IEBCOfficeMap = () => {
   // Route badge drag handlers - ONLY IF WE HAVE LOCATION ACCESS
   const handleRouteBadgeMouseDown = useCallback((e) => {
     if (!hasLocationAccess) return; // Don't allow dragging without location access
-    
+
     e.preventDefault();
     e.stopPropagation();
-    
+
     setIsDraggingRouteBadge(true);
     const clientX = e.clientX || (e.touches && e.touches[0].clientX);
     const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-    
+
     dragStartPos.current = {
       x: clientX,
       y: clientY
     };
     badgeStartPos.current = { ...routeBadgePosition };
-    
+
     // Add event listeners for drag
     const handleMove = (moveEvent) => {
       if (!isDraggingRouteBadge) return;
-      
+
       moveEvent.preventDefault();
       moveEvent.stopPropagation();
-      
+
       const moveClientX = moveEvent.clientX || (moveEvent.touches && moveEvent.touches[0].clientX);
       const moveClientY = moveEvent.clientY || (moveEvent.touches && moveEvent.touches[0].clientY);
-      
+
       if (moveClientX && moveClientY) {
         const deltaX = moveClientX - dragStartPos.current.x;
         const deltaY = moveClientY - dragStartPos.current.y;
-        
+
         setRouteBadgePosition({
           x: badgeStartPos.current.x + deltaX,
           y: badgeStartPos.current.y + deltaY
@@ -476,10 +477,10 @@ const IEBCOfficeMap = () => {
   useEffect(() => {
     return () => {
       // Remove any lingering event listeners
-      document.removeEventListener('mousemove', () => {});
-      document.removeEventListener('mouseup', () => {});
-      document.removeEventListener('touchmove', () => {});
-      document.removeEventListener('touchend', () => {});
+      document.removeEventListener('mousemove', () => { });
+      document.removeEventListener('mouseup', () => { });
+      document.removeEventListener('touchmove', () => { });
+      document.removeEventListener('touchend', () => { });
     };
   }, []);
 
@@ -516,6 +517,13 @@ const IEBCOfficeMap = () => {
 
   return (
     <div className="ios-map-container relative">
+      {/* SEO Head for the interactive map page */}
+      <SEOHead
+        title={t('seo.mapTitle', 'Interactive IEBC Office Map — All 47 Counties | Nasaka IEBC')}
+        description={t('seo.mapDescription', 'Search and navigate to any IEBC office in Kenya. Interactive map with real-time directions, ride-hailing estimates, and offline support.')}
+        canonical="/iebc-office/map"
+        keywords={t('seo.keywords', 'IEBC office map Kenya, find IEBC office, voter registration Kenya, Nasaka IEBC map')}
+      />
       {/* FIXED UI Controls - ALWAYS ON TOP */}
       <div className="fixed-search-container">
         <SearchBar
@@ -539,7 +547,7 @@ const IEBCOfficeMap = () => {
           <LanguageSwitcher variant="map" />
 
           {/* Contribute Location Button */}
-          <ContributeLocationButton 
+          <ContributeLocationButton
             userLocation={userLocation}
             onSuccess={handleContributionSuccess}
           />
@@ -548,14 +556,14 @@ const IEBCOfficeMap = () => {
             onClick={openLayerPanel}
             className="ios-control-btn"
             aria-label={t('layers.mapLayers', 'Map layers')}
-            >
+          >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
                 d="M2 12.0001L11.6422 16.8212C11.7734 16.8868 11.839 16.9196 11.9078 16.9325C11.9687 16.9439 12.0313 16.9439 12.0922 16.9325C12.161 16.9196 12.2266 16.8868 12.3578 16.8212L22 12.0001M2 17.0001L11.6422 21.8212C11.7734 21.8868 11.839 21.9196 11.9078 21.9325C11.9687 21.9439 12.0313 21.9439 12.0922 21.9325C12.161 21.9196 12.2266 21.8868 12.3578 21.8212L22 17.0001M2 7.00006L11.6422 2.17895C11.7734 2.11336 11.839 2.08056 11.9078 2.06766C11.9687 2.05622 12.0313 2.05622 12.0922 2.06766C12.161 2.08056 12.2266 2.11336 12.3578 2.17895L22 7.00006L12.3578 11.8212C12.2266 11.8868 12.161 11.9196 12.0922 11.9325C12.0313 11.9439 11.9687 11.9439 11.9078 11.9325C11.839 11.9196 11.7734 11.8868 11.6422 11.8212L2 7.00006Z"
-                />
+              />
             </svg>
           </button>
 
@@ -567,8 +575,8 @@ const IEBCOfficeMap = () => {
             >
               {/* REPLACED SVG WITH HOME ICON */}
               <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M2 12.2039C2 9.91549 2 8.77128 2.5192 7.82274C3.0384 6.87421 3.98695 6.28551 5.88403 5.10813L7.88403 3.86687C9.88939 2.62229 10.8921 2 12 2C13.1079 2 14.1106 2.62229 16.116 3.86687L18.116 5.10812C20.0131 6.28551 20.9616 6.87421 21.4808 7.82274C22 8.77128 22 9.91549 22 12.2039V13.725C22 17.6258 22 19.5763 20.8284 20.7881C19.6569 22 17.7712 22 14 22H10C6.22876 22 4.34315 22 3.17157 20.7881C2 19.5763 2 17.6258 2 13.725V12.2039Z" stroke="currentColor" strokeWidth="2"/>
-                <path d="M9 16C9.85038 16.6303 10.8846 17 12 17C13.1154 17 14.1496 16.6303 15 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M2 12.2039C2 9.91549 2 8.77128 2.5192 7.82274C3.0384 6.87421 3.98695 6.28551 5.88403 5.10813L7.88403 3.86687C9.88939 2.62229 10.8921 2 12 2C13.1079 2 14.1106 2.62229 16.116 3.86687L18.116 5.10812C20.0131 6.28551 20.9616 6.87421 21.4808 7.82274C22 8.77128 22 9.91549 22 12.2039V13.725C22 17.6258 22 19.5763 20.8284 20.7881C19.6569 22 17.7712 22 14 22H10C6.22876 22 4.34315 22 3.17157 20.7881C2 19.5763 2 17.6258 2 13.725V12.2039Z" stroke="currentColor" strokeWidth="2" />
+                <path d="M9 16C9.85038 16.6303 10.8846 17 12 17C13.1154 17 14.1496 16.6303 15 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </button>
           )}
@@ -624,65 +632,65 @@ const IEBCOfficeMap = () => {
       {/* Draggable Route Badge - ONLY WITH LOCATION ACCESS */}
       <AnimatePresence>
         {hasLocationAccess && currentRoute && currentRoute.length > 0 && (
-      <motion.div
-        ref={routeBadgeRef}
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ 
-          opacity: 1, 
-          scale: isDraggingRouteBadge ? 1.05 : 1,
-          x: routeBadgePosition.x,
-          y: routeBadgePosition.y
-        }}
-        exit={{ opacity: 0, scale: 0.8 }}
-        transition={{
-          type: "spring",
-          stiffness: isDraggingRouteBadge ? 1000 : 500,
-          damping: 30,
-          mass: 1
-        }}
-        className={`route-badge-draggable ${isDraggingRouteBadge ? 'dragging' : ''}`}
-        style={{
-          position: 'fixed',
-          left: 0,
-          top: 0,
-          transform: `translate(${routeBadgePosition.x}px, ${routeBadgePosition.y}px)`,
-          zIndex: 1000,
-          cursor: isDraggingRouteBadge ? 'grabbing' : 'grab',
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-          MozUserSelect: 'none',
-          msUserSelect: 'none',
-          touchAction: 'none'
-        }}
-        onMouseDown={handleRouteBadgeMouseDown}
-        onTouchStart={handleRouteBadgeMouseDown}
-        onClick={(e) => {
-          // Only trigger click if not dragging (small movement threshold)
-          if (!isDraggingRouteBadge && selectedOffice) {
-            setBottomSheetState('expanded');
-          }
-        }}
-        >
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-sm font-medium">
-            {t('bottomSheet.routesFound', { count: currentRoute.length })}
-          </span>
-        </div>
-        {currentRoute[0] && (
-          <div className="text-muted-foreground text-xs mt-1">
-            {t('bottomSheet.bestRoute', {
-            distance: (currentRoute[0].summary.totalDistance / 1000).toFixed(1),
-            time: Math.round(currentRoute[0].summary.totalTime / 60)
-          })}
-          </div>
+          <motion.div
+            ref={routeBadgeRef}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{
+              opacity: 1,
+              scale: isDraggingRouteBadge ? 1.05 : 1,
+              x: routeBadgePosition.x,
+              y: routeBadgePosition.y
+            }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{
+              type: "spring",
+              stiffness: isDraggingRouteBadge ? 1000 : 500,
+              damping: 30,
+              mass: 1
+            }}
+            className={`route-badge-draggable ${isDraggingRouteBadge ? 'dragging' : ''}`}
+            style={{
+              position: 'fixed',
+              left: 0,
+              top: 0,
+              transform: `translate(${routeBadgePosition.x}px, ${routeBadgePosition.y}px)`,
+              zIndex: 1000,
+              cursor: isDraggingRouteBadge ? 'grabbing' : 'grab',
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              MozUserSelect: 'none',
+              msUserSelect: 'none',
+              touchAction: 'none'
+            }}
+            onMouseDown={handleRouteBadgeMouseDown}
+            onTouchStart={handleRouteBadgeMouseDown}
+            onClick={(e) => {
+              // Only trigger click if not dragging (small movement threshold)
+              if (!isDraggingRouteBadge && selectedOffice) {
+                setBottomSheetState('expanded');
+              }
+            }}
+          >
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium">
+                {t('bottomSheet.routesFound', { count: currentRoute.length })}
+              </span>
+            </div>
+            {currentRoute[0] && (
+              <div className="text-muted-foreground text-xs mt-1">
+                {t('bottomSheet.bestRoute', {
+                  distance: (currentRoute[0].summary.totalDistance / 1000).toFixed(1),
+                  time: Math.round(currentRoute[0].summary.totalTime / 60)
+                })}
+              </div>
+            )}
+            {/* Drag handle indicator */}
+            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-1 bg-gray-400 rounded-full opacity-60 transition-opacity duration-200 hover:opacity-80"></div>
+          </motion.div>
         )}
-        {/* Drag handle indicator */}
-        <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-1 bg-gray-400 rounded-full opacity-60 transition-opacity duration-200 hover:opacity-80"></div>
-      </motion.div>
-    )}
       </AnimatePresence>
-      
+
       {/* Map Container - Isolated */}
       <MapContainer
         ref={mapRef}

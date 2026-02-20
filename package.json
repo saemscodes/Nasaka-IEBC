@@ -36,7 +36,8 @@
     "run:android": "npx cap run android",
     "run:ios": "npx cap run ios",
     "android:studio": "npx cap open android",
-    "ios:xcode": "npx cap open ios"
+    "ios:xcode": "npx cap open ios",
+    "seo:sitemap": "node scripts/generate-sitemap.js"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.0",
@@ -110,6 +111,7 @@
     "react": "^18.3.1",
     "react-day-picker": "^9.11.0",
     "react-dom": "^18.3.1",
+    "react-helmet-async": "^2.0.5",
     "react-hook-form": "^7.53.0",
     "react-i18next": "^16.2.4",
     "react-leaflet": "^4.2.1",

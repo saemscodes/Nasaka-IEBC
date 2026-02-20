@@ -17,6 +17,8 @@ import NotFound from "./pages/NotFound";
 // import VerifySignature from "./pages/VerifySignature";
 // import VoterRegistrationPage from "@/pages/VoterRegistration";
 import { IEBCOfficeSplash, IEBCOfficeMap } from './pages/IEBCOffice';
+import { HelmetProvider } from 'react-helmet-async';
+const OfficeDetail = React.lazy(() => import('./pages/IEBCOffice/OfficeDetail'));
 import './styles/iebc-office.css';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
@@ -98,7 +100,7 @@ const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
       if (coreError || !coreTeam) {
         console.error('Admin check failed:', coreError);
         setError('You do not have admin privileges.');
-        
+
         // Sign out since they're not an admin
         await supabase.auth.signOut();
         return;
@@ -106,7 +108,7 @@ const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
 
       // Successful admin authentication
       onLogin(true);
-      
+
     } catch (err) {
       console.error('Admin login error:', err);
       setError('Authentication failed. Please try again.');
@@ -159,7 +161,7 @@ const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Admin Access</h1>
           <p className="text-gray-600">Sign in with your admin account</p>
         </div>
-        
+
         {isPasswordReset ? (
           <div className="text-center py-6">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -212,7 +214,7 @@ const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
                 disabled={isLoading}
               />
             </div>
-            
+
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <div className="flex items-center space-x-2">
@@ -246,7 +248,7 @@ const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
                 </div>
               </div>
             </div>
-            
+
             <button
               type="submit"
               disabled={isLoading || !email || !password}
@@ -284,7 +286,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
       try {
         // Get current session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
+
         if (sessionError || !session) {
           setIsAuthenticated(false);
           setIsChecking(false);
@@ -302,7 +304,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
         if (coreError || !coreTeam) {
           console.error('Admin verification failed:', coreError);
           setIsAuthenticated(false);
-          
+
           // Sign out non-admin users
           await supabase.auth.signOut();
         } else {
@@ -331,7 +333,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
             .eq('user_id', session.user.id)
             .eq('is_admin', true)
             .single();
-          
+
           setIsAuthenticated(!!coreTeam);
         }
       }
@@ -394,10 +396,34 @@ const AppContent = () => {
         <Route path="/iebc-office" element={<IEBCOfficeSplash />} />
         <Route path="/nasaka-iebc" element={<IEBCOfficeSplash />} />
         <Route path="/iebc-office/map" element={<IEBCOfficeMap />} />
+        <Route
+          path="/iebc-office/:county/:constituency"
+          element={
+            <React.Suspense fallback={
+              <div className="flex items-center justify-center min-h-screen bg-background">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+              </div>
+            }>
+              <OfficeDetail />
+            </React.Suspense>
+          }
+        />
+        <Route
+          path="/iebc-office/:county"
+          element={
+            <React.Suspense fallback={
+              <div className="flex items-center justify-center min-h-screen bg-background">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+              </div>
+            }>
+              <OfficeDetail />
+            </React.Suspense>
+          }
+        />
 
         {/* ✅ ACTIVE SECURE ADMIN ROUTES */}
-        <Route 
-          path="/admin/contributions" 
+        <Route
+          path="/admin/contributions"
           element={
             <AdminRoute>
               <React.Suspense fallback={
@@ -411,12 +437,12 @@ const AppContent = () => {
                 <ContributionsDashboard counties={KENYAN_COUNTIES} />
               </React.Suspense>
             </AdminRoute>
-          } 
+          }
         />
 
         {/* ✅ Admin password reset route */}
-        <Route 
-          path="/admin/reset-password" 
+        <Route
+          path="/admin/reset-password"
           element={
             <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
               <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full">
@@ -432,7 +458,7 @@ const AppContent = () => {
                 </button>
               </div>
             </div>
-          } 
+          }
         />
 
         {/* ✅ ACTIVE Redirect old admin paths to secure route */}
@@ -457,21 +483,23 @@ const App = () => {
   }, [i18n.language]);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <LanguageProvider>
-          <TooltipProvider delayDuration={0}>
-            <Toaster />
-            <Sonner position="top-right" expand={false} richColors closeButton />
-            <PWARegistration />
-            <AppContent />
-            <Analytics />
-            <SpeedInsights />
-            <PWAInstallBanner />
-          </TooltipProvider>
-        </LanguageProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <LanguageProvider>
+            <TooltipProvider delayDuration={0}>
+              <Toaster />
+              <Sonner position="top-right" expand={false} richColors closeButton />
+              <PWARegistration />
+              <AppContent />
+              <Analytics />
+              <SpeedInsights />
+              <PWAInstallBanner />
+            </TooltipProvider>
+          </LanguageProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
   );
 };
 
