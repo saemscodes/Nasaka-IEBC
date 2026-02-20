@@ -107,7 +107,7 @@ const OfficeDetail = () => {
         } finally {
             setLoading(false);
         }
-    }, [countySlug, constituencySlug, navigate]);
+    }, [countySlug, areaSlug, navigate]);
 
     useEffect(() => {
         if (countySlug) {
@@ -158,14 +158,17 @@ const OfficeDetail = () => {
             <SEOHead
                 title={seoTitle}
                 description={seoDescription}
-                canonical={`/iebc-office/${slugify(countyName)}/${slugify(officeName)}`}
+                canonical={`/${slugify(countyName)}/${slugify(officeName)}`}
                 schema={[
                     generateOfficeSchema(office),
                     generateBreadcrumbSchema([
                         { name: 'Home', url: '/' },
                         { name: 'IEBC Offices', url: '/iebc-office' },
                         { name: countyName, url: `/${slugify(countyName)}` },
-                        { name: officeName, url: `/${slugify(countyName)}/${slugify(officeName)}` }
+                        {
+                            name: officeName,
+                            url: `/${slugify(countyName)}/${slugify(officeName)}${slugify(officeName) === slugify(countyName) ? '-town' : ''}`
+                        }
                     ]),
                     generateFAQSchema([
                         {
@@ -288,7 +291,7 @@ const OfficeDetail = () => {
                             {nearbyOffices.map((nob) => (
                                 <Link
                                     key={nob.constituency_name}
-                                    to={`/${slugify(countyName)}/${slugify(nob.constituency_name)}`}
+                                    to={`/${slugify(countyName)}/${slugify(nob.constituency_name)}${slugify(nob.constituency_name) === slugify(countyName) ? '-town' : ''}`}
                                     className={`flex items-center justify-between p-4 rounded-2xl border transition-all active:scale-[0.98] ${isDark ? 'bg-ios-gray-800/50 border-ios-gray-800 hover:bg-ios-gray-800' : 'bg-white border-ios-gray-100 hover:bg-ios-gray-50'}`}
                                 >
                                     <div className="flex items-center gap-3">
