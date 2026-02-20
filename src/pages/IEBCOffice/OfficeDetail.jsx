@@ -83,7 +83,7 @@ const OfficeDetail = () => {
                     .maybeSingle();
 
                 if (fuzzyData) {
-                    const newUrl = `/iebc-office/${slugify(fuzzyData.county)}/${slugify(fuzzyData.constituency_name)}`;
+                    const newUrl = `/${slugify(fuzzyData.county)}/${slugify(fuzzyData.constituency_name)}${slugify(fuzzyData.constituency_name) === slugify(fuzzyData.county) ? '-town' : ''}`;
                     navigate(newUrl, { replace: true });
                     return;
                 }

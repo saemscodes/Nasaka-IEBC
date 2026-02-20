@@ -70,13 +70,20 @@ const IEBCOfficeMap = () => {
   const dragStartPos = useRef({ x: 0, y: 0 });
   const badgeStartPos = useRef({ x: 0, y: 0 });
 
-  // Handle URL query parameter on component mount
+  // Handle URL query parameter or state selection on component mount
   useEffect(() => {
+    // 1. Check for office passed via navigation state (e.g. from Splash)
+    if (state?.selectedOffice && offices.length > 0 && mapInstanceRef.current) {
+      handleOfficeSelect(state.selectedOffice);
+      return;
+    }
+
+    // 2. Check for URL query parameter
     const query = searchParams.get('q');
     if (query && !urlQueryProcessed && offices.length > 0 && mapInstanceRef.current) {
       handleUrlQuerySearch(query);
     }
-  }, [searchParams, offices, urlQueryProcessed]);
+  }, [searchParams, offices, urlQueryProcessed, state?.selectedOffice]);
 
   // Function to handle URL query parameter search
   const handleUrlQuerySearch = async (query) => {

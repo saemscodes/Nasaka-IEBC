@@ -77,8 +77,8 @@ const BackgroundLayers = ({ className = "" }) => {
             {/* Dark Mode Base Overlay */}
             <div className="absolute inset-0 will-change-transform">
                 <div className={`absolute inset-0 transition-all duration-500 ${theme === 'dark'
-                        ? 'bg-ios-gray-900/80'
-                        : 'bg-white/0'
+                    ? 'bg-ios-gray-900/80'
+                    : 'bg-white/0'
                     }`} />
             </div>
 
@@ -86,8 +86,8 @@ const BackgroundLayers = ({ className = "" }) => {
             <div className="absolute inset-0">
                 <motion.div
                     className={`absolute inset-0 transition-all duration-1000 ${theme === 'dark'
-                            ? 'bg-iebc-pattern-dark'
-                            : 'bg-iebc-pattern'
+                        ? 'bg-iebc-pattern-dark'
+                        : 'bg-iebc-pattern'
                         }`}
                     animate={{
                         filter: theme === 'dark' ? [
@@ -199,16 +199,16 @@ const BackgroundLayers = ({ className = "" }) => {
             {/* Enhanced Vignette - Dynamic for theme */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className={`absolute inset-0 transition-all duration-500 ${theme === 'dark'
-                        ? 'bg-vignette-dark'
-                        : 'bg-vignette'
+                    ? 'bg-vignette-dark'
+                    : 'bg-vignette'
                     }`} />
             </div>
 
             {/* Subtle Color Overlay for Better Text Readability */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className={`absolute inset-0 transition-all duration-500 ${theme === 'dark'
-                        ? 'bg-gradient-to-b from-ios-gray-900/70 via-ios-gray-900/40 to-ios-gray-900/70'
-                        : 'bg-gradient-to-b from-white/60 via-white/30 to-white/60'
+                    ? 'bg-gradient-to-b from-ios-gray-900/70 via-ios-gray-900/40 to-ios-gray-900/70'
+                    : 'bg-gradient-to-b from-white/60 via-white/30 to-white/60'
                     }`} />
             </div>
         </div>
@@ -225,8 +225,8 @@ const ThemeToggle = () => {
             whileTap={{ scale: 0.95 }}
             onClick={toggleTheme}
             className={`w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 ${theme === 'dark'
-                    ? 'bg-ios-gray-800 shadow-ios-gray-900/50 border-ios-gray-600'
-                    : 'bg-white shadow-ios-gray-200/50 border-ios-gray-200'
+                ? 'bg-ios-gray-800 shadow-ios-gray-900/50 border-ios-gray-600'
+                : 'bg-white shadow-ios-gray-200/50 border-ios-gray-200'
                 }`}
             aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
         >
@@ -273,8 +273,8 @@ const CekaLogoButton = () => {
             whileTap={{ scale: 0.95 }}
             onClick={handleCekaClick}
             className={`relative w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 overflow-hidden ${theme === 'dark'
-                    ? 'bg-ios-gray-800 shadow-ios-gray-900/50 border-ios-gray-600'
-                    : 'bg-white shadow-ios-gray-200/50 border-ios-gray-200'
+                ? 'bg-ios-gray-800 shadow-ios-gray-900/50 border-ios-gray-600'
+                : 'bg-white shadow-ios-gray-200/50 border-ios-gray-200'
                 }`}
             aria-label="Visit CEKA Community"
         >
@@ -309,8 +309,8 @@ const TextShadowLayer = ({ children, className = "" }) => {
             {/* Shadow layer hugging text */}
             <div
                 className={`absolute -inset-1 rounded-lg blur-md transition-all duration-500 z-0 ${theme === "dark"
-                        ? "bg-black/40"
-                        : "bg-black/15"
+                    ? "bg-black/40"
+                    : "bg-black/15"
                     }`}
                 aria-hidden="true"
             />
@@ -357,16 +357,13 @@ const IEBCOfficeSplash = () => {
                         });
 
                         if (nearestOffice) {
-                            const county_slug = slugify(nearestOffice.county);
-                            let area_slug = slugify(nearestOffice.constituency_name);
-
-                            // Rule: If area_slug == county_slug, disambiguate with -town
-                            if (area_slug === county_slug) {
-                                area_slug = `${area_slug}-town`;
-                            }
-
-                            navigate(`/${county_slug}/${area_slug}`, {
-                                state: { userLocation: location },
+                            // Fix UX: Go to map with selected office instead of detail page directly,
+                            // allowing the user to see the context first.
+                            navigate('/iebc-office/map', {
+                                state: {
+                                    selectedOffice: nearestOffice,
+                                    userLocation: location
+                                },
                                 replace: true
                             });
                             return;
@@ -467,8 +464,8 @@ const IEBCOfficeSplash = () => {
 
     return (
         <div className={`relative flex flex-col min-h-screen transition-colors duration-500 overflow-hidden ${theme === 'dark'
-                ? 'bg-ios-gray-900 text-white'
-                : 'bg-white text-ios-gray-900'
+            ? 'bg-ios-gray-900 text-white'
+            : 'bg-white text-ios-gray-900'
             }`}>
             {/* Offline Status Banner */}
             <OfflineBanner className="absolute top-0 left-0 right-0 z-30" compact />
@@ -498,13 +495,13 @@ const IEBCOfficeSplash = () => {
                         animate="animate"
                     >
                         <div className={`absolute inset-0 rounded-full animate-ping ${theme === 'dark'
-                                ? 'bg-ios-blue/30'
-                                : 'bg-ios-blue/20'
+                            ? 'bg-ios-blue/30'
+                            : 'bg-ios-blue/20'
                             }`} />
                         <div
                             className={`absolute inset-4 rounded-full flex items-center justify-center shadow-lg ${theme === 'dark'
-                                    ? 'bg-ios-blue-600 shadow-ios-blue/25'
-                                    : 'bg-ios-blue shadow-ios-blue/25'
+                                ? 'bg-ios-blue-600 shadow-ios-blue/25'
+                                : 'bg-ios-blue shadow-ios-blue/25'
                                 }`}
                         >
                             <svg
@@ -583,8 +580,8 @@ const IEBCOfficeSplash = () => {
                             >
                                 <TextShadowLayer>
                                     <div className={`rounded-xl p-4 border ${theme === 'dark'
-                                            ? 'bg-ios-red/20 border-ios-red/30 text-ios-red-300'
-                                            : 'bg-ios-red/10 border-ios-red/20 text-ios-red'
+                                        ? 'bg-ios-red/20 border-ios-red/30 text-ios-red-300'
+                                        : 'bg-ios-red/10 border-ios-red/20 text-ios-red'
                                         }`}>
                                         <p className="text-sm font-medium">
                                             {error === 'Permission denied'
@@ -609,8 +606,8 @@ const IEBCOfficeSplash = () => {
                             onClick={handleAllowLocation}
                             disabled={loading}
                             className={`px-8 py-4 rounded-2xl font-semibold text-base disabled:opacity-50 flex items-center justify-center space-x-2 shadow-lg transition-all duration-300 ${theme === 'dark'
-                                    ? 'bg-ios-blue-600 text-white shadow-ios-blue/40 hover:bg-ios-blue-700'
-                                    : 'bg-ios-blue text-white shadow-ios-blue/25 hover:bg-ios-blue-500'
+                                ? 'bg-ios-blue-600 text-white shadow-ios-blue/40 hover:bg-ios-blue-700'
+                                : 'bg-ios-blue text-white shadow-ios-blue/25 hover:bg-ios-blue-500'
                                 }`}
                         >
                             {loading ? (
@@ -632,8 +629,8 @@ const IEBCOfficeSplash = () => {
                             whileTap={{ scale: 0.95 }}
                             onClick={handleManualEntry}
                             className={`px-8 py-4 rounded-2xl font-medium text-base border transition-all duration-300 ${theme === 'dark'
-                                    ? 'text-ios-blue-400 border-ios-gray-600 bg-ios-gray-800 hover:bg-ios-gray-700 hover:border-ios-gray-500'
-                                    : 'text-ios-blue border-ios-gray-300 bg-white hover:bg-ios-gray-50 hover:border-ios-gray-400'
+                                ? 'text-ios-blue-400 border-ios-gray-600 bg-ios-gray-800 hover:bg-ios-gray-700 hover:border-ios-gray-500'
+                                : 'text-ios-blue border-ios-gray-300 bg-white hover:bg-ios-gray-50 hover:border-ios-gray-400'
                                 }`}
                         >
                             {t('splash.manualEntry', 'Enter Location Manually')}
