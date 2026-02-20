@@ -241,7 +241,7 @@ const CekaLogoButton = () => {
   const { theme } = useTheme();
 
   const handleCekaClick = () => {
-    window.open('https://civicedkenya.vercel.app/join-community', '_blank', 'noopener,noreferrer');
+    window.open('https://www.civiceducationkenya.com/join-community', '_blank', 'noopener,noreferrer');
   };
 
   const logoVariants = {
