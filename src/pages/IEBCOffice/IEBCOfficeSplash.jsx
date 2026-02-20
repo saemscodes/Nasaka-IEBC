@@ -10,6 +10,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/components/SEO/SEOHead";
+import { SEOHead, generateWebsiteSchema, generateFAQSchema } from '@/components/SEO/SEOHead';
 
 // --- Helper: Haversine Distance ---
 const getDistance = (lat1, lon1, lat2, lon2) => {
@@ -467,6 +468,22 @@ const IEBCOfficeSplash = () => {
             ? 'bg-ios-gray-900 text-white'
             : 'bg-white text-ios-gray-900'
             }`}>
+            {/* SEO Head — dynamic meta tags, OG, JSON-LD */}
+            <SEOHead
+                title="Nasaka IEBC — Find Your Nearest IEBC Office"
+                description="Find IEBC offices in all 47 counties and 290 constituencies. Interactive map with directions, voter registration info, and community verification."
+                canonical="/iebc-office"
+                keywords="IEBC office, voter registration Kenya, nearest IEBC office, find IEBC office, register to vote Kenya"
+                schema={[
+                    generateWebsiteSchema(),
+                    generateFAQSchema([
+                        { question: 'Where can I find an IEBC office near me?', answer: 'Use Nasaka IEBC to locate constituency offices across all 47 Kenyan counties and 290 constituencies. Search by location, county, or constituency.' },
+                        { question: 'How do I register to vote at an IEBC office?', answer: 'Visit any IEBC constituency office with your original National ID or valid passport. Registration is free and takes about 15 minutes.' },
+                        { question: 'What documents do I need for voter registration?', answer: 'Bring your original National ID card or a valid Kenyan passport. The process includes biometric capture at the IEBC office.' },
+                        { question: 'What are IEBC office opening hours?', answer: 'IEBC constituency offices are typically open Monday to Friday, 8:00 AM to 5:00 PM.' }
+                    ])
+                ]}
+            />
             {/* Offline Status Banner */}
             <OfflineBanner className="absolute top-0 left-0 right-0 z-30" compact />
             {/* Top Control Bar - Full width with equal edge padding and proper spacing */}

@@ -18,6 +18,7 @@ import { useMapControls } from '@/hooks/useMapControls';
 import { findNearestOffice, findNearestOffices } from '@/utils/geoUtils';
 import { supabase } from '@/integrations/supabase/client';
 import L from 'leaflet';
+import { SEOHead } from '@/components/SEO/SEOHead';
 
 const IEBCOfficeMap = () => {
   const navigate = useNavigate();
@@ -523,6 +524,13 @@ const IEBCOfficeMap = () => {
 
   return (
     <div className="ios-map-container relative">
+      {/* SEO Head — map page meta tags */}
+      <SEOHead
+        title="IEBC Office Map — All 290 Constituencies | Nasaka IEBC"
+        description="Interactive map of IEBC constituency offices across all 47 counties in Kenya. Find directions, voter registration info, and community-verified locations."
+        canonical="/iebc-office/map"
+        keywords="IEBC office map, IEBC office locations Kenya, find IEBC office on map, voter registration map Kenya"
+      />
       {/* FIXED UI Controls - ALWAYS ON TOP */}
       <div className="fixed-search-container">
         <SearchBar
