@@ -215,5 +215,13 @@
     "language": "Lugha",
     "changeLanguage": "Badili lugha",
     "longPressHint": "Bonyeza kwa urefu kupata jawabu lako kwa haraka"
+  },
+  "seo": {
+    "titlePrefix": "Tafuta Ofisi ya IEBC Karibu Nawe",
+    "titleSuffix": "Kaunti Zote 47 na Maeneo Bunge 290",
+    "description": "Tafuta ofisi za maeneo bunge za IEBC kote nchini Kenya. Pata maelekezo, maelezo ya usajili, na ofisi zilizothibitishwa na jamii.",
+    "keywords": "Ofisi ya IEBC, usajili wa wapiga kura Kenya, tafuta ofisi ya IEBC, wapiga kura waliosajiliwa Kenya",
+    "ogTitle": "Nasaka IEBC - Usajili wa Wapiga Kura Umerahisishwa",
+    "ogDescription": "Tafuta ofisi ya IEBC iliyo karibu nawe mara moja."
   }
 }

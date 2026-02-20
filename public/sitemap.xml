@@ -1,24 +1,1689 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
-        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
-  
-  <!-- MAIN IEBC OFFICE PAGE - OPTIMIZED FOR ALL 153 IEBC OFFICES -->
+<?xml version="1.0" encoding="UTF-8" ?>
+<urlset
+    xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+    xmlns:xhtml="http://www.w3.org/1999/xhtml"
+>
   <url>
-    <loc>https://recall254.vercel.app/iebc-office</loc>
-    <lastmod>2025-11-18</lastmod>
+    <loc>https://recall254.vercel.app/</loc>
+    <lastmod>2026-02-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/" />
   </url>
-  
-  <!-- IEBC OFFICE MAP PAGE - INTERACTIVE WITH MODALS FOR ALL 153 OFFICES -->
+  <url>
+    <loc>https://recall254.vercel.app/iebc-office</loc>
+    <lastmod>2026-02-20</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/iebc-office" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/iebc-office" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/iebc-office" />
+  </url>
   <url>
     <loc>https://recall254.vercel.app/iebc-office/map</loc>
-    <lastmod>2025-11-18</lastmod>
+    <lastmod>2026-02-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/iebc-office/map" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/iebc-office/map" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/iebc-office/map" />
   </url>
-
+  <url>
+    <loc>https://recall254.vercel.app/voter-services</loc>
+    <lastmod>2026-02-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/voter-services" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/voter-services" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/voter-services" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/boundary-review</loc>
+    <lastmod>2026-02-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/boundary-review" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/boundary-review" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/boundary-review" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/election-resources</loc>
+    <lastmod>2026-02-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/election-resources" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/election-resources" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/election-resources" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/data-api</loc>
+    <lastmod>2026-02-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/data-api" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/data-api" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/data-api" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nasaka-iebc</loc>
+    <lastmod>2026-02-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nasaka-iebc" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nasaka-iebc" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nasaka-iebc" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/privacy</loc>
+    <lastmod>2026-02-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/privacy" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/privacy" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/privacy" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/terms</loc>
+    <lastmod>2026-02-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/terms" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/terms" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/terms" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/baringo/next-to-ministry-of-education-offices-chemolingot-chemolingot</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/baringo/next-to-ministry-of-education-offices-chemolingot-chemolingot" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/baringo/next-to-ministry-of-education-offices-chemolingot-chemolingot" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/baringo/next-to-ministry-of-education-offices-chemolingot-chemolingot" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/baringo</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/baringo" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/baringo" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/baringo" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/baringo/behind-boresha-sacco-boresha-sacco-mogotio-township-70m-from-the-tarmack</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/baringo/behind-boresha-sacco-boresha-sacco-mogotio-township-70m-from-the-tarmack" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/baringo/behind-boresha-sacco-boresha-sacco-mogotio-township-70m-from-the-tarmack" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/baringo/behind-boresha-sacco-boresha-sacco-mogotio-township-70m-from-the-tarmack" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/bomet/postal-corporation-of-kenya-office-sotik-next-to-kcb-bank-sotik-kenya-commercial-bank-sotik-50-metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/bomet/postal-corporation-of-kenya-office-sotik-next-to-kcb-bank-sotik-kenya-commercial-bank-sotik-50-metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/bomet/postal-corporation-of-kenya-office-sotik-next-to-kcb-bank-sotik-kenya-commercial-bank-sotik-50-metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/bomet/postal-corporation-of-kenya-office-sotik-next-to-kcb-bank-sotik-kenya-commercial-bank-sotik-50-metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/bomet</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/bomet" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/bomet" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/bomet" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/bomet/kyogong-shopping-centre-bomet-narok-highway-kyogong-shopping-centre-bomet-narok-100-metres-from-highway</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/bomet/kyogong-shopping-centre-bomet-narok-highway-kyogong-shopping-centre-bomet-narok-100-metres-from-highway" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/bomet/kyogong-shopping-centre-bomet-narok-highway-kyogong-shopping-centre-bomet-narok-100-metres-from-highway" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/bomet/kyogong-shopping-centre-bomet-narok-highway-kyogong-shopping-centre-bomet-narok-100-metres-from-highway" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/bomet/above-kipsigis-eddis-saccoopposite-national-cereals-board-bomet-ncpb-bomet-20-metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/bomet/above-kipsigis-eddis-saccoopposite-national-cereals-board-bomet-ncpb-bomet-20-metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/bomet/above-kipsigis-eddis-saccoopposite-national-cereals-board-bomet-ncpb-bomet-20-metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/bomet/above-kipsigis-eddis-saccoopposite-national-cereals-board-bomet-ncpb-bomet-20-metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/bungoma/kapsokwony-market-kapsokwiny-town-0m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/bungoma/kapsokwony-market-kapsokwiny-town-0m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/bungoma/kapsokwony-market-kapsokwiny-town-0m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/bungoma/kapsokwony-market-kapsokwiny-town-0m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/bungoma</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/bungoma" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/bungoma" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/bungoma" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/bungoma/bungoma-cereals-board-cpd-cereals-board-cpd-0m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/bungoma/bungoma-cereals-board-cpd-cereals-board-cpd-0m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/bungoma/bungoma-cereals-board-cpd-cereals-board-cpd-0m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/bungoma/bungoma-cereals-board-cpd-cereals-board-cpd-0m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/bungoma/bokoli-bokoli-market</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/bungoma/bokoli-bokoli-market" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/bungoma/bokoli-bokoli-market" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/bungoma/bokoli-bokoli-market" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/bungoma/kimilili-town-kimilili-town-0m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/bungoma/kimilili-town-kimilili-town-0m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/bungoma/kimilili-town-kimilili-town-0m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/bungoma/kimilili-town-kimilili-town-0m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/busia/amagoro-market-levantes-hotel-200m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/busia/amagoro-market-levantes-hotel-200m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/busia/amagoro-market-levantes-hotel-200m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/busia/amagoro-market-levantes-hotel-200m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/busia</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/busia" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/busia" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/busia" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/busia/funyula-mkt-post-office-50m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/busia/funyula-mkt-post-office-50m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/busia/funyula-mkt-post-office-50m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/busia/funyula-mkt-post-office-50m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/busia/budalangi-ap-line-ap-line-0m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/busia/budalangi-ap-line-ap-line-0m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/busia/budalangi-ap-line-ap-line-0m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/busia/budalangi-ap-line-ap-line-0m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/busia/butula-mkt-butula-mkt-0m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/busia/butula-mkt-butula-mkt-0m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/busia/butula-mkt-butula-mkt-0m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/busia/butula-mkt-butula-mkt-0m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/elgeyo-marakwet/chesoi-town-centre-dc-administration-offices-same-location</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/elgeyo-marakwet/chesoi-town-centre-dc-administration-offices-same-location" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/elgeyo-marakwet/chesoi-town-centre-dc-administration-offices-same-location" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/elgeyo-marakwet/chesoi-town-centre-dc-administration-offices-same-location" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/elgeyo-marakwet</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/elgeyo-marakwet" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/elgeyo-marakwet" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/elgeyo-marakwet" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/elgeyo-marakwet/iebc-building-block-kapsowar-town-centre-kapsowar-dc-headquarters-200-metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/elgeyo-marakwet/iebc-building-block-kapsowar-town-centre-kapsowar-dc-headquarters-200-metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/elgeyo-marakwet/iebc-building-block-kapsowar-town-centre-kapsowar-dc-headquarters-200-metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/elgeyo-marakwet/iebc-building-block-kapsowar-town-centre-kapsowar-dc-headquarters-200-metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/homabay/magunga-within-magunga-shopping-centre-0</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/homabay/magunga-within-magunga-shopping-centre-0" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/homabay/magunga-within-magunga-shopping-centre-0" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/homabay/magunga-within-magunga-shopping-centre-0" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/homabay</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/homabay" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/homabay" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/homabay" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/homabay/kasipul-ramula-kadongo-market-centre-within-renish-obunge-500m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/homabay/kasipul-ramula-kadongo-market-centre-within-renish-obunge-500m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/homabay/kasipul-ramula-kadongo-market-centre-within-renish-obunge-500m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/homabay/kasipul-ramula-kadongo-market-centre-within-renish-obunge-500m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/homabay/rangwe-rangwe-dispensary-100m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/homabay/rangwe-rangwe-dispensary-100m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/homabay/rangwe-rangwe-dispensary-100m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/homabay/rangwe-rangwe-dispensary-100m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kajiado/ack-church-kajiado-ack-church-kajiado-town-0-km</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kajiado/ack-church-kajiado-ack-church-kajiado-town-0-km" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kajiado/ack-church-kajiado-ack-church-kajiado-town-0-km" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kajiado/ack-church-kajiado-ack-church-kajiado-town-0-km" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kajiado</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kajiado" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kajiado" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kajiado" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kajiado/masaai-rural-training-centre-isinya-masaai-rural-training-centre-isinya-0-km</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kajiado/masaai-rural-training-centre-isinya-masaai-rural-training-centre-isinya-0-km" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kajiado/masaai-rural-training-centre-isinya-masaai-rural-training-centre-isinya-0-km" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kajiado/masaai-rural-training-centre-isinya-masaai-rural-training-centre-isinya-0-km" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kajiado/rongai-st-marys-catholic-church-rongai-along-st-marys-road</loc>
+    <lastmod>2025-10-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kajiado/rongai-st-marys-catholic-church-rongai-along-st-marys-road" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kajiado/rongai-st-marys-catholic-church-rongai-along-st-marys-road" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kajiado/rongai-st-marys-catholic-church-rongai-along-st-marys-road" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kajiado/mariposa-apartments-along-marsabit-plaza-ngong-road</loc>
+    <lastmod>2025-10-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kajiado/mariposa-apartments-along-marsabit-plaza-ngong-road" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kajiado/mariposa-apartments-along-marsabit-plaza-ngong-road" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kajiado/mariposa-apartments-along-marsabit-plaza-ngong-road" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kakamega/within-compound-of-malava-yearly-meeting-of-friends-church-quakers-100m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kakamega/within-compound-of-malava-yearly-meeting-of-friends-church-quakers-100m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kakamega/within-compound-of-malava-yearly-meeting-of-friends-church-quakers-100m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kakamega/within-compound-of-malava-yearly-meeting-of-friends-church-quakers-100m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kakamega</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kakamega" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kakamega" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kakamega" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kakamega/lurambi-post-office-kakamega-opposite-police-station-20-m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kakamega/lurambi-post-office-kakamega-opposite-police-station-20-m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kakamega/lurambi-post-office-kakamega-opposite-police-station-20-m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kakamega/lurambi-post-office-kakamega-opposite-police-station-20-m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kakamega/khwisero-vision-plaza-central-yearly-meeting-of-friends-church-lirhanda-directly-opposite-safari-com-booster-20m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kakamega/khwisero-vision-plaza-central-yearly-meeting-of-friends-church-lirhanda-directly-opposite-safari-com-booster-20m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kakamega/khwisero-vision-plaza-central-yearly-meeting-of-friends-church-lirhanda-directly-opposite-safari-com-booster-20m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kakamega/khwisero-vision-plaza-central-yearly-meeting-of-friends-church-lirhanda-directly-opposite-safari-com-booster-20m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kakamega/opposite-makhoko-sec-sch-shinyalu-market-1-km</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kakamega/opposite-makhoko-sec-sch-shinyalu-market-1-km" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kakamega/opposite-makhoko-sec-sch-shinyalu-market-1-km" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kakamega/opposite-makhoko-sec-sch-shinyalu-market-1-km" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kakamega/ikolomani-sec-school-50m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kakamega/ikolomani-sec-school-50m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kakamega/ikolomani-sec-school-50m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kakamega/ikolomani-sec-school-50m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kakamega/national-cerealsproduce-board-chavakali-along-kak-mumias-rd-chavakali-100m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kakamega/national-cerealsproduce-board-chavakali-along-kak-mumias-rd-chavakali-100m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kakamega/national-cerealsproduce-board-chavakali-along-kak-mumias-rd-chavakali-100m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kakamega/national-cerealsproduce-board-chavakali-along-kak-mumias-rd-chavakali-100m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kakamega/kongoni-pag-church-compound-friends-church-50m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kakamega/kongoni-pag-church-compound-friends-church-50m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kakamega/kongoni-pag-church-compound-friends-church-50m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kakamega/kongoni-pag-church-compound-friends-church-50m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kericho/bureti</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kericho/bureti" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kericho/bureti" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kericho/bureti" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kericho</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kericho" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kericho" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kericho" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kericho/bureti-growers-sacco-ltd-building-2nd-floor-litein-town-bureti-growers-sacco-ltd-building-same-building</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kericho/bureti-growers-sacco-ltd-building-2nd-floor-litein-town-bureti-growers-sacco-ltd-building-same-building" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kericho/bureti-growers-sacco-ltd-building-2nd-floor-litein-town-bureti-growers-sacco-ltd-building-same-building" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kericho/bureti-growers-sacco-ltd-building-2nd-floor-litein-town-bureti-growers-sacco-ltd-building-same-building" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kericho/postal-corporation-of-kenya-kipkelion-town-postal-corporation-of-kenya-kipkelion-town-same-building</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kericho/postal-corporation-of-kenya-kipkelion-town-postal-corporation-of-kenya-kipkelion-town-same-building" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kericho/postal-corporation-of-kenya-kipkelion-town-postal-corporation-of-kenya-kipkelion-town-same-building" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kericho/postal-corporation-of-kenya-kipkelion-town-postal-corporation-of-kenya-kipkelion-town-same-building" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kericho/postal-corporation-of-kenya-londiani-town-postal-corporation-of-kenya-londiani-town-same-building</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kericho/postal-corporation-of-kenya-londiani-town-postal-corporation-of-kenya-londiani-town-same-building" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kericho/postal-corporation-of-kenya-londiani-town-postal-corporation-of-kenya-londiani-town-same-building" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kericho/postal-corporation-of-kenya-londiani-town-postal-corporation-of-kenya-londiani-town-same-building" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kericho/soko-huru-shopping-centre-along-kericho-kisumu-highway-soko-huru-shopping-centre-along-kericho-100-metres-from-highway</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kericho/soko-huru-shopping-centre-along-kericho-kisumu-highway-soko-huru-shopping-centre-along-kericho-100-metres-from-highway" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kericho/soko-huru-shopping-centre-along-kericho-kisumu-highway-soko-huru-shopping-centre-along-kericho-100-metres-from-highway" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kericho/soko-huru-shopping-centre-along-kericho-kisumu-highway-soko-huru-shopping-centre-along-kericho-100-metres-from-highway" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kiambu/kimende-k-unity-house-k-unity-house-1st-floor</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kiambu/kimende-k-unity-house-k-unity-house-1st-floor" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kiambu/kimende-k-unity-house-k-unity-house-1st-floor" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kiambu/kimende-k-unity-house-k-unity-house-1st-floor" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kiambu</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kiambu" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kiambu" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kiambu" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kiambu/kiambaa-deputy-country-commissioner-office-kiambaa</loc>
+    <lastmod>2025-10-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kiambu/kiambaa-deputy-country-commissioner-office-kiambaa" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kiambu/kiambaa-deputy-country-commissioner-office-kiambaa" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kiambu/kiambaa-deputy-country-commissioner-office-kiambaa" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kiambu/ruiru-dcs-office-50m-opposite-dcs-office</loc>
+    <lastmod>2025-10-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kiambu/ruiru-dcs-office-50m-opposite-dcs-office" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kiambu/ruiru-dcs-office-50m-opposite-dcs-office" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kiambu/ruiru-dcs-office-50m-opposite-dcs-office" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kiambu/juja-senate-hotel-menja-vission-plaza-opposite-senate</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kiambu/juja-senate-hotel-menja-vission-plaza-opposite-senate" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kiambu/juja-senate-hotel-menja-vission-plaza-opposite-senate" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kiambu/juja-senate-hotel-menja-vission-plaza-opposite-senate" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kiambu/githunguri-best-west-bldg-best-west-building-githunguri</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kiambu/githunguri-best-west-bldg-best-west-building-githunguri" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kiambu/githunguri-best-west-bldg-best-west-building-githunguri" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kiambu/githunguri-best-west-bldg-best-west-building-githunguri" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kiambu/kiambu-mapa-house-mappa-house-building-4th-floor</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kiambu/kiambu-mapa-house-mappa-house-building-4th-floor" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kiambu/kiambu-mapa-house-mappa-house-building-4th-floor" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kiambu/kiambu-mapa-house-mappa-house-building-4th-floor" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kiambu/kabete-rythms-college-kabete-shopping-center-gachio-stage</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kiambu/kabete-rythms-college-kabete-shopping-center-gachio-stage" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kiambu/kabete-rythms-college-kabete-shopping-center-gachio-stage" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kiambu/kabete-rythms-college-kabete-shopping-center-gachio-stage" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kiambu/kikuyu-k-unity-house-k-unity-house-1st-floor</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kiambu/kikuyu-k-unity-house-k-unity-house-1st-floor" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kiambu/kikuyu-k-unity-house-k-unity-house-1st-floor" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kiambu/kikuyu-k-unity-house-k-unity-house-1st-floor" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kiambu/gatundu-east-view-building-ground-flr-east-view-building-ground-flr</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kiambu/gatundu-east-view-building-ground-flr-east-view-building-ground-flr" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kiambu/gatundu-east-view-building-ground-flr-east-view-building-ground-flr" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kiambu/gatundu-east-view-building-ground-flr-east-view-building-ground-flr" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kilifi/opposite-st-john-ack-church-st-johns-ack-church-100m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kilifi/opposite-st-john-ack-church-st-johns-ack-church-100m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kilifi/opposite-st-john-ack-church-st-johns-ack-church-100m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kilifi/opposite-st-john-ack-church-st-johns-ack-church-100m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kilifi</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kilifi" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kilifi" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kilifi" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kilifi/opposite-co-operative-bank-mtwapa-police-station-1-km</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kilifi/opposite-co-operative-bank-mtwapa-police-station-1-km" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kilifi/opposite-co-operative-bank-mtwapa-police-station-1-km" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kilifi/opposite-co-operative-bank-mtwapa-police-station-1-km" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kilifi/rabai-district-hqs-kombeni-girls-sec-school-500-m-05-km</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kilifi/rabai-district-hqs-kombeni-girls-sec-school-500-m-05-km" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kilifi/rabai-district-hqs-kombeni-girls-sec-school-500-m-05-km" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kilifi/rabai-district-hqs-kombeni-girls-sec-school-500-m-05-km" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kilifi/opposite-malindi-law-court-malindi-law-court-30m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kilifi/opposite-malindi-law-court-malindi-law-court-30m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kilifi/opposite-malindi-law-court-malindi-law-court-30m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kilifi/opposite-malindi-law-court-malindi-law-court-30m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kilifi/near-mwembe-resort-catholic-institute-300m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kilifi/near-mwembe-resort-catholic-institute-300m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kilifi/near-mwembe-resort-catholic-institute-300m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kilifi/near-mwembe-resort-catholic-institute-300m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kirinyaga/mwea</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kirinyaga/mwea" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kirinyaga/mwea" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kirinyaga/mwea" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kirinyaga</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kirinyaga" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kirinyaga" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kirinyaga" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kirinyaga/baricho-town-safaricom-booster-20-metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kirinyaga/baricho-town-safaricom-booster-20-metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kirinyaga/baricho-town-safaricom-booster-20-metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kirinyaga/baricho-town-safaricom-booster-20-metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kirinyaga/kianyaga-town-in-wiseman-building-1st-floor-along-general-kassim-road-next-to-general-20-metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kirinyaga/kianyaga-town-in-wiseman-building-1st-floor-along-general-kassim-road-next-to-general-20-metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kirinyaga/kianyaga-town-in-wiseman-building-1st-floor-along-general-kassim-road-next-to-general-20-metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kirinyaga/kianyaga-town-in-wiseman-building-1st-floor-along-general-kassim-road-next-to-general-20-metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kisii/nyaribari-masaba</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kisii/nyaribari-masaba" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kisii/nyaribari-masaba" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kisii/nyaribari-masaba" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kisii</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kisii" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kisii" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kisii" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kisii/ministry-of-public-works-suneka-town-same-copound</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kisii/ministry-of-public-works-suneka-town-same-copound" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kisii/ministry-of-public-works-suneka-town-same-copound" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kisii/ministry-of-public-works-suneka-town-same-copound" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kisumu/maseno-behind-maseno-law-courts-20m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kisumu/maseno-behind-maseno-law-courts-20m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kisumu/maseno-behind-maseno-law-courts-20m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kisumu/maseno-behind-maseno-law-courts-20m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kisumu</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kisumu" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kisumu" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kisumu" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kisumu/awasiahero-between-ahero-police-station-multipurpose-50m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kisumu/awasiahero-between-ahero-police-station-multipurpose-50m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kisumu/awasiahero-between-ahero-police-station-multipurpose-50m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kisumu/awasiahero-between-ahero-police-station-multipurpose-50m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kisumu/chemelil-sugar-belt-union-offices-0</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kisumu/chemelil-sugar-belt-union-offices-0" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kisumu/chemelil-sugar-belt-union-offices-0" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kisumu/chemelil-sugar-belt-union-offices-0" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kitui/kyuso-market-next-to-mwingi-north-cdf-office-mwingi-north-cdf-office-50metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kitui/kyuso-market-next-to-mwingi-north-cdf-office-mwingi-north-cdf-office-50metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kitui/kyuso-market-next-to-mwingi-north-cdf-office-mwingi-north-cdf-office-50metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kitui/kyuso-market-next-to-mwingi-north-cdf-office-mwingi-north-cdf-office-50metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kitui</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kitui" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kitui" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kitui" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kitui/migwani-behind-catholic-church-catholic-church-300metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kitui/migwani-behind-catholic-church-catholic-church-300metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kitui/migwani-behind-catholic-church-catholic-church-300metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kitui/migwani-behind-catholic-church-catholic-church-300metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kitui/matinyani-market-maendeleo-hall-matinyani-market-centre-100metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kitui/matinyani-market-maendeleo-hall-matinyani-market-centre-100metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kitui/matinyani-market-maendeleo-hall-matinyani-market-centre-100metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kitui/matinyani-market-maendeleo-hall-matinyani-market-centre-100metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kitui/kitui-town-along-hospital-road-opposite-kafoca-hotel-and-kitui-kafoca-hotel-kitui-law-courts-500metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kitui/kitui-town-along-hospital-road-opposite-kafoca-hotel-and-kitui-kafoca-hotel-kitui-law-courts-500metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kitui/kitui-town-along-hospital-road-opposite-kafoca-hotel-and-kitui-kafoca-hotel-kitui-law-courts-500metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kitui/kitui-town-along-hospital-road-opposite-kafoca-hotel-and-kitui-kafoca-hotel-kitui-law-courts-500metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kwale/msambweni-youth-office</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kwale/msambweni-youth-office" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kwale/msambweni-youth-office" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kwale/msambweni-youth-office" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kwale</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kwale" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kwale" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kwale" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/kwale/opposite-lunga-lunga-matatu-stage-on-the-main-road-to-tanzania-lunga-lunga-petrol-station</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/kwale/opposite-lunga-lunga-matatu-stage-on-the-main-road-to-tanzania-lunga-lunga-petrol-station" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/kwale/opposite-lunga-lunga-matatu-stage-on-the-main-road-to-tanzania-lunga-lunga-petrol-station" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/kwale/opposite-lunga-lunga-matatu-stage-on-the-main-road-to-tanzania-lunga-lunga-petrol-station" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/laikipia/telkom-building-nyahuru-town-nyahururu-law-court-100-m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/laikipia/telkom-building-nyahuru-town-nyahururu-law-court-100-m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/laikipia/telkom-building-nyahuru-town-nyahururu-law-court-100-m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/laikipia/telkom-building-nyahuru-town-nyahururu-law-court-100-m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/laikipia</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/laikipia" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/laikipia" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/laikipia" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/lamu/mokowe-cooperative-building-police-post-100-m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/lamu/mokowe-cooperative-building-police-post-100-m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/lamu/mokowe-cooperative-building-police-post-100-m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/lamu/mokowe-cooperative-building-police-post-100-m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/lamu</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/lamu" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/lamu" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/lamu" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/lamu/faza-town-registration-of-persons-office-100-metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/lamu/faza-town-registration-of-persons-office-100-metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/lamu/faza-town-registration-of-persons-office-100-metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/lamu/faza-town-registration-of-persons-office-100-metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/machakos/mavoko-iebc-offices</loc>
+    <lastmod>2025-10-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/machakos/mavoko-iebc-offices" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/machakos/mavoko-iebc-offices" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/machakos/mavoko-iebc-offices" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/machakos</loc>
+    <lastmod>2025-10-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/machakos" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/machakos" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/machakos" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/machakos/masinga-market-masinga-police-station-200metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/machakos/masinga-market-masinga-police-station-200metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/machakos/masinga-market-masinga-police-station-200metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/machakos/masinga-market-masinga-police-station-200metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/machakos/tala-market-opposite-east-mart-supermarket-east-mart-supermarket-5metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/machakos/tala-market-opposite-east-mart-supermarket-east-mart-supermarket-5metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/machakos/tala-market-opposite-east-mart-supermarket-east-mart-supermarket-5metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/machakos/tala-market-opposite-east-mart-supermarket-east-mart-supermarket-5metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/machakos/along-machakos-teachers-college-road-machakos-teachers-college-50metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/machakos/along-machakos-teachers-college-road-machakos-teachers-college-50metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/machakos/along-machakos-teachers-college-road-machakos-teachers-college-50metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/machakos/along-machakos-teachers-college-road-machakos-teachers-college-50metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/machakos/makutano-ya-mwala-shopping-centre-adjacent-to-makutano-police-makutano-police-patrol-base-5metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/machakos/makutano-ya-mwala-shopping-centre-adjacent-to-makutano-police-makutano-police-patrol-base-5metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/machakos/makutano-ya-mwala-shopping-centre-adjacent-to-makutano-police-makutano-police-patrol-base-5metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/machakos/makutano-ya-mwala-shopping-centre-adjacent-to-makutano-police-makutano-police-patrol-base-5metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/makueni/tawa-social-hall-tawa-police-post-20metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/makueni/tawa-social-hall-tawa-police-post-20metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/makueni/tawa-social-hall-tawa-police-post-20metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/makueni/tawa-social-hall-tawa-police-post-20metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/makueni</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/makueni" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/makueni" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/makueni" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/makueni/salama-town-nzai-house-along-mombasa-road-salama-police-station-100metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/makueni/salama-town-nzai-house-along-mombasa-road-salama-police-station-100metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/makueni/salama-town-nzai-house-along-mombasa-road-salama-police-station-100metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/makueni/salama-town-nzai-house-along-mombasa-road-salama-police-station-100metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/makueni/opposite-makueni-hospital-makueni-hospital-100metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/makueni/opposite-makueni-hospital-makueni-hospital-100metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/makueni/opposite-makueni-hospital-makueni-hospital-100metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/makueni/opposite-makueni-hospital-makueni-hospital-100metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/makueni/makindu-town-lower-market-makindu-secondary-school-1km</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/makueni/makindu-town-lower-market-makindu-secondary-school-1km" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/makueni/makindu-town-lower-market-makindu-secondary-school-1km" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/makueni/makindu-town-lower-market-makindu-secondary-school-1km" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/makueni/kambu-town-between-mtito-andei-and-machinery-baobab-tree-500metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/makueni/kambu-town-between-mtito-andei-and-machinery-baobab-tree-500metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/makueni/kambu-town-between-mtito-andei-and-machinery-baobab-tree-500metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/makueni/kambu-town-between-mtito-andei-and-machinery-baobab-tree-500metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/mandera/takaba-ap-line-50m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/mandera/takaba-ap-line-50m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/mandera/takaba-ap-line-50m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/mandera/takaba-ap-line-50m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/mandera</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/mandera" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/mandera" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/mandera" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/mandera/rhamu-post-office-30m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/mandera/rhamu-post-office-30m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/mandera/rhamu-post-office-30m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/mandera/rhamu-post-office-30m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/mandera/el-wak-el-wak-service-station-30m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/mandera/el-wak-el-wak-service-station-30m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/mandera/el-wak-el-wak-service-station-30m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/mandera/el-wak-el-wak-service-station-30m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/mandera/mandera-nhif-office-20m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/mandera/mandera-nhif-office-20m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/mandera/mandera-nhif-office-20m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/mandera/mandera-nhif-office-20m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/marakwet-box/inside-rcea-ushirika-church-compound-opposite-hills-school-on-eldoret-kisimu-roadpo-box-822-eldoret-30100</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/marakwet-box/inside-rcea-ushirika-church-compound-opposite-hills-school-on-eldoret-kisimu-roadpo-box-822-eldoret-30100" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/marakwet-box/inside-rcea-ushirika-church-compound-opposite-hills-school-on-eldoret-kisimu-roadpo-box-822-eldoret-30100" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/marakwet-box/inside-rcea-ushirika-church-compound-opposite-hills-school-on-eldoret-kisimu-roadpo-box-822-eldoret-30100" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/marakwet-box</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/marakwet-box" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/marakwet-box" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/marakwet-box" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/marsabit/behind-administrative-police-station-behind-administrative-police-station-500-metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/marsabit/behind-administrative-police-station-behind-administrative-police-station-500-metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/marsabit/behind-administrative-police-station-behind-administrative-police-station-500-metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/marsabit/behind-administrative-police-station-behind-administrative-police-station-500-metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/marsabit</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/marsabit" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/marsabit" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/marsabit" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/meru/laare-market-laare-equity-bank-75-meters</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/meru/laare-market-laare-equity-bank-75-meters" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/meru/laare-market-laare-equity-bank-75-meters" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/meru/laare-market-laare-equity-bank-75-meters" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/meru</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/meru" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/meru" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/meru" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/meru/kianjai-market-national-bank-30-meters</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/meru/kianjai-market-national-bank-30-meters" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/meru/kianjai-market-national-bank-30-meters" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/meru/kianjai-market-national-bank-30-meters" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/meru/timau-market-siraji-savings-and-credit-co-operative-society-next-to-siraji-savings-and-credit-co</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/meru/timau-market-siraji-savings-and-credit-co-operative-society-next-to-siraji-savings-and-credit-co" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/meru/timau-market-siraji-savings-and-credit-co-operative-society-next-to-siraji-savings-and-credit-co" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/meru/timau-market-siraji-savings-and-credit-co-operative-society-next-to-siraji-savings-and-credit-co" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/migori/next-to-kehancha-law-court-kehancha-town-50-m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/migori/next-to-kehancha-law-court-kehancha-town-50-m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/migori/next-to-kehancha-law-court-kehancha-town-50-m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/migori/next-to-kehancha-law-court-kehancha-town-50-m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/migori</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/migori" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/migori" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/migori" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/mombasa/likoni-school-for-the-blind-likoni-police-station</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/mombasa/likoni-school-for-the-blind-likoni-police-station" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/mombasa/likoni-school-for-the-blind-likoni-police-station" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/mombasa/likoni-school-for-the-blind-likoni-police-station" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/mombasa</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/mombasa" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/mombasa" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/mombasa" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/mombasa/baluchi-complex-central-ploice-station</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/mombasa/baluchi-complex-central-ploice-station" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/mombasa/baluchi-complex-central-ploice-station" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/mombasa/baluchi-complex-central-ploice-station" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/mombasa/changamwe-at-the-fire-station-changamwe-fire-station</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/mombasa/changamwe-at-the-fire-station-changamwe-fire-station" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/mombasa/changamwe-at-the-fire-station-changamwe-fire-station" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/mombasa/changamwe-at-the-fire-station-changamwe-fire-station" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/mombasa/mkindani-at-the-ap-post-mkindani-ap-post</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/mombasa/mkindani-at-the-ap-post-mkindani-ap-post" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/mombasa/mkindani-at-the-ap-post-mkindani-ap-post" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/mombasa/mkindani-at-the-ap-post-mkindani-ap-post" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/mombasa/links-road-west-bank-villa-mamba-village</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/mombasa/links-road-west-bank-villa-mamba-village" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/mombasa/links-road-west-bank-villa-mamba-village" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/mombasa/links-road-west-bank-villa-mamba-village" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nairobi</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nairobi" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nairobi" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nairobi" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nairobi/embakasi-east</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nairobi/embakasi-east" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nairobi/embakasi-east" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nairobi/embakasi-east" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nairobi/tena-iebc-embakasi-west</loc>
+    <lastmod>2025-10-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nairobi/tena-iebc-embakasi-west" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nairobi/tena-iebc-embakasi-west" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nairobi/tena-iebc-embakasi-west" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nairobi/kasarani-dcs-office-kasarani-next-to-nairobi-korea-church-along-kasarani-mwiki-rd</loc>
+    <lastmod>2025-10-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nairobi/kasarani-dcs-office-kasarani-next-to-nairobi-korea-church-along-kasarani-mwiki-rd" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nairobi/kasarani-dcs-office-kasarani-next-to-nairobi-korea-church-along-kasarani-mwiki-rd" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nairobi/kasarani-dcs-office-kasarani-next-to-nairobi-korea-church-along-kasarani-mwiki-rd" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nairobi/ruaraka-sacred-hearts-catholic-parish-along-baba-dogo-rd</loc>
+    <lastmod>2025-10-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nairobi/ruaraka-sacred-hearts-catholic-parish-along-baba-dogo-rd" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nairobi/ruaraka-sacred-hearts-catholic-parish-along-baba-dogo-rd" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nairobi/ruaraka-sacred-hearts-catholic-parish-along-baba-dogo-rd" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nairobi/westlands-iebc-office</loc>
+    <lastmod>2025-10-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nairobi/westlands-iebc-office" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nairobi/westlands-iebc-office" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nairobi/westlands-iebc-office" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nairobi/langata</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nairobi/langata" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nairobi/langata" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nairobi/langata" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nairobi-city/cdf-offices-langata-cdf-offices-langata-0km</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nairobi-city/cdf-offices-langata-cdf-offices-langata-0km" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nairobi-city/cdf-offices-langata-cdf-offices-langata-0km" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nairobi-city/cdf-offices-langata-cdf-offices-langata-0km" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nairobi-city</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nairobi-city" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nairobi-city" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nairobi-city" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nairobi-city/ministry-of-social-services-westlands-ministry-of-social-services-westlands-0-km</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nairobi-city/ministry-of-social-services-westlands-ministry-of-social-services-westlands-0-km" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nairobi-city/ministry-of-social-services-westlands-ministry-of-social-services-westlands-0-km" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nairobi-city/ministry-of-social-services-westlands-ministry-of-social-services-westlands-0-km" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nairobi-city/maliposa-apartment-ngong-road-nakumart-junction-4-km</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nairobi-city/maliposa-apartment-ngong-road-nakumart-junction-4-km" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nairobi-city/maliposa-apartment-ngong-road-nakumart-junction-4-km" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nairobi-city/maliposa-apartment-ngong-road-nakumart-junction-4-km" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nairobi-city/kie-ngara-kie-ngara-0-km</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nairobi-city/kie-ngara-kie-ngara-0-km" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nairobi-city/kie-ngara-kie-ngara-0-km" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nairobi-city/kie-ngara-kie-ngara-0-km" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nairobi-city/sacred-heart-catholic-church-baba-dogo-sacred-heart-catholic-church-baba-dogo-0km</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nairobi-city/sacred-heart-catholic-church-baba-dogo-sacred-heart-catholic-church-baba-dogo-0km" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nairobi-city/sacred-heart-catholic-church-baba-dogo-sacred-heart-catholic-church-baba-dogo-0km" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nairobi-city/sacred-heart-catholic-church-baba-dogo-sacred-heart-catholic-church-baba-dogo-0km" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nairobi-city/joy-villa-imara-daima-nakumart-embakasi-3km</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nairobi-city/joy-villa-imara-daima-nakumart-embakasi-3km" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nairobi-city/joy-villa-imara-daima-nakumart-embakasi-3km" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nairobi-city/joy-villa-imara-daima-nakumart-embakasi-3km" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nairobi-city/ea-school-of-aviation-embakasi-ea-school-of-aviation-embakasi-0-km</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nairobi-city/ea-school-of-aviation-embakasi-ea-school-of-aviation-embakasi-0-km" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nairobi-city/ea-school-of-aviation-embakasi-ea-school-of-aviation-embakasi-0-km" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nairobi-city/ea-school-of-aviation-embakasi-ea-school-of-aviation-embakasi-0-km" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nairobi-city/tena-dolhnolm-naivas-supermarket-dolholm-3-km</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nairobi-city/tena-dolhnolm-naivas-supermarket-dolholm-3-km" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nairobi-city/tena-dolhnolm-naivas-supermarket-dolholm-3-km" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nairobi-city/tena-dolhnolm-naivas-supermarket-dolholm-3-km" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nairobi-city/ministry-of-public-works-industral-area-ministry-of-public-works-industral-area-0-km</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nairobi-city/ministry-of-public-works-industral-area-ministry-of-public-works-industral-area-0-km" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nairobi-city/ministry-of-public-works-industral-area-ministry-of-public-works-industral-area-0-km" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nairobi-city/ministry-of-public-works-industral-area-ministry-of-public-works-industral-area-0-km" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nakuru/hennsolex-building-ground-floor-gilgil-town-kplc-gilgil-50m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nakuru/hennsolex-building-ground-floor-gilgil-town-kplc-gilgil-50m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nakuru/hennsolex-building-ground-floor-gilgil-town-kplc-gilgil-50m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nakuru/hennsolex-building-ground-floor-gilgil-town-kplc-gilgil-50m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nakuru</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nakuru" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nakuru" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nakuru" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nakuru/farming-system-building-in-kiamunyi-ollive-inn-kiamunyi-100m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nakuru/farming-system-building-in-kiamunyi-ollive-inn-kiamunyi-100m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nakuru/farming-system-building-in-kiamunyi-ollive-inn-kiamunyi-100m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nakuru/farming-system-building-in-kiamunyi-ollive-inn-kiamunyi-100m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/narok/ntulele-townshipopposite-ntulele-police-station-police-station-100-metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/narok/ntulele-townshipopposite-ntulele-police-station-police-station-100-metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/narok/ntulele-townshipopposite-ntulele-police-station-police-station-100-metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/narok/ntulele-townshipopposite-ntulele-police-station-police-station-100-metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/narok</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/narok" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/narok" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/narok" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/narok/next-to-olololunga-district-hospital-district-hospital-20-metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/narok/next-to-olololunga-district-hospital-district-hospital-20-metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/narok/next-to-olololunga-district-hospital-district-hospital-20-metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/narok/next-to-olololunga-district-hospital-district-hospital-20-metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/narok/nkorkorri-boys-sec-school-nkorkorri-boys-sec-school-same-location</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/narok/nkorkorri-boys-sec-school-nkorkorri-boys-sec-school-same-location" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/narok/nkorkorri-boys-sec-school-nkorkorri-boys-sec-school-same-location" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/narok/nkorkorri-boys-sec-school-nkorkorri-boys-sec-school-same-location" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nyandarua/nyandarua-dc-compound-nyahururu-nyandarua-dc-compound-information-block-3-meters</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nyandarua/nyandarua-dc-compound-nyahururu-nyandarua-dc-compound-information-block-3-meters" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nyandarua/nyandarua-dc-compound-nyahururu-nyandarua-dc-compound-information-block-3-meters" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nyandarua/nyandarua-dc-compound-nyahururu-nyandarua-dc-compound-information-block-3-meters" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nyandarua</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nyandarua" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nyandarua" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nyandarua" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nyeri/kcb-building-3rd-floor-room-17-kcb-building-withing-the-landmark</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nyeri/kcb-building-3rd-floor-room-17-kcb-building-withing-the-landmark" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nyeri/kcb-building-3rd-floor-room-17-kcb-building-withing-the-landmark" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nyeri/kcb-building-3rd-floor-room-17-kcb-building-withing-the-landmark" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/nyeri</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/nyeri" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/nyeri" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/nyeri" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/samburu/wamba-catholic-mission-wamba-catholic-mission-samburu-100m-from-wamba-catholic</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/samburu/wamba-catholic-mission-wamba-catholic-mission-samburu-100m-from-wamba-catholic" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/samburu/wamba-catholic-mission-wamba-catholic-mission-samburu-100m-from-wamba-catholic" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/samburu/wamba-catholic-mission-wamba-catholic-mission-samburu-100m-from-wamba-catholic" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/samburu</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/samburu" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/samburu" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/samburu" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/samburu/next-to-cdf-office-samburu-west-opposite-dcs-office-samburu-150-m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/samburu/next-to-cdf-office-samburu-west-opposite-dcs-office-samburu-150-m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/samburu/next-to-cdf-office-samburu-west-opposite-dcs-office-samburu-150-m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/samburu/next-to-cdf-office-samburu-west-opposite-dcs-office-samburu-150-m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/samburu/near-the-dcs-office-baragoi-dcs-office-baragoi-200m-from-the-dcs-office</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/samburu/near-the-dcs-office-baragoi-dcs-office-baragoi-200m-from-the-dcs-office" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/samburu/near-the-dcs-office-baragoi-dcs-office-baragoi-200m-from-the-dcs-office" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/samburu/near-the-dcs-office-baragoi-dcs-office-baragoi-200m-from-the-dcs-office" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/siaya/ukwala-opposite-ukwalla-town-hall-100m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/siaya/ukwala-opposite-ukwalla-town-hall-100m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/siaya/ukwala-opposite-ukwalla-town-hall-100m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/siaya/ukwala-opposite-ukwalla-town-hall-100m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/siaya</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/siaya" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/siaya" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/siaya" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/siaya/ugunja-ambira-district-hospital-100-metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/siaya/ugunja-ambira-district-hospital-100-metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/siaya/ugunja-ambira-district-hospital-100-metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/siaya/ugunja-ambira-district-hospital-100-metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/siaya/kalandini-ministry-of-roads-offices-0</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/siaya/kalandini-ministry-of-roads-offices-0" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/siaya/kalandini-ministry-of-roads-offices-0" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/siaya/kalandini-ministry-of-roads-offices-0" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/taita-taveta/iebc-building-next-to-dos-office-wundanyi-dos-office</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/taita-taveta/iebc-building-next-to-dos-office-wundanyi-dos-office" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/taita-taveta/iebc-building-next-to-dos-office-wundanyi-dos-office" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/taita-taveta/iebc-building-next-to-dos-office-wundanyi-dos-office" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/taita-taveta</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/taita-taveta" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/taita-taveta" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/taita-taveta" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/taita-taveta/scripture-mission-voi-coast-institute-of-technology-cit</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/taita-taveta/scripture-mission-voi-coast-institute-of-technology-cit" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/taita-taveta/scripture-mission-voi-coast-institute-of-technology-cit" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/taita-taveta/scripture-mission-voi-coast-institute-of-technology-cit" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/taita-taveta/taveta-railway-station-taveta-railway-station-godown-no2</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/taita-taveta/taveta-railway-station-taveta-railway-station-godown-no2" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/taita-taveta/taveta-railway-station-taveta-railway-station-godown-no2" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/taita-taveta/taveta-railway-station-taveta-railway-station-godown-no2" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/tana-river/bura-irrigation-scheme-bura-irrigation-scheme</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/tana-river/bura-irrigation-scheme-bura-irrigation-scheme" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/tana-river/bura-irrigation-scheme-bura-irrigation-scheme" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/tana-river/bura-irrigation-scheme-bura-irrigation-scheme" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/tana-river</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/tana-river" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/tana-river" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/tana-river" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/tana-river/garsen-behind-methodist-church-methodist-church-100m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/tana-river/garsen-behind-methodist-church-methodist-church-100m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/tana-river/garsen-behind-methodist-church-methodist-church-100m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/tana-river/garsen-behind-methodist-church-methodist-church-100m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/tana-river/hola-town-tana-river-1-km</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/tana-river/hola-town-tana-river-1-km" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/tana-river/hola-town-tana-river-1-km" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/tana-river/hola-town-tana-river-1-km" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/trans-nzoia/endebess-district-head-quarters-ddo-office-kitale-molim-road-district-head-quarters-ddo-office-same-location</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/trans-nzoia/endebess-district-head-quarters-ddo-office-kitale-molim-road-district-head-quarters-ddo-office-same-location" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/trans-nzoia/endebess-district-head-quarters-ddo-office-kitale-molim-road-district-head-quarters-ddo-office-same-location" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/trans-nzoia/endebess-district-head-quarters-ddo-office-kitale-molim-road-district-head-quarters-ddo-office-same-location" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/trans-nzoia</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/trans-nzoia" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/trans-nzoia" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/trans-nzoia" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/trans-nzoia/within-catholic-parish-kiminini-market-po-box-11-kitale-catholic-parish-kiminini-market-50-metres</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/trans-nzoia/within-catholic-parish-kiminini-market-po-box-11-kitale-catholic-parish-kiminini-market-50-metres" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/trans-nzoia/within-catholic-parish-kiminini-market-po-box-11-kitale-catholic-parish-kiminini-market-50-metres" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/trans-nzoia/within-catholic-parish-kiminini-market-po-box-11-kitale-catholic-parish-kiminini-market-50-metres" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/turkana/turkana-north</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/turkana/turkana-north" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/turkana/turkana-north" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/turkana/turkana-north" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/turkana</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/turkana" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/turkana" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/turkana" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/turkana/logurum-at-dc-adminitration-building-offices-po-box-223-dc-administration-offices-same-building</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/turkana/logurum-at-dc-adminitration-building-offices-po-box-223-dc-administration-offices-same-building" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/turkana/logurum-at-dc-adminitration-building-offices-po-box-223-dc-administration-offices-same-building" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/turkana/logurum-at-dc-adminitration-building-offices-po-box-223-dc-administration-offices-same-building" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/vihiga/mbale-municipal-council-barclays-bank-200</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/vihiga/mbale-municipal-council-barclays-bank-200" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/vihiga/mbale-municipal-council-barclays-bank-200" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/vihiga/mbale-municipal-council-barclays-bank-200" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/vihiga</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/vihiga" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/vihiga" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/vihiga" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/wajir/wajir-south</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/wajir/wajir-south" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/wajir/wajir-south" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/wajir/wajir-south" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/wajir</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/wajir" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/wajir" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/wajir" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/wajir/tarbaj-tarbaj-district-hospital-50m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/wajir/tarbaj-tarbaj-district-hospital-50m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/wajir/tarbaj-tarbaj-district-hospital-50m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/wajir/tarbaj-tarbaj-district-hospital-50m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/wajir/giriftu-griftu-district-hospital-50m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/wajir/giriftu-griftu-district-hospital-50m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/wajir/giriftu-griftu-district-hospital-50m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/wajir/giriftu-griftu-district-hospital-50m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/wajir/habaswein-police-station-5km</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/wajir/habaswein-police-station-5km" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/wajir/habaswein-police-station-5km" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/wajir/habaswein-police-station-5km" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/wajir/bute-police-station-100m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/wajir/bute-police-station-100m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/wajir/bute-police-station-100m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/wajir/bute-police-station-100m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/wajir/wajir-alfurqan-integrated-200m</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/wajir/wajir-alfurqan-integrated-200m" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/wajir/wajir-alfurqan-integrated-200m" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/wajir/wajir-alfurqan-integrated-200m" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/west-pokot/kapenguria-bible-college-po-box-450-kapenguria-30600-kapenguria-bible-college-same-location</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/west-pokot/kapenguria-bible-college-po-box-450-kapenguria-30600-kapenguria-bible-college-same-location" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/west-pokot/kapenguria-bible-college-po-box-450-kapenguria-30600-kapenguria-bible-college-same-location" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/west-pokot/kapenguria-bible-college-po-box-450-kapenguria-30600-kapenguria-bible-college-same-location" />
+  </url>
+  <url>
+    <loc>https://recall254.vercel.app/west-pokot</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://recall254.vercel.app/west-pokot" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://recall254.vercel.app/west-pokot" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://recall254.vercel.app/west-pokot" />
+  </url>
 </urlset>

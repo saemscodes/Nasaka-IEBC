@@ -224,5 +224,13 @@
     "uberXLDesc": "Larger vehicles for groups",
     "priceUnavailable": "Price unavailable",
     "cancel": "Cancel"
+  },
+  "seo": {
+    "titlePrefix": "Find Your Nearest IEBC Office",
+    "titleSuffix": "All 47 Counties & 290 Constituencies",
+    "description": "Locate IEBC constituency offices across Kenya. Get directions, registration info, and community-verified locations.",
+    "keywords": "IEBC office, voter registration Kenya, find IEBC office, registered voters Kenya",
+    "ogTitle": "Nasaka IEBC - Voter Registration Made Easy",
+    "ogDescription": "Find your nearest IEBC office instantly."
   }
 }
