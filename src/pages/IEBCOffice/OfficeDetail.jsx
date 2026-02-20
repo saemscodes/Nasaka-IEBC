@@ -29,7 +29,10 @@ import {
 import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
 
 const OfficeDetail = () => {
-    const { county: rawCounty, constituency: rawConstituency } = useParams();
+    const { county: rawCounty, area: rawArea, constituency: rawConstituency } = useParams();
+    // rawArea is from the new /:county/:area route
+    // rawConstituency is from the legacy /iebc-office/:county/:constituency route
+    const currentArea = rawArea || rawConstituency;
     const navigate = useNavigate();
     const { theme } = useTheme();
     const isDark = theme === 'dark';
@@ -43,20 +46,25 @@ const OfficeDetail = () => {
     // URL Sanitization
     const sanitizeSlug = (slug) => slug?.toLowerCase().trim().replace(/[^\w-]/g, '');
     const countySlug = sanitizeSlug(rawCounty);
-    const constituencySlug = sanitizeSlug(rawConstituency);
+    const areaSlug = sanitizeSlug(currentArea);
 
     const fetchOfficeData = useCallback(async () => {
         setLoading(true);
         try {
             const countySearch = deslugify(countySlug);
-            const constituencySearch = constituencySlug ? deslugify(constituencySlug) : null;
+            let areaSearch = areaSlug ? deslugify(areaSlug) : null;
+
+            // Handle disambiguation: If area ends with "-town", remove it for database search
+            if (areaSearch && areaSearch.toLowerCase().endsWith(' town')) {
+                areaSearch = areaSearch.substring(0, areaSearch.length - 5);
+            }
 
             let query = supabase
                 .from('iebc_offices')
                 .select('*');
 
-            if (constituencySearch) {
-                query = query.ilike('constituency_name', constituencySearch);
+            if (areaSearch) {
+                query = query.ilike('constituency_name', areaSearch);
             } else {
                 query = query.ilike('county', countySearch);
             }
@@ -156,8 +164,8 @@ const OfficeDetail = () => {
                     generateBreadcrumbSchema([
                         { name: 'Home', url: '/' },
                         { name: 'IEBC Offices', url: '/iebc-office' },
-                        { name: countyName, url: `/iebc-office/${slugify(countyName)}` },
-                        { name: officeName, url: `/iebc-office/${slugify(countyName)}/${slugify(officeName)}` }
+                        { name: countyName, url: `/${slugify(countyName)}` },
+                        { name: officeName, url: `/${slugify(countyName)}/${slugify(officeName)}` }
                     ]),
                     generateFAQSchema([
                         {
@@ -280,7 +288,7 @@ const OfficeDetail = () => {
                             {nearbyOffices.map((nob) => (
                                 <Link
                                     key={nob.constituency_name}
-                                    to={`/iebc-office/${slugify(countyName)}/${slugify(nob.constituency_name)}`}
+                                    to={`/${slugify(countyName)}/${slugify(nob.constituency_name)}`}
                                     className={`flex items-center justify-between p-4 rounded-2xl border transition-all active:scale-[0.98] ${isDark ? 'bg-ios-gray-800/50 border-ios-gray-800 hover:bg-ios-gray-800' : 'bg-white border-ios-gray-100 hover:bg-ios-gray-50'}`}
                                 >
                                     <div className="flex items-center gap-3">

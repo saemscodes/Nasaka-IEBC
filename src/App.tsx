@@ -26,6 +26,7 @@ const VoterServices = React.lazy(() => import('./pages/SEO/VoterServices'));
 const BoundaryReview = React.lazy(() => import('./pages/SEO/BoundaryReview'));
 const ElectionResources = React.lazy(() => import('./pages/SEO/ElectionResources'));
 const DataAPI = React.lazy(() => import('./pages/SEO/DataAPI'));
+import FlatRouteResolver from './components/IEBCOffice/FlatRouteResolver';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
@@ -419,15 +420,29 @@ const AppContent = () => {
         <Route path="/election-resources" element={<React.Suspense fallback={<LoadingState />}><ElectionResources /></React.Suspense>} />
         <Route path="/data-api" element={<React.Suspense fallback={<LoadingState />}><DataAPI /></React.Suspense>} />
 
-        {/* ✅ DYNAMIC IEBC OFFICE ROUTES (Restore) */}
+        {/* ✅ CANONICAL HIERARCHICAL ROUTES (Full Ham) */}
+        <Route
+          path="/:county/:area"
+          element={
+            <React.Suspense fallback={<LoadingState />}>
+              <OfficeDetail />
+            </React.Suspense>
+          }
+        />
+        <Route
+          path="/:county"
+          element={
+            <React.Suspense fallback={<LoadingState />}>
+              <OfficeDetail />
+            </React.Suspense>
+          }
+        />
+
+        {/* ✅ DYNAMIC IEBC OFFICE ROUTES (Legacy Support) */}
         <Route
           path="/iebc-office/:county/:constituency"
           element={
-            <React.Suspense fallback={
-              <div className="flex items-center justify-center min-h-screen bg-background">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-              </div>
-            }>
+            <React.Suspense fallback={<LoadingState />}>
               <OfficeDetail />
             </React.Suspense>
           }
@@ -435,15 +450,14 @@ const AppContent = () => {
         <Route
           path="/iebc-office/:county"
           element={
-            <React.Suspense fallback={
-              <div className="flex items-center justify-center min-h-screen bg-background">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-              </div>
-            }>
+            <React.Suspense fallback={<LoadingState />}>
               <OfficeDetail />
             </React.Suspense>
           }
         />
+
+        {/* ✅ FLAT ROUTE RESOLVER (Go Ham) */}
+        <Route path="/:slug" element={<FlatRouteResolver />} />
 
         {/* ✅ ACTIVE SECURE ADMIN ROUTES */}
         <Route

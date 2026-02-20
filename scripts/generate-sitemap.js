@@ -107,15 +107,20 @@ async function generateSitemap() {
     const seenCounties = new Set();
     for (const office of offices) {
         const countySlug = slugify(office.county || '');
-        const constituencySlug = slugify(office.constituency_name || '');
+        let constituencySlug = slugify(office.constituency_name || '');
         const lastmod = office.updated_at
             ? new Date(office.updated_at).toISOString().split('T')[0]
             : today;
 
         if (countySlug && constituencySlug) {
+            // Disambiguation: area-town if matches county
+            if (constituencySlug === countySlug) {
+                constituencySlug = `${constituencySlug}-town`;
+            }
+
             urls.push(
                 urlEntry(
-                    `${SITE_URL} / iebc - office / ${countySlug} / ${constituencySlug}`,
+                    `${SITE_URL}/${countySlug}/${constituencySlug}`,
                     lastmod,
                     'weekly',
                     '0.8'
@@ -127,7 +132,7 @@ async function generateSitemap() {
             seenCounties.add(countySlug);
             urls.push(
                 urlEntry(
-                    `${SITE_URL} / iebc - office / ${countySlug}`,
+                    `${SITE_URL}/${countySlug}`,
                     lastmod,
                     'weekly',
                     '0.7'
@@ -136,13 +141,13 @@ async function generateSitemap() {
         }
     }
 
-    const xml = `<? xml version = "1.0" encoding = "UTF-8" ?>
-            <urlset
-                xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-                xmlns:xhtml="http://www.w3.org/1999/xhtml"
-            >
-                ${urls.join('\n')}
-            </urlset>`;
+    const xml = `<?xml version="1.0" encoding="UTF-8" ?>
+<urlset
+    xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+    xmlns:xhtml="http://www.w3.org/1999/xhtml"
+>
+${urls.join('\n')}
+</urlset>`;
 
     writeFileSync(OUTPUT_PATH, xml, 'utf-8');
     console.log(`✅ Sitemap written to ${OUTPUT_PATH}(${urls.length} URLs)`);

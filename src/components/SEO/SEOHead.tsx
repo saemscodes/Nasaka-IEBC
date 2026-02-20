@@ -165,7 +165,12 @@ export function generateOfficeSchema(office: OfficeSchemaInput) {
     const officeName = office.constituency_name || 'IEBC Office';
     const countyName = office.county || 'Kenya';
     const countySlug = slugify(countyName);
-    const slug = office.slug || slugify(officeName);
+    let areaSlug = office.slug || slugify(officeName);
+
+    // Disambiguation: area-town if matches county
+    if (areaSlug === countySlug) {
+        areaSlug = `${areaSlug}-town`;
+    }
 
     return {
         '@context': 'https://schema.org',
@@ -188,7 +193,7 @@ export function generateOfficeSchema(office: OfficeSchemaInput) {
                 },
             }
             : {}),
-        url: `${SITE_URL}/iebc-office/${countySlug}/${slug}`,
+        url: `${SITE_URL}/${countySlug}/${areaSlug}`,
         ...(office.phone ? { telephone: office.phone } : {}),
         openingHoursSpecification: {
             '@type': 'OpeningHoursSpecification',

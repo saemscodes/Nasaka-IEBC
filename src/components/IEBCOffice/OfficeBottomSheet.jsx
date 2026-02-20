@@ -22,8 +22,8 @@ import {
 } from '@/utils/kenyaFareCalculator';
 import UberModal from './UberModal';
 import i18next from 'i18next';
-
-
+import { useNavigate } from 'react-router-dom';
+import { slugify } from '@/components/SEO/SEOHead';
 const OfficeBottomSheet = ({
   office,
   userLocation,
@@ -35,6 +35,7 @@ const OfficeBottomSheet = ({
   onClose,
   hasLocationAccess = false
 }) => {
+  const navigate = useNavigate();
   const [dragY, setDragY] = useState(0);
   const [showUberModal, setShowUberModal] = useState(false);
   const [showFareDetails, setShowFareDetails] = useState(false);
@@ -82,7 +83,7 @@ const OfficeBottomSheet = ({
   const fareEstimates = useMemo(() => {
     if (!hasLocationAccess || !distanceToOffice) return null;
 
-    const estimatedMinutes = currentRoute?.[0]?.summary?.totalTime 
+    const estimatedMinutes = currentRoute?.[0]?.summary?.totalTime
       ? Math.round(currentRoute[0].summary.totalTime / 60)
       : estimateTravelTime(distanceToOffice);
 
@@ -102,7 +103,7 @@ const OfficeBottomSheet = ({
   const handleDragEnd = (event, info) => {
     setIsDragging(false);
     const threshold = 100;
-    
+
     if (info.offset.y > threshold) {
       if (state === 'expanded') {
         onCollapse?.();
@@ -112,7 +113,7 @@ const OfficeBottomSheet = ({
     } else if (info.offset.y < -threshold && state === 'peek') {
       onExpand?.();
     }
-    
+
     setDragY(0);
   };
 
@@ -125,21 +126,21 @@ const OfficeBottomSheet = ({
   const pickup = hasLocationAccess && userLocation && userLocation.latitude != null && userLocation.longitude != null
     ? { lat: userLocation.latitude, lng: userLocation.longitude }
     : null;
-  const destination = coordsAvailable 
-    ? { latitude: office.latitude, longitude: office.longitude } 
+  const destination = coordsAvailable
+    ? { latitude: office.latitude, longitude: office.longitude }
     : null;
 
   // Provider opener functions - conditional based on location access
   const openProvider = (provider, productType = null) => {
-    const urls = buildUrlsFor(provider, { 
-      pickup: hasLocationAccess ? pickup : null, 
-      destination, 
-      productType 
+    const urls = buildUrlsFor(provider, {
+      pickup: hasLocationAccess ? pickup : null,
+      destination,
+      productType
     });
     openWithAppFallback(urls.app, urls.web);
-    trackProviderOpen(provider, { 
-      productType, 
-      source: 'bottom_sheet', 
+    trackProviderOpen(provider, {
+      productType,
+      source: 'bottom_sheet',
       hasLocationAccess,
       hasPickup: !!pickup,
       hasDestination: !!destination
@@ -158,7 +159,7 @@ const OfficeBottomSheet = ({
     if (state === 'expanded' && hasLocationAccess && fareEstimates) {
       setIsCollapsingForModal(true);
       onCollapse?.();
-      
+
       // Wait for collapse animation to complete before showing modal
       setTimeout(() => {
         setShowUberModal(true);
@@ -188,7 +189,7 @@ const OfficeBottomSheet = ({
     } catch (err) {
       const fallback = prompt(t('bottomSheet.copyCoordinatesPrompt', 'Copy coordinates:'), coords);
       if (fallback !== null) {
-        try { await navigator.clipboard.writeText(coords); } catch (_) {}
+        try { await navigator.clipboard.writeText(coords); } catch (_) { }
       }
     }
   };
@@ -237,27 +238,25 @@ const OfficeBottomSheet = ({
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
             initial={{ y: '100%' }}
-            animate={{ 
+            animate={{
               y: state === 'peek' ? 'calc(100% - 80px)' : 0,
-              transition: { 
-                type: 'spring', 
-                stiffness: 400, 
-                damping: 40 
+              transition: {
+                type: 'spring',
+                stiffness: 400,
+                damping: 40
               }
             }}
             exit={{ y: '100%' }}
-            className={`office-bottom-sheet ${state} ${
-              isDark
-                ? 'bg-card border-border text-foreground'
-                : 'bg-white border-ios-gray-200 text-ios-gray-900'
-            } transition-colors duration-300`}
+            className={`office-bottom-sheet ${state} ${isDark
+              ? 'bg-card border-border text-foreground'
+              : 'bg-white border-ios-gray-200 text-ios-gray-900'
+              } transition-colors duration-300`}
             style={{ y: dragY }}
           >
             {/* Drag Handle */}
             <div
-              className={`bottom-sheet-handle ${
-                isDark ? 'bg-ios-gray-400' : 'bg-ios-gray-300'
-              } transition-colors duration-300`}
+              className={`bottom-sheet-handle ${isDark ? 'bg-ios-gray-400' : 'bg-ios-gray-300'
+                } transition-colors duration-300`}
               onPointerDown={e => dragControls.start(e)}
             />
 
@@ -265,32 +264,28 @@ const OfficeBottomSheet = ({
             <div className="px-5 py-3 cursor-pointer" onClick={handlePeekTap}>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h3 className={`font-semibold text-lg line-clamp-1 transition-colors duration-300 ${
-                    isDark ? 'text-white' : 'text-foreground'
-                  }`}>
+                  <h3 className={`font-semibold text-lg line-clamp-1 transition-colors duration-300 ${isDark ? 'text-white' : 'text-foreground'
+                    }`}>
                     {office.office_name || office.constituency_name || t('office.officeName', 'IEBC Office')}
                   </h3>
-                  <p className={`text-sm mt-1 line-clamp-1 transition-colors duration-300 ${
-                    isDark ? 'text-ios-gray-300' : 'text-muted-foreground'
-                  }`}>
+                  <p className={`text-sm mt-1 line-clamp-1 transition-colors duration-300 ${isDark ? 'text-ios-gray-300' : 'text-muted-foreground'
+                    }`}>
                     {office.constituency_name && office.county
                       ? `${office.constituency_name}, ${office.county}`
                       : office.county || office.constituency_name || t('office.location', 'Location')}
                   </p>
                 </div>
-                
+
                 {/* Show distance and fare ONLY if we have location access */}
                 {hasLocationAccess && distanceToOffice && (
                   <div className="ml-4 text-right">
-                    <span className={`text-sm font-medium transition-colors duration-300 ${
-                      isDark ? 'text-ios-blue-400' : 'text-primary'
-                    }`}>
+                    <span className={`text-sm font-medium transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-primary'
+                      }`}>
                       {t('office.distance', { distance: distanceToOffice.toFixed(1) })}
                     </span>
                     {cheapestFare && (
-                      <p className={`text-xs mt-1 font-semibold transition-colors duration-300 ${
-                        isDark ? 'text-green-400' : 'text-green-600'
-                      }`}>
+                      <p className={`text-xs mt-1 font-semibold transition-colors duration-300 ${isDark ? 'text-green-400' : 'text-green-600'
+                        }`}>
                         {formatFare(cheapestFare.total)}
                       </p>
                     )}
@@ -299,14 +294,12 @@ const OfficeBottomSheet = ({
                 {/* Show different message when no location access */}
                 {!hasLocationAccess && (
                   <div className="ml-4 text-right">
-                    <span className={`text-sm font-medium transition-colors duration-300 ${
-                      isDark ? 'text-ios-blue-400' : 'text-primary'
-                    }`}>
+                    <span className={`text-sm font-medium transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-primary'
+                      }`}>
                       {t('office.tapForDirections', 'Tap for directions')}
                     </span>
-                    <p className={`text-xs mt-1 transition-colors duration-300 ${
-                      isDark ? 'text-ios-gray-400' : 'text-muted-foreground'
-                    }`}>
+                    <p className={`text-xs mt-1 transition-colors duration-300 ${isDark ? 'text-ios-gray-400' : 'text-muted-foreground'
+                      }`}>
                       {t('office.noLocationAccess', 'No location access')}
                     </p>
                   </div>
@@ -325,20 +318,17 @@ const OfficeBottomSheet = ({
               >
                 <div className="space-y-4">
                   {/* Header */}
-                  <div className={`border-b pb-4 transition-colors duration-300 ${
-                    isDark ? 'border-ios-gray-600' : 'border-border'
-                  }`}>
-                    <h2 className={`text-2xl font-bold transition-colors duration-300 ${
-                      isDark ? 'text-white' : 'text-foreground'
+                  <div className={`border-b pb-4 transition-colors duration-300 ${isDark ? 'border-ios-gray-600' : 'border-border'
                     }`}>
+                    <h2 className={`text-2xl font-bold transition-colors duration-300 ${isDark ? 'text-white' : 'text-foreground'
+                      }`}>
                       {office.office_name || office.constituency_name || t('office.officeName', 'IEBC Office')}
                     </h2>
                     {office.office_type && (
-                      <span className={`inline-block mt-2 px-3 py-1 text-xs font-medium rounded-full transition-colors duration-300 ${
-                        isDark
-                          ? 'bg-ios-blue/30 text-ios-blue-400'
-                          : 'bg-primary/20 text-primary'
-                      }`}>
+                      <span className={`inline-block mt-2 px-3 py-1 text-xs font-medium rounded-full transition-colors duration-300 ${isDark
+                        ? 'bg-ios-blue/30 text-ios-blue-400'
+                        : 'bg-primary/20 text-primary'
+                        }`}>
                         {office.office_type}
                       </span>
                     )}
@@ -346,31 +336,27 @@ const OfficeBottomSheet = ({
 
                   {/* LOCATION ACCESS WARNING - SHOW WHEN NO ACCESS */}
                   {!hasLocationAccess && (
-                    <div className={`rounded-xl p-4 border transition-colors duration-300 ${
-                      isDark
-                        ? 'bg-yellow-900/20 border-yellow-700/30'
-                        : 'bg-yellow-50 border-yellow-200'
-                    }`}>
+                    <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark
+                      ? 'bg-yellow-900/20 border-yellow-700/30'
+                      : 'bg-yellow-50 border-yellow-200'
+                      }`}>
                       <div className="flex items-start space-x-3">
                         <span className="text-xl mt-0.5">📍</span>
                         <div className="flex-1">
-                          <h4 className={`text-sm font-semibold mb-1 ${
-                            isDark ? 'text-yellow-300' : 'text-yellow-800'
-                          }`}>
+                          <h4 className={`text-sm font-semibold mb-1 ${isDark ? 'text-yellow-300' : 'text-yellow-800'
+                            }`}>
                             {t('bottomSheet.locationAccessRequired', 'Location Access Required')}
                           </h4>
-                          <p className={`text-xs ${
-                            isDark ? 'text-yellow-200' : 'text-yellow-700'
-                          }`}>
+                          <p className={`text-xs ${isDark ? 'text-yellow-200' : 'text-yellow-700'
+                            }`}>
                             {t('bottomSheet.locationAccessDesc', 'Enable location access to see fare estimates, get directions from your current location, and find the nearest route to this office.')}
                           </p>
                           <button
                             onClick={() => window.location.reload()}
-                            className={`mt-2 text-xs px-3 py-1 rounded-full font-medium transition-colors ${
-                              isDark
-                                ? 'bg-yellow-700 hover:bg-yellow-600 text-white'
-                                : 'bg-yellow-200 hover:bg-yellow-300 text-yellow-900'
-                            }`}
+                            className={`mt-2 text-xs px-3 py-1 rounded-full font-medium transition-colors ${isDark
+                              ? 'bg-yellow-700 hover:bg-yellow-600 text-white'
+                              : 'bg-yellow-200 hover:bg-yellow-300 text-yellow-900'
+                              }`}
                           >
                             {t('bottomSheet.enableLocationAccess', 'Enable Location Access')}
                           </button>
@@ -381,27 +367,24 @@ const OfficeBottomSheet = ({
 
                   {/* FARE ESTIMATES CARD - ONLY SHOW IF LOCATION ACCESS GRANTED */}
                   {hasLocationAccess && fareEstimates && (
-                    <div className={`rounded-xl p-4 border transition-colors duration-300 ${
-                      isDark
-                        ? 'bg-gradient-to-br from-green-900/20 to-blue-900/20 border-green-700/30'
-                        : 'bg-gradient-to-br from-green-50 to-blue-50 border-green-200'
-                    }`}>
+                    <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark
+                      ? 'bg-gradient-to-br from-green-900/20 to-blue-900/20 border-green-700/30'
+                      : 'bg-gradient-to-br from-green-50 to-blue-50 border-green-200'
+                      }`}>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-2">
                           <span className="text-lg">💰</span>
                           <div>
-                            <h4 className={`text-sm font-semibold ${
-                              isDark ? 'text-green-300' : 'text-green-800'
-                            }`}>
+                            <h4 className={`text-sm font-semibold ${isDark ? 'text-green-300' : 'text-green-800'
+                              }`}>
                               {t('bottomSheet.estimatedRideCost', 'Estimated Ride Cost')}
                             </h4>
                             <div className="flex items-center space-x-2 mt-0.5">
                               <span className={`text-xs ${trafficInfo?.color || 'text-gray-500'}`}>
                                 {trafficInfo?.icon || '🚗'} {trafficInfo?.description || t('bottomSheet.normalTraffic', 'Normal traffic')}
                               </span>
-                              <span className={`text-xs ${
-                                isDark ? 'text-ios-gray-400' : 'text-gray-600'
-                              }`}>
+                              <span className={`text-xs ${isDark ? 'text-ios-gray-400' : 'text-gray-600'
+                                }`}>
                                 {distanceToOffice?.toFixed(1)} km
                               </span>
                             </div>
@@ -409,11 +392,10 @@ const OfficeBottomSheet = ({
                         </div>
                         <button
                           onClick={() => setShowFareDetails(!showFareDetails)}
-                          className={`text-xs px-3 py-1 rounded-full transition-colors ${
-                            isDark 
-                              ? 'bg-ios-gray-700 text-ios-gray-300 hover:bg-ios-gray-600' 
-                              : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-                          }`}
+                          className={`text-xs px-3 py-1 rounded-full transition-colors ${isDark
+                            ? 'bg-ios-gray-700 text-ios-gray-300 hover:bg-ios-gray-600'
+                            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                            }`}
                         >
                           {showFareDetails ? t('bottomSheet.hide', 'Hide') : t('bottomSheet.showAll', 'Show All')}
                         </button>
@@ -421,31 +403,26 @@ const OfficeBottomSheet = ({
 
                       {/* Cheapest Option Highlight */}
                       {cheapestFare && (
-                        <div className={`rounded-lg p-3 mb-3 ${
-                          isDark ? 'bg-black/30' : 'bg-white/80'
-                        }`}>
+                        <div className={`rounded-lg p-3 mb-3 ${isDark ? 'bg-black/30' : 'bg-white/80'
+                          }`}>
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className={`text-xs font-medium ${
-                                isDark ? 'text-ios-gray-300' : 'text-gray-600'
-                              }`}>
+                              <p className={`text-xs font-medium ${isDark ? 'text-ios-gray-300' : 'text-gray-600'
+                                }`}>
                                 💡 {t('bottomSheet.cheapestOption', 'Cheapest Option')}
                               </p>
-                              <p className={`text-lg font-bold ${
-                                isDark ? 'text-white' : 'text-gray-900'
-                              }`}>
+                              <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'
+                                }`}>
                                 {cheapestFare.icon} {cheapestFare.displayName}
                               </p>
                             </div>
                             <div className="text-right">
-                              <p className={`text-2xl font-bold ${
-                                isDark ? 'text-green-400' : 'text-green-600'
-                              }`}>
+                              <p className={`text-2xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'
+                                }`}>
                                 {formatFare(cheapestFare.total)}
                               </p>
-                              <p className={`text-xs ${
-                                isDark ? 'text-ios-gray-400' : 'text-gray-500'
-                              }`}>
+                              <p className={`text-xs ${isDark ? 'text-ios-gray-400' : 'text-gray-500'
+                                }`}>
                                 ~{cheapestFare.estimatedMinutes} {t('bottomSheet.estimatedTime', 'min')}
                               </p>
                             </div>
@@ -464,47 +441,41 @@ const OfficeBottomSheet = ({
                           >
                             {/* Uber Options */}
                             <div>
-                              <p className={`text-xs font-semibold mb-2 ${
-                                isDark ? 'text-ios-gray-300' : 'text-gray-700'
-                              }`}>
+                              <p className={`text-xs font-semibold mb-2 ${isDark ? 'text-ios-gray-300' : 'text-gray-700'
+                                }`}>
                                 {t('bottomSheet.uberServices', 'Uber Services')}
                               </p>
                               <div className="grid grid-cols-2 gap-2">
                                 {Object.entries(fareEstimates.uber).map(([key, fare]) => (
                                   <div
                                     key={key}
-                                    className={`p-3 rounded-lg border ${
-                                      isDark 
-                                        ? 'bg-black/20 border-gray-700' 
-                                        : 'bg-white/60 border-gray-200'
-                                    }`}
+                                    className={`p-3 rounded-lg border ${isDark
+                                      ? 'bg-black/20 border-gray-700'
+                                      : 'bg-white/60 border-gray-200'
+                                      }`}
                                   >
                                     <div className="flex items-center justify-between">
                                       <div>
                                         <div className="flex items-center space-x-2">
                                           <span className="text-sm">{fare.icon}</span>
-                                          <span className={`text-xs font-medium ${
-                                            isDark ? 'text-white' : 'text-gray-900'
-                                          }`}>
+                                          <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'
+                                            }`}>
                                             {fare.displayName}
                                           </span>
                                         </div>
-                                        <p className={`text-xs mt-1 ${
-                                          isDark ? 'text-ios-gray-400' : 'text-gray-500'
-                                        }`}>
+                                        <p className={`text-xs mt-1 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'
+                                          }`}>
                                           {fare.description}
                                         </p>
                                       </div>
                                       <div className="text-right">
-                                        <p className={`text-sm font-bold ${
-                                          isDark ? 'text-green-400' : 'text-green-600'
-                                        }`}>
+                                        <p className={`text-sm font-bold ${isDark ? 'text-green-400' : 'text-green-600'
+                                          }`}>
                                           {formatFare(fare.total)}
                                         </p>
                                         {fare.trafficSurcharge > 0 && (
-                                          <p className={`text-xs ${
-                                            isDark ? 'text-orange-400' : 'text-orange-600'
-                                          }`}>
+                                          <p className={`text-xs ${isDark ? 'text-orange-400' : 'text-orange-600'
+                                            }`}>
                                             +{formatFare(fare.trafficSurcharge)}
                                           </p>
                                         )}
@@ -518,47 +489,41 @@ const OfficeBottomSheet = ({
                             {/* Bolt Options */}
                             {fareEstimates.bolt && (
                               <div>
-                                <p className={`text-xs font-semibold mb-2 ${
-                                  isDark ? 'text-ios-gray-300' : 'text-gray-700'
-                                }`}>
+                                <p className={`text-xs font-semibold mb-2 ${isDark ? 'text-ios-gray-300' : 'text-gray-700'
+                                  }`}>
                                   {t('bottomSheet.boltServices', 'Bolt Services')}
                                 </p>
                                 <div className="grid grid-cols-2 gap-2">
                                   {Object.entries(fareEstimates.bolt).map(([key, fare]) => (
                                     <div
                                       key={key}
-                                      className={`p-3 rounded-lg border ${
-                                        isDark 
-                                          ? 'bg-black/20 border-gray-700' 
-                                          : 'bg-white/60 border-gray-200'
-                                      }`}
+                                      className={`p-3 rounded-lg border ${isDark
+                                        ? 'bg-black/20 border-gray-700'
+                                        : 'bg-white/60 border-gray-200'
+                                        }`}
                                     >
                                       <div className="flex items-center justify-between">
                                         <div>
                                           <div className="flex items-center space-x-2">
                                             <span className="text-sm">{fare.icon}</span>
-                                            <span className={`text-xs font-medium ${
-                                              isDark ? 'text-white' : 'text-gray-900'
-                                            }`}>
+                                            <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'
+                                              }`}>
                                               {fare.displayName}
                                             </span>
                                           </div>
-                                          <p className={`text-xs mt-1 ${
-                                            isDark ? 'text-ios-gray-400' : 'text-gray-500'
-                                          }`}>
+                                          <p className={`text-xs mt-1 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'
+                                            }`}>
                                             {fare.description}
                                           </p>
                                         </div>
                                         <div className="text-right">
-                                          <p className={`text-sm font-bold ${
-                                            isDark ? 'text-green-400' : 'text-green-600'
-                                          }`}>
+                                          <p className={`text-sm font-bold ${isDark ? 'text-green-400' : 'text-green-600'
+                                            }`}>
                                             {formatFare(fare.total)}
                                           </p>
                                           {fare.trafficSurcharge > 0 && (
-                                            <p className={`text-xs ${
-                                              isDark ? 'text-orange-400' : 'text-orange-600'
-                                            }`}>
+                                            <p className={`text-xs ${isDark ? 'text-orange-400' : 'text-orange-600'
+                                              }`}>
                                               +{formatFare(fare.trafficSurcharge)}
                                             </p>
                                           )}
@@ -572,11 +537,10 @@ const OfficeBottomSheet = ({
 
                             {/* Traffic Info */}
                             {fareEstimates.traffic?.multiplier > 1 && (
-                              <div className={`text-xs p-2 rounded mt-2 ${
-                                isDark 
-                                  ? 'bg-orange-900/20 text-orange-300' 
-                                  : 'bg-orange-50 text-orange-700'
-                              }`}>
+                              <div className={`text-xs p-2 rounded mt-2 ${isDark
+                                ? 'bg-orange-900/20 text-orange-300'
+                                : 'bg-orange-50 text-orange-700'
+                                }`}>
                                 ⚠️ {fareEstimates.traffic.description} - {t('bottomSheet.trafficSurchargeIncluded', 'Prices include traffic surcharge')}
                               </div>
                             )}
@@ -585,9 +549,8 @@ const OfficeBottomSheet = ({
                       </AnimatePresence>
 
                       {/* Disclaimer */}
-                      <p className={`text-xs mt-3 italic ${
-                        isDark ? 'text-ios-gray-400' : 'text-gray-500'
-                      }`}>
+                      <p className={`text-xs mt-3 italic ${isDark ? 'text-ios-gray-400' : 'text-gray-500'
+                        }`}>
                         {FARE_DISCLAIMER.en}
                       </p>
                     </div>
@@ -604,9 +567,8 @@ const OfficeBottomSheet = ({
                     )}
                     {office.phone && (
                       <div className="flex items-center text-sm">
-                        <a href={`tel:${office.phone}`} className={`hover:underline ${
-                          isDark ? 'text-ios-blue-300' : 'text-blue-600'
-                        }`}>
+                        <a href={`tel:${office.phone}`} className={`hover:underline ${isDark ? 'text-ios-blue-300' : 'text-blue-600'
+                          }`}>
                           📞 {office.phone}
                         </a>
                       </div>
@@ -615,39 +577,34 @@ const OfficeBottomSheet = ({
 
                   {/* Distance & Route Info - ONLY SHOW IF LOCATION ACCESS GRANTED */}
                   {hasLocationAccess && distanceToOffice && (
-                    <div className={`rounded-xl p-4 border transition-colors duration-300 ${
-                      isDark
-                        ? 'bg-ios-blue/20 border-ios-blue/30'
-                        : 'bg-primary/10 border-primary/20'
-                    }`}>
+                    <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark
+                      ? 'bg-ios-blue/20 border-ios-blue/30'
+                      : 'bg-primary/10 border-primary/20'
+                      }`}>
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className={`text-sm font-medium transition-colors duration-300 ${
-                            isDark ? 'text-ios-gray-200' : 'text-foreground'
-                          }`}>
+                          <p className={`text-sm font-medium transition-colors duration-300 ${isDark ? 'text-ios-gray-200' : 'text-foreground'
+                            }`}>
                             {t('bottomSheet.distance', 'Distance')}
                           </p>
-                          <p className={`text-2xl font-bold mt-1 transition-colors duration-300 ${
-                            isDark ? 'text-ios-blue-400' : 'text-primary'
-                          }`}>
+                          <p className={`text-2xl font-bold mt-1 transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-primary'
+                            }`}>
                             {distanceToOffice.toFixed(1)} km
                           </p>
                         </div>
                         {currentRoute && currentRoute[0] && (
                           <div className="text-right">
-                            <p className={`text-sm font-medium transition-colors duration-300 ${
-                              isDark ? 'text-ios-gray-200' : 'text-foreground'
-                            }`}>
+                            <p className={`text-sm font-medium transition-colors duration-300 ${isDark ? 'text-ios-gray-200' : 'text-foreground'
+                              }`}>
                               {t('bottomSheet.driveTime', 'Drive Time')}
                             </p>
                             <p
-                              className={`text-2xl font-bold mt-1 transition-colors duration-300 ${
-                                isDark ? 'text-ios-blue-400' : 'text-primary'
-                              }`}
-                              >
+                              className={`text-2xl font-bold mt-1 transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-primary'
+                                }`}
+                            >
                               {i18next.language === 'en'
-                              ? `${Math.round(currentRoute[0].summary.totalTime / 60)} ${t('bottomSheet.estimatedTime', 'min')}`
-                              : `${t('bottomSheet.estimatedTime', 'min')} ${Math.round(currentRoute[0].summary.totalTime / 60)}`}
+                                ? `${Math.round(currentRoute[0].summary.totalTime / 60)} ${t('bottomSheet.estimatedTime', 'min')}`
+                                : `${t('bottomSheet.estimatedTime', 'min')} ${Math.round(currentRoute[0].summary.totalTime / 60)}`}
                             </p>
                           </div>
                         )}
@@ -658,16 +615,33 @@ const OfficeBottomSheet = ({
                   {/* GET THERE SECTION - CONDITIONAL BASED ON LOCATION ACCESS */}
                   <div className="space-y-3 pt-2">
                     <h4
-                      className={`text-center text-lg md:text-xl font-semibold mb-3 ${
-                        isDark ? 'text-ios-gray-200' : 'text-gray-900'
-                      }`}
-                      >
+                      className={`text-center text-lg md:text-xl font-semibold mb-3 ${isDark ? 'text-ios-gray-200' : 'text-gray-900'
+                        }`}
+                    >
                       {t('bottomSheet.navigationOptions', 'Get There')}
                     </h4>
 
-                    <div className={`grid gap-3 ${
-                      hasLocationAccess ? 'grid-cols-2' : 'grid-cols-1'
-                    }`}>
+                    {/* ✅ View Full Details Link (Full Ham) */}
+                    <button
+                      onClick={() => {
+                        const countySlug = slugify(office.county);
+                        let areaSlug = slugify(office.constituency_name || '');
+                        if (areaSlug === countySlug) areaSlug = `${areaSlug}-town`;
+                        navigate(`/${countySlug}/${areaSlug}`);
+                      }}
+                      className={`w-full mb-4 font-semibold py-4 px-6 rounded-2xl flex items-center justify-center space-x-2 transition-all active:scale-95 duration-300 shadow-lg ${isDark
+                        ? 'bg-ios-blue-600 text-white shadow-ios-blue/30'
+                        : 'bg-ios-blue text-white shadow-ios-blue/20'
+                        }`}
+                    >
+                      <span>View Verified Office Records</span>
+                      <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </button>
+
+                    <div className={`grid gap-3 ${hasLocationAccess ? 'grid-cols-2' : 'grid-cols-1'
+                      }`}>
                       {/* Uber Button - Conditional behavior based on location access */}
                       <button
                         onClick={() => openUber()}
@@ -680,16 +654,14 @@ const OfficeBottomSheet = ({
                           </span>
                         </div>
                         {hasLocationAccess && cheapestFare && cheapestFare.provider === 'uber' && (
-                          <span className={`text-xs font-medium ${
-                            isDark ? 'text-green-400' : 'text-green-600'
-                          }`}>
+                          <span className={`text-xs font-medium ${isDark ? 'text-green-400' : 'text-green-600'
+                            }`}>
                             {formatFare(cheapestFare.total)}
                           </span>
                         )}
                         {!hasLocationAccess && (
-                          <span className={`text-xs font-medium ${
-                            isDark ? 'text-gray-300' : 'text-gray-700'
-                          }`}>
+                          <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'
+                            }`}>
                             {t('bottomSheet.openApp', 'Open app')}
                           </span>
                         )}
@@ -745,11 +717,10 @@ const OfficeBottomSheet = ({
                     {office.latitude && office.longitude && (
                       <button
                         onClick={copyCoords}
-                        className={`w-full font-medium py-3 px-6 rounded-2xl flex items-center justify-center space-x-2 transition-all active:scale-95 duration-300 ${
-                          isDark
-                            ? 'bg-ios-gray-700 hover:bg-ios-gray-600 text-ios-gray-200'
-                            : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
-                        }`}
+                        className={`w-full font-medium py-3 px-6 rounded-2xl flex items-center justify-center space-x-2 transition-all active:scale-95 duration-300 ${isDark
+                          ? 'bg-ios-gray-700 hover:bg-ios-gray-600 text-ios-gray-200'
+                          : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
+                          }`}
                       >
                         <svg
                           className="w-5 h-5"
@@ -761,13 +732,13 @@ const OfficeBottomSheet = ({
                           strokeLinejoin="round"
                           aria-hidden="true"
                           focusable="false"
-                          >
+                        >
                           {/* Back sheet */}
                           <rect x="3.5" y="7.5" width="13" height="13" rx="2" ry="2" />
                           {/* Front sheet (slightly offset) */}
                           <rect x="7.5" y="3.5" width="13" height="13" rx="2" ry="2" />
                         </svg>
-      
+
                         <span>{t('bottomSheet.copyCoordinates', 'Copy Coordinates')}</span>
                       </button>
                     )}
@@ -775,18 +746,16 @@ const OfficeBottomSheet = ({
                 </div>
 
                 {/* Close Button */}
-                <div className={`sticky bottom-0 pt-4 pb-2 mt-6 border-t transition-colors duration-300 ${
-                  isDark
-                    ? 'bg-card border-ios-gray-600'
-                    : 'bg-background border-border'
-                }`}>
+                <div className={`sticky bottom-0 pt-4 pb-2 mt-6 border-t transition-colors duration-300 ${isDark
+                  ? 'bg-card border-ios-gray-600'
+                  : 'bg-background border-border'
+                  }`}>
                   <button
                     onClick={onClose}
-                    className={`w-full font-medium py-3 px-6 rounded-2xl transition-all active:scale-95 duration-300 ${
-                      isDark
-                        ? 'bg-ios-gray-700 hover:bg-ios-gray-600 text-ios-gray-200'
-                        : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
-                    }`}
+                    className={`w-full font-medium py-3 px-6 rounded-2xl transition-all active:scale-95 duration-300 ${isDark
+                      ? 'bg-ios-gray-700 hover:bg-ios-gray-600 text-ios-gray-200'
+                      : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
+                      }`}
                   >
                     {t('common.close', 'Close')}
                   </button>
