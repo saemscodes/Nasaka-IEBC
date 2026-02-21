@@ -546,8 +546,8 @@ const IEBCOfficeSplash = () => {
                             initial="initial"
                             animate="animate"
                         >
-                            <h1 className={`text-6xl md:text-[8rem] font-medium mb-2 tracking-tight leading-none ${theme === 'dark' ? 'text-white' : 'text-ios-gray-900'
-                                }`}>
+                            <h1 className={`text-[5rem] md:text-[10rem] lg:text-[12rem] font-medium mb-2 tracking-tight leading-none ${theme === 'dark' ? 'text-white' : 'text-ios-gray-900'}`}
+                            >
                                 {t('splash.title', 'NASAKA')}
                             </h1>
                             <div className="flex items-center justify-center space-x-2">
