@@ -19,16 +19,20 @@ const NotFound = () => {
     });
 
     console.error("404 Error: Not found:", location.pathname);
+
+    // Cleanup function to remove Webflow CSS leakage when moving to other pages
+    return () => {
+      const links = document.querySelectorAll('link[href*="webflow.shared"]');
+      links.forEach(link => link.remove());
+    };
   }, [location.pathname]);
 
   return (
     <div className="not-found-wrapper" style={{ backgroundColor: '#000', minHeight: '100vh', width: '100%' }}>
       <Helmet>
         <title>Page Not Found</title>
-        <link href="https://cdn.prod.website-files.com/680244911c3d7d28354cb55b/css/superxsolid.webflow.shared.397449411.min.css" rel="stylesheet" type="text/css" />
         <link href="https://fonts.googleapis.com" rel="preconnect" />
         <link href="https://fonts.gstatic.com" rel="preconnect" crossOrigin="anonymous" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:100,100italic,200,200italic,300,300italic,400,400italic,500,500italic,600,600italic,700,700italic,800,800italic,900,900italic" media="all" />
         <style>{`
           .not-found-wrapper {
             --portrait-aspect-ratio: 4 / 5;
