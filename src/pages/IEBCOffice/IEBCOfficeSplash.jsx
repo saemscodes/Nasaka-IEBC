@@ -504,7 +504,7 @@ const IEBCOfficeSplash = () => {
             >
                 <BackgroundLayers />
 
-                <div className="relative z-10 flex flex-col items-center justify-center text-center w-full mx-auto mb-8">
+                <div className="relative z-10 flex flex-col items-center justify-center text-center max-w-md w-full mx-auto mb-8">
                     <motion.div
                         className="relative flex items-center justify-center w-32 h-32 mx-auto mb-2"
                         variants={iconVariants}
@@ -546,14 +546,10 @@ const IEBCOfficeSplash = () => {
                             initial="initial"
                             animate="animate"
                         >
-                            <h1 className={`text-[22vw] md:text-[16vw] lg:text-[12vw] font-black mb-2 tracking-tight leading-none ${theme === 'dark' ? 'text-white' : 'text-ios-gray-900'
+                            <h1 className={`text-6xl font-black mb-2 tracking-tight leading-none ${theme === 'dark' ? 'text-white' : 'text-ios-gray-900'
                                 }`}>
                                 {t('splash.title', 'NASAKA')}
                             </h1>
-                        </motion.div>
-
-                        {/* Constrain the subtitle */}
-                        <div className="max-w-md mx-auto w-full">
                             <div className="flex items-center justify-center space-x-2">
                                 <div className={`h-px w-8 ${theme === 'dark' ? 'bg-ios-blue/60' : 'bg-ios-blue/40'
                                     }`}></div>
@@ -564,10 +560,10 @@ const IEBCOfficeSplash = () => {
                                 <div className={`h-px w-8 ${theme === 'dark' ? 'bg-ios-blue/60' : 'bg-ios-blue/40'
                                     }`}></div>
                             </div>
-                        </div>
+                        </motion.div>
                     </TextShadowLayer>
 
-                    <TextShadowLayer className="mb-3 max-w-md mx-auto">
+                    <TextShadowLayer className="mb-3">
                         <motion.h2
                             className={`text-2xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-ios-gray-900'
                                 }`}
@@ -579,7 +575,7 @@ const IEBCOfficeSplash = () => {
                         </motion.h2>
                     </TextShadowLayer>
 
-                    <TextShadowLayer className="mb-8 max-w-md mx-auto">
+                    <TextShadowLayer className="mb-8">
                         <motion.p
                             className={`text-base ${theme === 'dark' ? 'text-ios-gray-300' : 'text-ios-gray-600'
                                 }`}
