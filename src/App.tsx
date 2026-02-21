@@ -12,8 +12,8 @@ import { useLenis } from "./hooks/useLenis";
 // import Index from "./pages/Index";
 // import SignPetition from "./pages/SignPetition";
 import NotFound from "./pages/NotFound";
-// import PrivacyPolicy from "./pages/PrivacyPolicy";
-// import TermsAndConditions from "./pages/TermsAndConditions";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsAndConditions from "./pages/TermsAndConditions";
 // import VerifySignature from "./pages/VerifySignature";
 // import VoterRegistrationPage from "@/pages/VoterRegistration";
 import { IEBCOfficeSplash, IEBCOfficeMap } from './pages/IEBCOffice';
@@ -26,6 +26,7 @@ const VoterServices = React.lazy(() => import('./pages/SEO/VoterServices'));
 const BoundaryReview = React.lazy(() => import('./pages/SEO/BoundaryReview'));
 const ElectionResources = React.lazy(() => import('./pages/SEO/ElectionResources'));
 const DataAPI = React.lazy(() => import('./pages/SEO/DataAPI'));
+const VoterRegistration = React.lazy(() => import('./pages/SEO/VoterRegistration'));
 import FlatRouteResolver from './components/IEBCOffice/FlatRouteResolver';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
@@ -419,6 +420,11 @@ const AppContent = () => {
         <Route path="/boundary-review" element={<React.Suspense fallback={<LoadingState />}><BoundaryReview /></React.Suspense>} />
         <Route path="/election-resources" element={<React.Suspense fallback={<LoadingState />}><ElectionResources /></React.Suspense>} />
         <Route path="/data-api" element={<React.Suspense fallback={<LoadingState />}><DataAPI /></React.Suspense>} />
+        <Route path="/voter-registration" element={<React.Suspense fallback={<LoadingState />}><VoterRegistration /></React.Suspense>} />
+
+        {/* ✅ LEGAL PAGES */}
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsAndConditions />} />
 
         {/* ✅ CANONICAL HIERARCHICAL ROUTES (Full Ham) */}
         <Route

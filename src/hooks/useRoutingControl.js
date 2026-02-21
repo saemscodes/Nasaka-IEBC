@@ -25,7 +25,7 @@ export default function useRoutingControl(map, opts = {}) {
 
   const ensureRouter = useCallback((serviceUrl) => {
     if (routerRef.current) return routerRef.current;
-    
+
     // Guard: ensure plugin exists
     if (!L.Routing || typeof L.Routing.osrmv1 !== 'function') {
       console.error('Routing plugin unavailable:', L.Routing);
@@ -73,7 +73,7 @@ export default function useRoutingControl(map, opts = {}) {
         // Attempt to remove and recreate
         try {
           routingControlRef.current.remove();
-        } catch (e) {}
+        } catch (e) { }
         routingControlRef.current = null;
       }
     }
@@ -142,23 +142,23 @@ export default function useRoutingControl(map, opts = {}) {
 
     try {
       const control = L.Routing.control(options);
-      
+
       // Add event listeners
       if (onRouteFound) {
-        control.on('routesfound', function(e) {
+        control.on('routesfound', function (e) {
           onRouteFound(e.routes);
         });
       }
-      
+
       if (onRouteError) {
-        control.on('routingerror', function(e) {
+        control.on('routingerror', function (e) {
           onRouteError(e.error);
         });
       }
 
       control.addTo(map);
       control.hide(); // Hide the default control panel
-      
+
       routingControlRef.current = control;
       return control;
     } catch (err) {
@@ -171,7 +171,14 @@ export default function useRoutingControl(map, opts = {}) {
   const clearRoute = useCallback(() => {
     if (routingControlRef.current) {
       try {
-        routingControlRef.current.remove();
+        const control = routingControlRef.current;
+        // Check if the control is attached to a map before trying to remove it
+        // This prevents the "this._map is null" error in Leaflet Routing Machine
+        if (control.getMap && control.getMap()) {
+          control.remove();
+        } else if (control._map) {
+          control.remove();
+        }
       } catch (e) {
         console.warn('Error removing routing control:', e);
       }

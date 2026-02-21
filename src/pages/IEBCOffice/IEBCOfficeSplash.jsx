@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import LoadingSpinner from '../../components/IEBCOffice/LoadingSpinner';
 import DonationWidget from '@/components/ui/DonationWidget';
@@ -546,7 +546,7 @@ const IEBCOfficeSplash = () => {
                             initial="initial"
                             animate="animate"
                         >
-                            <h1 className={`text-6xl font-black mb-2 tracking-tight leading-none ${theme === 'dark' ? 'text-white' : 'text-ios-gray-900'
+                            <h1 className={`text-6xl font-medium mb-2 tracking-tight leading-none ${theme === 'dark' ? 'text-white' : 'text-ios-gray-900'
                                 }`}>
                                 {t('splash.title', 'NASAKA')}
                             </h1>
@@ -683,6 +683,26 @@ const IEBCOfficeSplash = () => {
                     >
                         © {new Date().getFullYear()} Civic Education Kenya. All rights reserved.
                     </motion.p>
+                    <motion.div
+                        className="flex items-center justify-center gap-2 mt-1.5"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.85 }}
+                    >
+                        <Link
+                            to="/privacy"
+                            className={`text-[10px] tracking-wide transition-opacity duration-300 hover:opacity-70 ${theme === 'dark' ? 'text-ios-gray-600' : 'text-ios-gray-300'}`}
+                        >
+                            Privacy
+                        </Link>
+                        <span className={`text-[10px] ${theme === 'dark' ? 'text-ios-gray-700' : 'text-ios-gray-200'}`}>·</span>
+                        <Link
+                            to="/terms"
+                            className={`text-[10px] tracking-wide transition-opacity duration-300 hover:opacity-70 ${theme === 'dark' ? 'text-ios-gray-600' : 'text-ios-gray-300'}`}
+                        >
+                            Terms
+                        </Link>
+                    </motion.div>
                 </TextShadowLayer>
             </div>
         </div>

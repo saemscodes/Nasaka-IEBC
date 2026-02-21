@@ -1,0 +1,62 @@
+name: Update SEO Trending Keywords
+
+on:
+  schedule:
+    - cron: '0 0 * * *'    # Daily at 00:00 UTC
+    - cron: '0 12 * * *'   # Daily at 12:00 UTC
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Preview changes without writing'
+        type: boolean
+        default: false
+      top_k:
+        description: 'Number of trends to fetch'
+        type: number
+        default: 20
+
+env:
+  INDEX_PATH: index.html
+  TOP_K: ${{ github.event.inputs.top_k || '20' }}
+  DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+
+jobs:
+  update-keywords:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install pytrends beautifulsoup4 tenacity pandas pytest
+
+      - name: Run tests
+        run: python -m pytest test_update_keywords.py -v --tb=short
+
+      - name: Update keywords
+        run: python update_keywords.py
+
+      - name: Check for changes
+        id: git_diff
+        run: |
+          git diff --quiet ${{ env.INDEX_PATH }} && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push
+        if: steps.git_diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ${{ env.INDEX_PATH }}
+          git commit -m "chore(seo): update trending keywords [automated]"
+          git push

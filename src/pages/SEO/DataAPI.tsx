@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
     FileCheck,
@@ -9,20 +9,73 @@ import {
     ExternalLink,
     Code,
     Globe,
-    Share2
+    Share2,
+    Loader2
 } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { SEOHead, generateBreadcrumbSchema, generateFAQSchema } from '@/components/SEO/SEOHead';
 import { Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 const DataAPI = () => {
     const { theme } = useTheme();
     const isDark = theme === 'dark';
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [downloadError, setDownloadError] = useState<string | null>(null);
+
+    const handleDownloadCSV = async () => {
+        setIsDownloading(true);
+        setDownloadError(null);
+        try {
+            const { data, error } = await supabase
+                .from('iebc_offices')
+                .select('county, constituency_name, office_location, latitude, longitude, formatted_address, landmark, verified')
+                .eq('verified', true)
+                .not('latitude', 'is', null)
+                .not('longitude', 'is', null)
+                .order('county')
+                .order('constituency_name');
+
+            if (error) throw error;
+            if (!data || data.length === 0) throw new Error('No verified offices found');
+
+            const headers = ['County', 'Constituency', 'Office Location', 'Latitude', 'Longitude', 'Formatted Address', 'Landmark', 'Verified'];
+            const csvRows = [
+                headers.join(','),
+                ...data.map(row => [
+                    `"${(row.county || '').replace(/"/g, '""')}"`,
+                    `"${(row.constituency_name || '').replace(/"/g, '""')}"`,
+                    `"${(row.office_location || '').replace(/"/g, '""')}"`,
+                    row.latitude || '',
+                    row.longitude || '',
+                    `"${(row.formatted_address || '').replace(/"/g, '""')}"`,
+                    `"${(row.landmark || '').replace(/"/g, '""')}"`,
+                    row.verified ? 'Yes' : 'No'
+                ].join(','))
+            ];
+
+            const csvContent = csvRows.join('\n');
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `nasaka-iebc-offices-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } catch (err: any) {
+            console.error('CSV download failed:', err);
+            setDownloadError(err.message || 'Download failed. Please try again.');
+        } finally {
+            setIsDownloading(false);
+        }
+    };
 
     const dataSpecs = [
         {
             label: 'Format',
-            value: 'JSON / GeoJSON'
+            value: 'JSON / GeoJSON / CSV'
         },
         {
             label: 'Coverage',
@@ -96,12 +149,25 @@ const DataAPI = () => {
                                     ))}
                                 </div>
                                 <button
-                                    disabled
-                                    className={`px-8 py-4 rounded-2xl font-bold flex items-center shadow-lg transition-transform active:scale-95 opacity-50 cursor-not-allowed ${isDark ? 'bg-ios-gray-700 text-white' : 'bg-ios-gray-900 text-white'}`}
+                                    onClick={handleDownloadCSV}
+                                    disabled={isDownloading}
+                                    className={`px-8 py-4 rounded-2xl font-bold flex items-center shadow-lg transition-all active:scale-95 ${isDownloading ? 'opacity-70 cursor-wait' : 'hover:shadow-xl hover:scale-[1.02]'} ${isDark ? 'bg-ios-blue text-white' : 'bg-ios-gray-900 text-white'}`}
                                 >
-                                    <Download className="w-5 h-5 mr-3" />
-                                    Download CSV (Coming Soon)
+                                    {isDownloading ? (
+                                        <>
+                                            <Loader2 className="w-5 h-5 mr-3 animate-spin" />
+                                            Preparing Download…
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Download className="w-5 h-5 mr-3" />
+                                            Download CSV
+                                        </>
+                                    )}
                                 </button>
+                                {downloadError && (
+                                    <p className="text-red-500 text-sm mt-3">{downloadError}</p>
+                                )}
                             </div>
                             <div className={`w-full md:w-64 aspect-square rounded-[2.5rem] flex items-center justify-center relative ${isDark ? 'bg-ios-gray-900' : 'bg-ios-gray-50'}`}>
                                 <Database className="w-20 h-20 text-ios-blue opacity-20" />
