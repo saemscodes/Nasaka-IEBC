@@ -504,7 +504,7 @@ const IEBCOfficeSplash = () => {
             >
                 <BackgroundLayers />
 
-                <div className="relative z-10 flex flex-col items-center justify-center text-center max-w-md w-full mx-auto mb-8">
+                <div className="relative z-10 flex flex-col items-center justify-center text-center w-full mb-8">
                     <motion.div
                         className="relative flex items-center justify-center w-32 h-32 mx-auto mb-2"
                         variants={iconVariants}
