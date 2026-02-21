@@ -504,7 +504,7 @@ const IEBCOfficeSplash = () => {
             >
                 <BackgroundLayers />
 
-                <div className="relative z-10 text-center max-w-md w-full mb-8">
+                <div className="relative z-10 flex flex-col items-center justify-center text-center max-w-md w-full mx-auto mb-8">
                     <motion.div
                         className="relative flex items-center justify-center w-32 h-32 mx-auto mb-2"
                         variants={iconVariants}
@@ -613,7 +613,7 @@ const IEBCOfficeSplash = () => {
                     </AnimatePresence>
 
                     <motion.div
-                        className="flex flex-col space-y-3"
+                        className="flex flex-col space-y-3 w-full max-w-[320px] mx-auto mt-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5 }}
