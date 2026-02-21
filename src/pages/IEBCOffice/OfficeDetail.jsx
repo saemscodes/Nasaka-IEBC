@@ -38,23 +38,6 @@ const OfficeDetail = () => {
     const isDark = theme === 'dark';
     const { t } = useTranslation();
 
-    // Redirection Logic: Redirect legacy /iebc-office paths to hierarchical canonical paths
-    useEffect(() => {
-        if (window.location.pathname.startsWith('/iebc-office/') && office) {
-            const countySlug = slugify(office.county);
-            let areaSlug = slugify(office.constituency_name);
-
-            // Apply disambiguation logic: area-town if matches county
-            if (areaSlug === countySlug) {
-                areaSlug = `${areaSlug}-town`;
-            }
-
-            const canonicalPath = `/${countySlug}/${areaSlug}`;
-            console.log(`Redirecting legacy URL [${window.location.pathname}] to canonical hierarchical path [${canonicalPath}]`);
-            navigate(canonicalPath, { replace: true });
-        }
-    }, [office, navigate]);
-
     const [office, setOffice] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -64,6 +47,23 @@ const OfficeDetail = () => {
     const sanitizeSlug = (slug) => slug?.toLowerCase().trim().replace(/[^\w-]/g, '');
     const countySlug = sanitizeSlug(rawCounty);
     const areaSlug = sanitizeSlug(currentArea);
+
+    // Redirection Logic: Redirect legacy /iebc-office paths to hierarchical canonical paths
+    useEffect(() => {
+        if (window.location.pathname.startsWith('/iebc-office/') && office) {
+            const countySlugLocal = slugify(office.county);
+            let areaSlugLocal = slugify(office.constituency_name);
+
+            // Apply disambiguation logic: area-town if matches county
+            if (areaSlugLocal === countySlugLocal) {
+                areaSlugLocal = `${areaSlugLocal}-town`;
+            }
+
+            const canonicalPath = `/${countySlugLocal}/${areaSlugLocal}`;
+            console.log(`Redirecting legacy URL [${window.location.pathname}] to canonical hierarchical path [${canonicalPath}]`);
+            navigate(canonicalPath, { replace: true });
+        }
+    }, [office, navigate]);
 
     const fetchOfficeData = useCallback(async () => {
         setLoading(true);
