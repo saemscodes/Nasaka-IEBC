@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import LoadingSpinner from '../../components/IEBCOffice/LoadingSpinner';
 import DonationWidget from '@/components/ui/DonationWidget';
@@ -8,21 +8,6 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 import { OfflineBanner } from '@/components/OfflineBanner';
-import { supabase } from "@/integrations/supabase/client";
-import { slugify } from "@/components/SEO/SEOHead";
-import { SEOHead, generateWebsiteSchema, generateFAQSchema } from '@/components/SEO/SEOHead';
-
-// --- Helper: Haversine Distance ---
-const getDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-};
 
 // Enhanced Background Layers with Cursor-Tracking Radial Effects
 const BackgroundLayers = ({ className = "" }) => {
@@ -78,8 +63,8 @@ const BackgroundLayers = ({ className = "" }) => {
             {/* Dark Mode Base Overlay */}
             <div className="absolute inset-0 will-change-transform">
                 <div className={`absolute inset-0 transition-all duration-500 ${theme === 'dark'
-                    ? 'bg-ios-gray-900/80'
-                    : 'bg-white/0'
+                        ? 'bg-ios-gray-900/80'
+                        : 'bg-white/0'
                     }`} />
             </div>
 
@@ -87,8 +72,8 @@ const BackgroundLayers = ({ className = "" }) => {
             <div className="absolute inset-0">
                 <motion.div
                     className={`absolute inset-0 transition-all duration-1000 ${theme === 'dark'
-                        ? 'bg-iebc-pattern-dark'
-                        : 'bg-iebc-pattern'
+                            ? 'bg-iebc-pattern-dark'
+                            : 'bg-iebc-pattern'
                         }`}
                     animate={{
                         filter: theme === 'dark' ? [
@@ -156,7 +141,7 @@ const BackgroundLayers = ({ className = "" }) => {
                                 `radial-gradient(circle at ${cursorPos.x}% ${cursorPos.y}%, 
                  rgba(100, 100, 255, 0.1) 0%,
                  rgba(255, 100, 100, 0.07) 25%,
-                 rgba(255, 100, 100, 0.1) 50%,
+                 rgba(100, 255, 100, 0.1) 50%,
                  transparent 70%)`
                             ] : `radial-gradient(circle at ${cursorPos.x}% ${cursorPos.y}%, 
                  rgba(255, 100, 100, 0.05) 0%,
@@ -200,16 +185,16 @@ const BackgroundLayers = ({ className = "" }) => {
             {/* Enhanced Vignette - Dynamic for theme */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className={`absolute inset-0 transition-all duration-500 ${theme === 'dark'
-                    ? 'bg-vignette-dark'
-                    : 'bg-vignette'
+                        ? 'bg-vignette-dark'
+                        : 'bg-vignette'
                     }`} />
             </div>
 
             {/* Subtle Color Overlay for Better Text Readability */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className={`absolute inset-0 transition-all duration-500 ${theme === 'dark'
-                    ? 'bg-gradient-to-b from-ios-gray-900/70 via-ios-gray-900/40 to-ios-gray-900/70'
-                    : 'bg-gradient-to-b from-white/60 via-white/30 to-white/60'
+                        ? 'bg-gradient-to-b from-ios-gray-900/70 via-ios-gray-900/40 to-ios-gray-900/70'
+                        : 'bg-gradient-to-b from-white/60 via-white/30 to-white/60'
                     }`} />
             </div>
         </div>
@@ -226,8 +211,8 @@ const ThemeToggle = () => {
             whileTap={{ scale: 0.95 }}
             onClick={toggleTheme}
             className={`w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 ${theme === 'dark'
-                ? 'bg-ios-gray-800 shadow-ios-gray-900/50 border-ios-gray-600'
-                : 'bg-white shadow-ios-gray-200/50 border-ios-gray-200'
+                    ? 'bg-ios-gray-800 shadow-ios-gray-900/50 border-ios-gray-600'
+                    : 'bg-white shadow-ios-gray-200/50 border-ios-gray-200'
                 }`}
             aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
         >
@@ -274,8 +259,8 @@ const CekaLogoButton = () => {
             whileTap={{ scale: 0.95 }}
             onClick={handleCekaClick}
             className={`relative w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 overflow-hidden ${theme === 'dark'
-                ? 'bg-ios-gray-800 shadow-ios-gray-900/50 border-ios-gray-600'
-                : 'bg-white shadow-ios-gray-200/50 border-ios-gray-200'
+                    ? 'bg-ios-gray-800 shadow-ios-gray-900/50 border-ios-gray-600'
+                    : 'bg-white shadow-ios-gray-200/50 border-ios-gray-200'
                 }`}
             aria-label="Visit CEKA Community"
         >
@@ -310,8 +295,8 @@ const TextShadowLayer = ({ children, className = "" }) => {
             {/* Shadow layer hugging text */}
             <div
                 className={`absolute -inset-1 rounded-lg blur-md transition-all duration-500 z-0 ${theme === "dark"
-                    ? "bg-black/40"
-                    : "bg-black/15"
+                        ? "bg-black/40"
+                        : "bg-black/15"
                     }`}
                 aria-hidden="true"
             />
@@ -330,58 +315,13 @@ const IEBCOfficeSplash = () => {
 
     useEffect(() => {
         if (location) {
-            // ✅ CANONICAL REDIRECTION LOGIC (Full Ham)
-            const resolveCanonicalRedirect = async () => {
-                try {
-                    const { data: offices } = await supabase
-                        .from('iebc_offices')
-                        .select('county, constituency_name, latitude, longitude')
-                        .eq('verified', true);
-
-                    if (offices && offices.length > 0) {
-                        let nearestOffice = null;
-                        let minDistance = Infinity;
-
-                        offices.forEach(office => {
-                            if (office.latitude && office.longitude) {
-                                const dist = getDistance(
-                                    location.latitude,
-                                    location.longitude,
-                                    office.latitude,
-                                    office.longitude
-                                );
-                                if (dist < minDistance) {
-                                    minDistance = dist;
-                                    nearestOffice = office;
-                                }
-                            }
-                        });
-
-                        if (nearestOffice) {
-                            // Fix UX: Go to map with selected office instead of detail page directly,
-                            // allowing the user to see the context first.
-                            navigate('/iebc-office/map', {
-                                state: {
-                                    selectedOffice: nearestOffice,
-                                    userLocation: location
-                                },
-                                replace: true
-                            });
-                            return;
-                        }
-                    }
-                } catch (e) {
-                    console.error("Failed to resolve canonical area:", e);
-                }
-
-                // Fallback to generic map if derivation fails
+            const timer = setTimeout(() => {
                 navigate('/iebc-office/map', {
                     state: { userLocation: location },
                     replace: true
                 });
-            };
-
-            resolveCanonicalRedirect();
+            }, 800);
+            return () => clearTimeout(timer);
         }
     }, [location, navigate]);
 
@@ -465,25 +405,9 @@ const IEBCOfficeSplash = () => {
 
     return (
         <div className={`relative flex flex-col min-h-screen transition-colors duration-500 overflow-hidden ${theme === 'dark'
-            ? 'bg-ios-gray-900 text-white'
-            : 'bg-white text-ios-gray-900'
+                ? 'bg-ios-gray-900 text-white'
+                : 'bg-white text-ios-gray-900'
             }`}>
-            {/* SEO Head — dynamic meta tags, OG, JSON-LD */}
-            <SEOHead
-                title="Nasaka IEBC — Find Your Nearest IEBC Office"
-                description="Find IEBC offices in all 47 counties and 290 constituencies. Interactive map with directions, voter registration info, and community verification."
-                canonical="/iebc-office"
-                keywords="IEBC office, voter registration Kenya, nearest IEBC office, find IEBC office, register to vote Kenya"
-                schema={[
-                    generateWebsiteSchema(),
-                    generateFAQSchema([
-                        { question: 'Where can I find an IEBC office near me?', answer: 'Use Nasaka IEBC to locate constituency offices across all 47 Kenyan counties and 290 constituencies. Search by location, county, or constituency.' },
-                        { question: 'How do I register to vote at an IEBC office?', answer: 'Visit any IEBC constituency office with your original National ID or valid passport. Registration is free and takes about 15 minutes.' },
-                        { question: 'What documents do I need for voter registration?', answer: 'Bring your original National ID card or a valid Kenyan passport. The process includes biometric capture at the IEBC office.' },
-                        { question: 'What are IEBC office opening hours?', answer: 'IEBC constituency offices are typically open Monday to Friday, 8:00 AM to 5:00 PM.' }
-                    ])
-                ]}
-            />
             {/* Offline Status Banner */}
             <OfflineBanner className="absolute top-0 left-0 right-0 z-30" compact />
             {/* Top Control Bar - Full width with equal edge padding and proper spacing */}
@@ -504,7 +428,7 @@ const IEBCOfficeSplash = () => {
             >
                 <BackgroundLayers />
 
-                <div className="relative z-10 flex flex-col items-center justify-center text-center max-w-md w-full mx-auto mb-8">
+                <div className="relative z-10 text-center max-w-md w-full mb-8">
                     <motion.div
                         className="relative flex items-center justify-center w-32 h-32 mx-auto mb-2"
                         variants={iconVariants}
@@ -512,13 +436,13 @@ const IEBCOfficeSplash = () => {
                         animate="animate"
                     >
                         <div className={`absolute inset-0 rounded-full animate-ping ${theme === 'dark'
-                            ? 'bg-ios-blue/30'
-                            : 'bg-ios-blue/20'
+                                ? 'bg-ios-blue/30'
+                                : 'bg-ios-blue/20'
                             }`} />
                         <div
                             className={`absolute inset-4 rounded-full flex items-center justify-center shadow-lg ${theme === 'dark'
-                                ? 'bg-ios-blue-600 shadow-ios-blue/25'
-                                : 'bg-ios-blue shadow-ios-blue/25'
+                                    ? 'bg-ios-blue-600 shadow-ios-blue/25'
+                                    : 'bg-ios-blue shadow-ios-blue/25'
                                 }`}
                         >
                             <svg
@@ -546,8 +470,8 @@ const IEBCOfficeSplash = () => {
                             initial="initial"
                             animate="animate"
                         >
-                            <h1 className={`text-[22vw] md:text-[16vw] lg:text-[12vw] font-medium mb-2 tracking-tight leading-none ${theme === 'dark' ? 'text-white' : 'text-ios-gray-900'}`}
-                            >
+                            <h1 className={`text-6xl font-black mb-2 tracking-tight leading-none ${theme === 'dark' ? 'text-white' : 'text-ios-gray-900'
+                                }`}>
                                 {t('splash.title', 'NASAKA')}
                             </h1>
                             <div className="flex items-center justify-center space-x-2">
@@ -597,8 +521,8 @@ const IEBCOfficeSplash = () => {
                             >
                                 <TextShadowLayer>
                                     <div className={`rounded-xl p-4 border ${theme === 'dark'
-                                        ? 'bg-ios-red/20 border-ios-red/30 text-ios-red-300'
-                                        : 'bg-ios-red/10 border-ios-red/20 text-ios-red'
+                                            ? 'bg-ios-red/20 border-ios-red/30 text-ios-red-300'
+                                            : 'bg-ios-red/10 border-ios-red/20 text-ios-red'
                                         }`}>
                                         <p className="text-sm font-medium">
                                             {error === 'Permission denied'
@@ -613,7 +537,7 @@ const IEBCOfficeSplash = () => {
                     </AnimatePresence>
 
                     <motion.div
-                        className="flex flex-col space-y-3 w-full max-w-[320px] mx-auto mt-2"
+                        className="flex flex-col space-y-3"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5 }}
@@ -623,8 +547,8 @@ const IEBCOfficeSplash = () => {
                             onClick={handleAllowLocation}
                             disabled={loading}
                             className={`px-8 py-4 rounded-2xl font-semibold text-base disabled:opacity-50 flex items-center justify-center space-x-2 shadow-lg transition-all duration-300 ${theme === 'dark'
-                                ? 'bg-ios-blue-600 text-white shadow-ios-blue/40 hover:bg-ios-blue-700'
-                                : 'bg-ios-blue text-white shadow-ios-blue/25 hover:bg-ios-blue-500'
+                                    ? 'bg-ios-blue-600 text-white shadow-ios-blue/40 hover:bg-ios-blue-700'
+                                    : 'bg-ios-blue text-white shadow-ios-blue/25 hover:bg-ios-blue-500'
                                 }`}
                         >
                             {loading ? (
@@ -646,8 +570,8 @@ const IEBCOfficeSplash = () => {
                             whileTap={{ scale: 0.95 }}
                             onClick={handleManualEntry}
                             className={`px-8 py-4 rounded-2xl font-medium text-base border transition-all duration-300 ${theme === 'dark'
-                                ? 'text-ios-blue-400 border-ios-gray-600 bg-ios-gray-800 hover:bg-ios-gray-700 hover:border-ios-gray-500'
-                                : 'text-ios-blue border-ios-gray-300 bg-white hover:bg-ios-gray-50 hover:border-ios-gray-400'
+                                    ? 'text-ios-blue-400 border-ios-gray-600 bg-ios-gray-800 hover:bg-ios-gray-700 hover:border-ios-gray-500'
+                                    : 'text-ios-blue border-ios-gray-300 bg-white hover:bg-ios-gray-50 hover:border-ios-gray-400'
                                 }`}
                         >
                             {t('splash.manualEntry', 'Enter Location Manually')}
@@ -683,26 +607,6 @@ const IEBCOfficeSplash = () => {
                     >
                         © {new Date().getFullYear()} Civic Education Kenya. All rights reserved.
                     </motion.p>
-                    <motion.div
-                        className="flex items-center justify-center gap-2 mt-1.5"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.85 }}
-                    >
-                        <Link
-                            to="/privacy"
-                            className={`text-[10px] tracking-wide transition-opacity duration-300 hover:opacity-70 ${theme === 'dark' ? 'text-ios-gray-600' : 'text-ios-gray-300'}`}
-                        >
-                            Privacy
-                        </Link>
-                        <span className={`text-[10px] ${theme === 'dark' ? 'text-ios-gray-700' : 'text-ios-gray-200'}`}>·</span>
-                        <Link
-                            to="/terms"
-                            className={`text-[10px] tracking-wide transition-opacity duration-300 hover:opacity-70 ${theme === 'dark' ? 'text-ios-gray-600' : 'text-ios-gray-300'}`}
-                        >
-                            Terms
-                        </Link>
-                    </motion.div>
                 </TextShadowLayer>
             </div>
         </div>
