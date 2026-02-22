@@ -33,8 +33,8 @@ const Terms = () => {
                 layout
                 id={id}
                 className={`mb-4 overflow-hidden rounded-2xl border transition-all duration-300 ${theme === 'dark'
-                        ? 'bg-[#1C1C1E]/40 border-[#38383A] hover:bg-[#1C1C1E]/60'
-                        : 'bg-white/40 border-[#D8D8DC] hover:bg-white/60'
+                    ? 'bg-[#1C1C1E]/40 border-[#38383A] hover:bg-[#1C1C1E]/60'
+                    : 'bg-white/40 border-[#D8D8DC] hover:bg-white/60'
                     } backdrop-blur-xl`}
             >
                 <button
@@ -131,8 +131,8 @@ const Terms = () => {
 
                 {/* Agreement Banner */}
                 <div className={`mb-12 p-5 rounded-2xl border-l-[6px] shadow-sm ${theme === 'dark'
-                        ? 'bg-amber-500/10 border-amber-500/50 text-amber-200'
-                        : 'bg-amber-50 border-amber-500 text-amber-900'
+                    ? 'bg-amber-500/10 border-amber-500/50 text-amber-200'
+                    : 'bg-amber-50 border-amber-500 text-amber-900'
                     }`}>
                     <div className="flex gap-4">
                         <AlertTriangle className="flex-shrink-0" size={24} />
@@ -312,7 +312,7 @@ const Terms = () => {
                         <p className="text-xs opacity-70">You agree to indemnify CEKA for any loss arising from your violation of these terms or misuse of the platform.</p>
                     </CollapsibleSection>
 
-                    <CollapsibleSection id="t14" title="14. Electoral Integrity" icon={लैंडमार्क}>
+                    <CollapsibleSection id="t14" title="14. Electoral Integrity" icon={Gavel}>
                         <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-blue-600' : 'bg-blue-600'} text-white shadow-lg`}>
                             <h4 className="font-bold mb-2">Neutrality Absolute</h4>
                             <p className="text-xs opacity-90">Nasaka is strictly non-partisan. We report any misuse for electoral interference to the IEBC and ODPC.</p>
@@ -355,7 +355,7 @@ const Terms = () => {
                             <div className="space-y-2 text-sm font-medium">
                                 <div className="flex justify-between">
                                     <span>Support Email:</span>
-                                    <span className="font-bold">civiceducationkenya@gmail.com</span>
+                                    <span className="font-bold">contact@civiceducationkenya.com</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span>Subject:</span>
@@ -370,7 +370,7 @@ const Terms = () => {
                 <div className="mt-16 text-center">
                     <div className="w-12 h-1 bg-blue-500/20 mx-auto mb-8 rounded-full" />
                     <p className={`text-[13px] font-medium ${theme === 'dark' ? 'text-ios-gray-500' : 'text-ios-gray-400'}`}>
-                        © 2025–2026 Civic Education Kenya (CEKA).<br />
+                        2026 © Civic Education Kenya (CEKA).<br />
                         "The sovereignty of the people shall be exercised in accordance with this Constitution" — Article 1(3).
                     </p>
                 </div>
