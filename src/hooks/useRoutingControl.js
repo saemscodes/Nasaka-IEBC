@@ -143,15 +143,31 @@ export default function useRoutingControl(map, opts = {}) {
     try {
       const control = L.Routing.control(options);
 
-      // Add event listeners
+      // ✅ RACE CONDITION FIX (Full Ham)
+      // Fix for internal crash in leaflet-routing-machine when an OSRM request returns after unmount.
+      // We monkey-patch _clearLines to safely check for this._map before proceeding.
+      const originalClearLines = control._clearLines;
+      if (typeof originalClearLines === 'function') {
+        control._clearLines = function () {
+          if (!this._map) {
+            console.log('RoutingSystem: Suppressing _clearLines call on null map (unmount race prevented)');
+            return;
+          }
+          return originalClearLines.apply(this, arguments);
+        };
+      }
+
+      // Add event listeners with safety checks
       if (onRouteFound) {
         control.on('routesfound', function (e) {
+          if (!routingControlRef.current || !map) return;
           onRouteFound(e.routes);
         });
       }
 
       if (onRouteError) {
         control.on('routingerror', function (e) {
+          if (!routingControlRef.current || !map) return;
           onRouteError(e.error);
         });
       }
