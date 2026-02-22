@@ -83,7 +83,7 @@ const BackgroundLayers = ({ className = "" }) => {
                     }`} />
             </div>
 
-            {/* Dynamic Pattern Overlay with Color Drift */}
+            {/* Dynamic Pattern Overlay with Color Drift
             <div className="absolute inset-0">
                 <motion.div
                     className={`absolute inset-0 transition-all duration-1000 ${theme === 'dark'
@@ -105,6 +105,7 @@ const BackgroundLayers = ({ className = "" }) => {
                     }}
                 />
             </div>
+            */}
 
             {/* Cursor-Tracking Radial Gradient - Dark Mode Only */}
             {theme === 'dark' && (
