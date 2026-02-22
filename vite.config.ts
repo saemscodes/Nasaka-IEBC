@@ -177,7 +177,7 @@ export default defineConfig(({ mode }) => ({
         sourcemap: false,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/_next/, /^\/static/, /^\/api\//]
+        navigateFallbackDenylist: [/^\/_next/, /^\/static/, /^\/api\//, /^\/assets\//]
       },
       devOptions: {
         enabled: mode === 'development',
@@ -238,8 +238,7 @@ export default defineConfig(({ mode }) => ({
   },
 
   define: {
-    'process.env': process.env,
-    '__VITE_PWA_MANIFEST': JSON.stringify({})
+    'process.env': process.env
   },
 
   optimizeDeps: {

@@ -125,13 +125,14 @@ export const useIEBCOffices = (options = {}) => {
 
       // Only set error if we don't have cached data
       const cached = await getCachedOffices();
-      if (!cached?.data?.length) {
-        setError('Your internet is down, but Nasaka has you covered. You can still search and find IEBC offices using the map info we locally saved for you. Now available on your device.');
-      } else {
-        // Use cached data as fallback
+      if (cached?.data?.length > 0) {
         setOffices(cached.data);
         setLastSyncTime(new Date(cached.timestamp));
-        // No error set when using cache - simply proceed
+        // Treat cached data as a feature, not an error, but still inform user of offline status
+        setError('Your internet is down, but Nasaka has you covered. You can still search and find IEBC offices using the map info we locally saved for you. Now available on your device.');
+      } else {
+        // Human-friendly error when no data is available
+        setError("Your internet is down, but Nasaka has you covered. You can still search and find IEBC offices using the map info we locally saved for you. Now available on your device.");
       }
 
       return [];
