@@ -1018,13 +1018,22 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         }, 500);
 
         // Show accuracy guidance
-        if (limitedAccuracy > 100) {
+        if (limitedAccuracy > 80) {
           setLocationError({
             type: 'warning',
             message: `GPS accuracy is low (±${Math.round(limitedAccuracy)}m). Please move to an open area or manually adjust the pin.`,
             action: {
               label: 'Adjust Pin Manually',
-              onClick: () => setSelectedMethod('drop_pin')
+              onClick: () => {
+                setSelectedMethod('drop_pin');
+                setStep(2); // Ensure we stay/return to map step
+                setLocationError(null);
+
+                // Set initial position to map center if position is not yet set
+                if (!position) {
+                  setPosition({ lat: latitude, lng: longitude });
+                }
+              }
             }
           });
         } else if (limitedAccuracy <= 20) {
@@ -1038,9 +1047,12 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       }
 
       // AUTO-PROCEED TO STEP 3: Wait a moment then automatically proceed to office details
-      setTimeout(() => {
-        setStep(3);
-      }, 1500);
+      // BUT ONLY if accuracy is good enough
+      if (limitedAccuracy <= 80) {
+        setTimeout(() => {
+          setStep(3);
+        }, 1500);
+      }
 
     } catch (err) {
       console.error('Error capturing location:', err);
@@ -1453,7 +1465,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     <div
                       key={stepNum}
                       className={`w-2 h-2 rounded-full ${stepNum === step ? 'bg-green-600' :
-                          stepNum < step ? 'bg-green-400' : 'bg-gray-300'
+                        stepNum < step ? 'bg-green-400' : 'bg-gray-300'
                         }`}
                     />
                   ))}
@@ -1648,13 +1660,19 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
 
                   {/* Map Preview */}
                   {(selectedMethod === 'current_location' || selectedMethod === 'drop_pin' || parseResult) && (
-                    <div className="h-64 rounded-lg overflow-hidden border border-gray-300 bg-gray-100">
+                    <div className="relative h-80 rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 shadow-inner">
                       <MapContainer
                         center={mapCenter}
                         zoom={mapZoom}
                         className="h-full w-full"
                         onMapReady={handleMapReady}
                         onClick={handleMapClick}
+                        onMove={(center) => {
+                          if (selectedMethod === 'drop_pin') {
+                            setPosition({ lat: center.lat, lng: center.lng });
+                            setAccuracy(5);
+                          }
+                        }}
                         isModalMap={true}
                         ref={mapRef}
                       >
@@ -1672,7 +1690,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                             accuracy={Math.min(userLocation.accuracy, 1000)}
                           />
                         )}
-                        {position && (
+                        {position && selectedMethod !== 'drop_pin' && (
                           <UserLocationMarker
                             position={[position.lat, position.lng]}
                             accuracy={accuracy}
@@ -1680,6 +1698,44 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                           />
                         )}
                       </MapContainer>
+
+                      {/* Uber-style stationary crosshair pin overlay for "drop_pin" mode */}
+                      {selectedMethod === 'drop_pin' && (
+                        <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-[1000]">
+                          <motion.div
+                            initial={{ y: -20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            className="flex flex-col items-center"
+                          >
+                            {/* Floating indicator */}
+                            <div className="bg-white px-3 py-1 rounded-full shadow-lg border border-gray-100 mb-2 transform -translate-y-4">
+                              <span className="text-[10px] font-bold text-gray-800 uppercase tracking-wider">Set Location</span>
+                            </div>
+
+                            {/* The Pin */}
+                            <div className="relative">
+                              {/* Vertical line */}
+                              <div className="w-1 h-12 bg-gray-900 rounded-full shadow-xl"></div>
+                              {/* Top circle */}
+                              <div className="absolute top-0 left-1/2 -ml-3 -mt-6 w-7 h-7 bg-[#007AFF] border-4 border-white rounded-full shadow-lg flex items-center justify-center">
+                                <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                              </div>
+                              {/* Shadow/Point at bottom */}
+                              <div className="absolute bottom-0 left-1/2 -ml-1 w-2 h-2 bg-black/30 rounded-full blur-[2px] transform scale-x-150"></div>
+                            </div>
+                          </motion.div>
+                        </div>
+                      )}
+
+                      {/* Manual Adjustment Control Badge */}
+                      {selectedMethod === 'drop_pin' && (
+                        <div className="absolute top-4 left-4 right-4 pointer-events-none flex justify-center z-[1001]">
+                          <div className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-lg border border-white/50 flex items-center space-x-2">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                            <span className="text-xs font-semibold text-gray-900">Move map to adjust location</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -1730,9 +1786,25 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
               {/* Step 3: Office Details Form */}
               {step === 3 && (
                 <form onSubmit={handleFormSubmit} className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Office Information</h3>
-                    <p className="text-gray-600">Provide details about the IEBC office</p>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">Office Information</h3>
+                      <p className="text-gray-600">Provide details about the IEBC office</p>
+                    </div>
+                    {/* Uber-style refinement button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedMethod('drop_pin');
+                        setStep(2);
+                      }}
+                      className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-100 transition-colors flex items-center space-x-1 border border-blue-100"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      </svg>
+                      <span>Adjust Pin</span>
+                    </button>
                   </div>
 
                   <div className="grid grid-cols-1 gap-4">
