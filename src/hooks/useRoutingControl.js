@@ -66,8 +66,16 @@ export default function useRoutingControl(map, opts = {}) {
     // If control already exists, simply update waypoints
     if (routingControlRef.current) {
       try {
-        routingControlRef.current.setWaypoints([startLatLng, destLatLng]);
-        return routingControlRef.current;
+        const ctrl = routingControlRef.current;
+
+        // Fix for stale closures: Update existing listeners with new handlers
+        ctrl.off('routesfound');
+        ctrl.off('routingerror');
+        if (onRouteFound) ctrl.on('routesfound', (e) => onRouteFound(e.routes));
+        if (onRouteError) ctrl.on('routingerror', (e) => onRouteError(e.error));
+
+        ctrl.setWaypoints([startLatLng, destLatLng]);
+        return ctrl;
       } catch (err) {
         console.error('Failed to set waypoints on existing routing control:', err);
         // Attempt to remove and recreate
@@ -82,7 +90,7 @@ export default function useRoutingControl(map, opts = {}) {
     const options = {
       waypoints: [startLatLng, destLatLng],
       router,
-      routeWhileDragging: false, // Explicit boolean to avoid undefined error
+      routeWhileDragging: false,
       fitSelectedRoutes: true,
       showAlternatives: false,
       addWaypoints: false,
@@ -150,24 +158,24 @@ export default function useRoutingControl(map, opts = {}) {
       if (typeof originalClearLines === 'function') {
         control._clearLines = function () {
           if (!this._map) {
-            console.log('RoutingSystem: Suppressing _clearLines call on null map (unmount race prevented)');
+            // Unmount case: just skip the call instead of crashing
             return;
           }
           return originalClearLines.apply(this, arguments);
         };
       }
 
-      // Add event listeners with safety checks
+      // Add event listeners with direct closure to 'control'
       if (onRouteFound) {
-        control.on('routesfound', function (e) {
-          if (!routingControlRef.current || !map) return;
+        control.on('routesfound', (e) => {
+          if (!control._map) return;
           onRouteFound(e.routes);
         });
       }
 
       if (onRouteError) {
-        control.on('routingerror', function (e) {
-          if (!routingControlRef.current || !map) return;
+        control.on('routingerror', (e) => {
+          if (!control._map) return;
           onRouteError(e.error);
         });
       }
