@@ -17,6 +17,8 @@ import TermsAndConditions from "./pages/TermsAndConditions";
 // import VerifySignature from "./pages/VerifySignature";
 // import VoterRegistrationPage from "@/pages/VoterRegistration";
 import { IEBCOfficeSplash, IEBCOfficeMap } from './pages/IEBCOffice';
+import Privacy from './pages/IEBCOffice/Privacy';
+import Terms from './pages/IEBCOffice/Terms';
 import { HelmetProvider } from 'react-helmet-async';
 import './styles/iebc-office.css';
 
@@ -425,6 +427,12 @@ const AppContent = () => {
         {/* ✅ LEGAL PAGES */}
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsAndConditions />} />
+
+        {/* ✅ NASAKA SPECIFIC LEGAL PAGES (Blue Edition) */}
+        <Route path="/iebc-office/privacy" element={<Privacy />} />
+        <Route path="/iebc-office/terms" element={<Terms />} />
+        <Route path="/nasaka-iebc/privacy" element={<Privacy />} />
+        <Route path="/nasaka-iebc/terms" element={<Terms />} />
 
         {/* ✅ CANONICAL HIERARCHICAL ROUTES (Full Ham) */}
         <Route

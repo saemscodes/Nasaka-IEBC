@@ -735,14 +735,14 @@ const IEBCOfficeSplash = () => {
                         transition={{ delay: 0.85 }}
                     >
                         <Link
-                            to="/privacy"
+                            to="/iebc-office/privacy"
                             className={`text-[10px] tracking-wide transition-opacity duration-300 hover:opacity-70 ${theme === 'dark' ? 'text-ios-gray-600' : 'text-ios-gray-300'}`}
                         >
                             Privacy
                         </Link>
                         <span className={`text-[10px] ${theme === 'dark' ? 'text-ios-gray-700' : 'text-ios-gray-200'}`}>·</span>
                         <Link
-                            to="/terms"
+                            to="/iebc-office/terms"
                             className={`text-[10px] tracking-wide transition-opacity duration-300 hover:opacity-70 ${theme === 'dark' ? 'text-ios-gray-600' : 'text-ios-gray-300'}`}
                         >
                             Terms
