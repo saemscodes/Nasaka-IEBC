@@ -622,6 +622,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const retryCountRef = useRef(0);
   const countyInputRef = useRef(null);
   const constituencyInputRef = useRef(null);
+  const autoAdvanceTimeoutRef = useRef(null);
 
   const {
     getCurrentPosition,
@@ -630,6 +631,22 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     isSubmitting,
     error
   } = useContributeLocation();
+
+  // SAFETY: Clear any pending auto-advance when switching to manual method
+  useEffect(() => {
+    if (selectedMethod === 'drop_pin') {
+      if (autoAdvanceTimeoutRef.current) {
+        clearTimeout(autoAdvanceTimeoutRef.current);
+        autoAdvanceTimeoutRef.current = null;
+      }
+    }
+
+    return () => {
+      if (autoAdvanceTimeoutRef.current) {
+        clearTimeout(autoAdvanceTimeoutRef.current);
+      }
+    };
+  }, [selectedMethod]);
 
   // Enhanced constituency code fetching with local data
   const fetchConstituencyCode = async (constituencyName, countyName) => {
@@ -1027,6 +1044,12 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
             action: {
               label: 'Adjust Pin Manually',
               onClick: () => {
+                // CLEAR AUTO-ADVANCE TIMER
+                if (autoAdvanceTimeoutRef.current) {
+                  clearTimeout(autoAdvanceTimeoutRef.current);
+                  autoAdvanceTimeoutRef.current = null;
+                }
+
                 setSelectedMethod('drop_pin');
                 setStep(2); // Ensure we stay/return to map step
                 setLocationError(null);
@@ -1051,8 +1074,9 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       // AUTO-PROCEED TO STEP 3: Wait a moment then automatically proceed to office details
       // BUT ONLY if accuracy is good enough
       if (limitedAccuracy <= 80) {
-        setTimeout(() => {
+        autoAdvanceTimeoutRef.current = setTimeout(() => {
           setStep(3);
+          autoAdvanceTimeoutRef.current = null;
         }, 1500);
       }
 
@@ -1118,8 +1142,9 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         }
 
         // Auto-proceed to Step 3 after successful parsing
-        setTimeout(() => {
+        autoAdvanceTimeoutRef.current = setTimeout(() => {
           setStep(3);
+          autoAdvanceTimeoutRef.current = null;
         }, 1000);
       } else if (result?.requiresGeocoding) {
         setLocationError({
@@ -1821,7 +1846,14 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                       Back
                     </button>
                     <button
-                      onClick={() => setStep(3)}
+                      onClick={() => {
+                        // FINAL SAFETY: Clear any residual timeouts
+                        if (autoAdvanceTimeoutRef.current) {
+                          clearTimeout(autoAdvanceTimeoutRef.current);
+                          autoAdvanceTimeoutRef.current = null;
+                        }
+                        setStep(3);
+                      }}
                       disabled={!position || isGettingLocation || (selectedMethod === 'drop_pin' && !isPinLocked)}
                       className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                     >
