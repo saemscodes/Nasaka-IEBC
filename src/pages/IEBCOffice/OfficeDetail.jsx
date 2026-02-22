@@ -422,7 +422,7 @@ const OfficeDetail = () => {
 
                 <footer className="text-center pt-8 opacity-40">
                     <p className="text-[10px] font-medium tracking-widest uppercase">
-                        Data provided by community crowdsourcing
+                        Data provided by CEKA community. Join <a href="https://www.civiceducationkenya.com/join-community" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-500 transition-colors">here</a>
                     </p>
                     <p className="text-[10px] mt-1">
                         Last updated: {office.updated_at ? new Date(office.updated_at).toLocaleDateString() : 'Recently'}
