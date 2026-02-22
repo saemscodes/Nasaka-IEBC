@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ArrowLeft, Scale, Gavel, AlertTriangle, Shield, Users, FileText, Smartphone } from 'lucide-react';
+import {
+    ChevronDown, ArrowLeft, Scale, Gavel, AlertTriangle, Shield, Users,
+    FileText, Smartphone, UserCheck, Accessibility, Ban, Settings,
+    MessageSquare, HelpCircle, Info, Landmark, Code, Share2
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
 
 const Terms = () => {
     const navigate = useNavigate();
     const { theme } = useTheme();
-    const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({ 'usage-intent': true });
+    const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({ 't1': true });
 
     const toggleSection = (sectionId: string) => {
         setExpandedSections(prev => ({
@@ -27,6 +31,7 @@ const Terms = () => {
         return (
             <motion.div
                 layout
+                id={id}
                 className={`mb-4 overflow-hidden rounded-2xl border transition-all duration-300 ${theme === 'dark'
                         ? 'bg-[#1C1C1E]/40 border-[#38383A] hover:bg-[#1C1C1E]/60'
                         : 'bg-white/40 border-[#D8D8DC] hover:bg-white/60'
@@ -90,123 +95,284 @@ const Terms = () => {
                     <ArrowLeft size={20} className="mr-1" />
                     Back
                 </button>
-                <h1 className={`text-[17px] font-bold absolute left-1/2 -translate-x-1/2 ${theme === 'dark' ? 'text-white' : 'text-[#1C1C1E]'
-                    }`}>
-                    Terms
-                </h1>
-                <div className="w-10" /> {/* Spacer */}
+                <div className="flex flex-col items-center">
+                    <h1 className={`text-[17px] font-bold ${theme === 'dark' ? 'text-white' : 'text-[#1C1C1E]'}`}>
+                        Service Terms
+                    </h1>
+                    <span className="text-[10px] uppercase tracking-widest opacity-50 font-semibold">Nasaka IEBC</span>
+                </div>
+                <div className="w-10" />
             </div>
 
-            <main className="max-w-3xl mx-auto px-6 pt-8 pb-20">
+            <main className="max-w-4xl mx-auto px-6 pt-8 pb-20">
                 {/* Brand Hero */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
                     className="text-center mb-10"
                 >
-                    <div className={`w-20 h-20 mx-auto mb-6 rounded-[22px] flex items-center justify-center shadow-2xl ${theme === 'dark' ? 'bg-blue-600 shadow-blue-500/20' : 'bg-blue-600 shadow-blue-600/20'
+                    <div className={`w-20 h-20 mx-auto mb-6 rounded-[22px] flex items-center justify-center shadow-2xl relative ${theme === 'dark' ? 'bg-blue-600 shadow-blue-500/20' : 'bg-blue-600 shadow-blue-600/20'
                         }`}>
                         <Scale size={40} color="white" strokeWidth={1.5} />
                     </div>
-                    <h2 className={`text-3xl font-extrabold tracking-tight mb-3 ${theme === 'dark' ? 'text-white' : 'text-[#1C1C1E]'}`}>
-                        Service Terms
+                    <h2 className={`text-4xl font-extrabold tracking-tight mb-4 ${theme === 'dark' ? 'text-white' : 'text-[#1C1C1E]'}`}>
+                        Terms of Service
                     </h2>
-                    <p className={`text-[17px] max-w-md mx-auto ${theme === 'dark' ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>
-                        By using Nasaka, you agree to these conditions for accessing Kenyan electoral office data.
+                    <p className={`text-[17px] max-w-xl mx-auto mb-6 ${theme === 'dark' ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>
+                        The full and binding terms for using the Nasaka IEBC platform, API, and civic services.
                     </p>
+                    <div className="flex flex-wrap justify-center gap-4 text-xs font-medium opacity-60">
+                        <span>📅 Effective: 1 Feb 2025</span>
+                        <span>🔄 Updated: 22 Feb 2026</span>
+                        <span>🇰🇪 Kenya Law</span>
+                        <span>📋 Version 2.0</span>
+                    </div>
                 </motion.div>
 
-                <div className="space-y-4">
-                    <CollapsibleSection
-                        id="usage-intent"
-                        title="Acceptable Usage"
-                        icon={Smartphone}
-                        defaultExpanded={true}
-                    >
+                {/* Agreement Banner */}
+                <div className={`mb-12 p-5 rounded-2xl border-l-[6px] shadow-sm ${theme === 'dark'
+                        ? 'bg-amber-500/10 border-amber-500/50 text-amber-200'
+                        : 'bg-amber-50 border-amber-500 text-amber-900'
+                    }`}>
+                    <div className="flex gap-4">
+                        <AlertTriangle className="flex-shrink-0" size={24} />
+                        <p className="text-[14px] leading-relaxed">
+                            <strong>By using Nasaka, you agree to these Terms.</strong> These Terms constitute a legally binding agreement between you and Civic Education Kenya (CEKA). If you do not agree, you must stop using the platform immediately.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Table of Contents */}
+                <div className={`mb-12 rounded-2xl border p-2 ${theme === 'dark' ? 'bg-[#1C1C1E]/40 border-[#38383A]' : 'bg-white/40 border-[#D8D8DC]'} backdrop-blur-xl`}>
+                    <div className="px-4 py-3 border-b border-white/5 opacity-50 text-[11px] font-bold uppercase tracking-wider">Table of Contents</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1 p-2">
+                        {[
+                            { id: 't1', title: '1. Platform Overview' },
+                            { id: 't2', title: '2. Eligibility & Access' },
+                            { id: 't3', title: '3. Acceptable Use' },
+                            { id: 't4', title: '4. Prohibited Conduct' },
+                            { id: 't5', title: '5. Data Accuracy' },
+                            { id: 't6', title: '6. Availability & SLA' },
+                            { id: 't7', title: '7. Intellectual Property' },
+                            { id: 't8', title: '8. API & Developer Terms' },
+                            { id: 't9', title: '9. Community Terms' },
+                            { id: 't10', title: '10. UGC Standards' },
+                            { id: 't11', title: '11. Warranty Disclaimer' },
+                            { id: 't12', title: '12. Liability Limits' },
+                            { id: 't13', title: '13. Indemnification' },
+                            { id: 't14', title: '14. Electoral Integrity' },
+                            { id: 't15', title: '15. Accessibility' },
+                            { id: 't16', title: '16. Termination' },
+                            { id: 't17', title: '17. Modifications' },
+                            { id: 't18', title: '18. Jurisdiction' },
+                            { id: 't19', title: '19. Governing Law' },
+                            { id: 't20', title: '20. Entire Agreement' },
+                            { id: 't21', title: '21. Legal Notices' },
+                        ].map(item => (
+                            <a
+                                key={item.id}
+                                href={`#${item.id}`}
+                                onClick={(e) => { e.preventDefault(); setExpandedSections(v => ({ ...v, [item.id]: true })); document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' }); }}
+                                className={`px-4 py-2 rounded-xl text-[12px] font-medium transition-colors ${theme === 'dark' ? 'hover:bg-white/10 text-ios-gray-200' : 'hover:bg-black/5 text-ios-gray-600'
+                                    }`}
+                            >
+                                {item.title}
+                            </a>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <CollapsibleSection id="t1" title="1. Platform Overview" icon={Landmark}>
                         <p className="mb-4">
-                            Nasaka is provided as a civic utility. It is intended for searching and locating official IEBC constituency offices within the Republic of Kenya.
+                            <strong>Operator:</strong> Nasaka IEBC is maintained by <strong>Civic Education Kenya (CEKA)</strong>.
                         </p>
-                        <div className={`p-4 rounded-xl mb-4 ${theme === 'dark' ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-blue-50 border border-blue-100'}`}>
-                            <p className={theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}>
-                                <strong>Prohibited:</strong> You may not use this service for harassment, illegal surveillance, or any activity that interferes with the peaceful operations of IEBC offices.
-                            </p>
+                        <p className="mb-4 text-sm opacity-90">
+                            <strong>What it is:</strong> An independent civic utility that aggregates public IEBC office info.
+                        </p>
+                        <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-50 border border-red-100'}`}>
+                            <p className="text-xs text-red-500 font-bold">NASAKA IS NOT THE IEBC. We are an independent resource with no authority over official registration.</p>
                         </div>
-                        <p>
-                            Scraping historical data or attempting to bypass rate limits on our API is strictly prohibited to ensure fair access for all citizens.
-                        </p>
                     </CollapsibleSection>
 
-                    <CollapsibleSection
-                        id="data-accuracy"
-                        title="Data Accuracy & Verification"
-                        icon={AlertTriangle}
-                    >
-                        <p className="mb-4">While we strive for 100% accuracy, the registry is a living document:</p>
-                        <ul className="space-y-3">
-                            <li className="flex items-start">
-                                <span className={`mr-3 mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0 ${theme === 'dark' ? 'bg-blue-400' : 'bg-blue-500'}`} />
-                                <span><strong>Community Moderation:</strong> Some locations are community-contributed and marked as "Unverified" until audited.</span>
+                    <CollapsibleSection id="t2" title="2. Eligibility & Access" icon={UserCheck}>
+                        <ul className="space-y-3 text-sm">
+                            <li className="flex gap-3">
+                                <div className="mt-1 w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                                <span><strong>Age:</strong> Minimum 13 years. Users 13–17 require guardian consent. Voter guidance features are for 18+.</span>
                             </li>
-                            <li className="flex items-start">
-                                <span className={`mr-3 mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0 ${theme === 'dark' ? 'bg-blue-400' : 'bg-blue-500'}`} />
-                                <span><strong>Official Sources:</strong> Nasaka cross-references data with official IEBC gazettes, but boundaries and office moves may cause temporary discrepancies.</span>
+                            <li className="flex gap-3">
+                                <div className="mt-1 w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                                <span><strong>No Account:</strong> Browsing office locations requires no login or personal data.</span>
                             </li>
                         </ul>
                     </CollapsibleSection>
 
-                    <CollapsibleSection
-                        id="service-reliability"
-                        title="Service Level & Availability"
-                        icon={Shield}
-                    >
-                        <p className="mb-4">We aim to keep Nasaka available whenever it is needed most, especially during election cycles:</p>
+                    <CollapsibleSection id="t3" title="3. Acceptable Use" icon={Smartphone}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-[#2C2C2E]' : 'bg-white border border-[#D8D8DC]'}`}>
-                                <h4 className={`font-bold mb-1 ${theme === 'dark' ? 'text-white' : 'text-[#1C1C1E]'}`}>Offline Mode</h4>
-                                <p className="text-sm opacity-80">Our PWA technology allows you to access cached maps even without an active data connection.</p>
+                            <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}>
+                                <h4 className="font-bold text-sm mb-1">Permitted</h4>
+                                <ul className="text-xs opacity-70 space-y-1">
+                                    <li>• Finding IEBC offices for registration</li>
+                                    <li>• Sharing office links with citizens</li>
+                                    <li>• Civic education & journalism</li>
+                                </ul>
                             </div>
-                            <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-[#2C2C2E]' : 'bg-white border border-[#D8D8DC]'}`}>
-                                <h4 className={`font-bold mb-1 ${theme === 'dark' ? 'text-white' : 'text-[#1C1C1E]'}`}>"As-Is" Policy</h4>
-                                <p className="text-sm opacity-80">The service is provided without warranty. Use it as a guide, but always verify critical trips.</p>
+                            <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}>
+                                <h4 className="font-bold text-sm mb-1 text-blue-500">Devs</h4>
+                                <p className="text-xs opacity-70">Building non-commercial apps via the open API is encouraged.</p>
                             </div>
                         </div>
                     </CollapsibleSection>
 
-                    <CollapsibleSection
-                        id="intellectual-property"
-                        title="Intellectual Property"
-                        icon={Gavel}
-                    >
-                        <p className="mb-4">Nasaka's code and unique datasets are protected:</p>
-                        <ul className="space-y-2 text-sm opacity-90">
-                            <li>• <strong>Framework:</strong> The Nasaka platform design and UI system belong to Civic Education Kenya.</li>
-                            <li>• <strong>Registry:</strong> The compiled constituency dataset is a community resource managed by Nasaka.</li>
-                            <li>• <strong>Attribution:</strong> Map tiles are provided by OpenStreetMap contributors under ODbL licenses.</li>
+                    <CollapsibleSection id="t4" title="4. Prohibited Conduct" icon={Ban}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/20">
+                                <h4 className="font-bold text-sm mb-2 text-red-500">Platform Abuse</h4>
+                                <ul className="text-xs space-y-2 opacity-80">
+                                    <li>• Harassing IEBC staff or voters</li>
+                                    <li>• Submitting false office locations</li>
+                                    <li>• Scraping without API agreement</li>
+                                </ul>
+                            </div>
+                            <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/20">
+                                <h4 className="font-bold text-sm mb-2 text-red-500">Data Misuse</h4>
+                                <ul className="text-xs space-y-2 opacity-80">
+                                    <li>• Voter targeting or profiling</li>
+                                    <li>• Election interference tools</li>
+                                    <li>• Removing attribution notices</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="t5" title="5. Data Accuracy" icon={Shield}>
+                        <p className="text-sm opacity-90 mb-4">treat unverified listings as indicative. Always verify with IEBC for time-sensitive electoral activities.</p>
+                        <div className="flex gap-2 mb-4">
+                            <span className="px-2 py-1 rounded-md bg-green-500/10 text-[10px] font-bold text-green-500">VERIFIED</span>
+                            <span className="px-2 py-1 rounded-md bg-amber-500/10 text-[10px] font-bold text-amber-500">COMMUNITY</span>
+                            <span className="px-2 py-1 rounded-md bg-ios-gray-500/10 text-[10px] font-bold">UNVERIFIED</span>
+                        </div>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="t6" title="6. Availability & SLA" icon={Accessibility}>
+                        <p className="text-sm opacity-80">Nasaka is a free civic service. We aim for high availability but provide no formal uptime guarantees (SLAs).</p>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="t7" title="7. Intellectual Property" icon={FileText}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[13px]">
+                            <div className="p-3 border border-white/10 rounded-xl">
+                                <h5 className="font-bold mb-1">Platform UI</h5>
+                                <span className="opacity-50">© CEKA (All Rights Reserved)</span>
+                            </div>
+                            <div className="p-3 border border-white/10 rounded-xl">
+                                <h5 className="font-bold mb-1">Office Registry</h5>
+                                <span className="opacity-50 text-blue-500">ODbL 1.0 (Open Database)</span>
+                            </div>
+                        </div>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="t8" title="8. API & Developer Terms" icon={Code}>
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between text-xs p-2 border-b border-white/5">
+                                <span>Free Tier Limit</span>
+                                <span className="font-bold">100 req/hr</span>
+                            </div>
+                            <div className="flex items-center justify-between text-xs p-2 border-b border-white/5">
+                                <span>Attribution</span>
+                                <span className="font-bold text-blue-500">REQUIRED</span>
+                            </div>
+                            <p className="text-[11px] opacity-60 italic">Political targeting via API is Grounds for immediate permanent ban.</p>
+                        </div>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="t9" title="9. Community Terms" icon={Share2}>
+                        <p className="text-sm opacity-90">By submitting data, you grant CEKA a perpetual, royalty-free license to publish and modify your contribution as part of the open dataset.</p>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="t10" title="10. UGC Standards" icon={MessageSquare}>
+                        <ul className="text-xs space-y-2 opacity-70">
+                            <li>• No hate speech or discrimination</li>
+                            <li>• No electoral disinformation</li>
+                            <li>• No private info (ID/Phone) of third parties</li>
                         </ul>
                     </CollapsibleSection>
 
-                    <CollapsibleSection
-                        id="legal-jurisdiction"
-                        title="Jurisdiction & Disputes"
-                        icon={Scale}
-                    >
-                        <p>
-                            These terms are governed by the Laws of the Republic of Kenya.
+                    <CollapsibleSection id="t11" title="11. Warranty Disclaimer" icon={Info}>
+                        <p className="p-3 bg-white/5 rounded-xl border border-white/10 text-xs italic">
+                            NASAKA IS PROVIDED "AS IS". WE DO NOT WARRANT ACCURACY, COMPLETENESS, OR UNINTERRUPTED SERVICE.
                         </p>
-                        <p className="mt-3">
-                            By using the app, you consent to the exclusive jurisdiction of Kenyan courts for any disputes arising from the use of the platform.
-                        </p>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="t12" title="12. Liability Limits" icon={Shield}>
+                        <p className="text-xs opacity-70">CEKA is not liable for indirect or consequential damages. Aggregate liability is capped at KES 5,000.</p>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="t13" title="13. Indemnification" icon={Scale}>
+                        <p className="text-xs opacity-70">You agree to indemnify CEKA for any loss arising from your violation of these terms or misuse of the platform.</p>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="t14" title="14. Electoral Integrity" icon={लैंडमार्क}>
+                        <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-blue-600' : 'bg-blue-600'} text-white shadow-lg`}>
+                            <h4 className="font-bold mb-2">Neutrality Absolute</h4>
+                            <p className="text-xs opacity-90">Nasaka is strictly non-partisan. We report any misuse for electoral interference to the IEBC and ODPC.</p>
+                        </div>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="t15" title="15. Accessibility" icon={Accessibility}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] opacity-80">
+                            <div>• Low-bandwidth (2G/3G) UI</div>
+                            <div>• Swahili summaries</div>
+                            <div>• WCAG 2.1 Level AA goal</div>
+                            <div>• Screen-reader optimization</div>
+                        </div>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="t16" title="16. Termination" icon={Ban}>
+                        <p className="text-sm">We may suspend accounts for breaches of the Acceptable Use Policy without prior notice.</p>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="t17" title="17. Modifications" icon={Settings}>
+                        <p className="text-sm">CEKA reserves the right to modify services or these terms at any time.</p>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="t18" title="18. Jurisdiction" icon={Scale}>
+                        <p className="text-sm">Disputes shall be handled by the courts of the Republic of Kenya.</p>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="t19" title="19. Governing Law" icon={Landmark}>
+                        <p className="text-sm">Governed exclusively by the Laws of Kenya and the Constitution of 2010.</p>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="t20" title="20. Entire Agreement" icon={FileText}>
+                        <p className="text-sm">These terms constitute the entire agreement between you and CEKA.</p>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="t21" title="21. Legal Notices" icon={HelpCircle}>
+                        <div className={`p-6 rounded-3xl ${theme === 'dark' ? 'bg-blue-600' : 'bg-blue-600'} text-white shadow-xl`}>
+                            <h4 className="font-bold text-xl mb-2">Civic Education Kenya</h4>
+                            <p className="text-sm opacity-90 mb-4">Official legal notices must be sent to:</p>
+                            <div className="space-y-2 text-sm font-medium">
+                                <div className="flex justify-between">
+                                    <span>Support Email:</span>
+                                    <span className="font-bold">civiceducationkenya@gmail.com</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Subject:</span>
+                                    <span className="font-bold">Legal Notice - Nasaka</span>
+                                </div>
+                            </div>
+                        </div>
                     </CollapsibleSection>
                 </div>
 
                 {/* Footer Disclaimer */}
-                <div className="mt-12 text-center">
-                    <p className={`text-[13px] ${theme === 'dark' ? 'text-ios-gray-500' : 'text-ios-gray-400'}`}>
-                        By continuing to use Nasaka, you acknowledge that you have read and understood these Terms of Service.
+                <div className="mt-16 text-center">
+                    <div className="w-12 h-1 bg-blue-500/20 mx-auto mb-8 rounded-full" />
+                    <p className={`text-[13px] font-medium ${theme === 'dark' ? 'text-ios-gray-500' : 'text-ios-gray-400'}`}>
+                        © 2025–2026 Civic Education Kenya (CEKA).<br />
+                        "The sovereignty of the people shall be exercised in accordance with this Constitution" — Article 1(3).
                     </p>
-                    <div className="mt-8 flex justify-center space-x-4">
-                        <FileText size={24} className={theme === 'dark' ? 'text-ios-gray-700' : 'text-ios-gray-200'} strokeWidth={1} />
-                    </div>
                 </div>
             </main>
 

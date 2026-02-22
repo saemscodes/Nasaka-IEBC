@@ -1,13 +1,18 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ArrowLeft, Shield, Scale, Database, Lock, Users, FileText, Globe } from 'lucide-react';
+import {
+    ChevronDown, ArrowLeft, Shield, Scale, Database, Lock, Users,
+    FileText, Globe, Target, AlertTriangle, EyeOff, LayoutGrid,
+    Cookie, Share2, Server, Trash2, UserCheck, Baby, Vote, ExternalLink,
+    RefreshCcw, Mail
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
 
 const Privacy = () => {
     const navigate = useNavigate();
     const { theme } = useTheme();
-    const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({ 'data-mission': true });
+    const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({ 's1': true });
 
     const toggleSection = (sectionId: string) => {
         setExpandedSections(prev => ({
@@ -27,6 +32,7 @@ const Privacy = () => {
         return (
             <motion.div
                 layout
+                id={id}
                 className={`mb-4 overflow-hidden rounded-2xl border transition-all duration-300 ${theme === 'dark'
                         ? 'bg-[#1C1C1E]/40 border-[#38383A] hover:bg-[#1C1C1E]/60'
                         : 'bg-white/40 border-[#D8D8DC] hover:bg-white/60'
@@ -90,132 +96,327 @@ const Privacy = () => {
                     <ArrowLeft size={20} className="mr-1" />
                     Back
                 </button>
-                <h1 className={`text-[17px] font-bold absolute left-1/2 -translate-x-1/2 ${theme === 'dark' ? 'text-white' : 'text-[#1C1C1E]'
-                    }`}>
-                    Privacy
-                </h1>
-                <div className="w-10" /> {/* Spacer */}
+                <div className="flex flex-col items-center">
+                    <h1 className={`text-[17px] font-bold ${theme === 'dark' ? 'text-white' : 'text-[#1C1C1E]'}`}>
+                        Privacy Policy
+                    </h1>
+                    <span className="text-[10px] uppercase tracking-widest opacity-50 font-semibold">Nasaka IEBC</span>
+                </div>
+                <div className="w-10" />
             </div>
 
-            <main className="max-w-3xl mx-auto px-6 pt-8 pb-20">
+            <main className="max-w-4xl mx-auto px-6 pt-8 pb-20">
                 {/* Brand Hero */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center mb-10"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-center mb-12"
                 >
-                    <div className={`w-20 h-20 mx-auto mb-6 rounded-[22px] flex items-center justify-center shadow-2xl ${theme === 'dark' ? 'bg-blue-600 shadow-blue-500/20' : 'bg-blue-600 shadow-blue-600/20'
+                    <div className={`w-20 h-20 mx-auto mb-6 rounded-[22px] flex items-center justify-center shadow-2xl relative ${theme === 'dark' ? 'bg-blue-600 shadow-blue-500/20' : 'bg-blue-600 shadow-blue-600/20'
                         }`}>
                         <Shield size={40} color="white" strokeWidth={1.5} />
                     </div>
-                    <h2 className={`text-3xl font-extrabold tracking-tight mb-3 ${theme === 'dark' ? 'text-white' : 'text-[#1C1C1E]'}`}>
-                        Nasaka Privacy
+                    <h2 className={`text-4xl font-extrabold tracking-tight mb-4 ${theme === 'dark' ? 'text-white' : 'text-[#1C1C1E]'}`}>
+                        Privacy Policy
                     </h2>
-                    <p className={`text-[17px] max-w-md mx-auto ${theme === 'dark' ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>
-                        Our commitment to your data sovereignty and secure access to IEBC office information.
+                    <p className={`text-[17px] max-w-xl mx-auto mb-6 ${theme === 'dark' ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>
+                        Our full, unabridged commitment to your data sovereignty and the protection of your personal information.
                     </p>
+                    <div className="flex flex-wrap justify-center gap-4 text-xs font-medium opacity-60">
+                        <span>📅 Effective: 1 Feb 2025</span>
+                        <span>🔄 Updated: 22 Feb 2026</span>
+                        <span>🇰🇪 Kenya Law</span>
+                        <span>📋 Version 2.0</span>
+                    </div>
                 </motion.div>
 
-                <div className="space-y-4">
-                    <CollapsibleSection
-                        id="data-mission"
-                        title="The Nasaka Mission"
-                        icon={Globe}
-                        defaultExpanded={true}
-                    >
+                {/* Table of Contents - iOS Style list */}
+                <div className={`mb-12 rounded-2xl border p-2 ${theme === 'dark' ? 'bg-[#1C1C1E]/40 border-[#38383A]' : 'bg-white/40 border-[#D8D8DC]'} backdrop-blur-xl`}>
+                    <div className="px-4 py-3 border-b border-white/5 opacity-50 text-[11px] font-bold uppercase tracking-wider">Table of Contents</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-1 p-2">
+                        {[
+                            { id: 's1', title: '1. Who We Are & This Policy' },
+                            { id: 's2', title: '2. Our Zero-Persistence Mission' },
+                            { id: 's3', title: '3. Information We Collect' },
+                            { id: 's4', title: '4. How We Use Information' },
+                            { id: 's5', title: '5. Information We Do NOT Collect' },
+                            { id: 's6', title: '6. Local Processing' },
+                            { id: 's7', title: '7. Cookies & Tracking' },
+                            { id: 's8', title: '8. Community Contributions' },
+                            { id: 's9', title: '9. Data Sharing & Disclosure' },
+                            { id: 's10', title: '10. Third-Party Services' },
+                            { id: 's11', title: '11. Security Standards' },
+                            { id: 's12', title: '12. Data Retention' },
+                            { id: 's13', title: '13. Your Rights' },
+                            { id: 's14', title: "14. Children's Privacy" },
+                            { id: 's15', title: '15. Electoral & Biometric Data' },
+                            { id: 's16', title: '16. International Users' },
+                            { id: 's17', title: '17. Legal Compliance' },
+                            { id: 's18', title: '18. Policy Changes' },
+                            { id: 's19', title: '19. Contact & DPO' },
+                        ].map(item => (
+                            <a
+                                key={item.id}
+                                href={`#${item.id}`}
+                                onClick={(e) => { e.preventDefault(); setExpandedSections(v => ({ ...v, [item.id]: true })); document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' }); }}
+                                className={`px-4 py-2 rounded-xl text-[13px] font-medium transition-colors ${theme === 'dark' ? 'hover:bg-white/10 text-ios-gray-200' : 'hover:bg-black/5 text-ios-gray-600'
+                                    }`}
+                            >
+                                {item.title}
+                            </a>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <CollapsibleSection id="s1" title="1. Who We Are & Scope" icon={Globe}>
                         <p className="mb-4">
-                            Nasaka is built on the principle of <strong>Zero-Persistence Privacy</strong>. We believe that civic tools should empower you without monitoring you.
+                            <strong>Nasaka IEBC</strong> (operating at <em>recall254.vercel.app</em>) is an independent civic technology platform developed and maintained by <strong>Civic Education Kenya (CEKA)</strong>, a non-governmental civic education organisation registered in the Republic of Kenya.
                         </p>
-                        <div className={`p-4 rounded-xl mb-4 ${theme === 'dark' ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-blue-50 border border-blue-100'}`}>
-                            <p className={theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}>
-                                <strong>Local Processing:</strong> Unlike typical apps, your GPS coordinates are processed exclusively on your device. We do not transmit your live location to our servers.
+                        <p className="mb-4">
+                            This Privacy Policy applies to all users of the Nasaka platform, including its web application, Progressive Web App (PWA), developer API, open dataset, and any associated community or verification workflows. It explains what information we collect, why we collect it, how we use and protect it, and what rights you have over your data.
+                        </p>
+                        <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-blue-50 border border-blue-100'}`}>
+                            <p className={`text-sm ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
+                                <strong>Independent Resource:</strong> Nasaka is an independent civic resource. We are not affiliated with, endorsed by, or acting as an agent of the Independent Electoral and Boundaries Commission (IEBC) of Kenya.
                             </p>
                         </div>
-                        <p>
-                            We provide a bridge between Kenyan citizens and IEBC constituency offices, ensuring that location data is used only to calculate routes and distances locally.
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="s2" title="2. Zero-Persistence Privacy" icon={Target}>
+                        <p className="mb-4">
+                            Nasaka is built on the principle of <strong>Zero-Persistence Privacy</strong>: civic tools should empower citizens without monitoring them. We believe you should be able to find your IEBC office without leaving a personal data trail.
                         </p>
-                    </CollapsibleSection>
-
-                    <CollapsibleSection
-                        id="information-we-process"
-                        title="Information Processing"
-                        icon={Database}
-                    >
-                        <p className="mb-4">We minimize data handling to the absolute essentials required for the app's functionality:</p>
-                        <ul className="space-y-3">
-                            <li className="flex items-start">
-                                <span className={`mr-3 mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0 ${theme === 'dark' ? 'bg-blue-400' : 'bg-blue-500'}`} />
-                                <span><strong>Cached Office Data:</strong> We store a local copy of IEBC office locations on your device to enable offline access.</span>
-                            </li>
-                            <li className="flex items-start">
-                                <span className={`mr-3 mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0 ${theme === 'dark' ? 'bg-blue-400' : 'bg-blue-500'}`} />
-                                <span><strong>Local Search History:</strong> Your recent searches are stored in your browser's local storage and are never uploaded.</span>
-                            </li>
-                            <li className="flex items-start">
-                                <span className={`mr-3 mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0 ${theme === 'dark' ? 'bg-blue-400' : 'bg-blue-500'}`} />
-                                <span><strong>Anonymized Analytics:</strong> We use basic, privacy-preserving analytics to understand feature usage without identifying individual users.</span>
-                            </li>
-                        </ul>
-                    </CollapsibleSection>
-
-                    <CollapsibleSection
-                        id="security-standards"
-                        title="Security Standards"
-                        icon={Lock}
-                    >
-                        <p className="mb-4">Nasaka adheres to enterprise-grade security protocols to protect the integrity of the IEBC office registry:</p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-[#2C2C2E]' : 'bg-white border border-[#D8D8DC]'}`}>
-                                <h4 className={`font-bold mb-1 ${theme === 'dark' ? 'text-white' : 'text-[#1C1C1E]'}`}>End-to-End SSL</h4>
-                                <p className="text-sm opacity-80">All communication between the app and the IEBC registry is encrypted via TLS 1.3.</p>
+                            <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}>
+                                <h4 className="font-bold mb-2">Local-First</h4>
+                                <p className="text-sm opacity-80">Your GPS coordinates and search queries are processed exclusively on your device. We do not transmit your live location to our servers.</p>
                             </div>
-                            <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-[#2C2C2E]' : 'bg-white border border-[#D8D8DC]'}`}>
-                                <h4 className={`font-bold mb-1 ${theme === 'dark' ? 'text-white' : 'text-[#1C1C1E]'}`}>Storage Guard</h4>
-                                <p className="text-sm opacity-80">Local data is isolated using browser sandbox security to prevent cross-site access.</p>
+                            <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}>
+                                <h4 className="font-bold mb-2">No Profiling</h4>
+                                <p className="text-sm opacity-80">We do not build profiles based on your usage patterns, browsing history, or political interests.</p>
                             </div>
                         </div>
                     </CollapsibleSection>
 
-                    <CollapsibleSection
-                        id="legal-compliance"
-                        title="Legal Compliance"
-                        icon={Scale}
-                    >
-                        <p className="mb-4">Nasaka operates within the framework of Kenyan and International privacy laws:</p>
-                        <ul className="space-y-2 text-sm opacity-90">
-                            <li>• <strong>Data Protection Act (2019):</strong> We respect all "Data Subject" rights as defined by Kenyan law.</li>
-                            <li>• <strong>Constitution of Kenya (Article 31):</strong> We uphold your fundamental right to privacy.</li>
-                            <li>• <strong>Voter Privacy:</strong> Nasaka is independent and does not link location data with voter registration status.</li>
+                    <CollapsibleSection id="s3" title="3. Information We Collect" icon={Database}>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead className="opacity-50 text-[10px] uppercase tracking-widest font-bold">
+                                    <tr>
+                                        <th className="pb-3 pr-4">Category</th>
+                                        <th className="pb-3 pr-4">Detail</th>
+                                        <th className="pb-3">Storage</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/10">
+                                    <tr>
+                                        <td className="py-3 pr-4 font-semibold">Location</td>
+                                        <td className="py-3 pr-4">GPS coordinates for "nearest office"</td>
+                                        <td className="py-3">Device only</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="py-3 pr-4 font-semibold">Searches</td>
+                                        <td className="py-3 pr-4">County/Ward names searched</td>
+                                        <td className="py-3">Browser Storage</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="py-3 pr-4 font-semibold">PWA Cache</td>
+                                        <td className="py-3 pr-4">Offline maps and metadata</td>
+                                        <td className="py-3">Device Cache</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="py-3 pr-4 font-semibold">Reports</td>
+                                        <td className="py-3 pr-4">Voluntary verification contributions</td>
+                                        <td className="py-3">Secure Servers</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="s4" title="4. How We Use Information" icon={FileText}>
+                        <ul className="space-y-4">
+                            <li className="flex gap-3">
+                                <div className="mt-1 w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                                <span><strong>Nearest office calculation:</strong> Location coordinates are used solely to calculate distance. This computation happens on your device.</span>
+                            </li>
+                            <li className="flex gap-3">
+                                <div className="mt-1 w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                                <span><strong>Offline access:</strong> Cached office data is stored locally to make the app function without an internet connection.</span>
+                            </li>
+                            <li className="flex gap-3">
+                                <div className="mt-1 w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                                <span><strong>Accuracy improvement:</strong> Community verification reports are used to update incorrect or outdated IEBC office listings.</span>
+                            </li>
                         </ul>
                     </CollapsibleSection>
 
-                    <CollapsibleSection
-                        id="contributions"
-                        title="Community Contributions"
-                        icon={Users}
-                    >
-                        <p>
-                            When you contribute a missing office location, you choose to share that specific coordinate with the community.
-                        </p>
-                        <p className="mt-3">
-                            Contributions are reviewed for accuracy but do not require you to provide personal identity documents. We leverage public verification to build a more accurate map for everyone.
-                        </p>
+                    <CollapsibleSection id="s5" title="5. We Do NOT Collect" icon={EyeOff}>
+                        <div className={`p-4 rounded-xl mb-4 ${theme === 'dark' ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-50 border border-red-100'}`}>
+                            <p className={`text-sm ${theme === 'dark' ? 'text-red-300' : 'text-red-700'}`}>
+                                <strong>Voter Privacy Guarantee:</strong> Nasaka does not link or attempt to determine your voter registration status. We do not know if you are registered or how you vote.
+                            </p>
+                        </div>
+                        <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm opacity-80">
+                            <li>• No National ID Numbers</li>
+                            <li>• No Voter Registration Numbers</li>
+                            <li>• No Biometric Data</li>
+                            <li>• No Financial Information</li>
+                            <li>• No Political Affiliation</li>
+                            <li>• No Persistent Identity Tracking</li>
+                        </ul>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="s6" title="6. Local Processing" icon={LayoutGrid}>
+                        <p className="mb-4">Nasaka is designed to run entirely within your browser or device. This architecture choice protects your privacy by default.</p>
+                        <div className="space-y-3">
+                            <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}>
+                                <h4 className="font-bold text-sm mb-1 text-blue-500">How to clear data</h4>
+                                <p className="text-xs opacity-70">Delete all locally-stored Nasaka data by clearing your browser's cache and site data (Settings → Privacy → Clear browsing data → Site data).</p>
+                            </div>
+                        </div>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="s7" title="7. Cookies & Tracking" icon={Cookie}>
+                        <div className={`p-4 rounded-xl mb-4 ${theme === 'dark' ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-blue-50 border border-blue-100'}`}>
+                            <p className={`text-sm ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
+                                <strong>No Advertising Cookies:</strong> Nasaka does not use Google AdSense, Facebook Pixel, or any advertising tracking technology.
+                            </p>
+                        </div>
+                        <p className="text-sm opacity-80">We use LocalStorage for preferences, Service Worker Cache for offline data, and Privacy-first Analytics for anonymous usage stats.</p>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="s8" title="8. Community Contributions" icon={Share2}>
+                        <p className="mb-4">Verification reports from the community are reviewed by our team. We minimize data collection here, requesting only what is needed to validate your report.</p>
+                        <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-blue-50 border border-blue-100'}`}>
+                            <p className="text-xs"><strong>Photo Protocol:</strong> We strip EXIF metadata (GPS coordinates) from photos and reject images that clearly identify individuals.</p>
+                        </div>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="s9" title="9. Sharing & Disclosure" icon={Scale}>
+                        <p className="mb-4">We do not sell your personal data. Ever. We share aggregated, non-personal data for open civic datasets licensed under ODbL.</p>
+                        <ul className="text-sm space-y-2 opacity-80">
+                            <li>• <strong>Vercel:</strong> Infrastructure provider (standard traffic logs).</li>
+                            <li>• <strong>Legal:</strong> Only by valid, binding court order under Kenyan law.</li>
+                        </ul>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="s10" title="10. Third-Party Services" icon={Server}>
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between border-b border-white/10 pb-2">
+                                <span className="font-bold">Vercel</span>
+                                <span className="opacity-60">Web Hosting & CDN</span>
+                            </div>
+                            <div className="flex justify-between border-b border-white/10 pb-2">
+                                <span className="font-bold">OpenStreetMap</span>
+                                <span className="opacity-60">Map Tile Delivery</span>
+                            </div>
+                            <div className="flex justify-between border-b border-white/10 pb-2">
+                                <span className="font-bold">Google Fonts</span>
+                                <span className="opacity-60">Typography (DM Sans)</span>
+                            </div>
+                        </div>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="s11" title="11. Security Standards" icon={Lock}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}>
+                                <h4 className="font-bold mb-2">TLS 1.3</h4>
+                                <p className="text-sm opacity-80">All communication is encrypted. We enforce HSTS and reject HTTP connections.</p>
+                            </div>
+                            <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}>
+                                <h4 className="font-bold mb-2">Sandbox</h4>
+                                <p className="text-sm opacity-80">Local data is isolated via browser same-origin policy and Content Security Policy (CSP).</p>
+                            </div>
+                        </div>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="s12" title="12. Data Retention" icon={Trash2}>
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between border-b border-white/10 pb-2">
+                                <span>API Access Logs</span>
+                                <span className="font-bold">30 Days</span>
+                            </div>
+                            <div className="flex justify-between border-b border-white/10 pb-2">
+                                <span>Crash Reports</span>
+                                <span className="font-bold">14 Days</span>
+                            </div>
+                            <div className="flex justify-between border-b border-white/10 pb-2">
+                                <span>Verified Reports</span>
+                                <span className="font-bold">Indefinite (Dataset)</span>
+                            </div>
+                        </div>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="s13" title="13. Your Rights" icon={UserCheck}>
+                        <p className="mb-4">Under the Kenya Data Protection Act 2019, you have the following rights:</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                            <span className="p-2 rounded-lg bg-blue-500/10">Right to Access</span>
+                            <span className="p-2 rounded-lg bg-blue-500/10">Right to Correction</span>
+                            <span className="p-2 rounded-lg bg-blue-500/10">Right to Erasure</span>
+                            <span className="p-2 rounded-lg bg-blue-500/10">Right to Data Portability</span>
+                        </div>
+                        <p className="mt-4 text-xs opacity-60">To exercise these, email <strong>civiceducationkenya@gmail.com</strong>.</p>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="s14" title="14. Children's Privacy" icon={Baby}>
+                        <p>Nasaka is designed for voters (18+). We do not knowingly collect data from children under 18. If you believe we have inadvertently collected such data, contact us for immediate removal.</p>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="s15" title="15. Electoral & Biometric" icon={Vote}>
+                        <p className="mb-4">Nasaka recognises the sensitivity of electoral data. We collect NO biometric data and have no access to official voter registration roles.</p>
+                        <div className={`p-4 rounded-xl ${theme === 'dark' ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-50 border border-red-100'}`}>
+                            <p className="text-xs"><strong>Anti-Surveillance commitment:</strong> We will not assist any party seeking to use Nasaka data to track or intimidate electoral workers.</p>
+                        </div>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="s16" title="16. International Users" icon={Globe}>
+                        <p>Regardless of where you access Nasaka, we apply Kenyan Data Protection Act standards as the baseline. Traffic may pass through Vercel's global CDN data centres.</p>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="s17" title="17. Legal Compliance" icon={Scale}>
+                        <p className="mb-2">Nasaka operates under:</p>
+                        <ul className="text-sm opacity-80 grid gap-1">
+                            <li>• Constitution of Kenya 2010 (Art. 31)</li>
+                            <li>• Data Protection Act 2019</li>
+                            <li>• Elections Act 2011</li>
+                        </ul>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="s18" title="18. Policy Changes" icon={RefreshCcw}>
+                        <p>Material changes will be notified via a 30-day notice on our homepage. Your continued use signifies acceptance of the new terms.</p>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection id="s19" title="19. Contact & DPO" icon={Mail}>
+                        <div className={`p-6 rounded-3xl ${theme === 'dark' ? 'bg-blue-600' : 'bg-blue-600'} text-white shadow-xl`}>
+                            <h4 className="font-bold text-xl mb-2">Civic Education Kenya</h4>
+                            <p className="text-sm opacity-90 mb-4">For all privacy inquiries and data rights requests.</p>
+                            <div className="space-y-2 text-sm font-medium">
+                                <div className="flex justify-between">
+                                    <span>Email:</span>
+                                    <span className="font-bold">civiceducationkenya@gmail.com</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Regulatory:</span>
+                                    <span className="font-bold">odpc.go.ke</span>
+                                </div>
+                            </div>
+                        </div>
                     </CollapsibleSection>
                 </div>
 
                 {/* Footer Disclaimer */}
-                <div className="mt-12 text-center">
-                    <p className={`text-xs ${theme === 'dark' ? 'text-ios-gray-500' : 'text-ios-gray-400'}`}>
-                        Last Updated: February 22, 2026 • Version 2.1 (Nasaka Edition)<br />
-                        Nasaka is a project by Civic Education Kenya.
+                <div className="mt-16 text-center">
+                    <div className="w-12 h-1 bg-blue-500/20 mx-auto mb-8 rounded-full" />
+                    <p className={`text-[13px] font-medium ${theme === 'dark' ? 'text-ios-gray-500' : 'text-ios-gray-400'}`}>
+                        © 2025–2026 Civic Education Kenya (CEKA).<br />
+                        "Every person has the right to privacy" — Article 31, Constitution of Kenya 2010.
                     </p>
-                    <div className="mt-6 flex justify-center space-x-4">
-                        <div className={`h-8 w-[1px] ${theme === 'dark' ? 'bg-[#38383A]' : 'bg-[#D8D8DC]'}`} />
-                    </div>
                 </div>
             </main>
 
-            {/* Premium Text Shadow Overlays (Reused from Splash) */}
+            {/* Premium Text Shadow Overlays */}
             <style dangerouslySetInnerHTML={{
                 __html: `
                 .text-ios-gray-200 { color: rgba(235, 235, 245, 0.82); }
