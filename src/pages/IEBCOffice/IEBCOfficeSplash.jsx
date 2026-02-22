@@ -636,7 +636,7 @@ const IEBCOfficeSplash = () => {
                             whileTap={{ scale: 0.95 }}
                             onClick={handleManualEntry}
                             className={`w-full px-8 py-4 rounded-2xl font-medium text-base border transition-all duration-300 ${theme === 'dark'
-                                ? 'text-ios-blue-400 border-ios-gray-600 bg-ios-gray-800 hover:bg-ios-gray-700 hover:border-ios-gray-500'
+                                ? 'text-ios-blue-400 border-white/10 hover:border-white/20 [background:rgba(30,30,40,0.45)] [backdrop-filter:blur(20px)_saturate(180%)] [-webkit-backdrop-filter:blur(20px)_saturate(180%)] hover:[background:rgba(40,40,55,0.55)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_4px_24px_rgba(0,0,0,0.35)]'
                                 : 'text-ios-blue border-ios-gray-300 bg-white hover:bg-ios-gray-50 hover:border-ios-gray-400'
                                 }`}
                         >
