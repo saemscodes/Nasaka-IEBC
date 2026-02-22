@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { useGeolocation } from '../../hooks/useGeolocation';
@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/components/SEO/SEOHead";
 import { SEOHead, generateWebsiteSchema, generateFAQSchema } from '@/components/SEO/SEOHead';
 
-// --- Helper: Haversine Distance ---
+// --- Helper: Haversine Distance (kept as inline fallback if Worker fails) ---
 const getDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371; // km
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -24,32 +24,62 @@ const getDistance = (lat1, lon1, lat2, lon2) => {
     return R * c;
 };
 
+// Perf 7: Create Web Worker for offloading geo math
+let geoWorkerInstance = null;
+const getGeoWorker = () => {
+    if (!geoWorkerInstance && typeof Worker !== 'undefined') {
+        try {
+            geoWorkerInstance = new Worker(
+                new URL('../../workers/geoWorker.js', import.meta.url),
+                { type: 'module' }
+            );
+        } catch (e) {
+            console.warn('Web Worker init failed, using main-thread fallback:', e);
+        }
+    }
+    return geoWorkerInstance;
+};
+
 // Enhanced Background Layers with Cursor-Tracking Radial Effects
+// Perf 1: CSS Variables for mouse tracking — zero React re-renders
 const BackgroundLayers = ({ className = "" }) => {
     const { theme } = useTheme();
-    const [cursorPos, setCursorPos] = useState({ x: 50, y: 50 });
-    const [isHovering, setIsHovering] = useState(false);
     const containerRef = useRef(null);
+    const isHoveringRef = useRef(false);
 
     useEffect(() => {
         const handleMouseMove = (e) => {
-            if (!containerRef.current) return;
+            const container = containerRef.current;
+            if (!container) return;
 
-            const rect = containerRef.current.getBoundingClientRect();
+            const rect = container.getBoundingClientRect();
             const x = ((e.clientX - rect.left) / rect.width) * 100;
             const y = ((e.clientY - rect.top) / rect.height) * 100;
 
-            setCursorPos({ x, y });
-            setIsHovering(true);
+            // Perf 1: Direct DOM manipulation — no setState, no re-render
+            container.style.setProperty('--cursor-x', `${x}%`);
+            container.style.setProperty('--cursor-y', `${y}%`);
+            if (!isHoveringRef.current) {
+                isHoveringRef.current = true;
+                container.style.setProperty('--cursor-opacity', '1');
+            }
         };
 
         const handleMouseLeave = () => {
-            setIsHovering(false);
+            isHoveringRef.current = false;
+            const container = containerRef.current;
+            if (container) {
+                container.style.setProperty('--cursor-opacity', '0.3');
+            }
         };
 
         const container = containerRef.current;
         if (container) {
-            container.addEventListener('mousemove', handleMouseMove);
+            // Set initial CSS variable values
+            container.style.setProperty('--cursor-x', '50%');
+            container.style.setProperty('--cursor-y', '50%');
+            container.style.setProperty('--cursor-opacity', '0.3');
+            container.addEventListener('mousemove', handleMouseMove, { passive: true });
             container.addEventListener('mouseleave', handleMouseLeave);
         }
 
@@ -67,20 +97,36 @@ const BackgroundLayers = ({ className = "" }) => {
             aria-hidden="true"
             className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`}
         >
-            {/* Faded Background Image */}
-            <div className="absolute inset-0 will-change-transform">
+            {/* Fix 1 + Perf 4: Background image at near-zero opacity */}
+            <div className="absolute inset-0" style={{ willChange: 'transform' }}>
                 <div
-                    className={`bg-peek absolute inset-0 transition-all duration-500 ${theme === 'dark' ? 'opacity-50' : 'opacity-100'
-                        }`}
+                    className={`bg-peek absolute inset-0 transition-opacity duration-500 opacity-[0.02]`}
                 />
             </div>
 
-            {/* Dark Mode Base Overlay */}
-            <div className="absolute inset-0 will-change-transform">
+            {/* Perf 5: Merged dark overlay + vignette + gradient into single composite layer */}
+            <div className="absolute inset-0 pointer-events-none" style={{ willChange: 'opacity' }}>
                 <div className={`absolute inset-0 transition-all duration-500 ${theme === 'dark'
-                    ? 'bg-ios-gray-900/80'
-                    : 'bg-white/0'
-                    }`} />
+                    ? ''
+                    : 'bg-vignette'
+                    }`}
+                    style={theme === 'dark' ? {
+                        background: `
+                            linear-gradient(to bottom,
+                                rgba(17, 17, 19, 0.85) 0%,
+                                rgba(17, 17, 19, 0.55) 25%,
+                                rgba(17, 17, 19, 0.40) 50%,
+                                rgba(17, 17, 19, 0.55) 75%,
+                                rgba(17, 17, 19, 0.85) 100%
+                            ),
+                            radial-gradient(ellipse at center,
+                                transparent 0%,
+                                rgba(0, 0, 0, 0.3) 40%,
+                                rgba(0, 0, 0, 0.6) 100%
+                            )
+                        `
+                    } : undefined}
+                />
             </div>
 
             {/* Dynamic Pattern Overlay with Color Drift
@@ -107,34 +153,35 @@ const BackgroundLayers = ({ className = "" }) => {
             </div>
             */}
 
-            {/* Cursor-Tracking Radial Gradient - Dark Mode Only */}
+            {/* Perf 1: Cursor-Tracking via CSS Variables — zero re-renders */}
             {theme === 'dark' && (
                 <>
-                    {/* Base Radial Glow */}
+                    {/* Base Radial Glow — uses CSS vars */}
                     <motion.div
                         className="absolute inset-0 pointer-events-none"
                         style={{
-                            background: `radial-gradient(circle at ${cursorPos.x}% ${cursorPos.y}%, 
+                            willChange: 'transform, opacity',
+                            background: `radial-gradient(circle at var(--cursor-x, 50%) var(--cursor-y, 50%), 
                 rgba(120, 120, 255, 0.1) 0%,
                 rgba(80, 80, 200, 0.05) 20%,
                 rgba(40, 40, 150, 0.02) 40%,
-                transparent 70%)`
+                transparent 70%)`,
+                            opacity: 'var(--cursor-opacity, 0.3)'
                         }}
                         animate={{
-                            opacity: isHovering ? 1 : 0.3,
-                            scale: isHovering ? [1, 1.02, 1] : 1
+                            scale: [1, 1.02, 1]
                         }}
                         transition={{
-                            opacity: { duration: 0.5 },
                             scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
                         }}
                     />
 
-                    {/* Dynamic Color Drift Layer */}
+                    {/* Dynamic Color Drift Layer — uses CSS vars */}
                     <motion.div
                         className="absolute inset-0 pointer-events-none"
                         style={{
-                            background: `radial-gradient(circle at ${cursorPos.x}% ${cursorPos.y}%, 
+                            willChange: 'transform, opacity',
+                            background: `radial-gradient(circle at var(--cursor-x, 50%) var(--cursor-y, 50%), 
                 rgba(255, 100, 100, 0.08) 0%,
                 rgba(100, 255, 100, 0.05) 25%,
                 rgba(100, 100, 255, 0.08) 50%,
@@ -142,39 +189,18 @@ const BackgroundLayers = ({ className = "" }) => {
                             mixBlendMode: 'overlay'
                         }}
                         animate={{
-                            opacity: isHovering ? [0.3, 0.6, 0.3] : 0.1,
-                            background: isHovering ? [
-                                `radial-gradient(circle at ${cursorPos.x}% ${cursorPos.y}%, 
-                 rgba(255, 100, 100, 0.1) 0%,
-                 rgba(100, 255, 100, 0.07) 25%,
-                 rgba(100, 100, 255, 0.1) 50%,
-                 transparent 70%)`,
-                                `radial-gradient(circle at ${cursorPos.x}% ${cursorPos.y}%, 
-                 rgba(100, 255, 100, 0.1) 0%,
-                 rgba(100, 100, 255, 0.07) 25%,
-                 rgba(255, 100, 100, 0.1) 50%,
-                 transparent 70%)`,
-                                `radial-gradient(circle at ${cursorPos.x}% ${cursorPos.y}%, 
-                 rgba(100, 100, 255, 0.1) 0%,
-                 rgba(255, 100, 100, 0.07) 25%,
-                 rgba(255, 100, 100, 0.1) 50%,
-                 transparent 70%)`
-                            ] : `radial-gradient(circle at ${cursorPos.x}% ${cursorPos.y}%, 
-                 rgba(255, 100, 100, 0.05) 0%,
-                 rgba(100, 255, 100, 0.03) 25%,
-                 rgba(100, 100, 255, 0.05) 50%,
-                 transparent 70%)`
+                            opacity: [0.1, 0.4, 0.1]
                         }}
                         transition={{
-                            opacity: { duration: 3, repeat: Infinity, ease: "easeInOut" },
-                            background: { duration: 8, repeat: Infinity, ease: "easeInOut" }
+                            opacity: { duration: 6, repeat: Infinity, ease: "easeInOut" }
                         }}
                     />
 
-                    {/* Moving Glare Sweep */}
+                    {/* Moving Glare Sweep — uses CSS vars for transform origin */}
                     <motion.div
                         className="absolute inset-0 pointer-events-none"
                         style={{
+                            willChange: 'transform, opacity',
                             background: `linear-gradient(120deg, 
                 transparent 0%,
                 rgba(255, 255, 255, 0.03) 45%,
@@ -182,7 +208,7 @@ const BackgroundLayers = ({ className = "" }) => {
                 rgba(255, 255, 255, 0.03) 55%,
                 transparent 100%)`,
                             mixBlendMode: 'soft-light',
-                            transformOrigin: `${cursorPos.x}% ${cursorPos.y}%`
+                            transformOrigin: 'var(--cursor-x, 50%) var(--cursor-y, 50%)'
                         }}
                         animate={{
                             rotate: [0, 360],
@@ -198,21 +224,12 @@ const BackgroundLayers = ({ className = "" }) => {
                 </>
             )}
 
-            {/* Enhanced Vignette - Dynamic for theme */}
-            <div className="absolute inset-0 pointer-events-none">
-                <div className={`absolute inset-0 transition-all duration-500 ${theme === 'dark'
-                    ? 'bg-vignette-dark'
-                    : 'bg-vignette'
-                    }`} />
-            </div>
-
-            {/* Subtle Color Overlay for Better Text Readability */}
-            <div className="absolute inset-0 pointer-events-none">
-                <div className={`absolute inset-0 transition-all duration-500 ${theme === 'dark'
-                    ? 'bg-gradient-to-b from-ios-gray-900/70 via-ios-gray-900/40 to-ios-gray-900/70'
-                    : 'bg-gradient-to-b from-white/60 via-white/30 to-white/60'
-                    }`} />
-            </div>
+            {/* Light mode: text readability gradient */}
+            {theme !== 'dark' && (
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/30 to-white/60 transition-all duration-500" />
+                </div>
+            )}
         </div>
     );
 };
@@ -302,22 +319,20 @@ const CekaLogoButton = () => {
     );
 };
 
-// Text Shadow Layer Component for Better Readability
+// Perf 3: TextShadowLayer — CSS text-shadow replaces blurred sibling div
 const TextShadowLayer = ({ children, className = "" }) => {
     const { theme } = useTheme();
 
     return (
-        <div className={`relative inline-block ${className}`}>
-            {/* Shadow layer hugging text */}
-            <div
-                className={`absolute -inset-1 rounded-lg blur-md transition-all duration-500 z-0 ${theme === "dark"
-                    ? "bg-black/15"
-                    : "bg-black/2"
-                    }`}
-                aria-hidden="true"
-            />
-            {/* Main text content */}
-            <div className="relative z-10">{children}</div>
+        <div
+            className={`relative inline-block ${className}`}
+            style={{
+                textShadow: theme === 'dark'
+                    ? '0 2px 8px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.15)'
+                    : '0 1px 4px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02)'
+            }}
+        >
+            {children}
         </div>
     );
 };
@@ -332,6 +347,7 @@ const IEBCOfficeSplash = () => {
     useEffect(() => {
         if (location) {
             // ✅ CANONICAL REDIRECTION LOGIC (Full Ham)
+            // Perf 7: Offload geo math to Web Worker with Perf 6 bounding-box pre-filter
             const resolveCanonicalRedirect = async () => {
                 try {
                     const { data: offices } = await supabase
@@ -340,42 +356,105 @@ const IEBCOfficeSplash = () => {
                         .eq('verified', true);
 
                     if (offices && offices.length > 0) {
-                        let nearestOffice = null;
-                        let minDistance = Infinity;
+                        const worker = getGeoWorker();
 
-                        offices.forEach(office => {
-                            if (office.latitude && office.longitude) {
-                                const dist = getDistance(
-                                    location.latitude,
-                                    location.longitude,
-                                    office.latitude,
-                                    office.longitude
-                                );
-                                if (dist < minDistance) {
-                                    minDistance = dist;
-                                    nearestOffice = office;
+                        if (worker) {
+                            // Perf 7: Use Web Worker (includes Perf 6 bounding-box pre-filter)
+                            worker.onmessage = (e) => {
+                                if (e.data.type === 'NEAREST_RESULT' && e.data.nearestOffice) {
+                                    // Fix 5: Persist userLocation for return navigation
+                                    try {
+                                        sessionStorage.setItem('nasaka_userLocation', JSON.stringify(location));
+                                    } catch (_) { /* private browsing */ }
+
+                                    navigate('/iebc-office/map', {
+                                        state: {
+                                            selectedOffice: e.data.nearestOffice,
+                                            userLocation: location
+                                        },
+                                        replace: true
+                                    });
+                                } else {
+                                    // Worker found no result — fallback
+                                    navigateToMapFallback();
                                 }
-                            }
-                        });
-
-                        if (nearestOffice) {
-                            // Fix UX: Go to map with selected office instead of detail page directly,
-                            // allowing the user to see the context first.
-                            navigate('/iebc-office/map', {
-                                state: {
-                                    selectedOffice: nearestOffice,
-                                    userLocation: location
-                                },
-                                replace: true
+                            };
+                            worker.onerror = () => {
+                                // Worker error — fall back to main-thread calculation
+                                findNearestOnMainThread(offices);
+                            };
+                            worker.postMessage({
+                                type: 'FIND_NEAREST',
+                                userLocation: location,
+                                offices
                             });
                             return;
                         }
+
+                        // No Worker available — main thread fallback
+                        findNearestOnMainThread(offices);
+                        return;
                     }
                 } catch (e) {
                     console.error("Failed to resolve canonical area:", e);
                 }
 
-                // Fallback to generic map if derivation fails
+                navigateToMapFallback();
+            };
+
+            // Main-thread fallback with Perf 6 bounding-box pre-filter
+            const findNearestOnMainThread = (offices) => {
+                // Perf 6: Bounding-box pre-filter
+                let candidates = offices.filter(o =>
+                    o.latitude && o.longitude &&
+                    Math.abs(o.latitude - location.latitude) < 0.5 &&
+                    Math.abs(o.longitude - location.longitude) < 0.5
+                );
+                if (candidates.length === 0) {
+                    candidates = offices.filter(o => o.latitude && o.longitude);
+                }
+
+                let nearestOffice = null;
+                let minDistance = Infinity;
+
+                candidates.forEach(office => {
+                    const dist = getDistance(
+                        location.latitude,
+                        location.longitude,
+                        office.latitude,
+                        office.longitude
+                    );
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        nearestOffice = office;
+                    }
+                });
+
+                if (nearestOffice) {
+                    // Fix 5: Persist userLocation for return navigation
+                    try {
+                        sessionStorage.setItem('nasaka_userLocation', JSON.stringify(location));
+                    } catch (_) { /* private browsing */ }
+
+                    navigate('/iebc-office/map', {
+                        state: {
+                            selectedOffice: nearestOffice,
+                            userLocation: location
+                        },
+                        replace: true
+                    });
+                    return;
+                }
+
+                navigateToMapFallback();
+            };
+
+            const navigateToMapFallback = () => {
+                // Fix 5: Persist userLocation even in fallback
+                try {
+                    sessionStorage.setItem('nasaka_userLocation', JSON.stringify(location));
+                } catch (_) { /* private browsing */ }
+
                 navigate('/iebc-office/map', {
                     state: { userLocation: location },
                     replace: true

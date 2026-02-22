@@ -24,9 +24,25 @@ const IEBCOfficeMap = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const userLocation = state?.userLocation;
+  const stateUserLocation = state?.userLocation;
   const manualEntry = state?.manualEntry;
   const { t } = useTranslation('nasaka');
+
+  // Fix 5: Recover userLocation from sessionStorage if not in navigation state
+  const userLocation = useMemo(() => {
+    if (stateUserLocation) {
+      // Persist for future return navigation
+      try {
+        sessionStorage.setItem('nasaka_userLocation', JSON.stringify(stateUserLocation));
+      } catch (_) { /* private browsing */ }
+      return stateUserLocation;
+    }
+    // Fallback: recover from sessionStorage
+    try {
+      const stored = sessionStorage.getItem('nasaka_userLocation');
+      return stored ? JSON.parse(stored) : null;
+    } catch (_) { return null; }
+  }, [stateUserLocation]);
 
   // CRITICAL: Determine if we have location access
   const hasLocationAccess = !!userLocation;

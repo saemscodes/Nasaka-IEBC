@@ -9,14 +9,14 @@ const enc = (s) => encodeURIComponent(s || '');
 
 export function buildUrlsFor(provider, options = {}) {
   const { pickup, destination, productType } = options;
-  
+
   const p = pickup ? fmt(
-    pickup.lat ?? pickup.latitude, 
+    pickup.lat ?? pickup.latitude,
     pickup.lng ?? pickup.longitude
   ) : null;
-  
+
   const d = destination ? fmt(
-    destination.lat ?? destination.latitude, 
+    destination.lat ?? destination.latitude,
     destination.lng ?? destination.longitude
   ) : null;
 
@@ -38,7 +38,7 @@ export function buildUrlsFor(provider, options = {}) {
 
       const webParams = [...pickupParams, ...dropoffParams].join('&');
       const web = `https://m.uber.com/ul/?action=setPickup${webParams ? `&${webParams}` : ''}${productParam}`;
-      
+
       const appParams = [...pickupParams, ...dropoffParams].join('&');
       const app = `uber://?action=setPickup${appParams ? `&${appParams}` : ''}${productParam}`;
 
@@ -48,22 +48,22 @@ export function buildUrlsFor(provider, options = {}) {
     case 'bolt': {
       const pickupStr = p || '';
       const destStr = d || '';
-      
-      const web = d 
+
+      const web = d
         ? `https://bolt.eu/en-ke/ride/?pickup=${enc(pickupStr)}&destination=${enc(destStr)}`
         : 'https://bolt.eu/en-ke/';
-      
+
       const app = 'bolt://';
-      
+
       return { app, web };
     }
 
     case 'google':
     case 'googlemaps': {
       const web = `https://www.google.com/maps/dir/?api=1${p ? `&origin=${enc(p)}` : ''}${d ? `&destination=${enc(d)}` : ''}&travelmode=driving`;
-      
-      const app = isIOS() 
-        ? `comgooglemaps://?saddr=${enc(p || '')}&daddr=${enc(d || '')}&directionsmode=driving` 
+
+      const app = isIOS()
+        ? `comgooglemaps://?saddr=${enc(p || '')}&daddr=${enc(d || '')}&directionsmode=driving`
         : null;
 
       return { app, web };
@@ -72,7 +72,7 @@ export function buildUrlsFor(provider, options = {}) {
     case 'apple':
     case 'applemaps': {
       const web = `https://maps.apple.com/?${p ? `saddr=${enc(p)}&` : ''}${d ? `daddr=${enc(d)}&` : ''}dirflg=d`;
-      
+
       return { app: null, web };
     }
 
@@ -80,7 +80,7 @@ export function buildUrlsFor(provider, options = {}) {
       const web = d
         ? `https://www.google.com/maps/search/?api=1&query=${enc(d)}`
         : 'https://www.google.com/maps';
-      
+
       return { app: null, web };
     }
   }
@@ -118,7 +118,7 @@ export function openWithAppFallback(appUrl, webUrl, options = {}) {
       clearHandlers();
     }
   };
-  
+
   document.addEventListener('visibilitychange', visibilityHandler);
 
   try {
@@ -142,64 +142,64 @@ export function openWithAppFallback(appUrl, webUrl, options = {}) {
 export function getProviderColors(provider, isDark = false) {
   const colors = {
     uber: {
-      light: { 
-        bg: 'bg-white', 
-        text: 'text-black', 
-        hover: 'hover:bg-gray-900',
+      light: {
+        bg: 'bg-white',
+        text: 'text-black',
+        hover: 'hover:bg-gray-100',
         border: 'border-black',
         shadow: 'shadow-lg hover:shadow-xl'
       },
-      dark: { 
-        bg: 'bg-black', 
-        text: 'text-white', 
-        hover: 'hover:bg-gray-800',
+      dark: {
+        bg: 'bg-black',
+        text: 'text-white',
+        hover: 'hover:bg-gray-700',
         border: 'border-gray-700',
         shadow: 'shadow-lg hover:shadow-xl'
       }
     },
     bolt: {
-      light: { 
-        bg: 'bg-[#34D186]', 
-        text: 'text-black', 
-        hover: 'hover:bg-[#2BBD75]',
+      light: {
+        bg: 'bg-[#34D186]',
+        text: 'text-black',
+        hover: 'hover:bg-[#28A968]',
         border: 'border-[#34D186]',
         shadow: 'shadow-lg hover:shadow-xl'
       },
-      dark: { 
-        bg: 'bg-[#34D186]', 
-        text: 'text-black', 
-        hover: 'hover:bg-[#2BBD75]',
+      dark: {
+        bg: 'bg-[#34D186]',
+        text: 'text-black',
+        hover: 'hover:bg-[#28A968]',
         border: 'border-[#34D186]',
         shadow: 'shadow-lg hover:shadow-xl'
       }
     },
     google: {
-      light: { 
-        bg: 'bg-white', 
-        text: 'text-gray-900', 
+      light: {
+        bg: 'bg-white',
+        text: 'text-gray-900',
         hover: 'hover:bg-gray-50',
         border: 'border-gray-300',
         shadow: 'shadow-lg hover:shadow-xl'
       },
-      dark: { 
-        bg: 'bg-[#1F1F1F]', 
-        text: 'text-white', 
+      dark: {
+        bg: 'bg-[#1F1F1F]',
+        text: 'text-white',
         hover: 'hover:bg-[#2A2A2A]',
         border: 'border-gray-700',
         shadow: 'shadow-lg hover:shadow-xl'
       }
     },
     apple: {
-      light: { 
-        bg: 'bg-white', 
-        text: 'text-gray-900', 
+      light: {
+        bg: 'bg-white',
+        text: 'text-gray-900',
         hover: 'hover:bg-gray-50',
         border: 'border-gray-300',
         shadow: 'shadow-lg hover:shadow-xl'
       },
-      dark: { 
-        bg: 'bg-[#1C1C1E]', 
-        text: 'text-white', 
+      dark: {
+        bg: 'bg-[#1C1C1E]',
+        text: 'text-white',
         hover: 'hover:bg-[#2C2C2E]',
         border: 'border-gray-700',
         shadow: 'shadow-lg hover:shadow-xl'
@@ -213,7 +213,7 @@ export function getProviderColors(provider, isDark = false) {
 
 export function trackProviderOpen(provider, options = {}) {
   const { productType, source = 'map' } = options;
-  
+
   console.log('[Analytics] Provider opened:', { provider, productType, source, timestamp: new Date().toISOString() });
 
   if (window.gtag) {

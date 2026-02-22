@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -27,6 +27,9 @@ import {
     deslugify
 } from '@/components/SEO/SEOHead';
 import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const OfficeDetail = () => {
     const { county: rawCounty, area: rawArea, constituency: rawConstituency } = useParams();
@@ -42,6 +45,25 @@ const OfficeDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [nearbyOffices, setNearbyOffices] = useState([]);
+
+    // Fix 5: Read persisted userLocation from sessionStorage for return navigation
+    const savedUserLocation = useMemo(() => {
+        try {
+            const stored = sessionStorage.getItem('nasaka_userLocation');
+            return stored ? JSON.parse(stored) : null;
+        } catch (_) { return null; }
+    }, []);
+
+    // Mini-map marker icon
+    const officeIcon = useMemo(() => L.divIcon({
+        html: `<div style="width:32px;height:32px;background:#007AFF;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>`,
+        className: '',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+    }), []);
 
     // URL Sanitization
     const sanitizeSlug = (slug) => slug?.toLowerCase().trim().replace(/[^\w-]/g, '');
@@ -76,22 +98,51 @@ const OfficeDetail = () => {
                 areaSearch = areaSearch.substring(0, areaSearch.length - 5);
             }
 
-            let query = supabase
-                .from('iebc_offices')
-                .select('*');
+            let data = null;
 
             if (areaSearch) {
-                query = query.ilike('constituency_name', areaSearch);
+                // Fix 2: Step 1 — fuzzy match with %search% on constituency_name
+                const { data: d1, error: e1 } = await supabase
+                    .from('iebc_offices')
+                    .select('*')
+                    .ilike('constituency_name', `%${areaSearch}%`)
+                    .limit(1)
+                    .maybeSingle();
+
+                if (e1) throw e1;
+                data = d1;
+
+                // Fix 2: Step 2 — multi-word fallback: split and try individual terms
+                if (!data && areaSearch.includes(' ')) {
+                    const terms = areaSearch.split(' ').filter(t => t.length > 2);
+                    for (const term of terms) {
+                        const { data: d2 } = await supabase
+                            .from('iebc_offices')
+                            .select('*')
+                            .ilike('constituency_name', `%${term}%`)
+                            .limit(1)
+                            .maybeSingle();
+                        if (d2) {
+                            data = d2;
+                            break;
+                        }
+                    }
+                }
             } else {
-                query = query.ilike('county', countySearch);
+                // County-only search
+                const { data: d3, error: e3 } = await supabase
+                    .from('iebc_offices')
+                    .select('*')
+                    .ilike('county', countySearch)
+                    .limit(1)
+                    .maybeSingle();
+
+                if (e3) throw e3;
+                data = d3;
             }
 
-            const { data, error: fetchError } = await query.limit(1).maybeSingle();
-
-            if (fetchError) throw fetchError;
-
             if (!data) {
-                // Fuzzy match attempt
+                // Final fuzzy fallback on county
                 const { data: fuzzyData } = await supabase
                     .from('iebc_offices')
                     .select('*')
@@ -158,7 +209,11 @@ const OfficeDetail = () => {
                 <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
                 <h1 className="text-2xl font-bold mb-2">Office Not Found</h1>
                 <p className="text-muted-foreground mb-6">{error || "We couldn't locate this IEBC office."}</p>
-                <Link to="/iebc-office/map" className="px-6 py-3 bg-primary text-white rounded-xl font-medium">
+                <Link
+                    to="/iebc-office/map"
+                    state={savedUserLocation ? { userLocation: savedUserLocation } : undefined}
+                    className="px-6 py-3 bg-primary text-white rounded-xl font-medium"
+                >
                     Return to Map
                 </Link>
             </div>
@@ -253,13 +308,51 @@ const OfficeDetail = () => {
                         <span className="text-sm font-semibold">Directions</span>
                     </button>
                     <button
-                        onClick={() => navigate('/iebc-office/map', { state: { selectedOffice: office } })}
+                        onClick={() => navigate('/iebc-office/map', {
+                            state: {
+                                selectedOffice: office,
+                                ...(savedUserLocation ? { userLocation: savedUserLocation } : {})
+                            }
+                        })}
                         className={`flex flex-col items-center justify-center p-4 rounded-3xl shadow-sm border active:scale-95 transition-transform ${isDark ? 'bg-ios-gray-800 border-ios-gray-700' : 'bg-white border-ios-gray-100'}`}
                     >
                         <MapPin className="w-6 h-6 mb-2 text-blue-500" />
                         <span className="text-sm font-semibold">View on Map</span>
                     </button>
                 </section>
+
+                {/* Mini Map */}
+                {office.latitude && office.longitude && (
+                    <section className={`rounded-3xl overflow-hidden border shadow-sm ${isDark ? 'border-ios-gray-700' : 'border-ios-gray-100'}`}>
+                        <div style={{ height: '200px', width: '100%' }}>
+                            <MapContainer
+                                center={[office.latitude, office.longitude]}
+                                zoom={14}
+                                scrollWheelZoom={false}
+                                dragging={false}
+                                zoomControl={false}
+                                attributionControl={false}
+                                style={{ height: '100%', width: '100%', borderRadius: '24px' }}
+                            >
+                                <TileLayer
+                                    url={isDark
+                                        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                                        : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+                                    }
+                                />
+                                <Marker
+                                    position={[office.latitude, office.longitude]}
+                                    icon={officeIcon}
+                                >
+                                    <Popup>
+                                        <div className="text-sm font-semibold">{officeName}</div>
+                                        <div className="text-xs text-muted-foreground">{countyName} County</div>
+                                    </Popup>
+                                </Marker>
+                            </MapContainer>
+                        </div>
+                    </section>
+                )}
 
                 {/* Info Grid */}
                 <section className={`rounded-3xl overflow-hidden border ${isDark ? 'bg-ios-gray-800 border-ios-gray-700' : 'bg-white border-ios-gray-100'}`}>
