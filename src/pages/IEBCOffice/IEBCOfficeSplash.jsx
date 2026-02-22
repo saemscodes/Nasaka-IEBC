@@ -310,8 +310,8 @@ const TextShadowLayer = ({ children, className = "" }) => {
             {/* Shadow layer hugging text */}
             <div
                 className={`absolute -inset-1 rounded-lg blur-md transition-all duration-500 z-0 ${theme === "dark"
-                    ? "bg-black/40"
-                    : "bg-black/15"
+                    ? "bg-black/15"
+                    : "bg-black/2"
                     }`}
                 aria-hidden="true"
             />
@@ -504,19 +504,15 @@ const IEBCOfficeSplash = () => {
             >
                 <BackgroundLayers />
 
-                <div className="relative z-10 flex flex-col items-center justify-center text-center max-w-md w-full mx-auto mb-8">
+                <div className="relative z-10 text-center max-w-md w-full mb-8">
                     <motion.div
                         className="relative flex items-center justify-center w-32 h-32 mx-auto mb-2"
                         variants={iconVariants}
                         initial="initial"
                         animate="animate"
                     >
-                        <div className={`absolute inset-0 rounded-full animate-ping ${theme === 'dark'
-                            ? 'bg-ios-blue/30'
-                            : 'bg-ios-blue/20'
-                            }`} />
                         <div
-                            className={`absolute inset-4 rounded-full flex items-center justify-center shadow-lg ${theme === 'dark'
+                            className={`absolute inset-6 rounded-full flex items-center justify-center shadow-lg ${theme === 'dark'
                                 ? 'bg-ios-blue-600 shadow-ios-blue/25'
                                 : 'bg-ios-blue shadow-ios-blue/25'
                                 }`}
@@ -550,16 +546,10 @@ const IEBCOfficeSplash = () => {
                                 }`}>
                                 {t('splash.title', 'NASAKA')}
                             </h1>
-                            <div className="flex items-center justify-center space-x-2">
-                                <div className={`h-px w-8 ${theme === 'dark' ? 'bg-ios-blue/60' : 'bg-ios-blue/40'
-                                    }`}></div>
-                                <h2 className={`text-xl font-semibold tracking-wide ${theme === 'dark' ? 'text-ios-blue-400' : 'text-ios-blue'
-                                    }`}>
-                                    {t('splash.subtitle', 'IEBC')}
-                                </h2>
-                                <div className={`h-px w-8 ${theme === 'dark' ? 'bg-ios-blue/60' : 'bg-ios-blue/40'
-                                    }`}></div>
-                            </div>
+                            <h2 className={`text-xl font-semibold tracking-wide ${theme === 'dark' ? 'text-ios-blue-400' : 'text-ios-blue'
+                                }`}>
+                                {t('splash.subtitle', 'IEBC')}
+                            </h2>
                         </motion.div>
                     </TextShadowLayer>
 
@@ -613,7 +603,7 @@ const IEBCOfficeSplash = () => {
                     </AnimatePresence>
 
                     <motion.div
-                        className="flex flex-col space-y-3 w-full max-w-[320px] mx-auto mt-2"
+                        className="flex flex-col space-y-3 mt-2"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5 }}
@@ -622,7 +612,7 @@ const IEBCOfficeSplash = () => {
                             whileTap={{ scale: 0.95 }}
                             onClick={handleAllowLocation}
                             disabled={loading}
-                            className={`px-8 py-4 rounded-2xl font-semibold text-base disabled:opacity-50 flex items-center justify-center space-x-2 shadow-lg transition-all duration-300 ${theme === 'dark'
+                            className={`w-full px-8 py-4 rounded-2xl font-semibold text-base disabled:opacity-50 flex items-center justify-center space-x-2 shadow-lg transition-all duration-300 ${theme === 'dark'
                                 ? 'bg-ios-blue-600 text-white shadow-ios-blue/40 hover:bg-ios-blue-700'
                                 : 'bg-ios-blue text-white shadow-ios-blue/25 hover:bg-ios-blue-500'
                                 }`}
@@ -645,7 +635,7 @@ const IEBCOfficeSplash = () => {
                         <motion.button
                             whileTap={{ scale: 0.95 }}
                             onClick={handleManualEntry}
-                            className={`px-8 py-4 rounded-2xl font-medium text-base border transition-all duration-300 ${theme === 'dark'
+                            className={`w-full px-8 py-4 rounded-2xl font-medium text-base border transition-all duration-300 ${theme === 'dark'
                                 ? 'text-ios-blue-400 border-ios-gray-600 bg-ios-gray-800 hover:bg-ios-gray-700 hover:border-ios-gray-500'
                                 : 'text-ios-blue border-ios-gray-300 bg-white hover:bg-ios-gray-50 hover:border-ios-gray-400'
                                 }`}
