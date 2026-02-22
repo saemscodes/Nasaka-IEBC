@@ -370,9 +370,9 @@ COUNTIES_DATA.forEach(county => {
 // Enhanced Google Maps URL parsing function
 const parseGoogleMapsInput = (input) => {
   if (!input || typeof input !== 'string') return null;
-  
+
   const trimmed = input.trim();
-  
+
   // Pattern 1: Direct coordinates (e.g., "-1.2921,36.8219")
   const directCoords = trimmed.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);
   if (directCoords) {
@@ -382,7 +382,7 @@ const parseGoogleMapsInput = (input) => {
       return { lat, lng, source: 'direct_paste' };
     }
   }
-  
+
   // Pattern 2: @lat,lng,zoom format (most common)
   const atPattern = trimmed.match(/@(-?\d+\.?\d+),(-?\d+\.?\d+),?(\d+\.?\d*)?z?/);
   if (atPattern) {
@@ -392,7 +392,7 @@ const parseGoogleMapsInput = (input) => {
       return { lat, lng, source: 'at_pattern', zoom: parseFloat(atPattern[3]) };
     }
   }
-  
+
   // Pattern 3: ?q=lat,lng format
   const qPattern = trimmed.match(/[?&]q=(-?\d+\.?\d+),(-?\d+\.?\d+)/);
   if (qPattern) {
@@ -402,7 +402,7 @@ const parseGoogleMapsInput = (input) => {
       return { lat, lng, source: 'q_parameter' };
     }
   }
-  
+
   // Pattern 4: !3dlat!4dlng format
   const dataPattern = trimmed.match(/!3d(-?\d+\.?\d+)!4d(-?\d+\.?\d+)/);
   if (dataPattern) {
@@ -412,7 +412,7 @@ const parseGoogleMapsInput = (input) => {
       return { lat, lng, source: 'data_parameter' };
     }
   }
-  
+
   // Pattern 5: /place/ with coordinates
   const placePattern = trimmed.match(/\/place\/([^/@?]+)\/@(-?\d+\.?\d+),(-?\d+\.?\d+)/);
   if (placePattern) {
@@ -423,19 +423,19 @@ const parseGoogleMapsInput = (input) => {
       return { lat, lng, placeName, source: 'place_path' };
     }
   }
-  
+
   // Pattern 6: Short URLs
   if (trimmed.match(/goo\.gl\/maps\/|maps\.app\.goo\.gl/)) {
     return { requiresExpansion: true, shortUrl: trimmed, source: 'short_url' };
   }
-  
+
   // Pattern 7: Place name only
   const placeNamePattern = trimmed.match(/\/place\/([^/@?]+)/);
   if (placeNamePattern && !placeNamePattern[1].includes('@')) {
     const placeName = decodeURIComponent(placeNamePattern[1]).replace(/\+/g, ' ');
     return { placeName, requiresGeocoding: true, source: 'place_name' };
   }
-  
+
   return null;
 };
 
@@ -444,17 +444,17 @@ const isValidCoordinate = (lat, lng) => {
     minLat: -4.678, maxLat: 5.506,
     minLng: 33.908, maxLng: 41.899
   };
-  
+
   return (!isNaN(lat) && !isNaN(lng) &&
-          lat >= KENYA_BOUNDS.minLat && lat <= KENYA_BOUNDS.maxLat &&
-          lng >= KENYA_BOUNDS.minLng && lng <= KENYA_BOUNDS.maxLng);
+    lat >= KENYA_BOUNDS.minLat && lat <= KENYA_BOUNDS.maxLat &&
+    lng >= KENYA_BOUNDS.minLng && lng <= KENYA_BOUNDS.maxLng);
 };
 
 // Enhanced client-side URL expansion with timeout
 const expandShortUrl = async (shortUrl) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 5000);
-  
+
   try {
     const response = await fetch(shortUrl, {
       method: 'HEAD',
@@ -465,7 +465,8 @@ const expandShortUrl = async (shortUrl) => {
     return response.url;
   } catch (error) {
     clearTimeout(timeoutId);
-    console.error('Error expanding URL:', error);
+    // Log removed for production
+
     return shortUrl;
   }
 };
@@ -493,14 +494,14 @@ const normalizeString = (str) => {
 const fuzzyMatch = (query, target) => {
   const normalizedQuery = normalizeString(query);
   const normalizedTarget = normalizeString(target);
-  
+
   if (normalizedTarget.includes(normalizedQuery)) return true;
   if (normalizedQuery.includes(normalizedTarget)) return true;
-  
+
   // Levenshtein distance simple check for typos
   const maxDistance = Math.floor(Math.min(normalizedQuery.length, normalizedTarget.length) * 0.3);
   if (calculateLevenshteinDistance(normalizedQuery, normalizedTarget) <= maxDistance) return true;
-  
+
   return false;
 };
 
@@ -531,30 +532,32 @@ const calculateLevenshteinDistance = (a, b) => {
 // Enhanced constituency code mapping function
 const getConstituencyCodeFromData = (constituencyName, countyName) => {
   if (!constituencyName || !countyName) return null;
-  
+
   const normalizedConstituency = normalizeString(constituencyName);
   const normalizedCounty = normalizeString(countyName);
-  
+
   // Find the county using fuzzy matching
-  const county = COUNTIES_DATA.find(c => 
+  const county = COUNTIES_DATA.find(c =>
     fuzzyMatch(normalizedCounty, c.name)
   );
-  
+
   if (!county) {
-    console.warn(`County not found: ${countyName}`);
+    // Log removed for production
+
     return null;
   }
-  
+
   // Find the constituency within the county using fuzzy matching
-  const constituency = CONSTITUENCIES_DATA.find(c => 
+  const constituency = CONSTITUENCIES_DATA.find(c =>
     c.county_id === county.id && fuzzyMatch(normalizedConstituency, c.name)
   );
-  
+
   if (!constituency) {
-    console.warn(`Constituency "${constituencyName}" not found in county "${countyName}"`);
+    // Log removed for production
+
     return null;
   }
-  
+
   // Return the constituency ID as integer (not string with "CONST-" prefix)
   return constituency.id;
 };
@@ -562,17 +565,17 @@ const getConstituencyCodeFromData = (constituencyName, countyName) => {
 // Validation function for constituency-county match
 const validateConstituencyCountyMatch = (constituencyName, countyName) => {
   if (!constituencyName || !countyName) return true;
-  
+
   const normalizedConstituency = normalizeString(constituencyName);
   const normalizedCounty = normalizeString(countyName);
-  
+
   const county = COUNTIES_DATA.find(c => fuzzyMatch(normalizedCounty, c.name));
   if (!county) return false;
-  
-  const constituency = CONSTITUENCIES_DATA.find(c => 
+
+  const constituency = CONSTITUENCIES_DATA.find(c =>
     c.county_id === county.id && fuzzyMatch(normalizedConstituency, c.name)
   );
-  
+
   return !!constituency;
 };
 
@@ -610,7 +613,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const [duplicateOffices, setDuplicateOffices] = useState([]);
   const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
   const [constituencyCode, setConstituencyCode] = useState(null);
-  
+
   const mapRef = useRef(null);
   const accuracyCircleRef = useRef(null);
   const markerRef = useRef(null);
@@ -618,24 +621,27 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const retryCountRef = useRef(0);
   const countyInputRef = useRef(null);
   const constituencyInputRef = useRef(null);
-  
-  const { 
-    getCurrentPosition, 
-    convertImageToWebP, 
-    submitContribution, 
-    isSubmitting, 
+
+  const {
+    getCurrentPosition,
+    convertImageToWebP,
+    submitContribution,
+    isSubmitting,
     error
   } = useContributeLocation();
 
   // Enhanced constituency code fetching with local data
   const fetchConstituencyCode = async (constituencyName, countyName) => {
     try {
-      console.log('Fetching constituency code for:', constituencyName, countyName);
+      // Log removed for production
+
       const code = getConstituencyCodeFromData(constituencyName, countyName);
-      console.log('Constituency code result:', code);
+      // Log removed for production
+
       return code;
     } catch (error) {
-      console.warn('Failed to fetch constituency code from local data:', error);
+      // Log removed for production
+
       return null;
     }
   };
@@ -648,7 +654,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
           const code = await fetchConstituencyCode(formData.submitted_constituency, formData.submitted_county);
           setConstituencyCode(code);
         } catch (error) {
-          console.warn('Failed to fetch constituency code:', error);
+          // Log removed for production
+
           setConstituencyCode(null);
         }
       } else {
@@ -664,9 +671,9 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const handleCountyInputChange = (value) => {
     setCountyInput(value);
     setFormData(prev => ({ ...prev, submitted_county: value }));
-    
+
     if (value.length > 1) {
-      const suggestions = KENYAN_COUNTIES.filter(county => 
+      const suggestions = KENYAN_COUNTIES.filter(county =>
         fuzzyMatch(value, county)
       ).slice(0, 5);
       setCountySuggestions(suggestions);
@@ -680,10 +687,10 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const handleConstituencyInputChange = (value) => {
     setConstituencyInput(value);
     setFormData(prev => ({ ...prev, submitted_constituency: value }));
-    
+
     if (value.length > 1 && formData.submitted_county) {
       const countyConstituencies = CONSTITUENCY_SUGGESTIONS[formData.submitted_county] || [];
-      const suggestions = countyConstituencies.filter(constituency => 
+      const suggestions = countyConstituencies.filter(constituency =>
         fuzzyMatch(value, constituency)
       ).slice(0, 5);
       setConstituencySuggestions(suggestions);
@@ -716,15 +723,15 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       if (typeof lat !== 'number' || typeof lng !== 'number') {
         throw new Error('Invalid coordinates');
       }
-      
+
       // Validate Kenya bounds
       const KENYA_BOUNDS = {
-        minLat: -4.678, maxLat: 5.506, 
+        minLat: -4.678, maxLat: 5.506,
         minLng: 33.908, maxLng: 41.899
       };
-      
-      if (lat < KENYA_BOUNDS.minLat || lat > KENYA_BOUNDS.maxLat || 
-          lng < KENYA_BOUNDS.minLng || lng > KENYA_BOUNDS.maxLng) {
+
+      if (lat < KENYA_BOUNDS.minLat || lat > KENYA_BOUNDS.maxLat ||
+        lng < KENYA_BOUNDS.minLng || lng > KENYA_BOUNDS.maxLng) {
         throw new Error('Coordinates outside Kenya bounds');
       }
 
@@ -739,11 +746,11 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         .eq('status', 'verified');
 
       if (error) throw error;
-      
+
       // Simple distance calculation
       const nearbyOffices = data?.filter(office => {
         const distance = Math.sqrt(
-          Math.pow(office.submitted_latitude - lat, 2) + 
+          Math.pow(office.submitted_latitude - lat, 2) +
           Math.pow(office.submitted_longitude - lng, 2)
         ) * 111000; // Convert to meters
         return distance < radius;
@@ -754,7 +761,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         is_likely_duplicate: true
       }));
     } catch (error) {
-      console.warn('Safe duplicate check failed:', error.message);
+      // Log removed for production
+
       return [];
     }
   };
@@ -762,38 +770,42 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   // FIXED: Enhanced addMarkerToMap with proper retry limits
   const addMarkerToMap = useCallback((position, method = selectedMethod) => {
     if (!mapRef.current || !position || !position.lat || !position.lng) {
-      console.warn('Cannot add marker: invalid position or map not ready');
+      // Log removed for production
+
       return;
     }
 
     if (isNaN(position.lat) || isNaN(position.lng)) {
-      console.error('Invalid coordinates for marker:', position);
+      // Log removed for production
+
       return;
     }
-    
+
     const addMarker = (retryCount = 0) => {
       if (retryCount > 3) {
-        console.warn('Max retries exceeded for adding marker');
+        // Log removed for production
+
         return;
       }
-      
+
       try {
         const mapInstance = mapRef.current;
         if (!mapInstance || typeof mapInstance.addLayer !== 'function') {
-          console.warn('Map instance not ready for adding marker, retrying...');
+          // Log removed for production
+
           setTimeout(() => addMarker(retryCount + 1), 200);
           return;
         }
-        
+
         if (markerRef.current) {
           mapInstance.removeLayer(markerRef.current);
         }
-        
+
         markerRef.current = L.marker([position.lat, position.lng], {
           icon: createCustomIcon(),
           draggable: method === 'drop_pin'
         }).addTo(mapInstance);
-        
+
         if (method === 'drop_pin') {
           markerRef.current.on('dragend', (event) => {
             const newPosition = event.target.getLatLng();
@@ -822,13 +834,13 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       console.warn('Invalid parameters for accuracy circle:', { position, accuracyValue });
       return;
     }
-    
+
     const addCircle = (retryCount = 0) => {
       if (retryCount > 3) {
         console.warn('Max retries exceeded for adding accuracy circle');
         return;
       }
-      
+
       try {
         const mapInstance = mapRef.current;
         if (!mapInstance || typeof mapInstance.addLayer !== 'function') {
@@ -836,11 +848,11 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
           setTimeout(() => addCircle(retryCount + 1), 200);
           return;
         }
-        
+
         if (accuracyCircleRef.current) {
           mapInstance.removeLayer(accuracyCircleRef.current);
         }
-        
+
         const limitedAccuracy = Math.min(accuracyValue, 1000);
         accuracyCircleRef.current = L.circle([position.lat, position.lng], {
           radius: limitedAccuracy,
@@ -862,7 +874,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const handleMapClick = useCallback((e) => {
     if (selectedMethod === 'drop_pin' && e && e.latlng) {
       const { lat, lng } = e.latlng;
-      
+
       if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
         console.error('Invalid map click coordinates:', e.latlng);
         return;
@@ -871,10 +883,10 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       const clickedPosition = { lat, lng };
       setPosition(clickedPosition);
       setAccuracy(5);
-      
+
       if (mapRef.current) {
         mapRef.current.flyTo([lat, lng], 16, { duration: 0.5 });
-        
+
         // Use setTimeout to ensure flyTo completes before adding layers
         setTimeout(() => {
           addMarkerToMap(clickedPosition, 'drop_pin');
@@ -888,12 +900,12 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const handleMapReady = useCallback((map) => {
     console.log('Map is ready:', map);
     setIsMapReady(true);
-    
+
     // Ensure click events are captured for drop pin mode
     if (map && typeof map.on === 'function') {
       map.on('click', handleMapClick);
     }
-    
+
     if (position) {
       // Use setTimeout to ensure map layers are fully initialized
       setTimeout(() => {
@@ -909,7 +921,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       const userPos = { lat: userLocation.latitude, lng: userLocation.longitude };
       setMapCenter([userLocation.latitude, userLocation.longitude]);
       setMapZoom(16);
-      
+
       if (mapRef.current) {
         mapRef.current.flyTo([userLocation.latitude, userLocation.longitude], 16, { duration: 1 });
       }
@@ -922,13 +934,13 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       if (!position || typeof position.lat !== 'number' || typeof position.lng !== 'number') {
         return;
       }
-      
+
       setIsCheckingDuplicates(true);
       try {
         const results = await safeFindDuplicateOffices(
-          position.lat, 
-          position.lng, 
-          formData.submitted_office_location, 
+          position.lat,
+          position.lng,
+          formData.submitted_office_location,
           200
         );
         setDuplicateOffices(results);
@@ -958,7 +970,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const handleMethodSelect = (method) => {
     setSelectedMethod(method);
     setStep(2);
-    
+
     if (method === 'current_location') {
       handleCurrentLocation();
     } else if (method === 'drop_pin') {
@@ -971,40 +983,40 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     setLocationError(null);
     setIsGettingLocation(true);
     retryCountRef.current = 0;
-    
+
     try {
       const pos = await getCurrentPosition();
-      
+
       if (!pos || !pos.latitude || !pos.longitude) {
         throw new Error('Failed to retrieve valid location data');
       }
 
       const { latitude, longitude, accuracy: posAccuracy = 50 } = pos;
-      
+
       if (isNaN(latitude) || isNaN(longitude)) {
         throw new Error('Invalid coordinates received from GPS');
       }
 
       const capturedPosition = { lat: latitude, lng: longitude };
       const limitedAccuracy = Math.min(posAccuracy, 1000);
-      
+
       setPosition(capturedPosition);
       setAccuracy(limitedAccuracy);
       setMapCenter([latitude, longitude]);
       setMapZoom(16);
-      
+
       // Wait for map to be ready before adding layers
       if (mapRef.current) {
-        mapRef.current.flyTo([latitude, longitude], 16, { 
-          duration: 1 
+        mapRef.current.flyTo([latitude, longitude], 16, {
+          duration: 1
         });
-        
+
         // Use setTimeout to ensure flyTo completes before adding layers
         setTimeout(() => {
           addMarkerToMap(capturedPosition);
           addAccuracyCircle(capturedPosition, limitedAccuracy);
         }, 500);
-        
+
         // Show accuracy guidance
         if (limitedAccuracy > 100) {
           setLocationError({
@@ -1017,7 +1029,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
           });
         } else if (limitedAccuracy <= 20) {
           setLocationError({
-            type: 'success', 
+            type: 'success',
             message: `✓ Good accuracy (±${Math.round(limitedAccuracy)}m). You're within the recommended 20m range.`
           });
         }
@@ -1029,7 +1041,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       setTimeout(() => {
         setStep(3);
       }, 1500);
-      
+
     } catch (err) {
       console.error('Error capturing location:', err);
       const errorMessage = err?.message || 'Failed to get current location';
@@ -1049,30 +1061,30 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   // FIXED: handleGoogleMapsParse with proper map readiness
   const handleGoogleMapsParse = async () => {
     if (!googleMapsInput.trim()) return;
-    
+
     setIsExpandingUrl(true);
     setLocationError(null);
-    
+
     try {
       let result = parseGoogleMapsInput(googleMapsInput);
-      
+
       // Handle short URL expansion
       if (result?.requiresExpansion) {
         const expandedUrl = await expandShortUrl(result.shortUrl);
         result = parseGoogleMapsInput(expandedUrl);
       }
-      
+
       if (result?.lat && result?.lng) {
         setParseResult(result);
         setPosition({ lat: result.lat, lng: result.lng });
         setMapCenter([result.lat, result.lng]);
         setMapZoom(16);
-        
+
         if (mapRef.current) {
-          mapRef.current.flyTo([result.lat, result.lng], 16, { 
-            duration: 1 
+          mapRef.current.flyTo([result.lat, result.lng], 16, {
+            duration: 1
           });
-          
+
           // Use setTimeout to ensure flyTo completes before adding layers
           setTimeout(() => {
             addMarkerToMap({ lat: result.lat, lng: result.lng });
@@ -1081,15 +1093,15 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         } else {
           console.warn('Map not ready for flyTo operation');
         }
-        
+
         // Auto-fill office name if available
         if (result.placeName && !formData.submitted_office_location) {
-          setFormData(prev => ({ 
-            ...prev, 
-            submitted_office_location: result.placeName 
+          setFormData(prev => ({
+            ...prev,
+            submitted_office_location: result.placeName
           }));
         }
-        
+
         // Auto-proceed to Step 3 after successful parsing
         setTimeout(() => {
           setStep(3);
@@ -1123,7 +1135,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const handleImageSelect = useCallback(async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-    
+
     try {
       if (!file.type.startsWith('image/')) {
         throw new Error('Please select an image file (JPEG, PNG, etc.)');
@@ -1131,10 +1143,10 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       if (file.size > 10 * 1024 * 1024) {
         throw new Error('Image must be smaller than 10MB');
       }
-      
+
       const webpFile = await convertImageToWebP(file);
       setImageFile(webpFile);
-      
+
       const previewUrl = URL.createObjectURL(webpFile);
       setImagePreview(previewUrl);
     } catch (err) {
@@ -1165,14 +1177,14 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       });
       return;
     }
-    
+
     try {
       // Validate constituency and county match
       const isValidMatch = validateConstituencyCountyMatch(
-        formData.submitted_constituency, 
+        formData.submitted_constituency,
         formData.submitted_county
       );
-      
+
       if (!isValidMatch) {
         setLocationError({
           type: 'error',
@@ -1210,17 +1222,17 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
           constituency_id: constituencyCode // FIXED: Use correct field name
         }
       };
-      
+
       console.log('Submitting contribution data with constituency code:', constituencyCode, contributionData);
-      
+
       const result = await submitContribution(contributionData);
       setContributionId(result.id);
       setSubmissionSuccess(true);
-      
+
       if (onSuccess) {
         onSuccess(result);
       }
-      
+
       setStep(4);
     } catch (err) {
       console.error('Submission error:', err);
@@ -1233,7 +1245,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    
+
     // Validate required fields
     if (!formData.submitted_office_location.trim()) {
       setLocationError({
@@ -1242,7 +1254,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       });
       return;
     }
-    
+
     if (!formData.submitted_county) {
       setLocationError({
         type: 'error',
@@ -1250,7 +1262,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       });
       return;
     }
-    
+
     if (!formData.submitted_constituency.trim()) {
       setLocationError({
         type: 'error',
@@ -1258,7 +1270,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       });
       return;
     }
-    
+
     handleFinalSubmit();
   };
 
@@ -1291,11 +1303,11 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     setDuplicateOffices([]);
     setConstituencyCode(null);
     retryCountRef.current = 0;
-    
+
     if (imagePreview) {
       URL.revokeObjectURL(imagePreview);
     }
-    
+
     // Clean up map layers
     if (markerRef.current && mapRef.current && typeof mapRef.current.removeLayer === 'function') {
       try {
@@ -1331,14 +1343,14 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   // Enhanced error display component
   const ErrorAlert = ({ error }) => {
     if (!error) return null;
-    
+
     const alertStyles = {
       error: 'bg-red-50 border-red-200 text-red-700',
       warning: 'bg-yellow-50 border-yellow-200 text-yellow-700',
       success: 'bg-green-50 border-green-200 text-green-700',
       info: 'bg-blue-50 border-blue-200 text-blue-700'
     };
-    
+
     const icons = {
       error: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1361,7 +1373,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         </svg>
       )
     };
-    
+
     return (
       <div className={`mb-4 border rounded-xl p-4 ${alertStyles[error.type]}`}>
         <div className="flex items-center space-x-3">
@@ -1385,9 +1397,9 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   // Enhanced constituency status component
   const ConstituencyStatus = ({ constituency, county, code }) => {
     if (!constituency || !county) return null;
-    
+
     const isValidMatch = validateConstituencyCountyMatch(constituency, county);
-    
+
     if (code && isValidMatch) {
       return (
         <div className="mt-1">
@@ -1396,7 +1408,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         </div>
       );
     }
-    
+
     if (!isValidMatch) {
       return (
         <div className="mt-1">
@@ -1405,7 +1417,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         </div>
       );
     }
-    
+
     return (
       <div className="mt-1">
         <p className="text-xs text-yellow-600">⚠ Constituency validated but code not available</p>
@@ -1440,10 +1452,9 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                   {[1, 2, 3, 4].map((stepNum) => (
                     <div
                       key={stepNum}
-                      className={`w-2 h-2 rounded-full ${
-                        stepNum === step ? 'bg-green-600' : 
-                        stepNum < step ? 'bg-green-400' : 'bg-gray-300'
-                      }`}
+                      className={`w-2 h-2 rounded-full ${stepNum === step ? 'bg-green-600' :
+                          stepNum < step ? 'bg-green-400' : 'bg-gray-300'
+                        }`}
                     />
                   ))}
                 </div>
@@ -1565,7 +1576,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     <div>
                       <h3 className="text-lg font-medium text-gray-900 mb-2">Capture Your Current Location</h3>
                       <p className="text-gray-600 mb-4">Stand within 20 meters of the IEBC office entrance for best accuracy</p>
-                      
+
                       {position && accuracy && (
                         <div className="bg-blue-50 rounded-lg p-4 mb-4">
                           <div className="flex items-center justify-between">
@@ -1599,7 +1610,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     <div>
                       <h3 className="text-lg font-medium text-gray-900 mb-2">Paste Google Maps Link</h3>
                       <p className="text-gray-600 mb-4">Paste a Google Maps URL or coordinates in format: -1.2921,36.8219</p>
-                      
+
                       <div className="flex space-x-2">
                         <input
                           type="text"
@@ -1624,7 +1635,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                           )}
                         </button>
                       </div>
-                      
+
                       {parseResult && (
                         <div className="bg-green-50 rounded-lg p-3 mt-2">
                           <p className="text-sm text-green-700">
@@ -1649,9 +1660,9 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                       >
                         <GeoJSONLayerManager
                           activeLayers={['iebc-offices']}
-                          onOfficeSelect={() => {}}
+                          onOfficeSelect={() => { }}
                           selectedOffice={null}
-                          onNearbyOfficesFound={() => {}}
+                          onNearbyOfficesFound={() => { }}
                           baseMap="standard"
                           isModalMap={true}
                         />
@@ -1758,7 +1769,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
                           list="county-suggestions"
                         />
-                        
+
                         {/* County suggestions dropdown */}
                         {showCountySuggestions && countySuggestions.length > 0 && (
                           <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -1774,7 +1785,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                             ))}
                           </div>
                         )}
-                        
+
                         <datalist id="county-suggestions">
                           {KENYAN_COUNTIES.map(county => (
                             <option key={county} value={county} />
@@ -1799,7 +1810,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
                           list="constituency-suggestions"
                         />
-                        
+
                         {/* Constituency suggestions dropdown */}
                         {showConstituencySuggestions && constituencySuggestions.length > 0 && (
                           <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -1815,15 +1826,15 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                             ))}
                           </div>
                         )}
-                        
+
                         <datalist id="constituency-suggestions">
                           {formData.submitted_county && CONSTITUENCY_SUGGESTIONS[formData.submitted_county]?.map(constituency => (
                             <option key={constituency} value={constituency} />
                           ))}
                         </datalist>
-                        
+
                         {/* Enhanced constituency status */}
-                        <ConstituencyStatus 
+                        <ConstituencyStatus
                           constituency={formData.submitted_constituency}
                           county={formData.submitted_county}
                           code={constituencyCode}

@@ -59,13 +59,16 @@ const RoutingSystem = ({
     );
 
     if (distanceKm > 5000) {
-      console.warn(`Distance too large for routing: ${Math.round(distanceKm)}km. Likely VPN or overseas user.`);
+      // Log removed for production
+
       toast.info("Turn-by-turn directions disabled", {
-        description: "It looks like you're accessing the site from overseas or using a VPN. If you're currently in Kenya, please switch off your VPN for precise routing.",
+        description: "It looks like you're accessing Nasaka from far away. If you're in Kenya, please check your GPS or VPN settings for more accurate directions.",
+
         duration: 10000,
         action: {
           label: "I'm Overseas",
-          onClick: () => console.log("User confirmed overseas status")
+          onClick: () => { }
+
         }
       });
       clearRoute();
@@ -74,22 +77,24 @@ const RoutingSystem = ({
     }
 
     previousRouteRef.current = currentWaypoints;
-    console.log('Creating route from:', startLatLng, 'to:', destLatLng, `(Distance: ${Math.round(distanceKm)}km)`);
+    // Log removed for production
+
 
     const control = createOrUpdateRoute(startLatLng, destLatLng, {
       onRouteFound: (routes) => {
-        console.log('Route calculation successful:', routes?.length, 'routes found');
+        // Log removed for production
+
         onRouteFound?.(routes);
       },
       onRouteError: (error) => {
-        console.error('Routing error:', error);
-        onRouteError?.(error);
-        console.warn('Routing failed:', error?.message || 'Unknown routing error');
+        // Log removed for production
+
       }
     });
 
     if (!control) {
-      console.warn('Failed to create routing control - user will need to use fallback navigation');
+      // Log removed for production
+
       onRouteError?.(new Error('Routing service temporarily unavailable'));
     }
 

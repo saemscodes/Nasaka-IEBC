@@ -20,40 +20,40 @@ export function debounce(func, wait = 300, options = {}) {
   let lastCallTime;
   let lastInvokeTime = 0;
   let result;
-  
+
   const { leading = false, maxWait } = options;
-  
+
   function invokeFunc(time) {
     const args = Array.prototype.slice.call(arguments, 1);
     result = func.apply(this, args);
     lastInvokeTime = time;
     return result;
   }
-  
+
   function leadingEdge(time) {
     lastInvokeTime = time;
     timeout = setTimeout(timerExpired, wait);
     return leading ? invokeFunc(time) : result;
   }
-  
+
   function remainingWait(time) {
     const timeSinceLastCall = time - lastCallTime;
     const timeSinceLastInvoke = time - lastInvokeTime;
     const timeWaiting = wait - timeSinceLastCall;
-    
+
     return maxWait !== undefined
       ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke)
       : timeWaiting;
   }
-  
+
   function shouldInvoke(time) {
     const timeSinceLastCall = time - lastCallTime;
     const timeSinceLastInvoke = time - lastInvokeTime;
-    
+
     return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
-            (timeSinceLastCall < 0) || (maxWait !== undefined && timeSinceLastInvoke >= maxWait));
+      (timeSinceLastCall < 0) || (maxWait !== undefined && timeSinceLastInvoke >= maxWait));
   }
-  
+
   function timerExpired() {
     const time = Date.now();
     if (shouldInvoke(time)) {
@@ -61,16 +61,16 @@ export function debounce(func, wait = 300, options = {}) {
     }
     timeout = setTimeout(timerExpired, remainingWait(time));
   }
-  
+
   function trailingEdge(time) {
     timeout = undefined;
-    
+
     if (!leading) {
       return invokeFunc(time);
     }
     return result;
   }
-  
+
   function cancel() {
     if (timeout !== undefined) {
       clearTimeout(timeout);
@@ -79,17 +79,17 @@ export function debounce(func, wait = 300, options = {}) {
     lastInvokeTime = 0;
     timeout = undefined;
   }
-  
+
   function flush() {
     return timeout === undefined ? result : trailingEdge(Date.now());
   }
-  
+
   function debounced() {
     const time = Date.now();
     const isInvoking = shouldInvoke(time);
-    
+
     lastCallTime = time;
-    
+
     if (isInvoking) {
       if (timeout === undefined) {
         return leadingEdge(lastCallTime);
@@ -104,10 +104,10 @@ export function debounce(func, wait = 300, options = {}) {
     }
     return result;
   }
-  
+
   debounced.cancel = cancel;
   debounced.flush = flush;
-  
+
   return debounced;
 }
 
@@ -119,7 +119,7 @@ export function debounce(func, wait = 300, options = {}) {
  */
 export function throttle(func, limit) {
   let inThrottle;
-  return function() {
+  return function () {
     const args = arguments;
     const context = this;
     if (!inThrottle) {
@@ -139,11 +139,11 @@ export function throttle(func, limit) {
  */
 export function normalizeQuery(raw) {
   if (!raw || typeof raw !== 'string') return '';
-  
+
   try {
     // Decode URL components first
     let decoded = decodeURIComponent(raw);
-    
+
     // Comprehensive cleaning sequence
     decoded = decoded
       // Replace URL encoding with spaces
@@ -161,7 +161,7 @@ export function normalizeQuery(raw) {
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '') // Remove accents
       .replace(/[^a-z0-9\s]/g, ' '); // Replace special chars with space
-    
+
     // Additional normalization for common IEBC office patterns
     decoded = decoded
       // Handle county suffixes
@@ -170,20 +170,21 @@ export function normalizeQuery(raw) {
       // Remove extra spaces from normalization
       .replace(/\s+/g, ' ')
       .trim();
-    
+
     // Limit length for performance and security
     return decoded.slice(0, 200);
-    
+
   } catch (e) {
     // Fallback normalization if decode fails
-    console.warn('Query normalization failed, using fallback:', e);
+    // Log removed for production
+
     let fallback = String(raw || '')
       .replace(/\+/g, ' ')
       .replace(/%20/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
       .toLowerCase();
-    
+
     return fallback.slice(0, 200);
   }
 }
@@ -222,7 +223,7 @@ export function escapeRegExp(string) {
  */
 export function highlightText(text, query) {
   if (!query || !text) return text;
-  
+
   const escapedQuery = escapeRegExp(query);
   const regex = new RegExp(`(${escapedQuery})`, 'gi');
   return text.replace(regex, '<mark>$1</mark>');
@@ -237,26 +238,26 @@ export function highlightText(text, query) {
  */
 export function highlightSearchMatches(text, query, options = {}) {
   if (!text || !query) return text;
-  
+
   const {
     highlightTag = 'mark',
     highlightClass = 'search-highlight',
     caseSensitive = false
   } = options;
-  
+
   const normalizedText = String(text);
   const normalizedQuery = normalizeQuery(query);
-  
+
   if (!normalizedQuery) return normalizedText;
-  
+
   const queryWords = normalizedQuery.split(/\s+/).filter(word => word.length > 0);
   let result = normalizedText;
-  
+
   queryWords.forEach(word => {
     const regex = new RegExp(`(${escapeRegExp(word)})`, caseSensitive ? 'g' : 'gi');
     result = result.replace(regex, `<${highlightTag} class="${highlightClass}">$1</${highlightTag}>`);
   });
-  
+
   return result;
 }
 
@@ -271,35 +272,35 @@ export function highlightSearchMatches(text, query, options = {}) {
  */
 export function calculateRelevanceScore(query, text, options = {}) {
   if (!query || !text) return 0;
-  
+
   const {
     exactMatchBoost = 2.0,
     partialMatchBoost = 1.0,
     wordOrderPenalty = 0.1,
     minMatchThreshold = 0.3
   } = options;
-  
+
   const normalizedQuery = normalizeQuery(query).toLowerCase();
   const normalizedText = String(text || '').toLowerCase();
-  
+
   if (normalizedQuery === normalizedText) {
     return 1.0; // Perfect match
   }
-  
+
   let score = 0;
-  
+
   // Exact substring match
   if (normalizedText.includes(normalizedQuery)) {
     score += exactMatchBoost;
   }
-  
+
   // Word-based matching
   const queryWords = normalizedQuery.split(/\s+/).filter(word => word.length > 1);
   const textWords = normalizedText.split(/\s+/);
-  
+
   let matchedWords = 0;
   let wordPositionScore = 0;
-  
+
   queryWords.forEach((queryWord, queryIndex) => {
     textWords.forEach((textWord, textIndex) => {
       if (textWord.includes(queryWord)) {
@@ -310,18 +311,18 @@ export function calculateRelevanceScore(query, text, options = {}) {
       }
     });
   });
-  
+
   if (matchedWords > 0) {
     const wordMatchRatio = matchedWords / queryWords.length;
     const positionScore = wordPositionScore / matchedWords;
-    
+
     score += (wordMatchRatio * partialMatchBoost) + (positionScore * (1 - wordOrderPenalty));
   }
-  
+
   // Normalize score to 0-1 range
   const maxPossibleScore = exactMatchBoost + (queryWords.length * partialMatchBoost);
   const normalizedScore = Math.min(score / maxPossibleScore, 1.0);
-  
+
   return normalizedScore >= minMatchThreshold ? normalizedScore : 0;
 }
 
@@ -340,7 +341,7 @@ export function calculateItemRelevanceScore(item, query, weights = {
 }) {
   const normalizedQuery = normalizeSearchTerm(query);
   let score = 0;
-  
+
   // Search in various fields
   const searchFields = [
     item.county,
@@ -350,10 +351,10 @@ export function calculateItemRelevanceScore(item, query, weights = {
     item.landmark,
     item.formatted_address
   ].filter(Boolean);
-  
+
   for (const field of searchFields) {
     const normalizedField = normalizeSearchTerm(field);
-    
+
     if (normalizedField === normalizedQuery) {
       score += weights.exactMatch;
     } else if (normalizedField.startsWith(normalizedQuery)) {
@@ -364,13 +365,13 @@ export function calculateItemRelevanceScore(item, query, weights = {
       // Simple fuzzy matching
       const queryWords = normalizedQuery.split(' ');
       const fieldWords = normalizedField.split(' ');
-      const matches = queryWords.filter(qw => 
+      const matches = queryWords.filter(qw =>
         fieldWords.some(fw => fw.includes(qw))
       );
       score += matches.length * weights.fuzzyMatch;
     }
   }
-  
+
   return score;
 }
 
@@ -399,16 +400,16 @@ export function sortByRelevance(items, query) {
  */
 export function updateUrlQuery(query, options = {}) {
   if (typeof window === 'undefined' || !window.location) return;
-  
+
   const {
     replace = false,
     additionalParams = {},
     paramName = 'q',
     preserveHash = true
   } = options;
-  
+
   const url = new URL(window.location.href);
-  
+
   // Handle main search query parameter
   if (query && query.trim()) {
     const normalizedQuery = normalizeQuery(query.trim());
@@ -420,7 +421,7 @@ export function updateUrlQuery(query, options = {}) {
   } else {
     url.searchParams.delete(paramName);
   }
-  
+
   // Handle additional parameters
   Object.entries(additionalParams).forEach(([key, value]) => {
     if (value !== null && value !== undefined && value !== '') {
@@ -429,24 +430,24 @@ export function updateUrlQuery(query, options = {}) {
       url.searchParams.delete(key);
     }
   });
-  
+
   // Preserve hash if requested
   const hash = preserveHash ? window.location.hash : '';
-  
+
   // Build final URL
   let finalUrl = url.toString();
   if (hash && preserveHash) {
     finalUrl = finalUrl.split('#')[0] + hash;
   }
-  
+
   // Update history
   const historyMethod = replace ? 'replaceState' : 'pushState';
-  window.history[historyMethod]({ 
+  window.history[historyMethod]({
     searchQuery: query,
     timestamp: Date.now(),
     source: 'search_utils'
   }, '', finalUrl);
-  
+
   // Dispatch custom event for other components to listen to
   if (typeof window !== 'undefined' && window.dispatchEvent) {
     window.dispatchEvent(new CustomEvent('urlQueryUpdated', {
@@ -467,16 +468,16 @@ export function updateUrlQuery(query, options = {}) {
  */
 export function parseUrlSearchParams(searchParams = null) {
   if (typeof window === 'undefined') return {};
-  
+
   const params = searchParams || new URLSearchParams(window.location.search);
   const result = {};
-  
+
   for (const [key, value] of params.entries()) {
     if (value) {
       result[key] = normalizeQuery(value);
     }
   }
-  
+
   return result;
 }
 
@@ -488,10 +489,10 @@ export function parseUrlSearchParams(searchParams = null) {
  */
 export function getUrlParam(param, defaultValue = '') {
   if (typeof window === 'undefined') return defaultValue;
-  
+
   const urlParams = new URLSearchParams(window.location.search);
   const value = urlParams.get(param);
-  
+
   return value ? normalizeQuery(value) : defaultValue;
 }
 
@@ -502,13 +503,13 @@ export function getUrlParam(param, defaultValue = '') {
  */
 export function removeUrlParam(param, replace = true) {
   if (typeof window === 'undefined') return;
-  
+
   const url = new URL(window.location.href);
   url.searchParams.delete(param);
-  
+
   const historyMethod = replace ? 'replaceState' : 'pushState';
   window.history[historyMethod]({}, '', url.toString());
-  
+
   // Dispatch removal event
   if (typeof window !== 'undefined' && window.dispatchEvent) {
     window.dispatchEvent(new CustomEvent('urlParamRemoved', {
@@ -528,36 +529,36 @@ export function removeUrlParam(param, replace = true) {
  */
 export function generateSearchSuggestions(query, data = [], options = {}) {
   if (!query || query.length < 2) return [];
-  
+
   const {
     maxSuggestions = 5,
     minScore = 0.1,
     fields = ['name', 'county', 'constituency_name', 'office_location'],
     includeQuerySuggestions = true
   } = options;
-  
+
   const normalizedQuery = normalizeQuery(query);
   const suggestions = [];
-  
+
   // Generate suggestions from data
   data.forEach(item => {
     let bestScore = 0;
     let bestField = '';
-    
+
     fields.forEach(field => {
       if (item[field]) {
         const score = calculateRelevanceScore(normalizedQuery, item[field], {
           exactMatchBoost: 3.0,
           partialMatchBoost: 1.5
         });
-        
+
         if (score > bestScore && score >= minScore) {
           bestScore = score;
           bestField = field;
         }
       }
     });
-    
+
     if (bestScore > 0) {
       suggestions.push({
         ...item,
@@ -567,12 +568,12 @@ export function generateSearchSuggestions(query, data = [], options = {}) {
       });
     }
   });
-  
+
   // Sort by relevance score
   suggestions.sort((a, b) => b._searchScore - a._searchScore);
-  
+
   const result = suggestions.slice(0, maxSuggestions);
-  
+
   // Add query-based suggestions
   if (includeQuerySuggestions && normalizedQuery.length >= 2) {
     result.push({
@@ -585,7 +586,7 @@ export function generateSearchSuggestions(query, data = [], options = {}) {
       _matchedField: 'query'
     });
   }
-  
+
   return result;
 }
 
@@ -600,39 +601,39 @@ export function generateSearchSuggestions(query, data = [], options = {}) {
  */
 export function batchSearch(items, query, options = {}) {
   if (!query || !items || !items.length) return [];
-  
+
   const {
     fields = ['county', 'constituency_name', 'office_location', 'formatted_address'],
     minScore = 0.1,
     maxResults = 50,
     scoreThreshold = 0.3
   } = options;
-  
+
   const normalizedQuery = normalizeQuery(query);
   const results = [];
-  
+
   // Early return for empty query
   if (!normalizedQuery) return items.slice(0, maxResults);
-  
+
   // Process items with scoring
   items.forEach(item => {
     let totalScore = 0;
     let fieldMatches = 0;
-    
+
     fields.forEach(field => {
       if (item[field]) {
         const score = calculateRelevanceScore(normalizedQuery, item[field], {
           exactMatchBoost: 2.0,
           partialMatchBoost: 1.0
         });
-        
+
         if (score >= minScore) {
           totalScore += score;
           fieldMatches++;
         }
       }
     });
-    
+
     if (fieldMatches > 0) {
       const averageScore = totalScore / fieldMatches;
       if (averageScore >= scoreThreshold) {
@@ -644,7 +645,7 @@ export function batchSearch(items, query, options = {}) {
       }
     }
   });
-  
+
   // Sort by score and field matches
   results.sort((a, b) => {
     if (b._searchScore !== a._searchScore) {
@@ -652,7 +653,7 @@ export function batchSearch(items, query, options = {}) {
     }
     return b._fieldMatches - a._fieldMatches;
   });
-  
+
   return results.slice(0, maxResults);
 }
 
@@ -665,14 +666,14 @@ export function batchSearch(items, query, options = {}) {
  */
 export function trackSearchEvent(action, data = {}) {
   if (typeof window === 'undefined') return;
-  
+
   const eventData = {
     action,
     timestamp: new Date().toISOString(),
     url: window.location.href,
     ...data
   };
-  
+
   // Google Analytics 4
   if (window.gtag) {
     window.gtag('event', action, {
@@ -682,17 +683,18 @@ export function trackSearchEvent(action, data = {}) {
       event_timestamp: eventData.timestamp
     });
   }
-  
+
   // Custom event dispatch for internal analytics
   if (window.dispatchEvent) {
     window.dispatchEvent(new CustomEvent('searchAnalytics', {
       detail: eventData
     }));
   }
-  
+
   // Console logging in development
   if (process.env.NODE_ENV === 'development') {
-    console.log('Search Analytics:', eventData);
+    // Log removed for production
+
   }
 }
 
@@ -707,39 +709,39 @@ export class SearchCache {
     this.ttl = options.ttl || 5 * 60 * 1000; // 5 minutes default
     this.cache = new Map();
   }
-  
+
   set(key, value) {
     this.cleanup();
-    
+
     if (this.cache.size >= this.maxSize) {
       const firstKey = this.cache.keys().next().value;
       this.cache.delete(firstKey);
     }
-    
+
     this.cache.set(key, {
       value,
       timestamp: Date.now()
     });
   }
-  
+
   get(key) {
     const item = this.cache.get(key);
-    
+
     if (!item) return null;
-    
+
     // Check if item has expired
     if (Date.now() - item.timestamp > this.ttl) {
       this.cache.delete(key);
       return null;
     }
-    
+
     return item.value;
   }
-  
+
   delete(key) {
     this.cache.delete(key);
   }
-  
+
   cleanup() {
     const now = Date.now();
     for (const [key, item] of this.cache.entries()) {
@@ -748,11 +750,11 @@ export class SearchCache {
       }
     }
   }
-  
+
   clear() {
     this.cache.clear();
   }
-  
+
   size() {
     return this.cache.size;
   }
@@ -771,35 +773,35 @@ export default {
   debounce,
   throttle,
   escapeRegExp,
-  
+
   // Normalization
   normalizeQuery,
   normalizeSearchTerm,
-  
+
   // Text manipulation
   highlightText,
   highlightSearchMatches,
-  
+
   // Relevance scoring
   calculateRelevanceScore,
   calculateItemRelevanceScore,
   sortByRelevance,
-  
+
   // URL handling
   updateUrlQuery,
   parseUrlSearchParams,
   getUrlParam,
   removeUrlParam,
-  
+
   // Search generation
   generateSearchSuggestions,
-  
+
   // Batch processing
   batchSearch,
-  
+
   // Analytics
   trackSearchEvent,
-  
+
   // Cache
   SearchCache,
   globalSearchCache

@@ -82,7 +82,8 @@ const OfficeDetail = () => {
             }
 
             const canonicalPath = `/${countySlugLocal}/${areaSlugLocal}`;
-            console.log(`Redirecting legacy URL [${window.location.pathname}] to canonical hierarchical path [${canonicalPath}]`);
+            // Log removed for production
+
             navigate(canonicalPath, { replace: true });
         }
     }, [office, navigate]);
@@ -170,7 +171,8 @@ const OfficeDetail = () => {
 
             setNearbyOffices(nearby || []);
         } catch (err) {
-            console.error('Error fetching office:', err);
+            // Log removed for production
+
             setError(err.message);
         } finally {
             setLoading(false);
@@ -208,7 +210,8 @@ const OfficeDetail = () => {
             <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
                 <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
                 <h1 className="text-2xl font-bold mb-2">Office Not Found</h1>
-                <p className="text-muted-foreground mb-6">{error || "We couldn't locate this IEBC office."}</p>
+                <p className="text-muted-foreground mb-6">Nasaka is bringing the IEBC closer to you. We couldn't find this specific office just now - please check our registry again in a moment.</p>
+
                 <Link
                     to="/iebc-office/map"
                     state={savedUserLocation ? { userLocation: savedUserLocation } : undefined}

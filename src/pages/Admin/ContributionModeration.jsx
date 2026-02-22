@@ -62,18 +62,20 @@ const ContributionModeration = () => {
 
       if (error) throw error;
 
-      console.log('Contribution approved:', data);
-      
+      // Log removed for production
+
+
       // Refresh data
       await fetchContributions();
       await fetchStats();
-      
+
       // Close detail view if open
       setSelectedContribution(null);
       setReviewNotes('');
     } catch (error) {
-      console.error('Error approving contribution:', error);
-      alert('Error approving contribution: ' + error.message);
+      // Log removed for production
+      toast.error("Nasaka is bringing the IEBC closer to you. We couldn't finish approving that contribution just now - let's try again in a moment so we can keep building the registry together.");
+
     } finally {
       setIsProcessing(false);
     }
@@ -93,17 +95,18 @@ const ContributionModeration = () => {
         .eq('id', contributionId);
 
       if (error) throw error;
-      
+
       // Refresh data
       await fetchContributions();
       await fetchStats();
-      
+
       // Close detail view
       setSelectedContribution(null);
       setReviewNotes('');
     } catch (error) {
-      console.error('Error rejecting contribution:', error);
-      alert('Error rejecting contribution: ' + error.message);
+      // Log removed for production
+      toast.error("Nasaka is bringing the IEBC closer to you. We couldn't finish rejecting that contribution just now - let's try again in a moment so we can keep building the registry together.");
+
     } finally {
       setIsProcessing(false);
     }
@@ -208,13 +211,12 @@ const ContributionModeration = () => {
                       <h3 className="text-lg font-medium text-gray-900">
                         {contribution.submitted_office_location || 'New Office Location'}
                       </h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        contribution.status === 'pending' 
-                          ? 'bg-yellow-100 text-yellow-800' 
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${contribution.status === 'pending'
+                          ? 'bg-yellow-100 text-yellow-800'
                           : contribution.status === 'approved'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}>
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
                         {contribution.status}
                       </span>
                     </div>

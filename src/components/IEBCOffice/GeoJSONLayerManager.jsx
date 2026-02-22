@@ -15,10 +15,10 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 };
 
@@ -49,17 +49,18 @@ const searchNearbyOffices = async (lat, lng, radius = 5000, onNearbyOfficesFound
 
     return officesWithDistance;
   } catch (error) {
-    console.error('Error searching nearby offices:', error);
+    // Log removed for production
+
     return [];
   }
 };
 
-const GeoJSONLayerManager = ({ 
-  activeLayers = [], 
-  onOfficeSelect, 
-  selectedOffice, 
+const GeoJSONLayerManager = ({
+  activeLayers = [],
+  onOfficeSelect,
+  selectedOffice,
   searchRadius = 5000,
-  onNearbyOfficesFound, 
+  onNearbyOfficesFound,
   baseMap = 'standard',
   liveOffices = [],
   isModalMap = false
@@ -125,15 +126,15 @@ const GeoJSONLayerManager = ({
     if (!geojson || typeof geojson !== 'object') {
       throw new Error('Invalid GeoJSON: Not an object');
     }
-    
+
     if (geojson.type !== 'FeatureCollection' && geojson.type !== 'Feature') {
       throw new Error(`Invalid GeoJSON type: ${geojson.type}. Expected FeatureCollection or Feature`);
     }
-    
+
     if (geojson.type === 'FeatureCollection' && (!Array.isArray(geojson.features))) {
       throw new Error('Invalid FeatureCollection: features must be an array');
     }
-    
+
     return true;
   };
 
@@ -237,12 +238,12 @@ const GeoJSONLayerManager = ({
 
   const fetchLayerData = useCallback(async (layerId) => {
     if (layerData[layerId] || layerErrors[layerId]) return;
-    
+
     if (layerId === 'iebc-offices' && liveOfficesGeoJSON.features.length > 0) {
       setLayerData(prev => ({ ...prev, [layerId]: liveOfficesGeoJSON }));
       return;
     }
-    
+
     const cacheKey = `${layerId}-${Date.now()}`;
     if (layerCacheRef.current.has(layerId)) {
       const cachedData = layerCacheRef.current.get(layerId);
@@ -251,24 +252,25 @@ const GeoJSONLayerManager = ({
         return;
       }
     }
-    
+
     setLoading(prev => ({ ...prev, [layerId]: true }));
     try {
       const config = layerConfigs[layerId];
-      
+
       if (layerId === 'iebc-offices' && liveOfficesGeoJSON.features.length > 0) {
         const data = liveOfficesGeoJSON;
         setLayerData(prev => ({ ...prev, [layerId]: data }));
         layerCacheRef.current.set(layerId, { data, timestamp: Date.now() });
         return;
       }
-      
+
       if (!config?.url) {
         throw new Error(`No URL configured for layer: ${layerId}`);
       }
 
-      console.log(`Fetching GeoJSON for ${layerId} from:`, config.url);
-      
+      // Log removed for production
+
+
       const response = await fetch(config.url, {
         method: 'GET',
         headers: {
@@ -276,40 +278,43 @@ const GeoJSONLayerManager = ({
         },
         mode: 'cors'
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const text = await response.text();
-      
+
       if (!text.trim()) {
         throw new Error('Empty response from server');
       }
-      
+
       let geojson;
       try {
         geojson = JSON.parse(text);
       } catch (parseError) {
-        console.error('JSON parse error:', parseError);
+        // Log removed for production
+
         throw new Error(`Invalid JSON format: ${parseError.message}`);
       }
-      
+
       validateGeoJSON(geojson);
-      
+
       setLayerData(prev => ({ ...prev, [layerId]: geojson }));
       layerCacheRef.current.set(layerId, { data: geojson, timestamp: Date.now() });
-      
+
       setLayerErrors(prev => {
         const newErrors = { ...prev };
         delete newErrors[layerId];
         return newErrors;
       });
-      
-      console.log(`Successfully loaded GeoJSON for ${layerId}`, geojson);
+
+      // Log removed for production
+
     } catch (error) {
-      console.error(`Failed to load GeoJSON for ${layerId}:`, error.message);
-      
+      // Log removed for production
+
+
       let userFriendlyError = error.message;
       if (error.message.includes('Failed to fetch')) {
         userFriendlyError = 'Network error: Unable to fetch data. Please check your connection.';
@@ -318,12 +323,12 @@ const GeoJSONLayerManager = ({
       } else if (error.message.includes('JSON')) {
         userFriendlyError = 'Data format error: Invalid data received from server.';
       }
-      
-      setLayerErrors(prev => ({ 
-        ...prev, 
-        [layerId]: userFriendlyError 
+
+      setLayerErrors(prev => ({
+        ...prev,
+        [layerId]: userFriendlyError
       }));
-      
+
       setTimeout(() => {
         setLayerErrors(prev => {
           const newErrors = { ...prev };
@@ -345,14 +350,14 @@ const GeoJSONLayerManager = ({
       layer.on('click', async (e) => {
         try {
           let office;
-          
+
           if (feature.properties.id) {
             const { data, error } = await supabase
               .from('iebc_offices')
               .select('*')
               .eq('id', feature.properties.id)
               .single();
-            
+
             if (!error) office = data;
           }
 
@@ -394,7 +399,8 @@ const GeoJSONLayerManager = ({
           const popupContent = createPopupContent(office || feature.properties, feature.geometry?.coordinates);
           layer.bindPopup(popupContent, { maxWidth: 320 }).openPopup();
         } catch (error) {
-          console.error('Error fetching office details:', error);
+          // Log removed for production
+
           const popupContent = createPopupContent(feature.properties, feature.geometry?.coordinates);
           layer.bindPopup(popupContent, { maxWidth: 320 }).openPopup();
         }
@@ -402,7 +408,7 @@ const GeoJSONLayerManager = ({
 
       const originalStyle = layerConfigs[activeLayers[0]]?.style;
 
-      layer.on('mouseover', function() {
+      layer.on('mouseover', function () {
         if (layer.setStyle) {
           layer.setStyle({
             weight: 3,
@@ -411,7 +417,7 @@ const GeoJSONLayerManager = ({
         }
       });
 
-      layer.on('mouseout', function() {
+      layer.on('mouseout', function () {
         if (layer.setStyle && originalStyle) {
           layer.setStyle(originalStyle);
         }
@@ -452,9 +458,9 @@ const GeoJSONLayerManager = ({
   const createPopupContent = (properties, geometryCoords = null) => {
     const lat = properties.latitude || (geometryCoords ? geometryCoords[1] : null);
     const lng = properties.longitude || (geometryCoords ? geometryCoords[0] : null);
-    
+
     const hasValidCoords = lat && lng && !isNaN(lat) && !isNaN(lng);
-    
+
     const popupStyles = `
       <style>
         .popup-container { 
@@ -638,10 +644,10 @@ const GeoJSONLayerManager = ({
               <span>Near ${properties.landmark}</span>
             </div>
           ` : ''}
-          ${hasValidCoords ? 
-            `<div class="popup-coords">${lat.toFixed(6)}, ${lng.toFixed(6)}</div>` : 
-            `<div class="popup-error">⚠️ Coordinates unavailable</div>`
-          }
+          ${hasValidCoords ?
+        `<div class="popup-coords">${lat.toFixed(6)}, ${lng.toFixed(6)}</div>` :
+        `<div class="popup-error">⚠️ Coordinates unavailable</div>`
+      }
         </div>
         ${hasValidCoords ? `
           <div class="navigation-section">
@@ -747,9 +753,9 @@ const GeoJSONLayerManager = ({
         const data = layerData[layerId];
         const error = layerErrors[layerId];
         const isLoading = loading[layerId];
-        
+
         if (!config) return null;
-        
+
         return (
           <div key={layerId}>
             {isLoading && (
@@ -760,9 +766,9 @@ const GeoJSONLayerManager = ({
                 </div>
               </div>
             )}
-            
+
             <ErrorDisplay layerId={layerId} />
-            
+
             {data && !error && (
               <GeoJSON
                 key={`${layerId}-${Object.keys(data).length}`}

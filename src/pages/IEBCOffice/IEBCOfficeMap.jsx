@@ -158,7 +158,8 @@ const IEBCOfficeMap = () => {
 
       setUrlQueryProcessed(true);
     } catch (error) {
-      console.error('URL query search error:', error);
+      // Log removed for production
+
       setUrlQueryProcessed(true);
     }
   };
@@ -258,7 +259,8 @@ const IEBCOfficeMap = () => {
           enhancedOffice = fullOffice;
         }
       } catch (err) {
-        console.error('Error fetching full office details:', err);
+        // Log removed for production
+
       }
     }
 
@@ -312,7 +314,8 @@ const IEBCOfficeMap = () => {
         setLastTapLocation(null);
       }, 3000);
     } catch (error) {
-      console.error('Error searching nearby offices:', error);
+      // Log removed for production
+
     } finally {
       setIsSearchingNearby(false);
     }
@@ -326,7 +329,8 @@ const IEBCOfficeMap = () => {
 
   // Handle route error - ONLY IF WE HAVE LOCATION ACCESS
   const handleRouteError = useCallback((error) => {
-    console.error('Routing error:', error);
+    // Log removed for production
+
     setRoutingError(error?.message || t('bottomSheet.routingError', 'Failed to calculate route'));
     setCurrentRoute(null);
   }, [t]);
@@ -439,7 +443,8 @@ const IEBCOfficeMap = () => {
 
   // Handle contribution success
   const handleContributionSuccess = useCallback((result) => {
-    console.log('Contribution submitted successfully:', result);
+    // Log removed for production
+
     // Refresh offices to include new contribution
     refetch();
   }, [refetch]);

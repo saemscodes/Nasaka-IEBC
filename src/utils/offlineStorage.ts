@@ -36,18 +36,19 @@ export async function getCachedOffices(): Promise<CachedOffices | null> {
   try {
     const cached = await get(CACHE_CONFIG.IEBC_OFFICES);
     const timestamp = await get(CACHE_CONFIG.IEBC_OFFICES_TIMESTAMP);
-    
+
     if (!cached || !timestamp) return null;
-    
+
     // Check if cache is expired
     if (Date.now() - timestamp > CACHE_CONFIG.CACHE_MAX_AGE) {
       await clearOfficesCache();
       return null;
     }
-    
+
     return cached;
   } catch (error) {
-    console.error('Error reading cached offices:', error);
+    // Log removed for production
+
     return null;
   }
 }
@@ -63,14 +64,15 @@ export async function setCachedOffices(offices: any[]): Promise<void> {
         lastUpdated: new Date().toISOString()
       }
     };
-    
+
     await set(CACHE_CONFIG.IEBC_OFFICES, cacheData);
     await set(CACHE_CONFIG.IEBC_OFFICES_TIMESTAMP, Date.now());
-    
+
     // Update storage estimate
     await updateStorageEstimate();
   } catch (error) {
-    console.error('Error caching offices:', error);
+    // Log removed for production
+
   }
 }
 
@@ -79,7 +81,8 @@ export async function clearOfficesCache(): Promise<void> {
     await del(CACHE_CONFIG.IEBC_OFFICES);
     await del(CACHE_CONFIG.IEBC_OFFICES_TIMESTAMP);
   } catch (error) {
-    console.error('Error clearing office cache:', error);
+    // Log removed for production
+
   }
 }
 
@@ -93,11 +96,12 @@ export async function addToSyncQueue(item: Omit<OfflineSyncQueue, 'id' | 'timest
       timestamp: Date.now(),
       retries: 0
     };
-    
+
     await set(`sync_queue_${id}`, queueItem);
     return id;
   } catch (error) {
-    console.error('Error adding to sync queue:', error);
+    // Log removed for production
+
     throw error;
   }
 }
@@ -105,17 +109,18 @@ export async function addToSyncQueue(item: Omit<OfflineSyncQueue, 'id' | 'timest
 export async function getSyncQueue(): Promise<OfflineSyncQueue[]> {
   try {
     const allKeys = await keys();
-    const queueKeys = allKeys.filter(key => 
+    const queueKeys = allKeys.filter(key =>
       typeof key === 'string' && key.startsWith('sync_queue_')
     ) as string[];
-    
+
     const queueItems = await Promise.all(
       queueKeys.map(key => get(key))
     );
-    
+
     return queueItems.filter(Boolean) as OfflineSyncQueue[];
   } catch (error) {
-    console.error('Error getting sync queue:', error);
+    // Log removed for production
+
     return [];
   }
 }
@@ -124,7 +129,8 @@ export async function removeFromSyncQueue(id: string): Promise<void> {
   try {
     await del(`sync_queue_${id}`);
   } catch (error) {
-    console.error('Error removing from sync queue:', error);
+    // Log removed for production
+
   }
 }
 
@@ -140,26 +146,28 @@ export async function getStorageEstimate(): Promise<{
       return {
         usage: estimate.usage || 0,
         quota: estimate.quota || 0,
-        percentage: estimate.usage && estimate.quota 
-          ? (estimate.usage / estimate.quota) * 100 
+        percentage: estimate.usage && estimate.quota
+          ? (estimate.usage / estimate.quota) * 100
           : 0
       };
     } catch (error) {
-      console.error('Error estimating storage:', error);
+      // Log removed for production
+
     }
   }
-  
+
   return { usage: 0, quota: 0, percentage: 0 };
 }
 
 async function updateStorageEstimate(): Promise<void> {
   try {
     const estimate = await getStorageEstimate();
-    
+
     // Warn if storage is getting full (>80%)
     if (estimate.percentage > 80) {
-      console.warn(`Storage usage is high: ${estimate.percentage.toFixed(1)}%`);
-      
+      // Log removed for production
+
+
       // Auto-clean old cache if >90%
       if (estimate.percentage > 90) {
         await clearOfficesCache();
@@ -191,7 +199,7 @@ export class NetworkStatus {
   private updateStatus(online: boolean): void {
     this.isOnline = online;
     this.listeners.forEach(listener => listener(online));
-    
+
     if (online) {
       this.triggerSync();
     }
@@ -210,17 +218,19 @@ export class NetworkStatus {
 
   async triggerSync(): Promise<void> {
     if (!this.isOnline) return;
-    
+
     const queue = await getSyncQueue();
     for (const item of queue) {
       try {
         // Implement sync logic based on item.action and item.table
-        console.log(`Syncing ${item.action} for ${item.table}`, item.data);
+        // Log removed for production
+
         await removeFromSyncQueue(item.id);
       } catch (error) {
-        console.error(`Sync failed for item ${item.id}:`, error);
+        // Log removed for production
+
         item.retries++;
-        
+
         // Remove after too many retries
         if (item.retries > 3) {
           await removeFromSyncQueue(item.id);
