@@ -613,7 +613,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const [duplicateOffices, setDuplicateOffices] = useState([]);
   const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
   const [constituencyCode, setConstituencyCode] = useState(null);
-  const [isPinLocked, setIsPinLocked] = useState(false);
 
   const mapRef = useRef(null);
   const accuracyCircleRef = useRef(null);
@@ -622,7 +621,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const retryCountRef = useRef(0);
   const countyInputRef = useRef(null);
   const constituencyInputRef = useRef(null);
-  const autoAdvanceTimeoutRef = useRef(null);
 
   const {
     getCurrentPosition,
@@ -631,22 +629,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     isSubmitting,
     error
   } = useContributeLocation();
-
-  // SAFETY: Clear any pending auto-advance when switching to manual method
-  useEffect(() => {
-    if (selectedMethod === 'drop_pin') {
-      if (autoAdvanceTimeoutRef.current) {
-        clearTimeout(autoAdvanceTimeoutRef.current);
-        autoAdvanceTimeoutRef.current = null;
-      }
-    }
-
-    return () => {
-      if (autoAdvanceTimeoutRef.current) {
-        clearTimeout(autoAdvanceTimeoutRef.current);
-      }
-    };
-  }, [selectedMethod]);
 
   // Enhanced constituency code fetching with local data
   const fetchConstituencyCode = async (constituencyName, countyName) => {
@@ -1022,7 +1004,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       setAccuracy(limitedAccuracy);
       setMapCenter([latitude, longitude]);
       setMapZoom(16);
-      setIsPinLocked(false); // Reset lock on new GPS capture
 
       // Wait for map to be ready before adding layers
       if (mapRef.current) {
@@ -1044,12 +1025,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
             action: {
               label: 'Adjust Pin Manually',
               onClick: () => {
-                // CLEAR AUTO-ADVANCE TIMER
-                if (autoAdvanceTimeoutRef.current) {
-                  clearTimeout(autoAdvanceTimeoutRef.current);
-                  autoAdvanceTimeoutRef.current = null;
-                }
-
                 setSelectedMethod('drop_pin');
                 setStep(2); // Ensure we stay/return to map step
                 setLocationError(null);
@@ -1074,9 +1049,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       // AUTO-PROCEED TO STEP 3: Wait a moment then automatically proceed to office details
       // BUT ONLY if accuracy is good enough
       if (limitedAccuracy <= 80) {
-        autoAdvanceTimeoutRef.current = setTimeout(() => {
+        setTimeout(() => {
           setStep(3);
-          autoAdvanceTimeoutRef.current = null;
         }, 1500);
       }
 
@@ -1115,7 +1089,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       if (result?.lat && result?.lng) {
         setParseResult(result);
         setPosition({ lat: result.lat, lng: result.lng });
-        setIsPinLocked(true); // Auto-lock for Google Maps as it's verified data
         setMapCenter([result.lat, result.lng]);
         setMapZoom(16);
 
@@ -1142,9 +1115,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         }
 
         // Auto-proceed to Step 3 after successful parsing
-        autoAdvanceTimeoutRef.current = setTimeout(() => {
+        setTimeout(() => {
           setStep(3);
-          autoAdvanceTimeoutRef.current = null;
         }, 1000);
       } else if (result?.requiresGeocoding) {
         setLocationError({
@@ -1342,7 +1314,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     setContributionId(null);
     setDuplicateOffices([]);
     setConstituencyCode(null);
-    setIsPinLocked(false);
     retryCountRef.current = 0;
 
     if (imagePreview) {
@@ -1697,7 +1668,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                         onMapReady={handleMapReady}
                         onClick={handleMapClick}
                         onMove={(center) => {
-                          if (selectedMethod === 'drop_pin' && !isPinLocked) {
+                          if (selectedMethod === 'drop_pin') {
                             setPosition({ lat: center.lat, lng: center.lng });
                             setAccuracy(5);
                           }
@@ -1746,7 +1717,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                               {/* Vertical line */}
                               <div className="w-1 h-12 bg-gray-900 rounded-full shadow-xl"></div>
                               {/* Top circle */}
-                              <div className={`absolute top-0 left-1/2 -ml-3 -mt-6 w-7 h-7 ${isPinLocked ? 'bg-green-500' : 'bg-[#007AFF]'} border-4 border-white rounded-full shadow-lg flex items-center justify-center transition-colors duration-300`}>
+                              <div className="absolute top-0 left-1/2 -ml-3 -mt-6 w-7 h-7 bg-[#007AFF] border-4 border-white rounded-full shadow-lg flex items-center justify-center">
                                 <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                               </div>
                               {/* Shadow/Point at bottom */}
@@ -1756,63 +1727,12 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                         </div>
                       )}
 
-                      {/* Manual Adjustment Control Badge (Only before lock) */}
-                      {selectedMethod === 'drop_pin' && !isPinLocked && (
+                      {/* Manual Adjustment Control Badge */}
+                      {selectedMethod === 'drop_pin' && (
                         <div className="absolute top-4 left-4 right-4 pointer-events-none flex justify-center z-[1001]">
                           <div className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-lg border border-white/50 flex items-center space-x-2">
                             <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                            <span className="text-xs font-semibold text-gray-900">Move map to target office</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* iOS Style Confirm/Retry Combo */}
-                      {selectedMethod === 'drop_pin' && (
-                        <div className="absolute bottom-6 left-0 right-0 flex justify-center px-6 z-[1002]">
-                          <div className="bg-white/80 backdrop-blur-xl p-1.5 rounded-[24px] shadow-2xl border border-white/40 flex items-center space-x-1.5">
-                            {/* Retry / Unlock */}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsPinLocked(false);
-                                if (mapRef.current) {
-                                  mapRef.current.flyTo(position, mapRef.current.getZoom(), { duration: 0.3 });
-                                }
-                              }}
-                              className={`w-12 h-12 rounded-[18px] flex items-center justify-center transition-all ${!isPinLocked ? 'bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed' : 'bg-gray-100/50 text-gray-900 active:scale-95 hover:bg-gray-200'}`}
-                              disabled={!isPinLocked}
-                              title="Edit Location"
-                            >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-
-                            {/* Separator */}
-                            <div className="w-px h-6 bg-gray-200/50"></div>
-
-                            {/* Confirm / Lock */}
-                            <button
-                              type="button"
-                              onClick={() => setIsPinLocked(true)}
-                              className={`px-6 h-12 rounded-[18px] flex items-center space-x-2 transition-all ${isPinLocked ? 'bg-green-500 text-white cursor-default' : 'bg-[#007AFF] text-white active:scale-95 hover:bg-blue-600 shadow-lg shadow-blue-500/20'}`}
-                            >
-                              {isPinLocked ? (
-                                <>
-                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                  </svg>
-                                  <span className="text-sm font-bold">Locked</span>
-                                </>
-                              ) : (
-                                <>
-                                  <span className="text-sm font-bold">Lock Location</span>
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                  </svg>
-                                </>
-                              )}
-                            </button>
+                            <span className="text-xs font-semibold text-gray-900">Move map to adjust location</span>
                           </div>
                         </div>
                       )}
@@ -1846,15 +1766,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                       Back
                     </button>
                     <button
-                      onClick={() => {
-                        // FINAL SAFETY: Clear any residual timeouts
-                        if (autoAdvanceTimeoutRef.current) {
-                          clearTimeout(autoAdvanceTimeoutRef.current);
-                          autoAdvanceTimeoutRef.current = null;
-                        }
-                        setStep(3);
-                      }}
-                      disabled={!position || isGettingLocation || (selectedMethod === 'drop_pin' && !isPinLocked)}
+                      onClick={() => setStep(3)}
+                      disabled={!position || isGettingLocation}
                       className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                     >
                       {isGettingLocation ? (
