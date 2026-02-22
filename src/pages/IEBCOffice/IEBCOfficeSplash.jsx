@@ -542,7 +542,7 @@ const IEBCOfficeSplash = () => {
             {/* Offline Status Banner */}
             <OfflineBanner className="absolute top-0 left-0 right-0 z-30" compact />
             {/* Top Control Bar - Full width with equal edge padding and proper spacing */}
-            <div className="absolute top-6 left-0 right-0 z-20 flex justify-between items-center px-6 pt-4">
+            <div className="absolute top-4 left-0 right-0 z-20 flex justify-between items-center px-6">
                 <CekaLogoButton />
                 <div className="flex space-x-3">
                     <LanguageSwitcher variant="splash" />
