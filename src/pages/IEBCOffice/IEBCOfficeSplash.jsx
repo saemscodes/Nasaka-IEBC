@@ -196,31 +196,6 @@ const BackgroundLayers = ({ className = "" }) => {
                         }}
                     />
 
-                    {/* Moving Glare Sweep — uses CSS vars for transform origin */}
-                    <motion.div
-                        className="absolute inset-0 pointer-events-none"
-                        style={{
-                            willChange: 'transform, opacity',
-                            background: `linear-gradient(120deg, 
-                transparent 0%,
-                rgba(255, 255, 255, 0.03) 45%,
-                rgba(255, 255, 255, 0.08) 50%,
-                rgba(255, 255, 255, 0.03) 55%,
-                transparent 100%)`,
-                            mixBlendMode: 'soft-light',
-                            transformOrigin: 'var(--cursor-x, 50%) var(--cursor-y, 50%)'
-                        }}
-                        animate={{
-                            rotate: [0, 360],
-                            scale: [1, 1.2, 1],
-                            opacity: [0.1, 0.3, 0.1]
-                        }}
-                        transition={{
-                            rotate: { duration: 20, repeat: Infinity, ease: "linear" },
-                            scale: { duration: 4, repeat: Infinity, ease: "easeInOut" },
-                            opacity: { duration: 5, repeat: Infinity, ease: "easeInOut" }
-                        }}
-                    />
                 </>
             )}
 
