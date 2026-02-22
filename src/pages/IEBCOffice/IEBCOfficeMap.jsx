@@ -47,7 +47,7 @@ const IEBCOfficeMap = () => {
   // CRITICAL: Determine if we have location access
   const hasLocationAccess = !!userLocation;
 
-  const { offices, loading, error, searchOffices, refetch } = useIEBCOffices();
+  const { offices, loading, error, isOffline, searchOffices, refetch } = useIEBCOffices();
   const {
     mapCenter,
     mapZoom,
@@ -654,7 +654,7 @@ const IEBCOfficeMap = () => {
 
       {/* Draggable Route Badge - ONLY WITH LOCATION ACCESS */}
       <AnimatePresence>
-        {hasLocationAccess && currentRoute && currentRoute.length > 0 && (
+        {hasLocationAccess && (isOffline || (currentRoute && currentRoute.length > 0)) && (
           <motion.div
             ref={routeBadgeRef}
             initial={{ opacity: 0, scale: 0.8 }}
@@ -671,7 +671,7 @@ const IEBCOfficeMap = () => {
               damping: 30,
               mass: 1
             }}
-            className={`route-badge-draggable ${isDraggingRouteBadge ? 'dragging' : ''}`}
+            className={`route-badge-draggable ${isDraggingRouteBadge ? 'dragging' : ''} ${isOffline ? 'offline' : ''}`}
             style={{
               position: 'fixed',
               left: 0,
@@ -695,18 +695,26 @@ const IEBCOfficeMap = () => {
             }}
           >
             <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <div className={`w-2 h-2 ${isOffline ? 'bg-amber-500' : 'bg-green-500'} rounded-full animate-pulse`}></div>
               <span className="text-sm font-medium">
-                {t('bottomSheet.routesFound', { count: currentRoute.length })}
+                {isOffline
+                  ? t('bottomSheet.offlineMode', 'Offline Mode')
+                  : t('bottomSheet.routesFound', { count: currentRoute.length })}
               </span>
             </div>
-            {currentRoute[0] && (
-              <div className="text-muted-foreground text-xs mt-1">
-                {t('bottomSheet.bestRoute', {
-                  distance: (currentRoute[0].summary.totalDistance / 1000).toFixed(1),
-                  time: Math.round(currentRoute[0].summary.totalTime / 60)
-                })}
+            {isOffline ? (
+              <div className="text-muted-foreground text-[10px] mt-1 italic">
+                {t('bottomSheet.routingUnavailableShort', 'Routing unavailable offline')}
               </div>
+            ) : (
+              currentRoute?.[0] && (
+                <div className="text-muted-foreground text-xs mt-1">
+                  {t('bottomSheet.bestRoute', {
+                    distance: (currentRoute[0].summary.totalDistance / 1000).toFixed(1),
+                    time: Math.round(currentRoute[0].summary.totalTime / 60)
+                  })}
+                </div>
+              )
             )}
             {/* Drag handle indicator */}
             <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-1 bg-gray-400 rounded-full opacity-60 transition-opacity duration-200 hover:opacity-80"></div>
@@ -750,8 +758,8 @@ const IEBCOfficeMap = () => {
           />
         )}
 
-        {/* Routing System - ONLY WITH LOCATION ACCESS */}
-        {hasLocationAccess && userLocation && selectedOffice && (
+        {/* Routing System - Conditional on Online Status */}
+        {hasLocationAccess && !isOffline && userLocation && selectedOffice && (
           <RoutingSystem
             userLocation={userLocation}
             destination={selectedOffice}

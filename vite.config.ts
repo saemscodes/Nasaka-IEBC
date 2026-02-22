@@ -23,10 +23,10 @@ export default defineConfig(({ mode }) => ({
         'nasaka.svg'
       ],
       manifest: {
-        name: 'Nasaka IEBC Office Finder',
-        short_name: 'Nasaka',
-        description: 'Find your nearest IEBC voter registration office in Kenya',
-        theme_color: '#007AFF',
+        name: 'Nasaka IEBC — Find IEBC Offices near You, anywhere across Kenya',
+        short_name: 'Nasaka IEBC',
+        description: 'Find IEBC offices in all 47 counties and 290 constituencies. Nasaka IEBC helps Kenyans locate, verify and engage with IEBC service points. Interactive maps, directions, ride-hailing services support, verification and civic reporting for trustworthy electoral access. Learn how to register to vote, check status, transfer registration at your nearest IEBC office.',
+        theme_color: '#0b63c6',
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
@@ -34,21 +34,52 @@ export default defineConfig(({ mode }) => ({
         start_url: '/iebc-office',
         icons: [
           {
-            src: '/nasaka-logo-round-blacknblue.png',
+            src: '/nasaka.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
+            purpose: 'any'
+          },
+          {
+            src: '/nasaka-logo-blue.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any'
           },
           {
-            src: '/nasaka-logo-round-blacknblue.png',
-            sizes: '512x512',
+            src: '/nasaka-logo-white.png',
+            sizes: '192x192',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
           },
           {
-            src: '/nasaka-logo-round-blacknblue.png',
+            src: '/nasaka-logo-black.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/nasaka-logo-bnw.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/nasaka-logo-round-black.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'maskable'
+            purpose: 'maskable any'
+          },
+          {
+            src: '/nasaka-logo-round-bnw.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable any'
+          },
+          {
+            src: '/nasaka-logo-blue.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any'
           }
         ],
         shortcuts: [
@@ -57,31 +88,24 @@ export default defineConfig(({ mode }) => ({
             short_name: 'Find',
             description: 'Find nearest IEBC office',
             url: '/iebc-office?action=find',
-            icons: [{ src: '/assets/icon-shortcut.png', sizes: '96x96' }]
+            icons: [{ src: '/nasaka-logo-blue.png', sizes: '96x96' }]
           },
           {
             name: 'View Map',
             short_name: 'Map',
             description: 'View IEBC offices on map',
             url: '/iebc-office/map',
-            icons: [{ src: '/assets/icon-map.png', sizes: '96x96' }]
+            icons: [{ src: '/nasaka-logo-blue.png', sizes: '96x96' }]
           }
         ],
         categories: ['navigation', 'productivity', 'utilities'],
         screenshots: [
           {
-            src: '/assets/screenshot-desktop.png',
+            src: '/1.webp',
             sizes: '1280x720',
-            type: 'image/png',
+            type: 'image/webp',
             form_factor: 'wide',
             label: 'Nasaka IEBC Desktop View'
-          },
-          {
-            src: '/assets/screenshot-mobile.png',
-            sizes: '750x1334',
-            type: 'image/png',
-            form_factor: 'narrow',
-            label: 'Nasaka IEBC Mobile View'
           }
         ]
       },
@@ -200,7 +224,7 @@ export default defineConfig(({ mode }) => ({
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]'
       },
-      
+
     },
     target: 'es2020',
     minify: 'terser',
