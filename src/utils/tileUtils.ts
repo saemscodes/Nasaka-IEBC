@@ -109,6 +109,11 @@ function extractCoordinates(routeGeometry: any): Array<[number, number]> {
         }
     }
 
+    // GeoJSON Point (vicinity caching fallback)
+    if (routeGeometry?.type === 'Point' && Array.isArray(routeGeometry.coordinates)) {
+        return [routeGeometry.coordinates as [number, number]];
+    }
+
     // Leaflet route coordinates (from routing control)
     if (routeGeometry?.coordinates) {
         return extractCoordinates(routeGeometry.coordinates);

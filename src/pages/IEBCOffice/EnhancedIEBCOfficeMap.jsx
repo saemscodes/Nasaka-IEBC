@@ -292,16 +292,16 @@ const EnhancedIEBCOfficeMap = () => {
       />
 
       {/* Offline Route Downloader — above bottom sheet */}
-      {currentRoute && currentRoute[0] && (
+      {(currentRoute?.[0] || selectedOffice) && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           className="absolute bottom-24 left-4 right-4"
-          style={{ zIndex: 'var(--z-fixed-badges, 1002)' }}
+          style={{ zIndex: 'var(--z-fixed-badges, 1005)' }}
         >
           <OfflineRouteDownloader
-            routeGeometry={currentRoute[0].coordinates || currentRoute[0].geometry || currentRoute[0]}
+            routeGeometry={currentRoute?.[0]?.coordinates || currentRoute?.[0]?.geometry || currentRoute?.[0] || (selectedOffice ? { type: 'Point', coordinates: [selectedOffice.longitude, selectedOffice.latitude] } : null)}
           />
         </motion.div>
       )}
@@ -333,6 +333,7 @@ const EnhancedIEBCOfficeMap = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          style={{ zIndex: 'var(--z-fixed-badges, 1005)' }}
           className="absolute top-20 right-4 bg-card/90 backdrop-blur-xl rounded-2xl p-3 shadow-lg border border-border max-w-[220px]"
         >
           <div className="flex items-center space-x-2">
@@ -347,16 +348,17 @@ const EnhancedIEBCOfficeMap = () => {
               {Math.round(currentRoute[0].summary.totalTime / 60)} min
             </div>
           )}
-          {/* Travel Difficulty Score */}
+
+          {/* Travel Difficulty Score Badge (Visual Feedback for "HAM") */}
           {travelInsights && (
             <div className="mt-2 pt-2 border-t border-border/50">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">Visit Score</span>
                 <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${travelInsights.severity === 'low'
-                    ? 'bg-green-500/20 text-green-600 dark:text-green-400'
-                    : travelInsights.severity === 'medium'
-                      ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
-                      : 'bg-red-500/20 text-red-600 dark:text-red-400'
+                  ? 'bg-green-500/20 text-green-600 dark:text-green-400'
+                  : travelInsights.severity === 'medium'
+                    ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
+                    : 'bg-red-500/20 text-red-600 dark:text-red-400'
                   }`}>
                   {travelInsights.score}/100
                 </span>
@@ -370,7 +372,7 @@ const EnhancedIEBCOfficeMap = () => {
                 )}
               </div>
               {travelInsights.stale && (
-                <p className="text-xs text-muted-foreground/60 mt-0.5 italic">May be stale</p>
+                <p className="text-xs text-muted-foreground/60 mt-0.5 italic text-center">May be stale</p>
               )}
             </div>
           )}

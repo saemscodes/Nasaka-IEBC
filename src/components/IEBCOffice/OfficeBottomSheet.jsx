@@ -21,6 +21,7 @@ import {
   FARE_DISCLAIMER
 } from '@/utils/kenyaFareCalculator';
 import UberModal from './UberModal';
+import OfflineRouteDownloader from './OfflineRouteDownloader';
 import i18next from 'i18next';
 import { useNavigate } from 'react-router-dom';
 import { slugify } from '@/components/SEO/SEOHead';
@@ -557,11 +558,22 @@ const OfficeBottomSheet = ({
                     </div>
                   )}
 
+                  {/* Offline Trip Protection Section */}
+                  {(currentRoute?.[0] || office) && (
+                    <div className="mt-4 px-4">
+                      <div className="bg-primary/5 dark:bg-primary/10 rounded-2xl p-1 border border-primary/10">
+                        <OfflineRouteDownloader
+                          routeGeometry={currentRoute?.[0]?.coordinates || currentRoute?.[0]?.geometry || currentRoute?.[0] || (office ? { type: 'Point', coordinates: [office.longitude, office.latitude] } : null)}
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   {/* ── TRAVEL DIFFICULTY CARD ── */}
                   {travelInsights && (
                     <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark
-                        ? 'bg-gradient-to-br from-purple-900/20 to-indigo-900/20 border-purple-700/30'
-                        : 'bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200'
+                      ? 'bg-gradient-to-br from-purple-900/20 to-indigo-900/20 border-purple-700/30'
+                      : 'bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200'
                       }`}>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-2">
@@ -576,10 +588,10 @@ const OfficeBottomSheet = ({
                           </div>
                         </div>
                         <span className={`text-xl font-bold px-3 py-1 rounded-xl ${travelInsights.severity === 'low'
-                            ? isDark ? 'bg-green-900/40 text-green-400' : 'bg-green-100 text-green-700'
-                            : travelInsights.severity === 'medium'
-                              ? isDark ? 'bg-yellow-900/40 text-yellow-400' : 'bg-yellow-100 text-yellow-700'
-                              : isDark ? 'bg-red-900/40 text-red-400' : 'bg-red-100 text-red-700'
+                          ? isDark ? 'bg-green-900/40 text-green-400' : 'bg-green-100 text-green-700'
+                          : travelInsights.severity === 'medium'
+                            ? isDark ? 'bg-yellow-900/40 text-yellow-400' : 'bg-yellow-100 text-yellow-700'
+                            : isDark ? 'bg-red-900/40 text-red-400' : 'bg-red-100 text-red-700'
                           }`}>
                           {travelInsights.score}
                         </span>
