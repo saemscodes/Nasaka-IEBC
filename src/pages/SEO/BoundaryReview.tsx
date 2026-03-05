@@ -138,7 +138,7 @@ const BoundaryReview = () => {
                     <p className="text-muted-foreground mb-8 max-w-md">
                         View existing constituency and ward boundaries on our high-resolution interactive map.
                     </p>
-                    <Link to="/iebc-office/map" className="inline-flex items-center px-10 py-5 bg-ios-blue text-white rounded-2xl font-bold transition-transform active:scale-95 shadow-lg shadow-ios-blue/25">
+                    <Link to="/map" className="inline-flex items-center px-10 py-5 bg-ios-blue text-white rounded-2xl font-bold transition-transform active:scale-95 shadow-lg shadow-ios-blue/25">
                         Show Map Layers
                     </Link>
                 </section>

@@ -21,7 +21,7 @@ const FlatRouteResolver = () => {
     useEffect(() => {
         const resolve = async () => {
             if (!slug) {
-                navigate('/iebc-office', { replace: true });
+                navigate('/', { replace: true });
                 return;
             }
 
@@ -62,7 +62,7 @@ const FlatRouteResolver = () => {
                         return;
                     } else {
                         // Ambiguous area (exists in multiple counties) - Go to generic map or disambiguation
-                        navigate(`/iebc-office/map?q=${slug}`, { replace: true });
+                        navigate(`/map?q=${slug}`, { replace: true });
                         return;
                     }
                 }

@@ -342,7 +342,7 @@ const IEBCOfficeSplash = () => {
                                         sessionStorage.setItem('nasaka_userLocation', JSON.stringify(location));
                                     } catch (_) { /* private browsing */ }
 
-                                    navigate('/iebc-office/map', {
+                                    navigate('/map', {
                                         state: {
                                             selectedOffice: e.data.nearestOffice,
                                             userLocation: location
@@ -411,7 +411,7 @@ const IEBCOfficeSplash = () => {
                         sessionStorage.setItem('nasaka_userLocation', JSON.stringify(location));
                     } catch (_) { /* private browsing */ }
 
-                    navigate('/iebc-office/map', {
+                    navigate('/map', {
                         state: {
                             selectedOffice: nearestOffice,
                             userLocation: location
@@ -430,7 +430,7 @@ const IEBCOfficeSplash = () => {
                     sessionStorage.setItem('nasaka_userLocation', JSON.stringify(location));
                 } catch (_) { /* private browsing */ }
 
-                navigate('/iebc-office/map', {
+                navigate('/map', {
                     state: { userLocation: location },
                     replace: true
                 });
@@ -452,7 +452,7 @@ const IEBCOfficeSplash = () => {
     };
 
     const handleManualEntry = () => {
-        navigate('/iebc-office/map', {
+        navigate('/map', {
             state: { manualEntry: true },
             replace: true
         });
@@ -527,7 +527,7 @@ const IEBCOfficeSplash = () => {
             <SEOHead
                 title="Nasaka IEBC — Find Your Nearest IEBC Office"
                 description="Find IEBC offices in all 47 counties and 290 constituencies. Interactive map with directions, voter registration info, and community verification."
-                canonical="/iebc-office"
+                canonical="/"
                 keywords="IEBC office, voter registration Kenya, nearest IEBC office, find IEBC office, register to vote Kenya"
                 schema={[
                     generateWebsiteSchema(),
@@ -735,14 +735,14 @@ const IEBCOfficeSplash = () => {
                         transition={{ delay: 0.85 }}
                     >
                         <Link
-                            to="/iebc-office/privacy"
+                            to="/privacy"
                             className={`text-[10px] tracking-wide transition-opacity duration-300 hover:opacity-70 ${theme === 'dark' ? 'text-ios-gray-600' : 'text-ios-gray-300'}`}
                         >
                             Privacy
                         </Link>
                         <span className={`text-[10px] ${theme === 'dark' ? 'text-ios-gray-700' : 'text-ios-gray-200'}`}>·</span>
                         <Link
-                            to="/iebc-office/terms"
+                            to="/terms"
                             className={`text-[10px] tracking-wide transition-opacity duration-300 hover:opacity-70 ${theme === 'dark' ? 'text-ios-gray-600' : 'text-ios-gray-300'}`}
                         >
                             Terms

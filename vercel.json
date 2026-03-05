@@ -69,6 +69,41 @@
       "source": "/iebc-office",
       "destination": "/",
       "permanent": true
+    },
+    {
+      "source": "/iebc-office/map",
+      "destination": "/map",
+      "permanent": true
+    },
+    {
+      "source": "/iebc-office/privacy",
+      "destination": "/privacy",
+      "permanent": true
+    },
+    {
+      "source": "/iebc-office/terms",
+      "destination": "/terms",
+      "permanent": true
+    },
+    {
+      "source": "/nasaka-iebc/privacy",
+      "destination": "/privacy",
+      "permanent": true
+    },
+    {
+      "source": "/nasaka-iebc/terms",
+      "destination": "/terms",
+      "permanent": true
+    },
+    {
+      "source": "/iebc-office/:county/:constituency",
+      "destination": "/:county/:constituency",
+      "permanent": true
+    },
+    {
+      "source": "/iebc-office/:county",
+      "destination": "/:county",
+      "permanent": true
     }
   ],
   "rewrites": [

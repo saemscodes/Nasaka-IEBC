@@ -243,7 +243,7 @@ export function generateWebsiteSchema() {
             '@type': 'SearchAction',
             target: {
                 '@type': 'EntryPoint',
-                urlTemplate: `${SITE_URL}/iebc-office/map?q={search_term_string}`,
+                urlTemplate: `${SITE_URL}/map?q={search_term_string}`,
             },
             'query-input': 'required name=search_term_string',
         },

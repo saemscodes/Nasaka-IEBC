@@ -130,7 +130,7 @@ const Privacy = () => {
                     </div>
 
                     <Link
-                        to="/iebc-office/terms"
+                        to="/terms"
                         className={`mt-8 inline-flex items-center space-x-2 px-6 py-3 rounded-full border transition-all duration-300 ${theme === 'dark'
                             ? 'bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500/20'
                             : 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100'

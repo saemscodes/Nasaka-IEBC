@@ -8,18 +8,17 @@
 
 const knownRoutes = [
     '/',
-    '/iebc-office',
-    '/iebc-office/map',
-    '/nasaka-iebc',
+    '/',
+    '/map',
+    '/voter-registration',
     '/voter-services',
     '/boundary-review',
     '/election-resources',
     '/data-api',
     '/admin/contributions',
     '/admin/reset-password',
-    '/VoterRegistration',
-    '/SignPetition',
-    '/VerifySignature',
+    '/sign-petition',
+    '/verify-signature',
     '/privacy',
     '/terms',
 ];

@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { useLenis } from "./hooks/useLenis";
@@ -395,6 +395,16 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 // ✅ Contributions Dashboard Component
 const ContributionsDashboard = React.lazy(() => import('@/components/Admin/ContributionsDashboard'));
 
+// ✅ Helper for legacy dynamic route redirection
+const LegacyDynamicRedirect = () => {
+  const { county, area, constituency } = useParams();
+  const destArea = area || constituency;
+  if (destArea) {
+    return <Navigate to={`/${county}/${destArea}`} replace />;
+  }
+  return <Navigate to={`/${county}`} replace />;
+};
+
 const AppContent = () => {
   const { lenis } = useLenis();
 
@@ -420,9 +430,13 @@ const AppContent = () => {
 
         {/* ✅ ACTIVE IEBC OFFICE FINDER ROUTES */}
         <Route path="/" element={<IEBCOfficeSplash />} />
+        <Route path="/map" element={<IEBCOfficeMap />} />
+
+        {/* Legacy Redirects to root counterparts */}
         <Route path="/iebc-office" element={<Navigate to="/" replace />} />
         <Route path="/nasaka-iebc" element={<Navigate to="/" replace />} />
-        <Route path="/iebc-office/map" element={<IEBCOfficeMap />} />
+        <Route path="/iebc-office/map" element={<Navigate to="/map" replace />} />
+        <Route path="/nasaka-iebc/map" element={<Navigate to="/map" replace />} />
 
         {/* ✅ SEO PILLAR PAGES (Go Ham) */}
         <Route path="/voter-services" element={<React.Suspense fallback={<LoadingState />}><VoterServices /></React.Suspense>} />
@@ -431,15 +445,19 @@ const AppContent = () => {
         <Route path="/data-api" element={<React.Suspense fallback={<LoadingState />}><DataAPI /></React.Suspense>} />
         <Route path="/voter-registration" element={<React.Suspense fallback={<LoadingState />}><VoterRegistration /></React.Suspense>} />
 
-        {/* ✅ LEGAL PAGES */}
-        <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/terms" element={<TermsAndConditions />} />
+        {/* ✅ LEGAL PAGES (Nasaka Blue Edition as Primary) */}
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
 
-        {/* ✅ NASAKA SPECIFIC LEGAL PAGES (Blue Edition) */}
-        <Route path="/iebc-office/privacy" element={<Privacy />} />
-        <Route path="/iebc-office/terms" element={<Terms />} />
-        <Route path="/nasaka-iebc/privacy" element={<Privacy />} />
-        <Route path="/nasaka-iebc/terms" element={<Terms />} />
+        {/* Legacy Recall254 Legal Pages (Preserved) */}
+        <Route path="/legal/privacy" element={<PrivacyPolicy />} />
+        <Route path="/legal/terms" element={<TermsAndConditions />} />
+
+        {/* Redirect legacy prefixed legal paths */}
+        <Route path="/iebc-office/privacy" element={<Navigate to="/privacy" replace />} />
+        <Route path="/iebc-office/terms" element={<Navigate to="/terms" replace />} />
+        <Route path="/nasaka-iebc/privacy" element={<Navigate to="/privacy" replace />} />
+        <Route path="/nasaka-iebc/terms" element={<Navigate to="/terms" replace />} />
 
         {/* ✅ CANONICAL HIERARCHICAL ROUTES (Full Ham) */}
         <Route
@@ -459,23 +477,9 @@ const AppContent = () => {
           }
         />
 
-        {/* ✅ DYNAMIC IEBC OFFICE ROUTES (Legacy Support) */}
-        <Route
-          path="/iebc-office/:county/:constituency"
-          element={
-            <React.Suspense fallback={<LoadingState />}>
-              <OfficeDetail />
-            </React.Suspense>
-          }
-        />
-        <Route
-          path="/iebc-office/:county"
-          element={
-            <React.Suspense fallback={<LoadingState />}>
-              <OfficeDetail />
-            </React.Suspense>
-          }
-        />
+        {/* ✅ DYNAMIC IEBC OFFICE ROUTES (Legacy Support Redirects) */}
+        <Route path="/iebc-office/:county/:constituency" element={<LegacyDynamicRedirect />} />
+        <Route path="/iebc-office/:county" element={<LegacyDynamicRedirect />} />
 
         {/* ✅ FLAT ROUTE RESOLVER (Go Ham) */}
         <Route path="/:slug" element={<FlatRouteResolver />} />

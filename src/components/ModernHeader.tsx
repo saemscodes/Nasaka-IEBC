@@ -3,17 +3,17 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Shield, 
-  Menu, 
-  X, 
-  FileText, 
-  Users, 
-  Scale, 
-  MapPin, 
-  Search, 
-  Moon, 
-  Sun, 
+import {
+  Shield,
+  Menu,
+  X,
+  FileText,
+  Users,
+  Scale,
+  MapPin,
+  Search,
+  Moon,
+  Sun,
   CheckSquare,
   Building,
   Navigation
@@ -25,8 +25,8 @@ interface ModernHeaderProps {
   scrollToTab: (tabId: string) => void;
 }
 
-const ModernHeader: React.FC<ModernHeaderProps> = ({ 
-  darkMode = false, 
+const ModernHeader: React.FC<ModernHeaderProps> = ({
+  darkMode = false,
   toggleDarkMode,
   scrollToTab
 }) => {
@@ -42,15 +42,15 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
     { id: 'voter', label: 'Voter', icon: CheckSquare },
     { id: 'nasaka-iebc', label: 'IEBC Offices', icon: Building }
   ];
-  
+
   const handleNavigation = (item: typeof navigationItems[0]) => {
     if (item.id === 'nasaka-iebc') {
-      navigate('/nasaka-iebc');
+      navigate('/');
     } else {
       scrollToTab(item.id);
     }
     setIsMobileMenuOpen(false);
-    
+
     if (item.id === 'dashboard') {
       setTimeout(() => {
         const petitionsSection = document.querySelector('.grid.grid-cols-1.lg\\:grid-cols-2.gap-6');
@@ -69,7 +69,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
   };
 
   const handleIEBCNavigation = () => {
-    navigate('/nasaka-iebc');
+    navigate('/');
     setIsMobileMenuOpen(false);
   };
 
@@ -80,7 +80,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       const timer = setTimeout(() => {
         setShouldRenderDropdown(false);
       }, 300);
-      
+
       return () => clearTimeout(timer);
     }
   }, [isMobileMenuOpen]);
@@ -197,7 +197,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       }
     }
   };
-  
+
   const themeIconVariants = {
     sun: {
       rotate: 0,
@@ -261,7 +261,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
   );
 
   const TabletIEBCBadge = () => (
-    <Badge 
+    <Badge
       className={`
         hidden md:flex lg:hidden items-center space-x-1 transition-all duration-300 
         bg-gradient-to-r from-ios-blue to-blue-600 hover:from-blue-600 hover:to-ios-blue
@@ -300,15 +300,13 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
       variant="ghost"
       size="sm"
       onClick={() => handleNavigation(item)}
-      className={`flex items-center space-x-2 transition-all duration-300 ${
-        darkMode 
-          ? 'text-gray-300 hover:text-white hover:bg-gray-700/50' 
-          : 'text-green-700 hover:text-green-900 hover:bg-green-50/50'
-      } ${
-        item.id === 'nasaka-iebc' 
-          ? 'bg-ios-blue/10 text-ios-blue hover:bg-ios-blue/20 hover:text-ios-blue border border-ios-blue/20' 
+      className={`flex items-center space-x-2 transition-all duration-300 ${darkMode
+        ? 'text-gray-300 hover:text-white hover:bg-gray-700/50'
+        : 'text-green-700 hover:text-green-900 hover:bg-green-50/50'
+        } ${item.id === 'nasaka-iebc'
+          ? 'bg-ios-blue/10 text-ios-blue hover:bg-ios-blue/20 hover:text-ios-blue border border-ios-blue/20'
           : ''
-      }`}
+        }`}
     >
       <item.icon className="w-4 h-4" />
       <span className="text-sm">{item.label}</span>
@@ -328,15 +326,13 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
         variant="ghost"
         size="sm"
         onClick={() => handleNavigation(item)}
-        className={`w-full flex items-center space-x-3 justify-start px-4 py-3 transition-all duration-300 ${
-          darkMode 
-            ? 'text-gray-300 hover:text-white hover:bg-gray-700/50' 
-            : 'text-green-700 hover:text-green-900 hover:bg-green-50/50'
-        } ${
-          item.id === 'nasaka-iebc' 
-            ? 'bg-ios-blue/10 text-ios-blue hover:bg-ios-blue/20 hover:text-ios-blue border border-ios-blue/20' 
+        className={`w-full flex items-center space-x-3 justify-start px-4 py-3 transition-all duration-300 ${darkMode
+          ? 'text-gray-300 hover:text-white hover:bg-gray-700/50'
+          : 'text-green-700 hover:text-green-900 hover:bg-green-50/50'
+          } ${item.id === 'nasaka-iebc'
+            ? 'bg-ios-blue/10 text-ios-blue hover:bg-ios-blue/20 hover:text-ios-blue border border-ios-blue/20'
             : ''
-        }`}
+          }`}
       >
         <item.icon className="w-4 h-4" />
         <span>{item.label}</span>
@@ -352,14 +348,13 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
   );
 
   return (
-    <header className={`sticky top-0 z-50 transition-all duration-300 ${
-      darkMode 
-        ? 'bg-gray-900/80 backdrop-blur-md border-gray-700/60' 
-        : 'bg-white/80 backdrop-blur-md border-green-100/60'
-    } border-b`}>
+    <header className={`sticky top-0 z-50 transition-all duration-300 ${darkMode
+      ? 'bg-gray-900/80 backdrop-blur-md border-gray-700/60'
+      : 'bg-white/80 backdrop-blur-md border-green-100/60'
+      } border-b`}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 bg-transparent">
-          <div 
+          <div
             className="flex items-center space-x-3 cursor-pointer group"
             onClick={goToHomepage}
             aria-label="Go to homepage"
@@ -367,8 +362,8 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
             <div className="w-10 h-10 flex items-center justify-center relative">
               <link rel="preload" href="/logo_green.png" as="image" />
               <link rel="preload" href="/logo_white.png" as="image" />
-              
-              <motion.img 
+
+              <motion.img
                 src="/logo_green.png"
                 alt="Recall254 Logo Light"
                 className="w-10 h-10 object-cover rounded-full absolute group-hover:scale-110 transition-transform duration-300"
@@ -376,7 +371,7 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
                 initial="light"
                 animate={darkMode ? "dark" : "light"}
               />
-              <motion.img 
+              <motion.img
                 src="/logo_white.png"
                 alt="Recall254 Logo Dark"
                 className="w-10 h-10 object-cover rounded-full absolute group-hover:scale-110 transition-transform duration-300"
@@ -386,19 +381,17 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
               />
             </div>
             <div className="group-hover:transform group-hover:translate-x-1 transition-transform duration-300">
-              <h1 className={`text-lg font-bold transition-colors duration-300 ${
-                darkMode ? 'text-white' : 'text-green-900'
-              }`}>
+              <h1 className={`text-lg font-bold transition-colors duration-300 ${darkMode ? 'text-white' : 'text-green-900'
+                }`}>
                 Recall254
               </h1>
-              <p className={`text-xs transition-colors duration-300 ${
-                darkMode ? 'text-gray-400' : 'text-green-700'
-              }`}>
+              <p className={`text-xs transition-colors duration-300 ${darkMode ? 'text-gray-400' : 'text-green-700'
+                }`}>
                 by CEKA
               </p>
             </div>
           </div>
-          
+
           <nav className="hidden md:flex items-center space-x-1">
             {navigationItems.filter(item => item.id !== 'nasaka-iebc').map((item) => (
               <DesktopNavigationItem key={item.id} item={item} />
@@ -407,16 +400,15 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
 
           <div className="flex items-center space-x-3">
             <DesktopIEBCButton />
-            
+
             <TabletIEBCBadge />
 
-            <Badge 
-              variant="outline" 
-              className={`hidden sm:flex transition-colors duration-300 ${
-                darkMode 
-                  ? 'border-green-600 text-green-400 bg-green-900/30' 
-                  : 'border-green-600 text-green-700 bg-green-50/70'
-              }`}
+            <Badge
+              variant="outline"
+              className={`hidden sm:flex transition-colors duration-300 ${darkMode
+                ? 'border-green-600 text-green-400 bg-green-900/30'
+                : 'border-green-600 text-green-700 bg-green-50/70'
+                }`}
             >
               Beta
             </Badge>
@@ -425,11 +417,10 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
               variant="ghost"
               size="sm"
               onClick={toggleDarkMode}
-              className={`transition-colors duration-300 relative w-10 h-10 ${
-                darkMode 
-                  ? 'text-gray-300 hover:text-white hover:bg-gray-700/50' 
-                  : 'text-green-700 hover:text-green-900 hover:bg-green-50/50'
-              }`}
+              className={`transition-colors duration-300 relative w-10 h-10 ${darkMode
+                ? 'text-gray-300 hover:text-white hover:bg-gray-700/50'
+                : 'text-green-700 hover:text-green-900 hover:bg-green-50/50'
+                }`}
             >
               <div className="absolute inset-0 flex items-center justify-center">
                 <motion.div
@@ -454,11 +445,10 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              className={`md:hidden transition-colors duration-300 relative w-10 h-10 ${
-                darkMode 
-                  ? 'text-gray-300 hover:text-white hover:bg-gray-700/50' 
-                  : 'text-green-700 hover:text-green-900 hover:bg-green-50/50'
-              }`}
+              className={`md:hidden transition-colors duration-300 relative w-10 h-10 ${darkMode
+                ? 'text-gray-300 hover:text-white hover:bg-gray-700/50'
+                : 'text-green-700 hover:text-green-900 hover:bg-green-50/50'
+                }`}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               <div className="absolute inset-0 flex items-center justify-center">
@@ -485,9 +475,8 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
 
         {shouldRenderDropdown && (
           <motion.div
-            className={`md:hidden border-t transition-colors duration-300 ${
-              darkMode ? 'border-gray-700/50' : 'border-green-100/50'
-            }`}
+            className={`md:hidden border-t transition-colors duration-300 ${darkMode ? 'border-gray-700/50' : 'border-green-100/50'
+              }`}
             variants={dropdownVariants}
             initial="closed"
             animate={isMobileMenuOpen ? "open" : "closed"}
@@ -498,25 +487,24 @@ const ModernHeader: React.FC<ModernHeaderProps> = ({
                 {navigationItems.map((item) => (
                   <MobileNavigationItem key={item.id} item={item} />
                 ))}
-                
-                <motion.div 
+
+                <motion.div
                   className="pt-2 mt-2 border-t border-gray-200/50 dark:border-gray-700/50 flex justify-center"
                   variants={dropdownItemVariants}
                 >
                   <MobileIEBCButton />
                 </motion.div>
 
-                <motion.div 
+                <motion.div
                   className="pt-2 border-t border-gray-200/50 dark:border-gray-700/50 flex justify-center"
                   variants={dropdownItemVariants}
                 >
-                  <Badge 
-                    variant="outline" 
-                    className={`transition-colors duration-300 ${
-                      darkMode 
-                        ? 'border-green-600 text-green-400 bg-green-900/30' 
-                        : 'border-green-600 text-green-700 bg-green-50/70'
-                    }`}
+                  <Badge
+                    variant="outline"
+                    className={`transition-colors duration-300 ${darkMode
+                      ? 'border-green-600 text-green-400 bg-green-900/30'
+                      : 'border-green-600 text-green-700 bg-green-50/70'
+                      }`}
                   >
                     Beta Version
                   </Badge>

@@ -101,8 +101,8 @@ const EnhancedIEBCOfficeMap = () => {
 
   // Toggle layer visibility
   const toggleLayer = useCallback((layerId) => {
-    setActiveLayers(prev => 
-      prev.includes(layerId) 
+    setActiveLayers(prev =>
+      prev.includes(layerId)
         ? prev.filter(id => id !== layerId)
         : [...prev, layerId]
     );
@@ -121,7 +121,7 @@ const EnhancedIEBCOfficeMap = () => {
   };
 
   const handleRetryLocation = () => {
-    navigate('/nasaka-iebc', { replace: true });
+    navigate('/', { replace: true });
   };
 
   const openLayerPanel = () => {
@@ -220,7 +220,7 @@ const EnhancedIEBCOfficeMap = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          
+
           <div className="flex-1">
             <SearchBar
               value={searchQuery}
@@ -311,7 +311,7 @@ const EnhancedIEBCOfficeMap = () => {
           </div>
           {currentRoute[0] && (
             <div className="text-ios-gray-600 text-xs mt-1">
-              Best: {(currentRoute[0].summary.totalDistance / 1000).toFixed(1)} km, 
+              Best: {(currentRoute[0].summary.totalDistance / 1000).toFixed(1)} km,
               {Math.round(currentRoute[0].summary.totalTime / 60)} min
             </div>
           )}

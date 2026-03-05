@@ -282,7 +282,7 @@ const VoterRegistration = () => {
                             Locate the nearest IEBC constituency office with directions, opening hours, and contact details for every office in Kenya.
                         </p>
                         <Link
-                            to="/iebc-office/map"
+                            to="/map"
                             className="inline-flex items-center px-8 py-4 bg-white text-ios-blue rounded-2xl font-bold transition-all active:scale-95 shadow-xl hover:shadow-2xl hover:scale-[1.02]"
                         >
                             <MapPin className="w-5 h-5 mr-2" />

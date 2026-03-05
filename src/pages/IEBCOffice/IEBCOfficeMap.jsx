@@ -391,7 +391,7 @@ const IEBCOfficeMap = () => {
     setIsPanelBackdropVisible(true);
   };
 
-  const handleRetryLocation = () => navigate('/nasaka-iebc', { replace: true });
+  const handleRetryLocation = () => navigate('/', { replace: true });
 
   const openLayerPanel = () => {
     setIsLayerPanelOpen(true);
@@ -549,7 +549,7 @@ const IEBCOfficeMap = () => {
       <SEOHead
         title="IEBC Office Map — All 290 Constituencies | Nasaka IEBC"
         description="Interactive map of IEBC constituency offices across all 47 counties in Kenya. Find directions, voter registration info, and community-verified locations."
-        canonical="/iebc-office/map"
+        canonical="/map"
         keywords="IEBC office map, IEBC office locations Kenya, find IEBC office on map, voter registration map Kenya"
       />
       {/* FIXED UI Controls - ALWAYS ON TOP */}

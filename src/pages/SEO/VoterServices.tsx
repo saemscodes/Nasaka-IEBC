@@ -122,7 +122,7 @@ const VoterServices = () => {
                         <p className="text-ios-blue-100 mb-8 max-w-lg">
                             Unlock directions, opening hours, and contact details for every IEBC office in Kenya.
                         </p>
-                        <Link to="/iebc-office/map" className="inline-flex items-center px-8 py-4 bg-white text-ios-blue rounded-2xl font-bold transition-transform active:scale-95 shadow-xl">
+                        <Link to="/map" className="inline-flex items-center px-8 py-4 bg-white text-ios-blue rounded-2xl font-bold transition-transform active:scale-95 shadow-xl">
                             <MapPin className="w-5 h-5 mr-2" />
                             Open Interactive Map
                         </Link>

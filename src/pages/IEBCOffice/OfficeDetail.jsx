@@ -72,7 +72,7 @@ const OfficeDetail = () => {
 
     // Redirection Logic: Redirect legacy /iebc-office paths to hierarchical canonical paths
     useEffect(() => {
-        if (window.location.pathname.startsWith('/iebc-office/') && office) {
+        if ((window.location.pathname.startsWith('/iebc-office/') || window.location.pathname.startsWith('/nasaka-iebc/')) && office) {
             const countySlugLocal = slugify(office.county);
             let areaSlugLocal = slugify(office.constituency_name);
 
@@ -213,7 +213,7 @@ const OfficeDetail = () => {
                 <p className="text-muted-foreground mb-6">Nasaka is bringing the IEBC closer to you. We couldn't find this specific office just now - please check our registry again in a moment.</p>
 
                 <Link
-                    to="/iebc-office/map"
+                    to="/map"
                     state={savedUserLocation ? { userLocation: savedUserLocation } : undefined}
                     className="px-6 py-3 bg-primary text-white rounded-xl font-medium"
                 >
@@ -238,7 +238,7 @@ const OfficeDetail = () => {
                     generateOfficeSchema(office),
                     generateBreadcrumbSchema([
                         { name: 'Home', url: '/' },
-                        { name: 'IEBC Offices', url: '/iebc-office' },
+                        { name: 'Nasaka IEBC', url: '/' },
                         { name: countyName, url: `/${slugify(countyName)}` },
                         {
                             name: officeName,
@@ -311,7 +311,7 @@ const OfficeDetail = () => {
                         <span className="text-sm font-semibold">Directions</span>
                     </button>
                     <button
-                        onClick={() => navigate('/iebc-office/map', {
+                        onClick={() => navigate('/map', {
                             state: {
                                 selectedOffice: office,
                                 ...(savedUserLocation ? { userLocation: savedUserLocation } : {})
