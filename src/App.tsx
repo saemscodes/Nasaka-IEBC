@@ -35,6 +35,7 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 
 // Import supabase client from existing location
 import { supabase } from "@/integrations/supabase/client";
+import AdminVerification from './pages/Admin/AdminVerification';
 
 // Import i18n configuration
 import '@/i18n';
@@ -299,6 +300,7 @@ const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
 // ✅ SECURE Admin Route Protection Component
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
@@ -383,6 +385,10 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     return <AdminLogin onLogin={handleLogin} />;
   }
 
+  if (!isVerified) {
+    return <AdminVerification onVerified={() => setIsVerified(true)} />;
+  }
+
   return <>{children}</>;
 };
 
@@ -413,8 +419,9 @@ const AppContent = () => {
         */}
 
         {/* ✅ ACTIVE IEBC OFFICE FINDER ROUTES */}
-        <Route path="/iebc-office" element={<IEBCOfficeSplash />} />
-        <Route path="/nasaka-iebc" element={<IEBCOfficeSplash />} />
+        <Route path="/" element={<IEBCOfficeSplash />} />
+        <Route path="/iebc-office" element={<Navigate to="/" replace />} />
+        <Route path="/nasaka-iebc" element={<Navigate to="/" replace />} />
         <Route path="/iebc-office/map" element={<IEBCOfficeMap />} />
 
         {/* ✅ SEO PILLAR PAGES (Go Ham) */}
@@ -518,7 +525,7 @@ const AppContent = () => {
         <Route path="/dashboard" element={<Navigate to="/admin/contributions" replace />} />
 
         {/* ✅ Root path redirects to IEBC Office splash page */}
-        <Route path="/" element={<Navigate to="/iebc-office" replace />} />
+        {/* Already handled by path="/" at the top */}
 
         {/* ✅ Catch-all */}
         <Route path="*" element={<NotFound />} />
