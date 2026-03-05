@@ -29,6 +29,7 @@ const OfficeBottomSheet = ({
   userLocation,
   currentRoute,
   routingError,
+  travelInsights,
   state = 'peek',
   onExpand,
   onCollapse,
@@ -553,6 +554,83 @@ const OfficeBottomSheet = ({
                         }`}>
                         {FARE_DISCLAIMER.en}
                       </p>
+                    </div>
+                  )}
+
+                  {/* ── TRAVEL DIFFICULTY CARD ── */}
+                  {travelInsights && (
+                    <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark
+                        ? 'bg-gradient-to-br from-purple-900/20 to-indigo-900/20 border-purple-700/30'
+                        : 'bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200'
+                      }`}>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-lg">🧭</span>
+                          <div>
+                            <h4 className={`text-sm font-semibold ${isDark ? 'text-purple-300' : 'text-purple-800'}`}>
+                              Travel Difficulty
+                            </h4>
+                            <p className={`text-xs mt-0.5 ${isDark ? 'text-ios-gray-400' : 'text-gray-600'}`}>
+                              Real-time conditions analysis
+                            </p>
+                          </div>
+                        </div>
+                        <span className={`text-xl font-bold px-3 py-1 rounded-xl ${travelInsights.severity === 'low'
+                            ? isDark ? 'bg-green-900/40 text-green-400' : 'bg-green-100 text-green-700'
+                            : travelInsights.severity === 'medium'
+                              ? isDark ? 'bg-yellow-900/40 text-yellow-400' : 'bg-yellow-100 text-yellow-700'
+                              : isDark ? 'bg-red-900/40 text-red-400' : 'bg-red-100 text-red-700'
+                          }`}>
+                          {travelInsights.score}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        {/* Weather */}
+                        <div className={`p-2.5 rounded-lg ${isDark ? 'bg-black/20' : 'bg-white/60'
+                          }`}>
+                          <p className={`text-xs font-medium ${isDark ? 'text-ios-gray-300' : 'text-gray-700'}`}>
+                            Weather
+                          </p>
+                          <p className={`text-sm font-semibold mt-0.5 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {travelInsights.weatherDesc}
+                          </p>
+                          {travelInsights.temperature !== null && (
+                            <p className={`text-xs mt-0.5 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
+                              {travelInsights.temperature}°C
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Wind */}
+                        <div className={`p-2.5 rounded-lg ${isDark ? 'bg-black/20' : 'bg-white/60'
+                          }`}>
+                          <p className={`text-xs font-medium ${isDark ? 'text-ios-gray-300' : 'text-gray-700'}`}>
+                            Conditions
+                          </p>
+                          {travelInsights.windSpeed !== null && (
+                            <p className={`text-sm font-semibold mt-0.5 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                              💨 {travelInsights.windSpeed} km/h
+                            </p>
+                          )}
+                          {travelInsights.precipProb !== null && travelInsights.precipProb > 0 && (
+                            <p className={`text-xs mt-0.5 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
+                              🌧️ {travelInsights.precipProb}% rain
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Score Explanation */}
+                      <p className={`text-xs mt-3 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
+                        Score: 0 (easiest) → 100 (hardest). Factors: distance, time, traffic, weather.
+                      </p>
+
+                      {travelInsights.stale && (
+                        <p className={`text-xs mt-1 italic ${isDark ? 'text-ios-gray-500' : 'text-gray-400'}`}>
+                          ⏱ Some data may be stale — check again when online
+                        </p>
+                      )}
                     </div>
                   )}
 

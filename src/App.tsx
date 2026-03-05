@@ -545,6 +545,17 @@ const App = () => {
     document.documentElement.dir = dir;
   }, [i18n.language]);
 
+  // 🗺️ Request persistent storage for offline map tiles and route data
+  useEffect(() => {
+    if (navigator.storage && navigator.storage.persist) {
+      navigator.storage.persist().then((granted) => {
+        if (granted) {
+          console.info('[Nasaka] Persistent storage granted — tiles will survive storage pressure');
+        }
+      });
+    }
+  }, []);
+
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>

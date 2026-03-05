@@ -170,6 +170,81 @@ export default defineConfig(({ mode }) => ({
                 maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
               }
             }
+          },
+          // ── Map Tile Caching (FIFO via maxEntries) ──
+          {
+            urlPattern: /^https:\/\/.*\.?tile\.openstreetmap\.org\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'osm-tiles-cache',
+              expiration: {
+                maxEntries: 1000,
+                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/server\.arcgisonline\.com\/ArcGIS\/rest\/services\/World_Imagery\/MapServer\/tile\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'satellite-tiles-cache',
+              expiration: {
+                maxEntries: 500,
+                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          // ── Weather & Routing API Caching ──
+          {
+            urlPattern: /^https:\/\/api\.openrouteservice\.org\/.*/,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'ors-routing-cache',
+              networkTimeoutSeconds: 10,
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 24 * 60 * 60 // 24 hours
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/weather\.visualcrossing\.com\/.*/,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'weather-vc-cache',
+              networkTimeoutSeconds: 8,
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 15 * 60 // 15 minutes
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/api\.open-meteo\.com\/.*/,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'weather-openmeteo-cache',
+              networkTimeoutSeconds: 8,
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 15 * 60 // 15 minutes
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
           }
         ],
         skipWaiting: true,

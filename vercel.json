@@ -1,6 +1,17 @@
 {
   "redirects": [
     {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "recall254.vercel.app"
+        }
+      ],
+      "destination": "https://nasakaiebc.civiceducationkenya.com/$1",
+      "permanent": true
+    },
+    {
       "source": "/IEBC.office",
       "destination": "/",
       "permanent": true

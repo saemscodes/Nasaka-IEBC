@@ -1,0 +1,2483 @@
+Weather + Route Context
+
+OpenMateo:
+[Skip to content
+open-meteo
+mapbox-layer
+Repository navigation
+Code
+Issues
+16
+ (16)
+Pull requests
+8
+ (8)
+Actions
+Projects
+Security
+Insights
+Owner avatar
+mapbox-layer
+Public
+open-meteo/mapbox-layer
+Go to file
+t
+Name		
+vincentvdwal
+vincentvdwal
+fix: update eslint config to v10 (#203)
+f4e106e
+ · 
+3 days ago
+.github
+lts (#195)
+last week
+examples
+fix: extract maplibre object from bounds.ts (#196)
+last week
+scripts
+feat: Add missing domains, and variables (#162)
+last month
+src
+fix: extract maplibre object from bounds.ts (#196)
+last week
+.gitignore
+feat: Add missing domains, and variables (#162)
+last month
+.nvmrc
+lts (#195)
+last week
+.prettierignore
+feat: Add missing domains, and variables (#162)
+last month
+.release-please-manifest.json
+chore(main): release 0.0.15 (#184)
+2 weeks ago
+CHANGELOG.md
+chore(main): release 0.0.15 (#184)
+2 weeks ago
+LICENSE
+change to GPL2 licence
+5 months ago
+README.md
+chore(main): release 0.0.15 (#184)
+2 weeks ago
+eslint.config.ts
+fix: update eslint config to v10 (#203)
+3 days ago
+favicon.ico
+feat: HMR (#181)
+2 weeks ago
+package-lock.json
+fix: update eslint config to v10 (#203)
+3 days ago
+package.json
+fix: update eslint config to v10 (#203)
+3 days ago
+prettier.config.js
+add plugin to config
+5 months ago
+release-please-config.json
+feat: Automatic partial requests via updateCurrentBounds hook (#146)
+2 months ago
+tsconfig.json
+feat: script to generate color scales (#67)
+4 months ago
+vite.config.cjs.ts
+fix: umd file name
+5 months ago
+vite.config.ts
+chore: package and ci updates (#89)
+4 months ago
+vite.config.umd.ts
+fix: reenable minify
+4 months ago
+Repository files navigation
+README
+GPL-2.0 license
+Open-Meteo Mapbox Layer
+codecov Linting & Tests GitHub license npm version
+
+⚠️ Notice This package is still under construction and is not yet fully production-ready. API changes may occur and some features might be incomplete.
+
+Overview
+This repository serves as a demonstration of the Open-Meteo File Protocol (om://) with Mapbox / MapLibre GL JS. The .om files are hosted on an S3 bucket and can be accessed directly through the protocol handler.
+
+The core weather data generation and API is hosted in the open-meteo/open-meteo repository.
+
+An interactive demo is available at maps.open-meteo.com.
+
+Installation
+Node
+npm install @openmeteo/mapbox-layer
+// ...
+import { omProtocol } from '@openmeteo/mapbox-layer';
+
+// Standard Mapbox / MapLibre GL JS setup
+// ...
+
+maplibregl.addProtocol('om', omProtocol);
+
+const omUrl = `https://map-tiles.open-meteo.com/data_spatial/dwd_icon/latest.json?variable=temperature_2m`;
+
+map.on('load', () => {
+	map.addSource('omFileSource', {
+		url: 'om://' + omUrl,
+		type: 'raster',
+		maxzoom: 12 // tiles look pretty much the same below zoom-level 12, even on the high res models
+	});
+
+	map.addLayer({
+		id: 'omFileLayer',
+		type: 'raster',
+		source: 'omFileSource',
+		paint: {
+			'raster-opacity': 0.75
+		}
+	});
+});
+HTML / UNPKG
+For a standalone example, see examples/temperature.html.
+
+...
+<script src="https://unpkg.com/@openmeteo/mapbox-layer@0.0.15/dist/index.js"></script>
+...
+<script>
+	// Standard Mapbox / MapLibre GL JS setup
+	// ...
+
+	maplibregl.addProtocol('om', OpenMeteoMapboxLayer.omProtocol);
+
+	const omUrl = `https://map-tiles.open-meteo.com/data_spatial/dwd_icon/latest.json?variable=temperature_2m`;
+
+	map.on('load', () => {
+		map.addSource('omFileSource', {
+			url: 'om://' + omUrl,
+			type: 'raster',
+			maxzoom: 12 // tiles look pretty much the same below zoom-level 12, even on the high res models
+		});
+
+		map.addLayer({
+			id: 'omFileLayer',
+			type: 'raster',
+			source: 'omFileSource',
+			paint: {
+				'raster-opacity': 0.75
+			}
+		});
+	});
+</script>
+Development
+The examples can be served locally, providing direct access to the bundled assets and data files. To launch the development server, execute:
+
+npm run serve
+This command initiates a lightweight static server, enabling the interactive demos to be viewed in a browser while reflecting any code changes in real time.
+
+Examples
+Raster sources
+The repository contains an examples directory with ready-to-run demos:
+
+examples/temperature.html – shows temperature data from an OM file.
+examples/precipitation.html – displays precipitation using a similar setup.
+examples/wind.html – displays wind values, for arrows overlay see Vector sources.
+examples/combined-variables.html – shows multiple data sources on the same map.
+Run the examples by opening the corresponding .html file in a browser.
+
+Vector sources
+For directional arrows / contouring / gridpoints, an additional source must be added, since these features use vector tiles instead of raster tiles.
+
+...
+
+map.on('load', () => {
+	map.addSource('omFileVectorSource', {
+		url: 'om://' + omUrl,
+		type: 'vector'
+	});
+
+	map.addLayer({
+		id: 'omFileVectorLayer',
+		type: 'line',
+		source: 'omFileVectorSource',
+		'source-layer': 'contours',
+		paint: {
+			'line-color': 'black',
+			'line-width': 4
+		}
+	});
+});
+For the vector source examples there is the examples/vector sub-directory with ready-to-run demos:
+
+examples/vector/grid-points.html – displays all grid points for a model, with value data on each point.
+examples/vector/temperature-anomaly.html – shows a seasonal forecast map with temperature anomalies.
+examples/vector/temperature-labels.html – displays all grid points for a model, using value data to show temperature labels.
+examples/vector/wind-arrows.html – displays wind map with directional arrows.
+Contouring
+examples/vector/contouring/contouring-pressure.html – shows how to use contouring with a pressure map.
+examples/vector/contouring/contouring-on-colorscale.html – shows how to use contouring to follow the breakpoints in the colorscale.
+examples/vector/contouring/custom-contouring-interval.html – shows how to use contouring a custom contouring interval.
+Colors
+If you’re rendering tiles on a dark base‑map or simply want to experiment with alternative color schemes, the documentation includes several example pages that illustrate all the available color‑scale options:
+
+examples/colorscales/darkmode.html – demonstrates the dark=true URL parameter, which automatically switches to palettes fine‑tuned for dark backgrounds.
+examples/colorscales/custom-rgba.html – shows how to build a linear gradient from a user‑defined array of RGBA values.
+examples/colorscales/custom-breakpoint.html – demonstrates how to insert your own breakpoints into the scale definitions.
+Callbacks
+In scenarios where post‑loading transformations of weather data is required, the protocol provides a post‑read callback. This callback is invoked immediately after the data has been parsed by omFileReader, allowing transformations before the data is forwarded to the rendering pipeline. A typical usage pattern is illustrated below:
+
+const omProtocolOptions = OpenMeteoMapboxLayer.defaultOmProtocolSettings;
+omProtocolOptions.postReadCallback = (omFileReader, data, state) => {
+	if (data.values) {
+		data.values = data.values?.map((value) => value / 100);
+	}
+};
+
+maplibregl.addProtocol('om', (params, abortController) =>
+	OpenMeteoMapboxLayer.omProtocol(params, abortController, omProtocolOptions)
+);
+An example implementation with a usefull case is available in the examples/callbacks sub-directory.
+
+Clipping
+To restrict weather data to a geometric boundary, the clipping parameters can be supplied during the instantiation of the omProtocol.
+
+const omProtocolOptions = OpenMeteoMapboxLayer.defaultOmProtocolSettings;
+omProtocolOptions.clippingOptions = {
+	polygons: polygonList, // optionally clip raster / vector data to these polygons
+	bounds: clipBbox // optionally limit tile generation to these bbox bounds
+};
+...
+examples/clipping/raster/clip-switzerland.html – Demonstrates temperature raster data clipped to the geographical contour of Switzerland.
+examples/clipping/arrows/clip-italy.html – Shows wind velocity raster and vector arrow fields clipped to the contour of Italy.
+examples/clipping/contours/clip-france.html – Illustrates temperature and isocontour overlays confined to the French boundary.
+examples/clipping/oceans/clip-oceans.html – Depicts the exclusion of oceanic regions from a global model, thereby hiding weather data on ocean surfaces.
+Capture API
+⚠️ Using the Capture API will add 0.5-1s delay for each request
+
+Because the use of OM files on the S3 storage is often quite ambiguous, a Capture API is added, that will automatically produce the correct file paths for you.
+
+For each Weather Model, there will be a latest.json and in-progress.json metadata file, containing data like valid time steps, valid variables and reference times.
+
+An example can be found here, for DWD Icon Global:
+
+https://map-tiles.open-meteo.com/data_spatial/dwd_icon/latest.json
+{
+	"completed": true,
+	"last_modified_time": "2025-11-11T09:42:17Z",
+	"reference_time": "2025-11-11T06:00:00Z",
+	"valid_times": ["2025-11-11T06:00Z", "2025-11-11T07:00Z", "...+91"],
+	"variables": ["cape", "cloud_cover", "cloud_cover_high", "...+120"]
+}
+Using the Capture API
+If you don't want to select a particular model run, but instead always want to use the latest available run. Instead of using the model run in the URL you replace that part with latest.json
+
+For example, with the link below replace the highlighted part:
+
+https://map-tiles.open-meteo.com/data_spatial/dwd_icon/2025/06/06/1200Z/2025-06-06T1200.om?variable=temperature_2m
+With latest.json:
+
+https://map-tiles.open-meteo.com/data_spatial/dwd_icon/latest.json?variable=temperature_2m
+If you want to show the closest current time, or a pick a different valid time than the first one, you could use:
+
+https://map-tiles.open-meteo.com/data_spatial/dwd_icon/latest.json?time_step=current_time_1H&variable=temperature_2m
+or the 5th index of the valid_times array
+
+https://map-tiles.open-meteo.com/data_spatial/dwd_icon/latest.json?time_step=valid_times_5&variable=temperature_2m
+Time Step Modifiers
+modifier	Alteration
+M	Minutes
+H	Hours
+d	Days
+m	Months
+About
+Boilerplate for using OMfiles in TS / JS, specifically with maps
+
+maps.open-meteo.com
+Resources
+ Readme
+License
+ GPL-2.0 license
+ Activity
+ Custom properties
+Stars
+ 17 stars
+Watchers
+ 3 watching
+Forks
+ 4 forks
+Report repository
+Releases 15
+v0.0.15
+Latest
+2 weeks ago
++ 14 releases
+Packages
+No packages published
+Contributors
+5
+@vincentvdwal
+@terraputix
+@github-actions[bot]
+@dependabot[bot]
+@patrick-zippenfenig
+Languages
+TypeScript
+99.9%
+ 
+JavaScript
+0.1%
+Footer
+© 2026 GitHub, Inc.
+Footer navigation
+Terms
+Privacy
+Security
+Status
+Community
+Docs
+Contact
+Manage cookies
+Do not share my personal information
+Skip to content
+open-meteo
+mapbox-layer
+Repository navigation
+Code
+Issues
+16
+ (16)
+Pull requests
+8
+ (8)
+Actions
+Projects
+Security
+Insights
+Owner avatar
+mapbox-layer
+Public
+open-meteo/mapbox-layer
+Go to file
+t
+Name		
+vincentvdwal
+vincentvdwal
+fix: update eslint config to v10 (#203)
+f4e106e
+ · 
+3 days ago
+.github
+lts (#195)
+last week
+examples
+fix: extract maplibre object from bounds.ts (#196)
+last week
+scripts
+feat: Add missing domains, and variables (#162)
+last month
+src
+fix: extract maplibre object from bounds.ts (#196)
+last week
+.gitignore
+feat: Add missing domains, and variables (#162)
+last month
+.nvmrc
+lts (#195)
+last week
+.prettierignore
+feat: Add missing domains, and variables (#162)
+last month
+.release-please-manifest.json
+chore(main): release 0.0.15 (#184)
+2 weeks ago
+CHANGELOG.md
+chore(main): release 0.0.15 (#184)
+2 weeks ago
+LICENSE
+change to GPL2 licence
+5 months ago
+README.md
+chore(main): release 0.0.15 (#184)
+2 weeks ago
+eslint.config.ts
+fix: update eslint config to v10 (#203)
+3 days ago
+favicon.ico
+feat: HMR (#181)
+2 weeks ago
+package-lock.json
+fix: update eslint config to v10 (#203)
+3 days ago
+package.json
+fix: update eslint config to v10 (#203)
+3 days ago
+prettier.config.js
+add plugin to config
+5 months ago
+release-please-config.json
+feat: Automatic partial requests via updateCurrentBounds hook (#146)
+2 months ago
+tsconfig.json
+feat: script to generate color scales (#67)
+4 months ago
+vite.config.cjs.ts
+fix: umd file name
+5 months ago
+vite.config.ts
+chore: package and ci updates (#89)
+4 months ago
+vite.config.umd.ts
+fix: reenable minify
+4 months ago
+Repository files navigation
+README
+GPL-2.0 license
+Open-Meteo Mapbox Layer
+codecov Linting & Tests GitHub license npm version
+
+⚠️ Notice This package is still under construction and is not yet fully production-ready. API changes may occur and some features might be incomplete.
+
+Overview
+This repository serves as a demonstration of the Open-Meteo File Protocol (om://) with Mapbox / MapLibre GL JS. The .om files are hosted on an S3 bucket and can be accessed directly through the protocol handler.
+
+The core weather data generation and API is hosted in the open-meteo/open-meteo repository.
+
+An interactive demo is available at maps.open-meteo.com.
+
+Installation
+Node
+npm install @openmeteo/mapbox-layer
+// ...
+import { omProtocol } from '@openmeteo/mapbox-layer';
+
+// Standard Mapbox / MapLibre GL JS setup
+// ...
+
+maplibregl.addProtocol('om', omProtocol);
+
+const omUrl = `https://map-tiles.open-meteo.com/data_spatial/dwd_icon/latest.json?variable=temperature_2m`;
+
+map.on('load', () => {
+	map.addSource('omFileSource', {
+		url: 'om://' + omUrl,
+		type: 'raster',
+		maxzoom: 12 // tiles look pretty much the same below zoom-level 12, even on the high res models
+	});
+
+	map.addLayer({
+		id: 'omFileLayer',
+		type: 'raster',
+		source: 'omFileSource',
+		paint: {
+			'raster-opacity': 0.75
+		}
+	});
+});
+HTML / UNPKG
+For a standalone example, see examples/temperature.html.
+
+...
+<script src="https://unpkg.com/@openmeteo/mapbox-layer@0.0.15/dist/index.js"></script>
+...
+<script>
+	// Standard Mapbox / MapLibre GL JS setup
+	// ...
+
+	maplibregl.addProtocol('om', OpenMeteoMapboxLayer.omProtocol);
+
+	const omUrl = `https://map-tiles.open-meteo.com/data_spatial/dwd_icon/latest.json?variable=temperature_2m`;
+
+	map.on('load', () => {
+		map.addSource('omFileSource', {
+			url: 'om://' + omUrl,
+			type: 'raster',
+			maxzoom: 12 // tiles look pretty much the same below zoom-level 12, even on the high res models
+		});
+
+		map.addLayer({
+			id: 'omFileLayer',
+			type: 'raster',
+			source: 'omFileSource',
+			paint: {
+				'raster-opacity': 0.75
+			}
+		});
+	});
+</script>
+Development
+The examples can be served locally, providing direct access to the bundled assets and data files. To launch the development server, execute:
+
+npm run serve
+This command initiates a lightweight static server, enabling the interactive demos to be viewed in a browser while reflecting any code changes in real time.
+
+Examples
+Raster sources
+The repository contains an examples directory with ready-to-run demos:
+
+examples/temperature.html – shows temperature data from an OM file.
+examples/precipitation.html – displays precipitation using a similar setup.
+examples/wind.html – displays wind values, for arrows overlay see Vector sources.
+examples/combined-variables.html – shows multiple data sources on the same map.
+Run the examples by opening the corresponding .html file in a browser.
+
+Vector sources
+For directional arrows / contouring / gridpoints, an additional source must be added, since these features use vector tiles instead of raster tiles.
+
+...
+
+map.on('load', () => {
+	map.addSource('omFileVectorSource', {
+		url: 'om://' + omUrl,
+		type: 'vector'
+	});
+
+	map.addLayer({
+		id: 'omFileVectorLayer',
+		type: 'line',
+		source: 'omFileVectorSource',
+		'source-layer': 'contours',
+		paint: {
+			'line-color': 'black',
+			'line-width': 4
+		}
+	});
+});
+For the vector source examples there is the examples/vector sub-directory with ready-to-run demos:
+
+examples/vector/grid-points.html – displays all grid points for a model, with value data on each point.
+examples/vector/temperature-anomaly.html – shows a seasonal forecast map with temperature anomalies.
+examples/vector/temperature-labels.html – displays all grid points for a model, using value data to show temperature labels.
+examples/vector/wind-arrows.html – displays wind map with directional arrows.
+Contouring
+examples/vector/contouring/contouring-pressure.html – shows how to use contouring with a pressure map.
+examples/vector/contouring/contouring-on-colorscale.html – shows how to use contouring to follow the breakpoints in the colorscale.
+examples/vector/contouring/custom-contouring-interval.html – shows how to use contouring a custom contouring interval.
+Colors
+If you’re rendering tiles on a dark base‑map or simply want to experiment with alternative color schemes, the documentation includes several example pages that illustrate all the available color‑scale options:
+
+examples/colorscales/darkmode.html – demonstrates the dark=true URL parameter, which automatically switches to palettes fine‑tuned for dark backgrounds.
+examples/colorscales/custom-rgba.html – shows how to build a linear gradient from a user‑defined array of RGBA values.
+examples/colorscales/custom-breakpoint.html – demonstrates how to insert your own breakpoints into the scale definitions.
+Callbacks
+In scenarios where post‑loading transformations of weather data is required, the protocol provides a post‑read callback. This callback is invoked immediately after the data has been parsed by omFileReader, allowing transformations before the data is forwarded to the rendering pipeline. A typical usage pattern is illustrated below:
+
+const omProtocolOptions = OpenMeteoMapboxLayer.defaultOmProtocolSettings;
+omProtocolOptions.postReadCallback = (omFileReader, data, state) => {
+	if (data.values) {
+		data.values = data.values?.map((value) => value / 100);
+	}
+};
+
+maplibregl.addProtocol('om', (params, abortController) =>
+	OpenMeteoMapboxLayer.omProtocol(params, abortController, omProtocolOptions)
+);
+An example implementation with a usefull case is available in the examples/callbacks sub-directory.
+
+Clipping
+To restrict weather data to a geometric boundary, the clipping parameters can be supplied during the instantiation of the omProtocol.
+
+const omProtocolOptions = OpenMeteoMapboxLayer.defaultOmProtocolSettings;
+omProtocolOptions.clippingOptions = {
+	polygons: polygonList, // optionally clip raster / vector data to these polygons
+	bounds: clipBbox // optionally limit tile generation to these bbox bounds
+};
+...
+examples/clipping/raster/clip-switzerland.html – Demonstrates temperature raster data clipped to the geographical contour of Switzerland.
+examples/clipping/arrows/clip-italy.html – Shows wind velocity raster and vector arrow fields clipped to the contour of Italy.
+examples/clipping/contours/clip-france.html – Illustrates temperature and isocontour overlays confined to the French boundary.
+examples/clipping/oceans/clip-oceans.html – Depicts the exclusion of oceanic regions from a global model, thereby hiding weather data on ocean surfaces.
+Capture API
+⚠️ Using the Capture API will add 0.5-1s delay for each request
+
+Because the use of OM files on the S3 storage is often quite ambiguous, a Capture API is added, that will automatically produce the correct file paths for you.
+
+For each Weather Model, there will be a latest.json and in-progress.json metadata file, containing data like valid time steps, valid variables and reference times.
+
+An example can be found here, for DWD Icon Global:
+
+https://map-tiles.open-meteo.com/data_spatial/dwd_icon/latest.json
+{
+	"completed": true,
+	"last_modified_time": "2025-11-11T09:42:17Z",
+	"reference_time": "2025-11-11T06:00:00Z",
+	"valid_times": ["2025-11-11T06:00Z", "2025-11-11T07:00Z", "...+91"],
+	"variables": ["cape", "cloud_cover", "cloud_cover_high", "...+120"]
+}
+Using the Capture API
+If you don't want to select a particular model run, but instead always want to use the latest available run. Instead of using the model run in the URL you replace that part with latest.json
+
+For example, with the link below replace the highlighted part:
+
+https://map-tiles.open-meteo.com/data_spatial/dwd_icon/2025/06/06/1200Z/2025-06-06T1200.om?variable=temperature_2m
+With latest.json:
+
+https://map-tiles.open-meteo.com/data_spatial/dwd_icon/latest.json?variable=temperature_2m
+If you want to show the closest current time, or a pick a different valid time than the first one, you could use:
+
+https://map-tiles.open-meteo.com/data_spatial/dwd_icon/latest.json?time_step=current_time_1H&variable=temperature_2m
+or the 5th index of the valid_times array
+
+https://map-tiles.open-meteo.com/data_spatial/dwd_icon/latest.json?time_step=valid_times_5&variable=temperature_2m
+Time Step Modifiers
+modifier	Alteration
+M	Minutes
+H	Hours
+d	Days
+m	Months
+About
+Boilerplate for using OMfiles in TS / JS, specifically with maps
+
+maps.open-meteo.com
+Resources
+ Readme
+License
+ GPL-2.0 license
+ Activity
+ Custom properties
+Stars
+ 17 stars
+Watchers
+ 3 watching
+Forks
+ 4 forks
+Report repository
+Releases 15
+v0.0.15
+Latest
+2 weeks ago
++ 14 releases
+Packages
+No packages published
+Contributors
+5
+@vincentvdwal
+@terraputix
+@github-actions[bot]
+@dependabot[bot]
+@patrick-zippenfenig
+Languages
+TypeScript
+99.9%
+ 
+JavaScript
+0.1%
+Footer
+© 2026 GitHub, Inc.
+Footer navigation
+Terms
+Privacy
+Security
+Status
+Community
+Docs
+Contact
+Manage cookies
+Do not share my personal information
+]
+[Open-Meteo
+Home
+Features
+Pricing
+API Docs
+
+Weather Forecast API
+Seamless integration of high-resolution weather models with up 16 days forecast
+
+Weather Forecast
+Historical Forecast
+Previous Model Runs
+DWD Germany
+NOAA U.S.
+Météo-France
+ECMWF
+UK Met Office
+KMA Korea
+JMA Japan
+MeteoSwiss
+MET Norway
+GEM Canada
+BOM Australia
+CMA China
+KNMI Netherlands
+DMI Denmark
+ItaliaMeteo
+Historical Weather
+Ensemble Models
+Seasonal Forecast
+Climate Change
+Marine Forecast
+Air Quality
+Satellite Radiation
+Geocoding
+Elevation
+Flood
+Location and Time
+Location:
+Coordinates
+List
+Bounding box
+5.51
+Latitude North
+33.89E
+Longitude West
+41.86E
+Longitude East
+-4.68
+Latitude South
+Using bounding box will select grid cells within a specified area, excluding the top and right boundaries. For example, a latitude range of 40°...<45° will not include any grid points on the 45° line. This exclusion is necessary to allow for combining data from multiple API calls when processing larger areas. For instance, a subsequent API call could request data from 45°...<50° latitude. Format used:
+
+&bounding_box=47,-85,47.5,-84.5
+using (latitude1, longitude1, latitude2, longitude2) or (south, west, north, east).
+
+The results are limited to a maximum of 1000 locations
+
+The bounding box selection method is not recommended for building maps. Several projects are already leveraging Open-Meteo data for building maps; you can find an example here.
+
+Time:
+Forecast Length
+Time Interval
+Forecast days
+7
+Past days
+0
+By default, we provide forecasts for 7 days, but you can access forecasts for up to 16 days. If you're interested in past weather data, you can use the Past Days feature to access archived forecasts.
+
+Hourly Weather Variables
+
+Temperature (2 m)
+
+Relative Humidity (2 m)
+
+Dewpoint (2 m)
+
+Apparent Temperature
+
+Precipitation Probability
+
+Precipitation (rain + showers + snow)
+
+Rain
+
+Showers
+
+Snowfall
+
+Snow Depth
+
+Weather code
+
+Sea Level Pressure
+
+Surface Pressure
+
+Cloud Cover Total
+
+Cloud Cover Low
+
+Cloud Cover Mid
+
+Cloud Cover High
+
+Visibility
+
+Evapotranspiration
+
+Reference Evapotranspiration (ET₀)
+
+Vapour Pressure Deficit
+
+Wind Speed (10 m)
+
+Wind Speed (80 m)
+
+Wind Speed (120 m)
+
+Wind Speed (180 m)
+
+Wind Direction (10 m)
+
+Wind Direction (80 m)
+
+Wind Direction (120 m)
+
+Wind Direction (180 m)
+
+Wind Gusts (10 m)
+
+Temperature (80 m)
+
+Temperature (120 m)
+
+Temperature (180 m)
+
+Soil Temperature (0 cm)
+
+Soil Temperature (6 cm)
+
+Soil Temperature (18 cm)
+
+Soil Temperature (54 cm)
+
+Soil Moisture (0-1 cm)
+
+Soil Moisture (1-3 cm)
+
+Soil Moisture (3-9 cm)
+
+Soil Moisture (9-27 cm)
+
+Soil Moisture (27-81 cm)
+
+Additional Variables And Options
+
+Solar Radiation Variables
+
+Pressure Level Variables
+
+Weather models
+
+15-Minutely Weather Variables
+Daily Weather Variables
+
+Weather code
+
+Maximum Temperature (2 m)
+
+Minimum Temperature (2 m)
+
+Maximum Apparent Temperature (2 m)
+
+Minimum Apparent Temperature (2 m)
+
+Sunrise
+
+Sunset
+
+Daylight Duration
+
+Sunshine Duration
+
+UV Index
+
+UV Index Clear Sky
+
+Rain Sum
+
+Showers Sum
+
+Snowfall Sum
+
+Precipitation Sum
+
+Precipitation Hours
+
+Precipitation Probability Max
+
+Maximum Wind Speed (10 m)
+
+Maximum Wind Gusts (10 m)
+
+Dominant Wind Direction (10 m)
+
+Shortwave Radiation Sum
+
+Reference Evapotranspiration (ET₀)
+
+Additional Daily Variables
+Current Weather
+
+Temperature (2 m)
+
+Relative Humidity (2 m)
+
+Apparent Temperature
+
+Is Day or Night
+
+Precipitation
+
+Rain
+
+Showers
+
+Snowfall
+
+Weather code
+
+Cloud Cover Total
+
+Sea Level Pressure
+
+Surface Pressure
+
+Wind Speed (10 m)
+
+Wind Direction (10 m)
+
+Wind Gusts (10 m)
+Note: Current conditions are based on 15-minutely weather model data. Every weather variable available in hourly data, is available as current condition as well.
+Settings
+Temperature Unit
+celsius
+Wind Speed Unit
+kmh
+Precipitation Unit
+mm
+Timeformat
+iso8601
+Usage licence:
+Non-Commercial
+Commercial
+Self-Hosted
+Only for non-commercial use and less than 10.000 daily API calls. See Terms for more details.
+API Response
+Preview:
+Chart & URL
+Python
+TypeScript
+Swift
+Other
+Parameters have changed.
+Reload Chart
+Download XLSX
+Download CSV
+API URL (Open in new tab or copy this URL into your application)
+https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m&bounding_box=-4.68,null,5.51,null
+Data Sources
+Open-Meteo weather forecast APIs use weather models from multiple national weather providers. For each location worldwide, the best models will be combined to provide the best possible forecast.
+
+Weather models cover different geographic areas at different resolutions and provide different weather variables. Depending on the model, data have been interpolated to hourly values or not all weather variables are available. With the drop down Weather models (just below the hourly variables), you can select and compare individual weather models.
+
+You can find the update timings in the model updates documentation.
+Weather Model	National Weather Provider	Origin Country	Resolution	Forecast Length	Update frequency
+ICON	Deutscher Wetterdienst (DWD)	Germany	2 - 11 km	7.5 days	Every 3 hours
+GFS & HRRR	NOAA	United States	3 - 25 km	16 days	Every hour
+ARPEGE & AROME	Météo-France	France	1 - 25 km	4 days	Every hour
+IFS & AIFS	ECMWF	European Union	9 - 25km	15 days	Every 6 hours
+UKMO	UK Met Office	United Kingdom	2 - 10 km	7 days	Every hour
+KMA	KMA Korea	Korea	1.5 - 13 km	12 days	Every 6 hours
+MSM & GSM	JMA	Japan	5 - 55 km	11 days	Every 3 hours
+ICON CH	MeteoSwiss	Switzerland	1 - 2 km	5 days	Every 3 hours
+MET Nordic	MET Norway	Norway	1 km	2.5 days	Every hour
+GEM	Canadian Weather Service	Canada	2.5 km	10 days	Every 6 hours
+ACCESS-G	Australian Bureau of Meteorology (BOM)	Australia	15 km	10 days	Every 6 hours
+GFS GRAPES	China Meteorological Administration (CMA)	China	15 km	10 days	Every 6 hours
+HARMONIE	KNMI	Netherlands	2 km	2.5 days	Every hour
+HARMONIE	DMI	Denmark	2 km	2.5 days	Every 3 hours
+ARPAE	ItaliaMeteo	Italy	2 km	3 days	Every 12 hours
+API Documentation
+The API endpoint /v1/forecast accepts a geographical coordinate, a list of weather variables and responds with a JSON hourly weather forecast for 7 days. Time always starts at 0:00 today and contains 168 hours. If &forecast_days=16 is set, up to 16 days of forecast can be returned. All URL parameters are listed below:
+
+Parameter	Format	Required	Default	Description
+latitude, longitude	Floating point	Yes		Geographical WGS84 coordinates of the location. Multiple coordinates can be comma separated. E.g. &latitude=52.52,48.85&longitude=13.41,2.35. To return data for multiple locations the JSON output changes to a list of structures. CSV and XLSX formats add a column location_id. For North and South America locations use negative longitudes, because they lie west of Greenwich.
+elevation	Floating point	No		The elevation used for statistical downscaling. Per default, a 90 meter digital elevation model is used. You can manually set the elevation to correctly match mountain peaks. If &elevation=nan is specified, downscaling will be disabled and the API uses the average grid-cell height. For multiple locations, elevation can also be comma separated.
+hourly	String array	No		A list of weather variables which should be returned. Values can be comma separated, or multiple &hourly= parameter in the URL can be used.
+daily	String array	No		A list of daily weather variable aggregations which should be returned. Values can be comma separated, or multiple &daily= parameter in the URL can be used. If daily weather variables are specified, parameter timezone is required.
+current	String array	No		A list of weather variables to get current conditions.
+temperature_unit	String	No	celsius	If fahrenheit is set, all temperature values are converted to Fahrenheit.
+wind_speed_unit	String	No	kmh	Other wind speed speed units: ms, mph and kn
+precipitation_unit	String	No	mm	Other precipitation amount units: inch
+timeformat	String	No	iso8601	If format unixtime is selected, all time values are returned in UNIX epoch time in seconds. Please note that all timestamp are in GMT+0! For daily values with unix timestamps, please apply utc_offset_seconds again to get the correct date.
+timezone	String	No	GMT	If timezone is set, all timestamps are returned as local-time and data is returned starting at 00:00 local-time. Any time zone name from the time zone database is supported. If auto is set as a time zone, the coordinates will be automatically resolved to the local time zone. For multiple coordinates, a comma separated list of timezones can be specified.
+past_days	Integer (0-92)	No	0	If past_days is set, yesterday or the day before yesterday data are also returned.
+forecast_days	Integer (0-16)	No	7	Per default, only 7 days are returned. Up to 16 days of forecast are possible.
+forecast_hours
+forecast_minutely_15
+past_hours
+past_minutely_15	Integer (>0)	No		Similar to forecast_days, the number of timesteps of hourly and 15-minutely data can controlled. Instead of using the current day as a reference, the current hour or the current 15-minute time-step is used.
+start_date
+end_date	String (yyyy-mm-dd)	No		The time interval to get weather data. A day must be specified as an ISO8601 date (e.g. 2022-06-30).
+start_hour
+end_hour
+start_minutely_15
+end_minutely_15	String (yyyy-mm-ddThh:mm)	No		The time interval to get weather data for hourly or 15 minutely data. Time must be specified as an ISO8601 date (e.g. 2022-06-30T12:00).
+models	String array	No	auto	Manually select one or more weather models. Per default, the best suitable weather models will be combined.
+cell_selection	String	No	land	Set a preference how grid-cells are selected. The default land finds a suitable grid-cell on land with similar elevation to the requested coordinates using a 90-meter digital elevation model. sea prefers grid-cells on sea. nearest selects the nearest possible grid-cell.
+apikey	String	No		Only required to commercial use to access reserved API resources for customers. The server URL requires the prefix customer-. See pricing for more information.
+Additional optional URL parameters will be added. For API stability, no required parameters will be added in the future!
+
+Hourly Parameter Definition
+The parameter &hourly= accepts the following values. Most weather variables are given as an instantaneous value for the indicated hour. Some variables like precipitation are calculated from the preceding hour as an average or sum.
+
+Variable	Valid time	Unit	Description
+temperature_2m	Instant	°C (°F)	Air temperature at 2 meters above ground
+relative_humidity_2m	Instant	%	Relative humidity at 2 meters above ground
+dew_point_2m	Instant	°C (°F)	Dew point temperature at 2 meters above ground
+apparent_temperature	Instant	°C (°F)	Apparent temperature is the perceived feels-like temperature combining wind chill factor, relative humidity and solar radiation
+pressure_msl
+surface_pressure	Instant	hPa	Atmospheric air pressure reduced to mean sea level (msl) or pressure at surface. Typically pressure on mean sea level is used in meteorology. Surface pressure gets lower with increasing elevation.
+cloud_cover	Instant	%	Total cloud cover as an area fraction
+cloud_cover_low	Instant	%	Low level clouds and fog up to 3 km altitude
+cloud_cover_mid	Instant	%	Mid level clouds from 3 to 8 km altitude
+cloud_cover_high	Instant	%	High level clouds from 8 km altitude
+wind_speed_10m
+wind_speed_80m
+wind_speed_120m
+wind_speed_180m	Instant	km/h (mph, m/s, knots)	Wind speed at 10, 80, 120 or 180 meters above ground. Wind speed on 10 meters is the standard level.
+wind_direction_10m
+wind_direction_80m
+wind_direction_120m
+wind_direction_180m	Instant	°	Wind direction at 10, 80, 120 or 180 meters above ground
+wind_gusts_10m	Preceding hour max	km/h (mph, m/s, knots)	Gusts at 10 meters above ground as a maximum of the preceding hour
+shortwave_radiation	Preceding hour mean	W/m²	Shortwave solar radiation as average of the preceding hour. This is equal to the total global horizontal irradiation
+direct_radiation
+direct_normal_irradiance	Preceding hour mean	W/m²	Direct solar radiation as average of the preceding hour on the horizontal plane and the normal plane (perpendicular to the sun)
+diffuse_radiation	Preceding hour mean	W/m²	Diffuse solar radiation as average of the preceding hour
+global_tilted_irradiance	Preceding hour mean	W/m²	Total radiation received on a tilted pane as average of the preceding hour. The calculation is assuming a fixed albedo of 20% and in isotropic sky. Please specify tilt and azimuth parameter. Tilt ranges from 0° to 90° and is typically around 45°. Azimuth should be close to 0° (0° south, -90° east, 90° west, ±180 north). If azimuth is set to "nan", the calculation assumes a vertical tracker (east-west). If tilt is set to "nan", it is assumed that the panel has a horizontal tracker (up-down). If both are set to "nan", a bi-axial tracker is assumed.
+vapour_pressure_deficit	Instant	kPa	Vapour Pressure Deficit (VPD) in kilopascal (kPa). For high VPD (>1.6), water transpiration of plants increases. For low VPD (<0.4), transpiration decreases
+cape	Instant	J/kg	Convective available potential energy. See Wikipedia.
+evapotranspiration	Preceding hour sum	mm (inch)	Evapotranspration from land surface and plants that weather models assumes for this location. Available soil water is considered. 1 mm evapotranspiration per hour equals 1 liter of water per spare meter.
+et0_fao_evapotranspiration	Preceding hour sum	mm (inch)	ET₀ Reference Evapotranspiration of a well watered grass field. Based on FAO-56 Penman-Monteith equations ET₀ is calculated from temperature, wind speed, humidity and solar radiation. Unlimited soil water is assumed. ET₀ is commonly used to estimate the required irrigation for plants.
+precipitation	Preceding hour sum	mm (inch)	Total precipitation (rain, showers, snow) sum of the preceding hour
+snowfall	Preceding hour sum	cm (inch)	Snowfall amount of the preceding hour in centimeters. For the water equivalent in millimeter, divide by 7. E.g. 7 cm snow = 10 mm precipitation water equivalent
+precipitation_probability	Preceding hour probability	%	Probability of precipitation with more than 0.1 mm of the preceding hour. Probability is based on ensemble weather models with 0.25° (~27 km) resolution. 30 different simulations are computed to better represent future weather conditions.
+rain	Preceding hour sum	mm (inch)	Rain from large scale weather systems of the preceding hour in millimeter
+showers	Preceding hour sum	mm (inch)	Showers from convective precipitation in millimeters from the preceding hour
+weather_code	Instant	WMO code	Weather condition as a numeric code. Follow WMO weather interpretation codes. See table below for details.
+snow_depth	Instant	meters	Snow depth on the ground
+freezing_level_height	Instant	meters	Altitude above sea level of the 0°C level
+visibility	Instant	meters	Viewing distance in meters. Influenced by low clouds, humidity and aerosols.
+soil_temperature_0cm
+soil_temperature_6cm
+soil_temperature_18cm
+soil_temperature_54cm	Instant	°C (°F)	Temperature in the soil at 0, 6, 18 and 54 cm depths. 0 cm is the surface temperature on land or water surface temperature on water.
+soil_moisture_0_to_1cm
+soil_moisture_1_to_3cm
+soil_moisture_3_to_9cm
+soil_moisture_9_to_27cm
+soil_moisture_27_to_81cm	Instant	m³/m³	Average soil water content as volumetric mixing ratio at 0-1, 1-3, 3-9, 9-27 and 27-81 cm depths.
+is_day	Instant	Dimensionless	1 if the current time step has daylight, 0 at night.
+15-Minutely Parameter Definition
+The parameter &minutely_15= can be used to get 15-minutely data. This data is based on NOAA HRRR model for North America and DWD ICON-D2 and Météo-France AROME model for Central Europe. If 15-minutely data is requested for other regions data is interpolated from 1-hourly to 15-minutely.
+
+15-minutely data can be requested for other weather variables that are available for hourly data, but will use interpolation.
+
+Variable	Valid time	Unit	HRRR	ICON-D2	AROME
+temperature_2m	Instant	°C (°F)	x		x
+relative_humidity_2m	Instant	%	x		x
+dew_point_2m	Instant	°C (°F)	x		x
+apparent_temperature	Instant	°C (°F)	x		x
+shortwave_radiation	Preceding 15 minutes mean	W/m²	x	x	
+direct_radiation
+direct_normal_irradiance	Preceding 15 minutes mean	W/m²	x	x	
+global_tilted_irradiance
+global_tilted_irradiance_instant	Preceding 15 minutes mean	W/m²	x	x	
+diffuse_radiation	Preceding 15 minutes mean	W/m²	x	x	
+sunshine_duration	Preceding 15 minutes sum	seconds	x	x	
+lightning_potential	Instant	J/kg		x	
+precipitation	Preceding 15 minutes sum	mm (inch)	x	x	x
+snowfall	Preceding 15 minutes sum	cm (inch)	x	x	x
+rain	Preceding 15 minutes sum	mm (inch)	x	x	x
+showers	Preceding 15 minutes sum	mm (inch)		x	
+snowfall_height	Instant	meters		x	
+freezing_level_height	Instant	meters		x	
+cape	Instant	J/kg	x	x	x
+wind_speed_10m
+wind_speed_80m	Instant	km/h (mph, m/s, knots)	x		x
+wind_direction_10m
+wind_direction_80m
+Instant	°	x		x
+wind_gusts_10m	Preceding 15 min max	km/h (mph, m/s, knots)	x		
+visibility	Instant	meters	x		x
+weather_code	Instant	WMO code	x	x	
+Pressure Level Variables
+Pressure level variables do not have fixed altitudes. Altitude varies with atmospheric pressure. 1000 hPa is roughly between 60 and 160 meters above sea level. Estimated altitudes are given below. Altitudes are in meters above sea level (not above ground). For precise altitudes, geopotential_height can be used.
+
+Level (hPa)	1000	975	950	925	900	850	800	700	600	500	400	300	250	200	150	100	70	50	30
+Altitude	110 m	320 m	500 m	800 m	1000 m	1500 m	1900 m	3 km	4.2 km	5.6 km	7.2 km	9.2 km	10.4 km	11.8 km	13.5 km	15.8 km	17.7 km	19.3 km	22 km
+All pressure levels have valid times of the indicated hour (instant).
+
+Variable	Unit	Description
+temperature_1000hPa
+temperature_975hPa, ...	°C (°F)	Air temperature at the specified pressure level. Air temperatures decrease linearly with pressure.
+relative_humidity_1000hPa
+relative_humidity_975hPa, ...	%	Relative humidity at the specified pressure level.
+dew_point_1000hPa
+dew_point_975hPa, ...	°C (°F)	Dew point temperature at the specified pressure level.
+cloud_cover_1000hPa
+cloud_cover_975hPa, ...	%	Cloud cover at the specified pressure level. Cloud cover is approximated based on relative humidity using Sundqvist et al. (1989). It may not match perfectly with low, mid and high cloud cover variables.
+wind_speed_1000hPa
+wind_speed_975hPa, ...	km/h (mph, m/s, knots)	Wind speed at the specified pressure level.
+wind_direction_1000hPa
+wind_direction_975hPa, ...	°	Wind direction at the specified pressure level.
+geopotential_height_1000hPa
+geopotential_height_975hPa, ...	meter	Geopotential height at the specified pressure level. This can be used to get the correct altitude in meter above sea level of each pressure level. Be carefull not to mistake it with altitude above ground.
+Daily Parameter Definition
+Aggregations are a simple 24 hour aggregation from hourly values. The parameter &daily= accepts the following values:
+
+Variable	Unit	Description
+temperature_2m_max
+temperature_2m_mean
+temperature_2m_min	°C (°F)	Maximum and minimum daily air temperature at 2 meters above ground
+apparent_temperature_max
+apparent_temperature_mean
+apparent_temperature_min	°C (°F)	Maximum and minimum daily apparent temperature
+precipitation_sum	mm	Sum of daily precipitation (including rain, showers and snowfall)
+rain_sum	mm	Sum of daily rain
+showers_sum	mm	Sum of daily showers
+snowfall_sum	cm	Sum of daily snowfall
+precipitation_hours	hours	The number of hours with rain
+precipitation_probability_max
+precipitation_probability_mean
+precipitation_probability_min	%	Probability of precipitation
+weather_code	WMO code	The most severe weather condition on a given day
+sunrise
+sunset	iso8601	Sun rise and set times
+sunshine_duration	seconds	The number of seconds of sunshine per day is determined by calculating direct normalized irradiance exceeding 120 W/m², following the WMO definition. Sunshine duration will consistently be less than daylight duration due to dawn and dusk.
+daylight_duration	seconds	Number of seconds of daylight per day
+wind_speed_10m_max
+wind_gusts_10m_max	km/h (mph, m/s, knots)	Maximum wind speed and gusts on a day
+wind_direction_10m_dominant	°	Dominant wind direction
+shortwave_radiation_sum	MJ/m²	The sum of solar radiation on a given day in Megajoules
+et0_fao_evapotranspiration	mm	Daily sum of ET₀ Reference Evapotranspiration of a well watered grass field
+uv_index_max
+uv_index_clear_sky_max	Index	Daily maximum in UV Index starting from 0. uv_index_clear_sky_max assumes cloud free conditions. Please follow the official WMO guidelines for ultraviolet index.
+JSON Return Object
+On success a JSON object will be returned.
+
+{
+    "latitude": 52.52,
+    "longitude": 13.419,
+    "elevation": 44.812,
+    "generationtime_ms": 2.2119,
+    "utc_offset_seconds": 0,
+    "timezone": "Europe/Berlin",
+    "timezone_abbreviation": "CEST",
+    "hourly": {
+        "time": ["2022-07-01T00:00", "2022-07-01T01:00", "2022-07-01T02:00", ...],
+        "temperature_2m": [13, 12.7, 12.7, 12.5, 12.5, 12.8, 13, 12.9, 13.3, ...]
+    },
+    "hourly_units": {
+        "temperature_2m": "°C"
+    }
+}
+Parameter	Format	Description
+latitude, longitude	Floating point	WGS84 of the center of the weather grid-cell which was used to generate this forecast. This coordinate might be a few kilometres away from the requested coordinate.
+elevation	Floating point	The elevation from a 90 meter digital elevation model. This effects which grid-cell is selected (see parameter cell_selection). Statistical downscaling is used to adapt weather conditions for this elevation. This elevation can also be controlled with the query parameter elevation. If &elevation=nan is specified, all downscaling is disabled and the averge grid-cell elevation is used.
+generationtime_ms	Floating point	Generation time of the weather forecast in milliseconds. This is mainly used for performance monitoring and improvements.
+utc_offset_seconds	Integer	Applied timezone offset from the &timezone= parameter.
+timezone
+timezone_abbreviation	String	Timezone identifier (e.g. Europe/Berlin) and abbreviation (e.g. CEST)
+current	Object	For every chosen current weather variable, the data is provided as a numeric value. In addition, time specifies the moment at which the data is valid. The interval represents the duration in seconds used for calculating backward-looking sums or averages. For instance, an interval of 900 seconds (15 minutes) means that aggregated metrics such as precipitation reflect the total from the previous 15 minutes.
+hourly	Object	For each selected weather variable, data will be returned as a floating point array. Additionally a time array will be returned with ISO8601 timestamps.
+hourly_units	Object	For each selected weather variable, the unit will be listed here.
+daily	Object	For each selected daily weather variable, data will be returned as a floating point array. Additionally a time array will be returned with ISO8601 timestamps.
+daily_units	Object	For each selected daily weather variable, the unit will be listed here.
+Errors
+In case an error occurs, for example a URL parameter is not correctly specified, a JSON error object is returned with a HTTP 400 status code.
+
+{
+    "error": true, 
+    "reason": "Cannot initialize WeatherVariable from invalid String value
+	    tempeture_2m for key hourly" 
+}
+Weather variable documentation
+WMO Weather interpretation codes (WW)
+Code	Description
+0	Clear sky
+1, 2, 3	Mainly clear, partly cloudy, and overcast
+45, 48	Fog and depositing rime fog
+51, 53, 55	Drizzle: Light, moderate, and dense intensity
+56, 57	Freezing Drizzle: Light and dense intensity
+61, 63, 65	Rain: Slight, moderate and heavy intensity
+66, 67	Freezing Rain: Light and heavy intensity
+71, 73, 75	Snow fall: Slight, moderate, and heavy intensity
+77	Snow grains
+80, 81, 82	Rain showers: Slight, moderate, and violent
+85, 86	Snow showers slight and heavy
+95 *	Thunderstorm: Slight or moderate
+96, 99 *	Thunderstorm with slight and heavy hail
+(*) Thunderstorm forecast with hail is only available in Central Europe
+
+Open-Meteo
+Features
+Pricing
+About us & Contact
+Licence
+Terms & Privacy
+Weather APIs
+Weather Forecast API
+Historical Weather API
+ECMWF API
+GFS & HRRR Forecast API
+Météo-France API
+DWD ICON API
+GEM API
+JMA API
+Met Norway API
+Other APIs
+Ensemble API
+Climate Change API
+Marine Weather API
+Air Quality API
+Geocoding API
+Elevation API
+Flood API
+External
+X
+Blog
+GitHub
+Mastodon
+Service status and uptime
+Model Updates Overview
+© 2022-2026 Copyright: Open-Meteo.com
+🌦️ Docs | Open-Meteo.com]
+
+OpenRoute:
+[API Key
+Profile
+Basic Key: eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjA0ZTcwZDQyMTMwNjRmYzNiMmNjMzQyMTI2MTIxYTdmIiwiaCI6Im11cm11cjY0In0=
+
+Created on 05 Mar 2026 23:03
+Key never expires
+
+
+ORS Logo
+Remaining Key Quotas
+Main Endpoints	Total Quota Left (renews in)	Quota per Minute
+Directions V2	2000/2000	40
+Export V2	100/100	5
+Isochrones V2	500/500	20
+Matrix V2	500/500	40
+Snap V2	2000/2000	100
+Micro Endpoints	Total Quota Left (renews in)	Quota per Minute
+Elevation Line	200/200	40
+Elevation Point	2000/2000	100
+Geocode Autocomplete	1000/1000	100
+Geocode Reverse	1000/1000	100
+Geocode Search	1000/1000	100
+Optimization	500/500	40
+POIs	500/500	60
+
+CA Logo
+
+Key Usage
+Last 7 days
+Last 7 days (26.02.2026-05.03.2026)
+
+Contact
+Plans
+Transparency Statement
+Newsletter
+Terms of Service
+Privacy Policy
+Legal Notice
+Further Legal Information
+]
+
+Visual Crossing:
+[Skip to main contentSkip to footer
+Visual Crossing
+Weather API
+Weather Data
+
+Query Builder
+Pricing
+Docs
+
+More
+
+Search
+
+Sign out
+Account
+Weather API Documentation
+October 23, 2025
+Introduction
+Creating a weather API request
+Request Parameters
+Request Examples
+Response Format
+Response Elements
+HTTP Response Code and Error Handling
+Using the OpenAPI Description
+Questions or need help?
+Introduction
+The Timeline Weather API provides unified access to weather data across the globe. It is designed for fast performance, global coverage, and hyperlocal accuracy. A single API call can return weather data spanning any time range — past, present, or future — by automatically combining historical observations, current 15-day forecasts, and long-term statistical forecasts into a consistent dataset.
+
+Ultra-Low-Latency Forecast Access
+For ultra-low-latency forecast queries, consider the Timeline LLX endpoint. It provides the same core forecast data as the Timeline API, optimized for fast response times in latency-sensitive applications.
+
+Key Timeline Weather API Features
+Simple GET Requests – All queries use standard HTTP GET requests with clear parameters.
+
+Flexible Time Windows – Retrieve data for any period, including historical ranges, the current date, or future forecasts.
+
+Multiple Location Options – Query by address, latitude/longitude, postal code, or location ID.
+
+Comprehensive Weather Elements – Access daily, hourly, and statistical data, plus alerts and astronomical details such as sunrise, sunset, and moon phase.
+
+Dynamic Date Keywords – Use keywords like today, yesterday, or last30days to simplify time-based queries.
+
+Customizable Output Formats – Choose between structured JSON for integration or CSV for direct analysis.
+
+Data Coverage
+The Timeline API provides global coverage with 2km accuracy in many places. The Timeline API automatically selects the best available data sources for each query to ensure accuracy and completeness. Depending on the requested time range, the response may include:
+
+Current conditions – Real-time observations from global weather stations and models.
+
+Daily data – Historical, forecast, and statistical weather summaries.
+
+Hourly data – Historical observations and up to 15-day forecasts.
+
+Weather alerts – Active warnings for the requested location and period.
+
+Astronomical data – Sunrise, sunset, and moon phase details.
+
+Output Format
+All responses are returned in a consistent JSON structure, allowing applications to consume weather data without needing to manage multiple data sources or formats. For simpler integration into spreadsheets or databases, results can also be returned as CSV text.
+
+Generate Code with our AI Code Generator
+Our new AI-powered code generator instantly creates working code tailored to your requirements. Try the AI code generator tool today and start building faster.
+
+Latest features and recent changes
+We continue to invest heavily in enhancing the Timeline Weather API and expanding its underlying data sources. Recent improvements include:
+
+Weather Maps API – see our new Weather Maps API  that provides ready-to-use weather map tiles, stitched images, and matching legends suitable for web maps, dashboards, and applications.
+Low Latency Endpoint – the new timelinellx endpoint provides ultra low latency responses for forecast queries. Perfect for apps, IoT and other embedding.
+Flat JSON output format – the new Flat JSON output format provides for a significantly smaller data transfer size for lightning fast transmission.
+Improved ability to add or remove weather elements using the add: and remove: prefixes.
+Radar-Based Precipitation Estimates
+You can now include radar-derived precipitation data directly in your datasets, providing improved estimates of precipitation amount and intensity.
+New Programmatic Dataset APIs
+New APIs have been added to enable programmatic submission, modification, and download of stored datasets, streamlining automated workflows.
+Sub-Hourly Data Support
+The Timeline Weather API now supports sub-hourly data with minute-level granularity, offering more precise short-term forecasts and observations.
+For a full list of additions to the Timeline Weather API, please see the changelog.
+
+Build Queries in our Interactive API Query Builder
+The Weather Query Builder page includes a full, interactive query builder so you can create queries and see the live results directly in your browser.
+
+Creating a weather API request
+Base URL
+https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/
+Endpoints
+The possible endpoints of the Timeline Weather API requests are as follows:
+
+/timeline/[location] – forecast queries.
+/timeline/[location]/[date1]/[date2] – queries for a specific date range.
+Main Format of the URL
+All requests to the Timeline Weather API use the following the form:
+
+https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/[location]/[date1]/[date2]?key=YOUR_API_KEY
+Request Parameters
+Main Parameters (Path Parameters)
+location (required) – is the address, partial address or latitude,longitude location for which to retrieve weather data. You can also use US ZIP Codes. If you would like to submit multiple locations in the same request, consider our Multiple Location Timeline Weather API.
+
+date1 (optional) – is the start date for which to retrieve weather data. If a date2 value is also given, then it represents the first date for which to retrieve weather data. If no date2 is specified then weather data for a single day is retrieved, and that date is specified in date1. All dates and times are in local time of the location specified. Dates should be in the format yyyy-MM-dd. For example 2020-10-19 for October 19th, 2020 or 2017-02-03 for February 3rd, 2017.
+
+Instead of an exact date, you can specify a dynamic date period. See below for more details. You may also supply the in “UNIX time”. In this case provide the number of seconds since 1st January 1970 UTC. For example 1612137600 for Midnight on 1st February 2021.
+
+You can also request the information for a specific time for a single date by including time into the date1 field using the format yyyy-MM-ddTHH:mm:ss. For example 2020-10-19T13:00:00.
+
+The results are returned in the ‘currentConditions’ field and are truncated to the hour requested (i.e. 2020-10-19T13:59:00 will return data at 2020-10-19T13:00:00).
+
+date2 (optional) – is the end date for which to retrieve weather data. This value may only be used when a date1 value is given. When both date1 and date2 values are given, the query is inclusive of date2 and the weather data request period will end on midnight of the date2 value. All dates and times are in local time of the specified location and should be in the format yyyy-MM-dd.
+
+When no date1 or date2 is specified, the request will retrieve the forecast at the requested location for the next 15 days.
+
+Additional Parameters (Query or POST Parameters)
+The following are specified as HTTP query parameters (they may also be passed in a POST query).
+
+key (required) – your API key. Sign up for a free account using our Weather Data Services page.
+
+unitGroup (optional) – The system of units used for the output data.
+Supported values are us, uk, metric, and base. See Unit groups and measurement units for more information. Defaults to US system of units.
+
+lang (optional) – Sets the language of the translatable parts of the output such as the conditions field. Available languages include: ar (Arabic), bg (Bulgiarian), cs (Czech), da (Danish), de (German), el (Greek Modern), en (English), es (Spanish) ), fa (Farsi), fi (Finnish), fr (French), he Hebrew), hu, (Hungarian), it (Italian), ja (Japanese), ko (Korean), nl (Dutch), pl (Polish), pt (Portuguese), ru (Russian), sk (Slovakian), sr (Serbian), sv (Swedish), tr (Turkish), uk (Ukranian), vi (Vietnamese) and zh (Chinese). In addition passing in ‘id’ will result in the raw descriptor IDs.See How to create or modify language files for more information on how to help add additional languages.
+
+include (optional) – Specifies the sections you would like to include in the result data. This allows you to reduce query cost and latency. Specify this as a comma separated list. For example: &include=obs,fcst to include the historical observations and forecast data. The options are:
+
+days – daily data
+hours – hourly data
+minutes – minutely data (beta). See Requesting sub-hourly data in the Timeline Weather API. 
+alerts – weather alerts
+current – current conditions or conditions at requested time.
+events – historical events such as a hail, tornadoes, wind damage and earthquakes (not enabled by default)
+obs – historical observations from weather stations
+remote – historical observations from remote source such as satellite or radar
+fcst – forecast based on 16 day models.
+stats – historical statistical normals and daily statistical forecast
+statsfcst – use the full statistical forecast information for dates in the future beyond the current model forecast. Permits hourly statistical forecast.
+elements (optional) – Specifies the specific weather elements you would like to include in the response as a comma separated list. For example, &elements=tempmax,tempmin,temp will request the only the tempmax, tempmin and temp response elements. For the full list of available elements, see the response below.
+
+options (optional) – Specifies additional options on the requests to either indicate the type of data or format of the output. Supported values include:
+
+nonulls – remove all null values from the JSON response
+noheaders – removes the header row from the CSV response
+contentType (optional) – indicates the output format for the API. By default the output is formated in JSON. You can also set contentType=csv to retrieve CSV formatted data.Note that CSV format does not support the full JSON output due to the format limitations. You must use the include parameter to indicate which section you would like to retrieve. CSV include parameters support are days, hours, alerts, events and current.
+
+iconSet (optional) – used to choose which icons IDs are populated. For more information see Defining the icon set parameter in the Weather API.
+
+timezone (optional) – specifies the timezone of the input and result dates and times. When not specified, all date times are considered local times. If you would like to specify that all dates are entered as UTC dates and times, use timezone=Z parameter.
+
+maxDistance (optional) The maximum distance in meters used to search for local weather stations ( By default, 50 miles or approximately 80km (80,467m). This setting is combined with the maxStations parameter to find local weather stations.
+
+maxStations (optional) The maximum number of weather stations used to calculate a weather record (default 3). Closer weather stations are weighted significantly more heavily than farther stations.
+
+elevationDifference (optional) The maximum elevation difference in meters between the requested location and weather stations. Any weather station that is either lower or higher than more than this setting will be excluded. Default is turned off.
+
+locationNames (optional) provides alternative name for the location requested. This is typically used by users who need to be able to join the API results back to a dataset. For example, you may pass a store database ID in this parameter so that you can populate the weather forecast for that store.
+
+forecastBasisDate (optional, requires historical forecast license) – specifies the date when the weather forecast model was run. For example, if you specify 2021-06-01, then the data from 2021-06-01 to 2021-06-15 will use the weather forecast produced on June 1st, 2021. For more information see How to query weather forecasts from the past.
+
+forecastBasisDay (optional, requires historical forecast license) – specifies the forecast day for the date1 parameter above. For example, if you specify the start date as 2021-06-05 and a forecastBasisDay value of 5, then the value for 2021-06-06 will be the 5th day forecast (i.e. it will be based on the weather forecast produced five days earlier (2021-06-01). You can use this parameter to quickly find the forecast that was predicted for a particular day on multiple days (for example the 5, 3 and 1 day forecast). For more information see How to query weather forecasts from the past.
+
+Degree days parameters (Query Parameters)
+degreeDayTempFix – The temperature at which to start the degree day season if no season start and end dates are specified. For example, if the fix temperature is 32F (OC), then the cumulative degree days will reset to zero on the last 32F temperature of the winter. This defines the growing season for growing degree days.
+
+degreeDayStartDate – Fixes the start of the degree day season based on fixed dates of the format yyyy-M-d (eg 1990-3-1 for 1st March). Default=not specified.
+
+degreeDayTempMaxThreshold – Defines the maximum temperature that is considered for the calculation. Any temperature above this temperature will be set to the maximum threshold temperature. Default value=not set.
+
+degreeDayTempBase – The degree day base temperature. Default value is set to 10C/50F
+
+degreeDayInverse – Calculate the inverse degree days so colder temperatures contribute more degree days. Used for heating degree days. Default=false.
+
+degreeDayMethod (beta) – The method used for calculating the degree days. Values include average, sine, doublesine, triangle and doubletriangle. Default value is set to average.
+
+Request Examples
+Forecast Request Example
+The following will retrieve the weather forecast for London, United Kingdom for the next 15 days, starting at midnight at the start of the current day (local time of the requested location).
+
+https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/London,UK?key=YOUR_API_KEY
+Forecast Request Example using longitude and latitude
+You may also pass the location as a “latitude,longitude” value. For example: 38.9697,-77.385
+
+https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/38.9697,-77.385?key=YOUR_API_KEY
+Date Range Request Example
+The following will retrieve the weather data for London, UK from October 1st, 2020 to December 31st, 2020 (inclusive).
+
+https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/London,UK/2020-10-01/2020-12-31?key=YOUR_API_KEY
+Assuming the current date is November 1st, 2020, the result will include historical observations from October 1st to 31st, then 15 days of weather forecast and finally the remaining days will include the statistical forecast based on processing years of historical observations.
+
+Date Range Request Example using UNIX Time (Epoch Time)
+The following shows the same query using UNIX format of seconds since the 1970 UNIX time epoch. Note that these times are seconds in the UTC (GMT/Z) time zone.
+
+https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/London,UK/1601510400/1609372800?key=YOUR_API_KEY
+Specific Time Request Example
+The following will retrieve the weather data for London, UK for the 15th December 2020 and will request the current conditions property be populated using the conditions at 13:00 local time (1pm local time).
+
+https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/London,UK/2020-12-15T13:00:00?key=YOUR_API_KEY
+The above example will include the daily and hourly detail for the day of the current conditions (2020-12-15 in this case). This query cost will therefore be 24. If you only need the specific time data, and don’t need the hourly detail, you can reduce the query costing using the include parameter. In this case the query cost will be one.
+
+https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/London,UK/2020-12-15T13:00:00?key=YOUR_API_KEY&include=current
+Dynamic period Request Example
+Rather the specify and date range, you can also specify and dynamic period. A request based on a dynamic period will automatically adjust based on the period. In this example, we will use the dynamic period value “last30days” to retrieve data for the most recent 30 days.
+
+https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/London,UK/last30days?key=YOUR_API_KEY
+Other dynamic period values include “today”, “yesterday”, and “lastyear”. For a complete list of options and additional example, please see the dynamic period article.
+
+Using the options parameter to request specific data sections
+By default both daily and hourly data is included in the response along with all the response weather data elements (see below). To reduce the size of the result JSON for lower query cost, reduced network transfer and faster client processing, the options and elements parameters may be used.
+
+This example requests only the daily data:
+
+https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/London,UK/last30days?key=YOUR_API_KEY&include=days
+This example requests only the current conditions data:
+
+https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/London,UK/last30days?key=YOUR_API_KEY&include=current
+Using the elements parameter to modify the weather elements
+This example requests the daily data with only temperature elements:
+
+https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/London,UK/last30days?key=YOUR_API_KEY&include=days&elements=tempmax,tempmin,temp
+You may also add or remove elements from the default list of elements. The helps avoid listing a long list of elements when you only require to add or remove a small number.
+
+https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/London,UK/last30days?key=YOUR_API_KEY&include=days&elements=add:aqius,remove:windgust
+Degree day elements list example
+The following includes the daily ‘degree days’ information for the requested location and date range (in this case the last 30 days).
+
+https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/London,UK/last30days?
+unitGroup=us&key=YOUR_API_KEY&include=days&elements=datetime,tempmax,tempmin,degreedays,accdegreedays&degreeDayTempMaxThreshold=86&degreeDayTempBase=50
+For more information on our growing, cooling and heating degree day options, please see our degree day page.
+
+Industry elements - solar, marine and agriculture
+The Timeline API can be extended to include advanced agriculture, horticulture and energy elements. These include evapotranspiration, soil temperature & moisture, advanced solar radiation and higher altitude wind speeds and directions.
+
+To include these advanced industry elements, please see our Agriculture and Horticulture and Wind and Solar Energy pages.
+
+Response Format
+The Weather API offers the following output formats. These are specified via the ‘contentType’ parameter (for example &contentType=json)
+
+json – an object-based JSON format suitable for easily parsing into a object structure.
+flatjson – an alternative JSON format that is designed to be be as light-weight as possible.
+csv – comma separated values where each column is a weather element. 
+Both JSON and FLATJSON formats support including multiple sections of data such as days, hours, minutes etc. into a single request. The CSV format requires the include parameter to indicate which section should be included (for example ‘include=days’).
+
+JSON response format
+{
+  "queryCost": 168,
+  "latitude": 38.9598,
+  "longitude": -77.3545,
+  "resolvedAddress": "Reston, VA, United States",
+  "address": "Reston,VA",
+  "timezone": "America/New_York",
+  "tzoffset": -4.0,
+
+  "days": [
+    {
+      "datetime": "2025-06-01",
+      "tempmax": 68.0,
+      "tempmin": 44.9,
+      "temp": 58.6,
+      "humidity": 56.4,
+      "precip": 0.0,
+      "windspeed": 14.4,
+      "pressure": 1009.5,
+      "cloudcover": 61.6,
+      "sunrise": "05:45:46",
+      "sunset": "20:29:24",
+      "conditions": "Partially cloudy",
+      "icon": "partly-cloudy-day",
+      "stations": ["KIAD", "KJYO"],
+      "hours": [
+        {
+          "datetime": "00:00:00",
+          "temp": 52.9,
+          "humidity": 59.3,
+          "dew": 39.1,
+          "windspeed": 5.3,
+          "pressure": 1006.3,
+          "cloudcover": 0.0,
+          "conditions": "Clear",
+          "icon": "clear-night"
+        },
+        {
+          "datetime": "12:00:00",
+          "temp": 65.8,
+          "humidity": 43.1,
+          "windspeed": 13.0,
+          "pressure": 1010.5,
+          "conditions": "Partially cloudy",
+          "icon": "partly-cloudy-day"
+        }
+      ]
+    },
+    {
+      "datetime": "2025-06-02",
+      "tempmax": 74.0,
+      "tempmin": 47.0,
+      "temp": 61.7,
+      "humidity": 53.5,
+      "precip": 0.0,
+      "windspeed": 10.0,
+      "pressure": 1016.7,
+      "cloudcover": 32.1,
+      "sunrise": "05:45:24",
+      "sunset": "20:30:04",
+      "conditions": "Partially cloudy",
+      "icon": "partly-cloudy-day"
+    }
+  ],
+
+  "stations": {
+    "KIAD": {
+      "name": "Washington Dulles Intl AP",
+      "latitude": 38.95,
+      "longitude": -77.45,
+      "distance": 8339.0
+    },
+    "KJYO": {
+      "name": "Leesburg Executive Airport",
+      "latitude": 39.08,
+      "longitude": -77.56,
+      "distance": 22247.0
+    }
+  }
+}
+The response begins with a set of properties that describe the location and request details. These include the requested location, the resolved address, the latitude and longitude, the time zone name, and the time zone offset in hours. Note that the time zone offset may vary within a dataset due to daylight saving time changes. When this occurs, a tzoffset property is included within the relevant day, hour, or currentConditions weather data object.
+
+The JSON format represents weather data as a hierarchical structure of objects. It begins with an array of days, and each day may contain arrays of hours and events if those data sections are requested. When minute-level data is included, it appears within each hour object. For each time level (day, hour, minute, etc.), weather element values are provided as individual properties.
+
+If the request includes the current date, the response will also contain the currentConditions object and any active weather alerts for the specified location.
+
+FLAT JSON response format (beta)
+The flatjson format is currently beta and minor changes may occur. Please contact technical support for more information.
+
+{
+  "queryCost": 168,
+  "latitude": 38.9598,
+  "longitude": -77.3545,
+  "resolvedAddress": "Reston, VA, United States",
+  "address": "Reston,VA",
+  "timezone": "America/New_York",
+  "tzoffset": -4.0,
+  "description": null,
+
+  "days": {
+    "datetime": ["2025-06-01", "2025-06-02"],
+    "datetimeEpoch": [1748750400, 1748836800],
+    "tempmax": [68.0, 74.0],
+    "tempmin": [44.9, 47.0],
+    "temp":    [58.6, 61.7],
+    "humidity": [56, 54],
+    "precip":   [0.0, 0.0],
+    "precipprob": [0, 0],
+    "windgust": [26.0, 19.7],
+    "windspeed": [14.4, 10.0],
+    "winddir": [258, 299],
+    "pressure": [1010, 1017],
+    "cloudcover": [62, 32],
+    "visibility": [9.9, 9.9],
+    "sunrise": ["05:45:46", "05:45:24"],
+    "sunriseEpoch": [1748771146, 1748857524],
+    "sunset": ["20:29:24", "20:30:04"],
+    "sunsetEpoch": [1748824164, 1748910604],
+    "conditions": [0, 0],
+    "description": [0, 1],
+    "icon": [0, 0],
+    "preciptype": [null, null],
+    "stations": [
+      ["72405503714", "KIAD", "USW00093738", "C3816", "72403093738", "KJYO"],
+      ["72405503714", "KIAD", "USW00093738", "C3816", "72403093738", "KJYO", "72033493764"]
+    ]
+  },
+
+  "hours": {
+    "datetime": ["2025-06-01T00", "2025-06-01T01"],
+    "datetimeEpoch": [1748750400, 1748754000],
+    "temp": [52.9, 50.0],
+    "feelslike": [52.9, 50.0],
+    "humidity": [59, 66],
+    "dew": [39.1, 39.1],
+    "precip": [0.0, 0.0],
+    "precipprob": [0, 0],
+    "windgust": [21.7, 19.7],
+    "windspeed": [5.3, 0.9],
+    "winddir": [331, 265],
+    "pressure": [1006, 1006],
+    "visibility": [9.9, 9.9],
+    "cloudcover": [0, 0],
+    "solarradiation": [0, 0],
+    "solarenergy": [0.0, 0.0],
+    "uvindex": [0, 0],
+    "preciptype": [null, null],
+    "conditions": [2, 2],
+    "icon": [3, 3],
+    "stations": [
+      ["72405503714", "KIAD", "USW00093738", "C3816", "72403093738", "KJYO"],
+      ["72405503714", "KIAD", "USW00093738", "C3816", "72403093738", "KJYO"]
+    ]
+  },
+
+  "dictionaries": {
+    "conditions": ["Partially cloudy", "Rain, Partially cloudy", "Clear", "Overcast", "Rain, Overcast"],
+    "description": ["Partly cloudy throughout the day.", "Becoming cloudy in the afternoon.", "Partly cloudy with morning rain.", "Clear conditions throughout the day.", "Partly cloudy with rain."],
+    "icon": ["partly-cloudy-day", "rain", "clear-day", "clear-night", "partly-cloudy-night", "cloudy"]
+  }
+}
+The response also begins with a set of properties that describe the location and request details. These include the requested location, the resolved address, the latitude and longitude, the time zone name, and the time zone offset in hours. Note that the time zone offset may vary within a dataset due to daylight saving time changes. When this occurs, a tzoffset property is included within the relevant day, hour, or currentConditions weather data object.
+
+Days, hours and minutes are objects whose values are parallel arrays. Each index represents one time step.
+Example: days.datetime[i], days.tempmax[i], days.humidity[i] all refer to the same day.
+
+This is a “columnar” representation (arrays per field), not an array of day/hour objects.
+
+To minimize the size of the response, string lookup tables used by coded fields:
+
+conditions: list of condition phrases
+
+description: list of daily description templates
+
+icon: list of icon keys
+
+To resolve a coded field (e.g., days.conditions[i] === 2), use dictionaries.conditions[2].
+
+Response Elements
+Response weather data elements
+cloudcover – how much of the sky is covered in cloud ranging from 0-100%
+
+conditions – textual representation of the weather conditions. See Weather Data Conditions.
+
+description – longer text descriptions suitable for displaying in weather displays. The descriptions combine the main features of the weather for the day such as precipitation or amount of cloud cover. Daily descriptions are provided for historical and forecast days. When the timeline request includes the model forecast period, a seven day outlook description is provided at the root response level.
+
+datetime – ISO 8601 formatted date, time or datetime value indicating the date and time of the weather data in the local time zone of the requested location. See Dates and Times in the Weather API for more information.
+
+datetimeEpoch – number of seconds since 1st January 1970 in UTC time
+
+tzoffset – the time zone offset in hours. This will only occur in the data object if it is different from the global time zone offset.
+
+dew – dew point temperature
+
+feelslike – what the temperature feels like accounting for heat index or wind chill. Daily values are average values (mean) for the day.
+
+feelslikemax (day only) – maximum feels like temperature at the location.
+
+feelslikemin (day only) – minimum feels like temperature at the location.
+
+hours – array of hourly weather data objects. This is a child of each of the daily weather object when hours are selected.
+
+humidity – relative humidity in %
+
+icon – a fixed, machine readable summary that can be used to display an icon
+
+moonphase –  represents the fractional portion through the current moon lunation cycle ranging from 0 (the new moon) to 0.5 (the full moon) and back to 1 (the next new moon). See How to include sunrise, sunset, moon phase, moonrise and moonset data into your API requests
+
+normal – array of normal weather data values – Each weather data normal is an array of three values representing, in order, the minimum value over the statistical period, the mean value, and the maximum value over the statistical period.
+
+offsetseconds (hourly only) – time zone offset for this weather data object in seconds – This value may change for a location based on daylight saving time observation.
+
+precip – the amount of liquid precipitation that fell or is predicted to fall in the period. This includes the liquid-equivalent amount of any frozen precipitation such as snow or ice.
+
+precipremote – radar estimated precipitation amount. See How to Include Weather Radar Data in Weather Datasets for more information.
+
+precipcover (days only) – the proportion of hours where there was non-zero precipitation
+
+precipprob (forecast only) – the likelihood of measurable precipitation ranging from 0% to 100%
+
+preciptype – an array indicating the type(s) of precipitation expected or that occurred. Possible values include rain, snow, freezingrain and ice.
+
+reflectivity – (minutes only) estimates of the radar-based reflectivity values indicating precipitation intensity. See How to Include Weather Radar Data in Weather Datasets for more information.
+
+pressure – the sea level atmospheric or barometric pressure in millibars (or hectopascals)
+
+snow – the amount of snow that fell or is predicted to fall
+
+snowdepth – the depth of snow on the ground
+
+source –  the type of weather data used for this weather object. – Values include historical observation (“obs”), forecast (“fcst”), historical forecast (“histfcst”) or statistical forecast (“stats”). If multiple types are used in the same day, “comb” is used. Today a combination of historical observations and forecast data.
+
+stations (historical only) – the weather stations used when collecting an historical observation record
+
+sunrise (day only) – The formatted time of the sunrise (For example “2022-05-23T05:50:40”). See How to include sunrise, sunset, moon phase, moonrise and moonset data into your API requests
+
+sunriseEpoch – sunrise time specified as number of seconds since 1st January 1970 in UTC time
+
+sunset – The formatted time of the sunset (For example “2022-05-23T20:22:29”). See How to include sunrise, sunset, moon phase, moonrise and moonset data into your API requests
+
+sunsetEpoch – sunset time specified as number of seconds since 1st January 1970 in UTC time
+
+moonrise (day only, optional) – The formatted time of the moonrise (For example “2022-05-23T02:38:10”). See How to include sunrise, sunset, moon phase, moonrise and moonset data into your API requests
+
+moonriseEpoch (day only, optional) – moonrise time specified as number of seconds since 1st January 1970 in UTC time
+
+moonset (day only, optional) – The formatted time of the moonset (For example “2022-05-23T13:40:07”)
+
+moonsetEpoch (day only, optional) – moonset time specified as number of seconds since 1st January 1970 in UTC time
+
+temp – temperature at the location. Daily values are average values (mean) for the day.
+
+tempmax (day only) – maximum temperature at the location.
+
+tempmin (day only) – minimum temperature at the location.
+
+uvindex – a value between 0 and 10 indicating the level of ultra violet (UV) exposure for that hour or day. 10 represents high level of exposure, and 0 represents no exposure. The UV index is calculated based on amount of short wave solar radiation which in turn is a level the cloudiness, type of cloud, time of day, time of year and location altitude. Daily values represent the maximum value of the hourly values.
+
+uvindex2 (optional, 5 day forecast only) – an alternative UV index element that uses the algorithms and models used by the US National Weather Service. In order to maintain backwards compatibility, this UV index element is deployed as a new, optional element ‘uvindex2’ and may be requested using the elements parameter.
+
+visibility – distance at which distant objects are visible
+
+winddir – direction from which the wind is blowing
+
+windgust – instantaneous wind speed at a location – May be empty if it is not significantly higher than the wind speed. Daily values are the maximum hourly value for the day.
+
+windspeed – the sustained wind speed measured as the average windspeed that occurs during the preceding one to two minutes. Daily values are the maximum hourly value for the day.
+
+windspeedmax (day only, optional)– maximum wind speed over the day.
+
+windspeedmean (day only , optional ) – average (mean) wind speed over the day.
+
+windspeedmin (day only , optional ) – minimum wind speed over the day.
+
+solarradiation – (W/m2) the solar radiation power at the instantaneous moment of the observation (or forecast prediction). See the full solar radiation data documentation and Wind and Solar Energy pages .
+
+solarenergy – (MJ /m2 ) indicates the total energy from the sun that builds up over an hour or day. See the full solar radiation data documentation and Wind and Solar Energy pages .
+
+severerisk (forecast only) – a value between 0 and 100 representing the risk of convective storms (e.g. thunderstorms, hail and tornadoes). Severe risk is a scaled measure that combines a variety of other fields such as the convective available potential energy (CAPE) and convective inhibition (CIN), predicted rain and wind. Typically, a severe risk value less than 30 indicates a low risk, between 30 and 70 a moderate risk and above 70 a high risk.
+
+cape (forecast only) – convective available potential energy. This is a numbering indicating amount of energy available to produce thunderstorms. A higher values indicates a more unstable atmosphere capable of creating stronger storms. Values lower than 1000 J/kg indicate generally low instability, between 1000-2500 J/kg medium instability and 2500-4000 J/kg high instability. Values greater than 4000 J/kg indicating an extremely unstable atmosphere.
+
+cin (forecast only) – convective inhibition. A number representing the level of atmospheric tendency to prevent instability and therefore prevent thunderstorms.
+
+degreedays (day only) – optional elements indicating the number of degree days for this date. See the degree days API for more information on degree days. To turn degree days and degree day accumulation on, use the elements parameter. For example, elements=datetime,tempmax,tempmin,degreedays,accdegreedays.
+
+To convert existing Dark Sky API parameters to the Timeline Weather API, see How to replace the Dark Sky API with the Timeline Weather API.
+
+Location and station elements
+The following are available in the JSON response type to provide information about the requested location:
+
+queryCost – The record cost of this query. See what is a record for more information.
+
+latitude,longitude – the latitude and longitude of the requested location. This is provided in decimal degrees.
+
+resolvedAddress – if the requested location was made by address, the address that is found using our internal geocoding engine.
+
+address – the requested location text from the request.
+
+timezone – the timezone of the location. See Date and Times in the Weather API for more information.
+
+tzoffset – the timezone offset from UTC time for the first record of the data. This may change throughout the dataset if there is a daylight savings change during the requested date range.
+
+elevation (optional) – the elevation of the requested location. This is an optional element requested by including the elements parameter: (see Adding and Removing Elements).
+
+HTTP Response Code and Error Handling
+The API communicates error codes through the HTTP response code. In addition, the body the response will normally include additional error information indicating the cause of the error. The possible HTTP response status codes include:
+
+200 OK – a successfully processed request
+
+400 BAD_REQUEST – The format of the API is incorrect or an invalid parameter or combination of parameters was supplied
+
+401 UNAUTHORIZED – There is a problem with the API key, account or subscription. May also be returned if a feature is requested for which the account does not have access to.
+
+404 NOT_FOUND – The request cannot be matched to any valid API request endpoint structure.
+
+429 TOO_MANY_REQUESTS – The account has exceeded their assigned limits. See What is the cause of “Maximum concurrent jobs has been exceeded”, HTTP response 429
+
+500 INTERNAL_SERVER_ERROR – A general error has occurred processing the request.
+
+For general information on debugging API queries, please see: How to debug problems when running weather API queries in code
+
+Using the OpenAPI Description
+The OpenAPI Initiative standardizes the description of APIs such as the Visual Crossing Weather API. If you are using a tool that supports the OpenAPI standard or Swagger, you can more easily use our API by importing the the specification document below.
+
+https://www.visualcrossing.com/weather/specs/visualcrossing-weather-api-openapi.json
+https://www.visualcrossing.com/weather/specs/visualcrossing-weather-api-openapi.yaml
+https://www.visualcrossing.com/weather/specs/visualcrossing-weather-api-swagger.json
+Questions or need help?
+Our AI Code generator provides real-time, 24×7 access to code generation and other questions related to the Weather API usage. 
+
+If you have a additional questions, please post on our actively monitored forum for the fastest replies. You can also contact us via our support site
+
+
+Visual Crossing provides hyper-local weather data and global forecasting APIs designed for developers, researchers, and enterprise teams. With 50+ years of historical data and industry-leading accuracy, we power smarter decisions across every industry.
+
+Weather
+Weather Data
+Weather API
+Excel Weather
+About
+About Us
+Support
+Documentation
+Profile
+Sign up
+Account
+Usage
+Contact Us
+Support & General Enquiries
+Business or Sales Enquiry
+© 2026 All right reserved
+Visual Crossing Corporation
+Terms of use
+Privacy policy
+] 
+[Skip to main contentSkip to footer
+Visual Crossing
+Weather API
+Weather Data
+
+Query Builder
+Pricing
+Docs
+
+More
+
+Search
+
+Sign out
+Account
+Weather Maps API – Tiles, Images, and Legends
+January 7, 2026
+Beta Invite-Only status
+Overview and key features
+Weather Map API Integration Samples
+Base URL
+Endpoint summary
+Authentication
+Supported elements and sources
+Tile endpoint – Slippy-map tiles
+URL format
+Query parameters
+Example – latest precipitation tile
+Example – timestamped tile for caching
+Image endpoint – stitched static maps
+URL format
+Query parameters
+Example – global precipitation image
+Example – high-zoom image for a city
+Legend endpoint – color bins and labels
+URL format
+Query parameters
+Typical legend response structure
+Using the Weather Maps API from a map library
+HTTP response codes and error handling
+Notes and best practices
+Questions or need help?
+The Weather Maps API is a new set of endpoints that provide ready-to-use weather map tiles, stitched images, and matching legends suitable for web maps, dashboards, and applications. Instead of downloading raw gridded data and rendering it yourself, you can request pre-rendered map imagery for supported weather elements such as precipitation composites or surface temperature.
+
+This article describes the v1 map endpoints:
+
+Slippy-map tiles (tile) for interactive web maps
+Static stitched images (image) for dashboards and reports
+Legends (legend) that describe the color scales for each map layer
+The Weather Maps API is built on the same weather data engine as our other services and uses the same API key and account limits.
+
+Beta Invite-Only status
+The Weather Maps API is currently in private beta:
+
+Access is invite-only and not yet enabled for all accounts.
+Endpoint paths, parameters, and supported elements may change during the beta period.
+Performance characteristics and caching policies may be adjusted as we collect feedback.
+If you would like to participate in the beta, please contact Visual Crossing support with a short description of your use case. Access will be granted to selected accounts based on capacity and fit.
+
+Overview and key features
+The Weather Maps API is designed for:
+
+Interactive web maps using XYZ/Slippy-map tiles
+Server-generated static images for dashboards, emails, and reports
+Consistent, machine-readable legends for custom map renderers
+Key features:
+
+Simple HTTP GET endpoints using standard query parameters
+Support for multiple models and sources via a logical source parameter
+High-quality image output in WebP, PNG, or JPEG
+Consistent color bins and labels returned by the legend endpoint
+Built-in HTTP caching using ETag and Last-Modified headers for time-fixed requests
+Weather Map API Integration Samples
+Our Weather Map API Integration Samples article includes a set of basic map integration examples to get you started quickly.
+
+Base URL
+All Weather Maps API endpoints share the following base URL:
+
+https://maps.visualcrossing.com/VisualCrossingWebServices/rest/api/v1/map/
+Endpoint summary
+Weather Maps API v1 exposes three main endpoints under the base URL:
+
+Endpoint path	Description
+tile/{element}/{levelOfDetail}/{tileX}/{tileY}.{format}	XYZ/Slippy-map tiles for use in web maps and map SDKs
+image/{element}/{levelOfDetail}.{format}	Static stitched map images centered on a given location
+legend/{element}	JSON legend describing the color scale for a given layer
+Authentication
+All endpoints use the standard Visual Crossing Weather API key.
+
+Query parameters:
+
+apikey – primary parameter for your API key (recommended)
+key – legacy alias for the API key (still accepted)
+You may use either apikey or key. New applications should prefer apikey.
+
+If your account does not have access to the Weather Maps API, requests will return 401 UNAUTHORIZED or a similar error depending on the specific condition.
+
+Supported elements and sources
+Each map request targets a specific element (map layer) and optional data source/model.
+
+element (path parameter) – logical layer name such as precipcomposite or temp.
+Exact element names and availability may differ by account and during the beta period.
+Contact support for the current list of supported map layers in your account.
+source (query parameter, optional) – logical source/model identifier.
+If present, it is passed through to the backend as the model name.
+This allows you to request specific model variants where available.
+When omitted, a default source will be chosen based on the element.
+If an unknown element or source is requested, the API will return an error indicating that the requested layer cannot be generated.
+
+Available elements
+
+Element	Formats	Description
+precipcomposite	webp	Precipitation including precipition type.
+preciprate	webp	Rate of liquid equivalent precipitation.
+preciptype	webp	Type of precipitation (rain, snow, mix etc)
+temp	webp	Temperature
+alerts	webp	Active weather alerts and warnings
+current	geojson	Current conditions for selection towns and cities
+wind	webp	Wind direction and speed
+windspeed	webp	Wind speed
+winddir	webp	Wind direction
+Tile endpoint – Slippy-map tiles
+The tile endpoint returns map tiles in the standard XYZ scheme commonly used by web mapping libraries such as Leaflet, OpenLayers, or Mapbox GL. The tile size is fixed at 256×256 pixels.
+
+URL format
+https://maps.visualcrossing.com/VisualCrossingWebServices/rest/api/v1/map/
+  tile/{element}/{levelOfDetail}/{tileX}/{tileY}.{format}
+  ?apikey=YOUR_API_KEY
+  &time=latest
+  &unitGroup=us
+  &lang=en
+Path parameters:
+
+element (required)
+Logical layer id, for example:
+precipcomposite – radar-based precipitation composite
+temp – temperature
+(Actual element names may differ; check with support for the current list.)
+levelOfDetail (required, integer)
+Tile zoom level, equivalent to Z in XYZ tiling.
+Higher values show more detail and cover a smaller geographic area.
+Typically 0 (world) through 12–14 (regional/local), depending on layer and configuration.
+tileX (required, integer)
+X index of the tile in the XYZ tiling scheme.
+tileY (required, integer)
+Y index of the tile in the XYZ tiling scheme.
+format (optional path parameter, default webp)
+Tile format extension:
+webp – recommended for most use cases, best balance of size and quality
+png – lossless output (larger files)
+geojson – JSON format for including vector spatial data.
+Query parameters
+apikey or key (required)
+Your Visual Crossing Weather API key.
+time (optional, default latest)
+Requested valid time for the tile image. Supported values:
+latest – the most recent available analysis/forecast time.ISO-8601 UTC timestamp, for example 2025-11-26T12:58.
+When time=latest, tiles are treated as evolving and do not include Last-Modified/ETag headers.
+When a specific timestamp is provided, the response includes caching headers so tiles can be cached as immutable.
+source (optional)
+Logical data source/model name (see “Supported elements and sources” above).
+unitGroup (optional, default us)
+Controls the unit system used to interpret legends and labels:
+us – Fahrenheit, inches, mphmetric – Celsius, mm, m/suk – Celsius, mph, mmbase – raw internal units where applicable
+For tile imagery this often affects the legend and color bin thresholds rather than the raw pixel values. Where possible, the tiles will not change colors or banding based on unit group.
+lang (optional, default en)
+Language code for any text used within the tile product (where applicable).
+Example – latest precipitation tile
+Request a WebP precipitation composite tile for zoom level 6, tile (17,22), using the latest available time:
+
+https://maps.visualcrossing.com/VisualCrossingWebServices/rest/api/v1/map/
+  tile/precipcomposite/6/17/22.webp
+  ?apikey=YOUR_API_KEY
+  &time=latest
+Example – timestamped tile for caching
+Request the same tile at a fixed UTC timestamp, suitable for long-term caching in CDNs and browsers:
+
+https://maps.visualcrossing.com/VisualCrossingWebServices/rest/api/v1/map/
+  tile/precipcomposite/6/17/22.webp
+  ?apikey=YOUR_API_KEY
+  &time=2025-11-26T12:58
+For timestamped tiles, the response includes:
+
+Cache-Control headers configured by the backend
+Last-Modified based on the parsed time parameter
+ETag combining element, zoom, tile coordinate, time, and format
+Image endpoint – stitched static maps
+The image endpoint generates a static map image by composing the tiles for a given element, zoom level, center point, and output size. This is ideal for server-side reports, dashboards, emails, or anywhere you need a single image rather than interactive tiles.
+
+URL format
+https://maps.visualcrossing.com/VisualCrossingWebServices/rest/api/v1/map/
+  image/{element}/{levelOfDetail}.{format}
+  ?apikey=YOUR_API_KEY
+  &time=latest
+  &width=800
+  &height=600
+  &centerLat=0
+  &centerLon=0
+Path parameters:
+
+element (required)
+Logical layer id, same as for the tile endpoint.
+levelOfDetail (required, number)
+Zoom level. Unlike the tile endpoint, this value is a floating-point number, allowing intermediate zoom levels between standard integer tile zooms.
+For example, 6.5 may be used to approximate a zoom level between 6 and 7.
+format (optional, default webp)
+Output image format (webp, png, or jpg).
+Query parameters
+apikey or key (required)
+Your Visual Crossing Weather API key.
+time
+Requested time for the image. Supported values:
+latest – the most recent available analysis/forecast time.
+ISO-8601 UTC timestamp, for example 2025-11-26T12:58.
+source (optional)
+Logical source/model identifier for the underlying data.
+altitude (optional, default 0)
+Vertical level/altitude for applicable products.
+width (optional, default 800)
+Output image width in pixels.
+height (optional, default 600)
+Output image height in pixels.
+centerLat (optional, default 0)
+Latitude of the image center in decimal degrees (−90 to 90).
+centerLon (optional, default 0)
+Longitude of the image center in decimal degrees (−180 to 180).
+Example – global precipitation image
+Request a 1024×768 WebP image showing a regional precipitation composite centered over Europe:
+
+https://maps.visualcrossing.com/VisualCrossingWebServices/rest/api/v1/map/
+  image/precipcomposite/4.webp
+  ?apikey=YOUR_API_KEY
+  &time=latest
+  &width=1024
+  &height=768
+  &centerLat=50
+  &centerLon=10
+
+Example – high-zoom image for a city
+Request a high-zoom surface temperature map centered over London:
+
+https://maps.visualcrossing.com/VisualCrossingWebServices/rest/api/v1/map/
+  image/temp-surface/10.0.png
+  ?apikey=YOUR_API_KEY
+  &time=2025-11-26T12:00Z
+  &width=1200
+  &height=800
+  &centerLat=51.5074
+  &centerLon=-0.1278
+Legend endpoint – color bins and labels
+The legend endpoint returns a JSON legend describing the color bins, ranges, and labels used when rendering a given element. This is useful when:
+
+You want to draw your own color bar in a UI
+You need to correlate pixel colors with actual values
+You are integrating Visual Crossing maps into a third-party visualization framework
+URL format
+https://maps.visualcrossing.com/VisualCrossingWebServices/rest/api/v1/map/
+  legend/{element}
+  ?apikey=YOUR_API_KEY
+  &unitGroup=metric
+Path parameters:
+
+element (required)
+Logical layer id, for example precipcomposite, temp, etc.
+Query parameters
+apikey or key (required)
+Your Visual Crossing Weather API key.
+unitGroup (optional, default metric)
+Unit group for the legend thresholds: metric, us, uk, or base. Note that this may differ from the default unitGroup used in other APIs. Legend units should match the way you intend to describe or post-process the values.
+Typical legend response structure
+The exact legend format may evolve during the beta period, but it generally follows this pattern:
+
+{
+  "element": "temp-surface",
+  "unitGroup": "metric",
+  "units": "C",
+  "bins": [
+    { "min": -40, "max": -30, "color": "#2b2bff", "label": "< -30" },
+    { "min": -30, "max": -20, "color": "#4a4aff", "label": "-30 to -20" },
+    { "min": -20, "max": -10, "color": "#6b6bff", "label": "-20 to -10" },
+    { "min": -10, "max": 0,   "color": "#8c8cff", "label": "-10 to 0" },
+    { "min": 0,   "max": 10,  "color": "#66c2a5", "label": "0 to 10" },
+    { "min": 10,  "max": 20,  "color": "#fee08b", "label": "10 to 20" },
+    { "min": 20,  "max": 30,  "color": "#f46d43", "label": "20 to 30" },
+    { "min": 30,  "max": 40,  "color": "#d73027", "label": "> 30" }
+  ]
+}
+Use the color field to match rendered tile colors and the min/max values to display numeric ranges in a legend bar. The actual fields and bin boundaries will vary by element.
+
+Example – fetching a legend for Celsius temperatures:
+
+https://maps.visualcrossing.com/VisualCrossingWebServices/rest/api/v1/map/legend/temp?apikey=YOUR_API_KEY&unitGroup=metric
+Using the Weather Maps API from a map library
+Here is a minimal example of using the tile endpoint with Leaflet (JavaScript):
+
+const apiKey = "YOUR_API_KEY";
+const element = "precipcomposite";
+
+const tilesUrlTemplate =
+  "https://maps.visualcrossing.com/VisualCrossingWebServices/rest/api/v1/map/" +
+  "tile/" + element + "/{z}/{x}/{y}.webp?apikey=" + apiKey + "&time=latest";
+
+const map = L.map("map").setView([40, -100], 5);
+
+L.tileLayer(tilesUrlTemplate, {
+  attribution: "Weather data © Visual Crossing",
+  tileSize: 256,
+  maxZoom: 14
+}).addTo(map);
+You can then fetch the corresponding legend using the legend endpoint and display it alongside your map.
+
+HTTP response codes and error handling
+The Weather Maps API uses standard HTTP status codes:
+
+200 OK – Request processed successfully; tile/image/legend returned.
+400 BAD_REQUEST – Invalid combination of parameters or malformed request.
+401 UNAUTHORIZED – Invalid API key, missing API key, or account not enabled for Maps API.
+404 NOT_FOUND – Unknown element, unsupported endpoint path, or invalid tile coordinate.
+429 TOO_MANY_REQUESTS – Account has exceeded its assigned limits (rate, concurrency, or usage).
+500 INTERNAL_SERVER_ERROR – General error processing the request.
+When possible, the response body will include additional diagnostic information describing the cause of the error. For general guidance on debugging API issues, refer to the main Weather API documentation and troubleshooting guides.
+
+Notes and best practices
+During beta, endpoint behavior, available elements, and response formats may change. Avoid hard-coding assumptions that are not documented here.
+For interactive maps, prefer time=latest to always show the most recent analysis or forecast. For reproducible outputs or caching, use explicit UTC timestamps.
+Use the legend endpoint rather than relying on hard-coded color scales. This ensures consistency across elements and future updates.
+Questions or need help?
+If you are interested in joining the Weather Maps API beta program or have questions about the current capabilities and supported elements:
+
+Contact Visual Crossing via the support site with your use case and account details.
+For general Weather API questions and integration help, you can also post on the actively-monitored support forum.
+Your feedback during this beta phase is especially valuable. If you encounter issues, unexpected behavior, or have feature requests for the Maps API, please let the support team know so we can improve the service before general availability.
+
+
+Visual Crossing provides hyper-local weather data and global forecasting APIs designed for developers, researchers, and enterprise teams. With 50+ years of historical data and industry-leading accuracy, we power smarter decisions across every industry.
+
+Weather
+Weather Data
+Weather API
+Excel Weather
+About
+About Us
+Support
+Documentation
+Profile
+Sign up
+Account
+Usage
+Contact Us
+Support & General Enquiries
+Business or Sales Enquiry
+© 2026 All right reserved
+Visual Crossing Corporation
+Terms of use
+Privacy policy
+]
+
+[VISUAL CROSSINGS API KEY: R8QQ25ARUVVFEZHJY3BX3DRGJ]
+
+WEATHERAPI:
+[API KEY: a0efb315f2bd492e813205145260503]
+[
+icon
+Toggle navigation
+Dashboard
+API
+API Response Fields
+Analytics
+Accounts
+Change Plan
+Payment Method
+Billing
+Tools
+API Explorer
+Swagger Tool
+Settings
+Support
+Change Password
+Change Email
+Close Account
+Log out
+Welcome Back
+Change Fields
+By default we return all weather fields in response and that may not be ideal for your application. So provided below you could enable or disable the fields you would like to remove from your response.
+
+If you wish any fields to not appear in the json response then simply uncheck that fields below and click on Save button at the bottom of screen.
+
+API Key: a0efb315f2bd492e813205145260503
+Current Weather
+last_updated_epoch
+last_updated
+temp_c
+temp_f
+is_day
+text
+icon
+code
+wind_mph
+wind_kph
+wind_degree
+wind_dir
+pressure_mb
+pressure_in
+precip_mm
+precip_in
+humidity
+cloud
+feelslike_c
+feelslike_f
+vis_km
+vis_miles
+gust_mph
+gust_kph
+uv
+windchill_c
+windchill_f
+heatindex_c
+heatindex_f
+dewpoint_c
+dewpoint_f
+short_rad
+diff_rad
+dni
+gti
+Forecast/Future/History Weather
+forecastDay
+date
+date_epoch
+Day
+maxtemp_c
+maxtemp_f
+mintemp_c
+mintemp_f
+avgtemp_c
+avgtemp_f
+maxwind_mph
+maxwind_kph
+totalprecip_mm
+totalprecip_in
+avgvis_km
+avgvis_miles
+avghumidity
+text
+icon
+code
+daily_will_it_rain
+daily_will_it_snow
+daily_chance_of_rain
+daily_chance_of_snow
+uv
+totalsnow_cm
+Astro
+sunrise
+sunset
+moonrise
+moonset
+moon_phase
+moon_illumination
+is_sun_up
+is_moon_up
+Hour
+time_epoch
+time
+temp_c
+temp_f
+is_day
+text
+icon
+code
+wind_mph
+wind_kph
+wind_degree
+wind_dir
+pressure_mb
+pressure_in
+precip_mm
+precip_in
+snow_cm
+humidity
+cloud
+feelslike_c
+feelslike_f
+windchill_c
+windchill_f
+heatindex_c
+heatindex_f
+dewpoint_c
+dewpoint_f
+will_it_rain
+will_it_snow
+vis_km
+vis_miles
+chance_of_rain
+chance_of_snow
+gust_mph
+gust_kph
+uv
+short_rad
+diff_rad
+dni
+gti
+Marine Weather
+tides
+tide_time
+tide_height_mt
+tide_type
+Hour
+sig_ht_mt
+swell_ht_mt
+swell_ht_ft
+swell_dir
+swell_dir_16_point
+swell_period_secs
+water_temp_c
+water_temp_f
+
+
+
+
+Contact us]
+
+TOMORROW.IO:
+[TOMORROW.IO API KEY: iBKCw2klDOZHYWv7RfmJQTgehJUgoby6]
+[Tomorrow.io Weather Intelligence
+Get hyperlocal weather insights with advanced visualization for informed decisions.
+Welcome Civic Education
+
+Your API Key:  iBKCw2klDOZHYWv7RfmJQTgehJUgoby6
+API Status
+Get Started
+Make your first API call
+Set up your profile
+Add Webhook (Optional)
+Make Your First API Call
+curl --request GET --url 'https://api.tomorrow.io/v4/weather/forecast?location=42.3478,-71.0466&apikey=iBKCw2klDOZHYWv7RfmJQTgehJUgoby6'
+Available Weather Parameters (+ 80 layers)
+Maximize your weather-related applications with the Tomorrow.io Weather API's 80+ data fields, including weather, air quality, pollen, and fire index.
+Core Data Layers (Free Plan)
+
+Temperature
+-7 days up to 7 days
+
+Humidity
+-7 days up to 7 days
+
+Wind Gust
+-7 days up to 7 days
+
+Precipitation
+-7 days up to 7 days
+
+View all Core Layers
+Data Layers
+Premium
+
+Pollen
+Includes 26 data layers
+
+Solar
+Includes 3 data layers
+
+Soil
+Includes 10 data layers
+
+Floods
+Includes 2 data layers
+
+Lightning
+
+Fire
+
+Maritime
+Includes 19 data layers
+
+Air Quality
+Includes 13 data layers
+
+Aviation
+Includes 14 data layers
+
+Probabilistic Forecast
+Unlock Historical Climate API
+Premium
+Get 20 years of historical data on demand.
+Analyze aggregated historical data with our Climate normals.
+Get up to 7 days of minutely historical data.
+Recipes
+
+View all Recipes
+
+Plot weather forecast trends using Node
+Plot weather forecast trends using Node
+Node
+
+Visualize air quality and pollen trends on a map using JavaScript and MapBox
+Visualize air quality and pollen trends on a map using JavaScript and MapBox
+JavaScript
+
+Uncover weather and climate variations over time using Node
+Uncover weather and climate variations over time using Node
+Node
+
+Analyze historical weather to improve operations using Python
+Analyze historical weather to improve operations using Python
+Python
+API Resources
+
+Recipes
+Get up and running quickly with pre-built snippets for our most popular use cases.
+
+Postman Collection
+This quickstart will get you up and running with Postman and the Tomorrow.io API.
+
+Github
+Check out our community guidelines to learn more about how to contact the team.
+Featured Data API
+GET
+GET
+GET
+GET
+GET
+]

@@ -11,6 +11,8 @@ import OfficeListPanel from '../../components/IEBCOffice/OfficeListPanel';
 import SearchBar from '../../components/IEBCOffice/SearchBar';
 import LoadingSpinner from '../../components/IEBCOffice/LoadingSpinner';
 import { OfflineBanner } from '@/components/OfflineBanner';
+import OfflineRouteDownloader from '../../components/IEBCOffice/OfflineRouteDownloader';
+import { getTravelInsights } from '@/services/travelService';
 import { useIEBCOffices } from '../../hooks/useIEBCOffices';
 import { useMapControls } from '../../hooks/useMapControls';
 import { findNearestOffice, findNearestOffices } from '../../utils/geoUtils';
@@ -41,6 +43,7 @@ const EnhancedIEBCOfficeMap = () => {
   const [activeLayers, setActiveLayers] = useState(['iebc-offices']);
   const [isLayerPanelOpen, setIsLayerPanelOpen] = useState(false);
   const [currentRoute, setCurrentRoute] = useState(null);
+  const [travelInsights, setTravelInsights] = useState(null);
 
   // Set initial map center based on user location or default
   useEffect(() => {
@@ -87,16 +90,29 @@ const EnhancedIEBCOfficeMap = () => {
     closeListPanel();
   }, [setSelectedOffice, flyToOffice, closeListPanel]);
 
-  // Handle route found event
-  const handleRouteFound = useCallback((routes) => {
+  // Handle route found event — also triggers travel intelligence
+  const handleRouteFound = useCallback(async (routes) => {
     setCurrentRoute(routes);
-    console.log('Route found with alternatives:', routes.length);
-  }, []);
+    // Fetch travel difficulty score when route is found
+    if (userLocation?.latitude && userLocation?.longitude && selectedOffice?.latitude && selectedOffice?.longitude) {
+      try {
+        const insights = await getTravelInsights(
+          [userLocation.latitude, userLocation.longitude],
+          [selectedOffice.latitude, selectedOffice.longitude]
+        );
+        setTravelInsights(insights);
+      } catch (err) {
+        // Non-blocking: travel insights are a nice-to-have enhancement
+        setTravelInsights(null);
+      }
+    }
+  }, [userLocation, selectedOffice]);
 
   // Handle route error
   const handleRouteError = useCallback((error) => {
     console.error('Routing error:', error);
     setCurrentRoute(null);
+    setTravelInsights(null);
   }, []);
 
   // Toggle layer visibility
@@ -275,12 +291,28 @@ const EnhancedIEBCOfficeMap = () => {
         userLocation={userLocation}
       />
 
+      {/* Offline Route Downloader — above bottom sheet */}
+      {currentRoute && currentRoute[0] && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          className="absolute bottom-24 left-4 right-4"
+          style={{ zIndex: 'var(--z-fixed-badges, 1002)' }}
+        >
+          <OfflineRouteDownloader
+            routeGeometry={currentRoute[0].coordinates || currentRoute[0].geometry || currentRoute[0]}
+          />
+        </motion.div>
+      )}
+
       {/* Bottom Sheet */}
       <OfficeBottomSheet
         office={selectedOffice || nearestOffice}
         userLocation={userLocation}
         onOfficeSelect={handleOfficeSelect}
         currentRoute={currentRoute}
+        travelInsights={travelInsights}
       />
 
       {/* Office List Panel */}
@@ -296,23 +328,50 @@ const EnhancedIEBCOfficeMap = () => {
         )}
       </AnimatePresence>
 
-      {/* Route Information Badge */}
+      {/* Route Information Badge + Travel Score */}
       {currentRoute && currentRoute.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="absolute top-20 right-4 bg-white/90 backdrop-blur-sm rounded-2xl p-3 shadow-lg border border-ios-gray-200"
+          className="absolute top-20 right-4 bg-card/90 backdrop-blur-xl rounded-2xl p-3 shadow-lg border border-border max-w-[220px]"
         >
           <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-ios-green rounded-full animate-pulse"></div>
-            <span className="text-ios-gray-900 text-sm font-medium">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-foreground text-sm font-medium">
               {currentRoute.length} route{currentRoute.length > 1 ? 's' : ''} found
             </span>
           </div>
           {currentRoute[0] && (
-            <div className="text-ios-gray-600 text-xs mt-1">
+            <div className="text-muted-foreground text-xs mt-1">
               Best: {(currentRoute[0].summary.totalDistance / 1000).toFixed(1)} km,
               {Math.round(currentRoute[0].summary.totalTime / 60)} min
+            </div>
+          )}
+          {/* Travel Difficulty Score */}
+          {travelInsights && (
+            <div className="mt-2 pt-2 border-t border-border/50">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Visit Score</span>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${travelInsights.severity === 'low'
+                    ? 'bg-green-500/20 text-green-600 dark:text-green-400'
+                    : travelInsights.severity === 'medium'
+                      ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
+                      : 'bg-red-500/20 text-red-600 dark:text-red-400'
+                  }`}>
+                  {travelInsights.score}/100
+                </span>
+              </div>
+              <div className="flex items-center gap-1 mt-1">
+                <span className="text-xs text-muted-foreground">
+                  {travelInsights.weatherDesc}
+                </span>
+                {travelInsights.temperature !== null && (
+                  <span className="text-xs text-muted-foreground">· {travelInsights.temperature}°C</span>
+                )}
+              </div>
+              {travelInsights.stale && (
+                <p className="text-xs text-muted-foreground/60 mt-0.5 italic">May be stale</p>
+              )}
             </div>
           )}
         </motion.div>

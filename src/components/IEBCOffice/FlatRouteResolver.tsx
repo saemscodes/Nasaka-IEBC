@@ -29,6 +29,7 @@ const FlatRouteResolver = () => {
                 // Step 1: Check if it's a direct county slug
                 const { data: countyData } = await supabase
                     .from('iebc_offices')
+
                     .select('county')
                     .ilike('county', slug.replace(/-/g, ' '))
                     .limit(1);
