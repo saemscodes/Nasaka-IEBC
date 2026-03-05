@@ -560,7 +560,7 @@ const OfficeBottomSheet = ({
 
                   {/* Offline Trip Protection Section */}
                   {(currentRoute?.[0] || office) && (
-                    <div className="mt-4 px-4">
+                    <div id="offline-protection-section" className="mt-4 px-4 scroll-mt-24">
                       <div className="bg-primary/5 dark:bg-primary/10 rounded-2xl p-1 border border-primary/10">
                         <OfflineRouteDownloader
                           routeGeometry={currentRoute?.[0]?.coordinates || currentRoute?.[0]?.geometry || currentRoute?.[0] || (office ? { type: 'Point', coordinates: [office.longitude, office.latitude] } : null)}

@@ -16,8 +16,6 @@ export default defineConfig(({ mode }) => ({
         'favicon.ico',
         'apple-touch-icon.png',
         'masked-icon.svg',
-        'assets/*.png',
-        'assets/*.webp',
         'logo_green.png',
         'logo_white.png',
         'nasaka.svg'

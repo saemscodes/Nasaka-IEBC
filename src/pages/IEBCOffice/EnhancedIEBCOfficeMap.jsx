@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useCallback, useState } from 'react';
+import React, { useEffect, useMemo, useCallback, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import EnhancedMapContainer from '../../components/IEBCOffice/EnhancedMapContainer';
@@ -16,6 +16,7 @@ import { getTravelInsights } from '@/services/travelService';
 import { useIEBCOffices } from '../../hooks/useIEBCOffices';
 import { useMapControls } from '../../hooks/useMapControls';
 import { findNearestOffice, findNearestOffices } from '../../utils/geoUtils';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const EnhancedIEBCOfficeMap = () => {
   const navigate = useNavigate();
@@ -44,6 +45,9 @@ const EnhancedIEBCOfficeMap = () => {
   const [isLayerPanelOpen, setIsLayerPanelOpen] = useState(false);
   const [currentRoute, setCurrentRoute] = useState(null);
   const [travelInsights, setTravelInsights] = useState(null);
+  const downloaderRef = useRef(null);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   // Set initial map center based on user location or default
   useEffect(() => {
@@ -293,17 +297,75 @@ const EnhancedIEBCOfficeMap = () => {
 
       {/* Offline Route Downloader — above bottom sheet */}
       {(currentRoute?.[0] || selectedOffice) && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
-          className="absolute bottom-24 left-4 right-4"
-          style={{ zIndex: 'var(--z-fixed-badges, 1005)' }}
-        >
-          <OfflineRouteDownloader
-            routeGeometry={currentRoute?.[0]?.coordinates || currentRoute?.[0]?.geometry || currentRoute?.[0] || (selectedOffice ? { type: 'Point', coordinates: [selectedOffice.longitude, selectedOffice.latitude] } : null)}
-          />
-        </motion.div>
+        <div className="absolute bottom-24 left-4 right-4 flex flex-col gap-3 pointer-events-none">
+          {/* Action Row — HAM Floating Controls */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ type: 'spring', damping: 20, stiffness: 300, delay: 0.1 }}
+            className="flex gap-2 pointer-events-auto"
+          >
+            <button
+              onClick={() => downloaderRef.current?.startDownload('minimal')}
+              className={`
+                flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-xs
+                backdrop-blur-2xl border shadow-[0_8px_32px_rgba(0,0,0,0.12)] active:scale-95 transition-all
+                ${isDark
+                  ? 'bg-ios-gray-900/60 border-white/10 text-white'
+                  : 'bg-white/70 border-black/5 text-ios-gray-900'
+                }
+              `}
+            >
+              <div className="w-5 h-5 rounded-lg bg-ios-blue/10 flex items-center justify-center">
+                <svg className="w-3.5 h-3.5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              </div>
+              Protect Trip
+            </button>
+
+            <button
+              onClick={() => downloaderRef.current?.startDownload('extended')}
+              className={`
+                flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-xs
+                backdrop-blur-2xl border shadow-[0_8px_32px_rgba(0,0,0,0.12)] active:scale-95 transition-all
+                ${isDark
+                  ? 'bg-ios-gray-900/60 border-white/10 text-white'
+                  : 'bg-white/70 border-black/5 text-ios-gray-900'
+                }
+              `}
+            >
+              <div className="w-5 h-5 rounded-lg bg-ios-blue/10 flex items-center justify-center">
+                <svg className="w-3.5 h-3.5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 20l-5.447-2.724A2 2 0 013 15.382V5.618a2 2 0 011.447-1.894L9 1m0 19l6-3m-6 3V1m6 16l5.447 2.724A2 2 0 0021 17.822V8.056a2 2 0 00-1.447-1.894L15 1m0 16V1m0 0L9 4" />
+                </svg>
+              </div>
+              Protect Area
+            </button>
+          </motion.div>
+
+          {/* Main Downloader Component */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="pointer-events-auto"
+            style={{ zIndex: 'var(--z-fixed-badges, 1005)' }}
+          >
+            <OfflineRouteDownloader
+              ref={downloaderRef}
+              routeGeometry={currentRoute?.[0]?.coordinates || currentRoute?.[0]?.geometry || currentRoute?.[0] || (selectedOffice ? { type: 'Point', coordinates: [selectedOffice.longitude, selectedOffice.latitude] } : null)}
+              onGoToDetails={() => {
+                const btn = document.querySelector('.office-details-expand-btn');
+                if (btn) btn.click();
+                setTimeout(() => {
+                  const el = document.getElementById('offline-protection-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 400);
+              }}
+            />
+          </motion.div>
+        </div>
       )}
 
       {/* Bottom Sheet */}
