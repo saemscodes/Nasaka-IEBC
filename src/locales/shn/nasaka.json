@@ -117,7 +117,8 @@
     "openApp": "Fungua app",
     "trafficSurchargeIncluded": "Cost plus ukiongeza za kabej [jam]",
     "coordinatesCopied": "Coordinates zimecopy kwa clipboard!",
-    "copyCoordinatesPrompt": "Copy coordinates:"
+    "copyCoordinatesPrompt": "Copy coordinates:",
+    "moreOnOffice": "Mambo zaidi kuhusu {{officeName}}"
   },
   "officeList": {
     "searchResults": "Si tumepata hivi",

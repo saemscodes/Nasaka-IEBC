@@ -117,7 +117,8 @@
     "openApp": "Fur App-ka",
     "trafficSurchargeIncluded": "Qiimaha waxaa ku jira kharashka gaadiidka",
     "coordinatesCopied": "Isku-duubyada waxaa loo nuquliyay clipboard!",
-    "copyCoordinatesPrompt": "Nuqul isku-duubyada:"
+    "copyCoordinatesPrompt": "Nuqul isku-duubyada:",
+    "moreOnOffice": "In kabadan {{officeName}}"
   },
   "officeList": {
     "searchResults": "Natiijooyinka Raadinta",

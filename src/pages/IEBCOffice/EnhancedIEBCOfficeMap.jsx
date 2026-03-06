@@ -286,16 +286,7 @@ const EnhancedIEBCOfficeMap = () => {
             </svg>
           </button>
 
-          {/* New Download/Offline Button */}
-          <button
-            onClick={() => setIsOfflineSidebarOpen(true)}
-            className="p-2 rounded-xl hover:bg-ios-gray-100 transition-colors"
-            aria-label="Offline downloader"
-          >
-            <svg className="w-6 h-6 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-          </button>
+
         </div>
       </motion.div>
 
@@ -307,6 +298,24 @@ const EnhancedIEBCOfficeMap = () => {
         onClose={closeLayerPanel}
         userLocation={userLocation}
       />
+
+      {/* ── RIGHT-SIDE MAP CONTROL: Offline Download ── */}
+      <motion.button
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.3, type: 'spring', stiffness: 300, damping: 30 }}
+        onClick={() => setIsOfflineSidebarOpen(true)}
+        style={{ zIndex: 'var(--z-fixed-badges, 1005)' }}
+        className={`absolute right-4 bottom-28 w-11 h-11 rounded-full flex items-center justify-center shadow-lg border transition-all active:scale-95 ${isDark
+          ? 'bg-card/90 backdrop-blur-xl border-border text-ios-blue-400 hover:bg-card'
+          : 'bg-white/90 backdrop-blur-xl border-black/5 text-ios-blue hover:bg-white'
+          }`}
+        aria-label="Offline downloader"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+      </motion.button>
 
       {/* ── PREMIUM OFFLINE SIDEBAR ── */}
       <AnimatePresence>
@@ -444,11 +453,11 @@ const EnhancedIEBCOfficeMap = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           style={{ zIndex: 'var(--z-fixed-badges, 1005)' }}
-          className="absolute top-20 right-4 bg-card/90 backdrop-blur-xl rounded-2xl p-3 shadow-lg border border-border max-w-[220px]"
+          className="absolute top-20 right-4 bg-card/90 backdrop-blur-xl rounded-2xl p-3 shadow-lg border border-border max-w-[240px]"
         >
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-foreground text-sm font-medium">
+            <span className="text-foreground text-sm font-semibold">
               {currentRoute.length} route{currentRoute.length > 1 ? 's' : ''} found
             </span>
           </div>
@@ -459,11 +468,21 @@ const EnhancedIEBCOfficeMap = () => {
             </div>
           )}
 
-          {/* Travel Difficulty Score Badge (Visual Feedback for "HAM") */}
+          {/* Integrated Travel Score + Weather (unified view) */}
           {travelInsights && (
             <div className="mt-2 pt-2 border-t border-border/50">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Visit Score</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-muted-foreground">Visit Score</span>
+                  {travelInsights.weatherDesc && (
+                    <span className="text-xs text-muted-foreground">·</span>
+                  )}
+                  {travelInsights.weatherDesc && (
+                    <span className="text-xs text-muted-foreground">
+                      {travelInsights.weatherDesc}
+                    </span>
+                  )}
+                </div>
                 <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${travelInsights.severity === 'low'
                   ? 'bg-green-500/20 text-green-600 dark:text-green-400'
                   : travelInsights.severity === 'medium'
@@ -473,14 +492,23 @@ const EnhancedIEBCOfficeMap = () => {
                   {travelInsights.score}/100
                 </span>
               </div>
-              <div className="flex items-center gap-1 mt-1">
-                <span className="text-xs text-muted-foreground">
-                  {travelInsights.weatherDesc}
-                </span>
-                {travelInsights.temperature !== null && (
-                  <span className="text-xs text-muted-foreground">· {travelInsights.temperature}°C</span>
-                )}
-              </div>
+              {travelInsights.temperature !== null && (
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className="text-xs text-muted-foreground">
+                    🌡️ {travelInsights.temperature}°C
+                  </span>
+                  {travelInsights.windSpeed !== null && (
+                    <span className="text-xs text-muted-foreground">
+                      · 💨 {travelInsights.windSpeed} km/h
+                    </span>
+                  )}
+                  {travelInsights.precipProb !== null && travelInsights.precipProb > 0 && (
+                    <span className="text-xs text-muted-foreground">
+                      · 🌧️ {travelInsights.precipProb}%
+                    </span>
+                  )}
+                </div>
+              )}
               {travelInsights.stale && (
                 <p className="text-xs text-muted-foreground/60 mt-0.5 italic text-center">May be stale</p>
               )}

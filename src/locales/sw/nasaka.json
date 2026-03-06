@@ -88,7 +88,8 @@
     "confirming": "Tunathibitisha...",
     "distanceAway": "Uko mita {{distance}} mbali. Tafadhali sogea ndani ya mita {{maxDistance}} kutoka ofisi ili kuthibitisha.",
     "confirmationFailed": "Imeshindwa kuwasilisha uthibitisho. Tafadhali jaribu tena.",
-    "locationPermissionRequired": "Ruhusa ya eneo inahitajika kuthibitisha. Tafadhali wezesha ufikiaji wa eneo na ujaribu tena."
+    "locationPermissionRequired": "Ruhusa ya eneo inahitajika kuthibitisha. Tafadhali wezesha ufikiaji wa eneo na ujaribu tena.",
+    "moreOnOffice": "Zaidi kuhusu {{officeName}}"
   },
   "officeList": {
     "searchResults": "Matokeo ya Utafutaji",

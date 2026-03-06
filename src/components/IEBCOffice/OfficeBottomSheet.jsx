@@ -708,14 +708,16 @@ const OfficeBottomSheet = ({
                         if (areaSlug === countySlug) areaSlug = `${areaSlug}-town`;
                         navigate(`/${countySlug}/${areaSlug}`);
                       }}
-                      className={`w-full mb-6 font-bold py-4 px-6 rounded-2xl flex items-center justify-center space-x-3 transition-all active:scale-[0.98] duration-300 shadow-xl ${isDark
+                      className={`w-full mb-6 font-bold py-4 px-6 rounded-2xl flex items-center justify-between transition-all active:scale-[0.98] duration-300 shadow-xl ${isDark
                         ? 'bg-ios-blue-600 text-white shadow-ios-blue/20 border border-white/10'
                         : 'bg-ios-blue text-white shadow-ios-blue/15 border border-black/5'
                         }`}
                     >
-                      <span className="text-sm">View Verified Office Records</span>
-                      <svg className="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      <span className="text-sm leading-snug text-left">
+                        {t('bottomSheet.moreOnOffice', { officeName: office.office_name || office.constituency_name || t('office.officeName', 'IEBC Office'), defaultValue: `More on {{officeName}}` })}
+                      </span>
+                      <svg className="w-5 h-5 opacity-80 flex-shrink-0 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                       </svg>
                     </button>
 
@@ -724,63 +726,57 @@ const OfficeBottomSheet = ({
                       {/* Uber Button */}
                       <button
                         onClick={() => openUber()}
-                        className={`group relative overflow-hidden w-full py-4 px-4 rounded-2xl flex flex-col items-center justify-center space-y-2 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-lg ${isDark
-                          ? 'bg-black/40 border-white/10 text-white'
-                          : 'bg-gray-50/60 border-black/5 text-ios-gray-900'
+                        className={`group relative overflow-hidden w-full py-5 px-3 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-md hover:shadow-lg ${isDark
+                          ? 'bg-black/40 border-white/10 text-white hover:bg-black/50'
+                          : 'bg-gray-50/60 border-black/5 text-ios-gray-900 hover:bg-gray-100/60'
                           }`}
                       >
-                        <div className="flex items-center space-x-3">
-                          <div className="w-6 h-6 flex items-center justify-center">
-                            <svg viewBox="0 0 512 512" className="w-5 h-5 fill-current">
-                              <path d="M119.8,303.6c17.6,0,31.3-13.6,31.3-33.8V191.3h19.1V318.6H151.3V306.8a45.9,45.9,0,0,1-33.6,14c-27.3,0-48.2-19.8-48.2-49.8V191.4H88.6v78.5c0,20.5,13.4,33.7,31.2,33.7m64.6-112.3h18.4v46.4a46.11,46.11,0,0,1,32.9-13.8,48.45,48.45,0,0,1,0,96.9A46.52,46.52,0,0,1,202.6,307v11.6H184.4V191.3Zm50,113.2a32.2,32.2,0,1,0-32-32.4v.2a32,32,0,0,0,31.8,32.2h.2M339.3,224c26.7,0,46.4,20.5,46.4,48.2v6H310.3A31.09,31.09,0,0,0,341,304.6c10.7,0,19.8-4.4,26.7-13.6l13.3,9.8c-9.3,12.4-23.1,19.8-40,19.8-27.8,0-49.3-20.7-49.3-48.4-.1-26.2,20.5-48.2,47.6-48.2m-28.8,39.6H367c-3.1-14.2-14.5-23.6-28.2-23.6-13.5,0-25,9.5-28.3,23.6m124.4-21.4c-12,0-20.7,9.3-20.7,23.6v52.7H395.8V225.8H414v11.5c4.5-7.5,12-12.2,22.2-12.2h6.4v17.1Z" />
-                            </svg>
-                          </div>
-                          <span className="text-sm font-bold tracking-tight">Uber</span>
+                        <div className="h-4 w-full flex items-center justify-center">
+                          <svg viewBox="0 0 512 512" className="h-full w-auto fill-current">
+                            <path d="M119.8,303.6c17.6,0,31.3-13.6,31.3-33.8V191.3h19.1V318.6H151.3V306.8a45.9,45.9,0,0,1-33.6,14c-27.3,0-48.2-19.8-48.2-49.8V191.4H88.6v78.5c0,20.5,13.4,33.7,31.2,33.7m64.6-112.3h18.4v46.4a46.11,46.11,0,0,1,32.9-13.8,48.45,48.45,0,0,1,0,96.9A46.52,46.52,0,0,1,202.6,307v11.6H184.4V191.3Zm50,113.2a32.2,32.2,0,1,0-32-32.4v.2a32,32,0,0,0,31.8,32.2h.2M339.3,224c26.7,0,46.4,20.5,46.4,48.2v6H310.3A31.09,31.09,0,0,0,341,304.6c10.7,0,19.8-4.4,26.7-13.6l13.3,9.8c-9.3,12.4-23.1,19.8-40,19.8-27.8,0-49.3-20.7-49.3-48.4-.1-26.2,20.5-48.2,47.6-48.2m-28.8,39.6H367c-3.1-14.2-14.5-23.6-28.2-23.6-13.5,0-25,9.5-28.3,23.6m124.4-21.4c-12,0-20.7,9.3-20.7,23.6v52.7H395.8V225.8H414v11.5c4.5-7.5,12-12.2,22.2-12.2h6.4v17.1Z" />
+                          </svg>
                         </div>
                         {hasLocationAccess && cheapestFare && cheapestFare.provider === 'uber' ? (
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isDark ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-700'}`}>
+                          <span className={`mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${isDark ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-700'}`}>
                             {formatFare(cheapestFare.total)}
                           </span>
                         ) : (
-                          <span className={`text-[10px] opacity-60 font-medium`}>{t('bottomSheet.openApp', 'Open app')}</span>
+                          <span className={`mt-1 text-[10px] opacity-60 font-medium`}>{t('bottomSheet.openApp', 'Open app')}</span>
                         )}
                       </button>
 
                       {/* Bolt Button */}
                       <button
                         onClick={openBolt}
-                        className={`group relative overflow-hidden w-full py-4 px-4 rounded-2xl flex flex-col items-center justify-center space-y-2 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-lg ${isDark
-                          ? 'bg-green-600/10 border-green-500/20 text-green-400'
-                          : 'bg-green-50/60 border-green-200 text-green-800'
+                        className={`group relative overflow-hidden w-full py-5 px-3 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-md hover:shadow-lg ${isDark
+                          ? 'bg-green-600/10 border-green-500/20 text-green-400 hover:bg-green-600/15'
+                          : 'bg-green-50/60 border-green-200 text-green-800 hover:bg-green-100/60'
                           }`}
                       >
-                        <div className="flex items-center space-x-3">
-                          <div className="w-6 h-6 flex items-center justify-center">
-                            <svg viewBox="0 0 111.9 65" className="w-7 h-7 fill-current">
-                              <path d="M30.4,23c4.4-7.1,2.2-16.4-4.8-20.8C23.2,0.8,20.5,0,17.7,0H0v48.9h19.9c8.3,0,15-6.8,15-15.1 C34.9,29.7,33.3,25.9,30.4,23z M11.4,11.5h6.3c2,0,3.6,1.6,3.6,3.6c0,2-1.6,3.6-3.6,3.6h-6.3V11.5z M19.9,37.4h-8.5v-7.2h8.5 c2,0,3.6,1.6,3.6,3.6C23.5,35.8,21.9,37.4,19.9,37.4z M90,0v48.9H78.6V2.4L90,0z M56.8,13.9c-9.7,0-17.6,7.9-17.6,17.7 c0,9.8,7.9,17.7,17.6,17.7c9.7,0,17.6-7.9,17.6-17.7C74.3,21.8,66.5,13.9,56.8,13.9z M56.8,37.4c-3.2,0-5.7-2.6-5.7-5.7 c0-3.2,2.5-5.7,5.7-5.7c3.2,0,5.7,2.6,5.7,5.7C62.5,34.8,59.9,37.4,56.8,37.4z M62.5,59.3c0,3.2-2.6,5.7-5.7,5.7 c-3.1,0-5.7-2.6-5.7-5.7c0-3.2,2.6-5.7,5.7-5.7C59.9,53.5,62.5,56.1,62.5,59.3z M111.8,14.5V26h-5.7v9c0,2.7,0.9,4.7,3.2,4.7 c0.9,0,1.7-0.1,2.5-0.3v8.5c-1.7,0.9-3.6,1.4-5.6,1.4h-0.1c-0.1,0-0.1,0-0.2,0c-0.1,0-0.1,0-0.2,0h-0.1l-0.2,0 C99.1,49,94.7,45,94.7,37.9v0v0V26V8.2l11.4-2.4v8.8H111.8z" />
-                            </svg>
-                          </div>
-                          <span className="text-sm font-bold tracking-tight">Bolt</span>
+                        <div className="h-5 w-full flex items-center justify-center">
+                          <svg viewBox="0 0 111.9 65" className="h-full w-auto fill-current">
+                            <path d="M30.4,23c4.4-7.1,2.2-16.4-4.8-20.8C23.2,0.8,20.5,0,17.7,0H0v48.9h19.9c8.3,0,15-6.8,15-15.1 C34.9,29.7,33.3,25.9,30.4,23z M11.4,11.5h6.3c2,0,3.6,1.6,3.6,3.6c0,2-1.6,3.6-3.6,3.6h-6.3V11.5z M19.9,37.4h-8.5v-7.2h8.5 c2,0,3.6,1.6,3.6,3.6C23.5,35.8,21.9,37.4,19.9,37.4z M90,0v48.9H78.6V2.4L90,0z M56.8,13.9c-9.7,0-17.6,7.9-17.6,17.7 c0,9.8,7.9,17.7,17.6,17.7c9.7,0,17.6-7.9,17.6-17.7C74.3,21.8,66.5,13.9,56.8,13.9z M56.8,37.4c-3.2,0-5.7-2.6-5.7-5.7 c0-3.2,2.5-5.7,5.7-5.7c3.2,0,5.7,2.6,5.7,5.7C62.5,34.8,59.9,37.4,56.8,37.4z M62.5,59.3c0,3.2-2.6,5.7-5.7,5.7 c-3.1,0-5.7-2.6-5.7-5.7c0-3.2,2.6-5.7,5.7-5.7C59.9,53.5,62.5,56.1,62.5,59.3z M111.8,14.5V26h-5.7v9c0,2.7,0.9,4.7,3.2,4.7 c0.9,0,1.7-0.1,2.5-0.3v8.5c-1.7,0.9-3.6,1.4-5.6,1.4h-0.1c-0.1,0-0.1,0-0.2,0c-0.1,0-0.1,0-0.2,0h-0.1l-0.2,0 C99.1,49,94.7,45,94.7,37.9v0v0V26V8.2l11.4-2.4v8.8H111.8z" />
+                          </svg>
                         </div>
                         {hasLocationAccess && cheapestFare && cheapestFare.provider === 'bolt' ? (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">
+                          <span className="mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">
                             {formatFare(cheapestFare.total)}
                           </span>
                         ) : (
-                          <span className="text-[10px] opacity-70 font-medium">{t('bottomSheet.openApp', 'Open app')}</span>
+                          <span className="mt-1 text-[10px] opacity-70 font-medium">{t('bottomSheet.openApp', 'Open app')}</span>
                         )}
                       </button>
 
                       {/* Google Maps Button */}
                       <button
                         onClick={openGoogleMaps}
-                        className={`w-full py-4 px-4 rounded-2xl flex items-center justify-center space-x-3 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-lg ${isDark
-                          ? 'bg-blue-600/10 border-blue-500/20 text-blue-400'
-                          : 'bg-blue-50/60 border-blue-200 text-blue-800'
+                        className={`w-full py-3 px-3 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-md hover:shadow-lg ${isDark
+                          ? 'bg-blue-600/10 border-blue-500/20 text-blue-400 hover:bg-blue-600/15'
+                          : 'bg-blue-50/60 border-blue-200 text-blue-800 hover:bg-blue-100/60'
                           }`}
                       >
-                        <div className="w-6 h-6 flex items-center justify-center">
-                          <svg viewBox="0 0 24 24" className="w-5 h-5">
+                        <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
+                          <svg viewBox="0 0 24 24" className="w-full h-full">
                             <path fill="#4285F4" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z" />
                           </svg>
                         </div>
@@ -790,13 +786,13 @@ const OfficeBottomSheet = ({
                       {/* Apple Maps Button */}
                       <button
                         onClick={openAppleMaps}
-                        className={`w-full py-4 px-4 rounded-2xl flex items-center justify-center space-x-3 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-lg ${isDark
-                          ? 'bg-white/10 border-white/10 text-white'
-                          : 'bg-gray-100/60 border-black/5 text-ios-gray-900'
+                        className={`w-full py-3 px-3 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-md hover:shadow-lg ${isDark
+                          ? 'bg-white/10 border-white/10 text-white hover:bg-white/15'
+                          : 'bg-gray-100/60 border-black/5 text-ios-gray-900 hover:bg-gray-200/60'
                           }`}
                       >
-                        <div className="w-6 h-6 flex items-center justify-center">
-                          <svg viewBox="-1.5 0 20 20" className={`w-5 h-5 ${isDark ? 'fill-white' : 'fill-black'}`}>
+                        <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
+                          <svg viewBox="-1.5 0 20 20" className={`w-full h-full ${isDark ? 'fill-white' : 'fill-black'}`}>
                             <path d="M5.7 3.193c.73-.845 1.22-2.022 1.086-3.193-1.05.04-2.321.671-3.074 1.515-.676.749-1.267 1.946-1.108 3.094 1.17.087 2.366-.57 3.095-1.416m2.628 7.432c.03 3.027 2.77 4.034 2.801 4.047-.022.071-.438 1.435-1.444 2.845-.87 1.218-1.773 2.431-3.196 2.457-1.397.025-1.847-.794-3.446-.794-1.598 0-2.098.768-3.42 0.819-1.373 0.049-2.42-1.318-3.296-2.532-1.794-2.483-3.164-7.017-1.324-10.077.914-1.52 2.547-2.483 4.32-2.507 1.348-.025 2.621.869 3.445.869.824 0 2.375-1.075 4-0.917.68.027 2.59.264 3.818 1.985-.1.059-2.28 1.275-2.257 3.8z" />
                           </svg>
                         </div>
@@ -808,12 +804,12 @@ const OfficeBottomSheet = ({
                     {office.latitude && office.longitude && (
                       <button
                         onClick={copyCoords}
-                        className={`w-full group font-bold py-4 px-6 rounded-2xl flex items-center justify-center space-x-3 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-lg ${isDark
-                          ? 'bg-ios-gray-800/40 border-white/5 text-ios-gray-300'
-                          : 'bg-white/60 border-black/5 text-ios-gray-600'
+                        className={`w-full group font-bold py-4 px-4 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-md hover:shadow-lg ${isDark
+                          ? 'bg-ios-gray-800/40 border-white/5 text-ios-gray-300 hover:bg-ios-gray-800/60'
+                          : 'bg-white/60 border-black/5 text-ios-gray-600 hover:bg-white/80'
                           }`}
                       >
-                        <svg className="w-5 h-5 opacity-60 group-hover:opacity-100 transition-opacity" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                        <svg className="w-5 h-5 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                           <rect x="6" y="11" width="13" height="13" rx="3" />
                           <path d="M6 19C4.34 19 3 17.66 3 16V10C3 6.23 3 4.34 4.17 3.17C5.34 2 7.23 2 11 2H15C16.66 2 18 3.34 18 5" />
                         </svg>

@@ -117,7 +117,8 @@
     "openApp": "Vũla app",
     "trafficSurchargeIncluded": "Kyalo nĩkũneneaa kyalo kĩa ngali nyĩngĩ",
     "coordinatesCopied": "Makoo nĩmakooviĩtwe!",
-    "copyCoordinatesPrompt": "Koovia makoo:"
+    "copyCoordinatesPrompt": "Koovia makoo:",
+    "moreOnOffice": "Maũndũ angĩ ĩũlũ wa {{officeName}}"
   },
   "officeList": {
     "searchResults": "Kĩla Kũvatĩte",

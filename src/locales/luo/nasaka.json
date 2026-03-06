@@ -116,7 +116,8 @@
     "openApp": "Yab app",
     "trafficSurchargeIncluded": "Nengo nitie sisa mar miture",
     "coordinatesCopied": "Kar kwan okopi kare!",
-    "copyCoordinatesPrompt": "Kop kar kwan:"
+    "copyCoordinatesPrompt": "Kop kar kwan:",
+    "moreOnOffice": "Weche mamoko kuom {{officeName}}"
   },
   "officeList": {
     "searchResults": "Jibuoko ma iyudi",

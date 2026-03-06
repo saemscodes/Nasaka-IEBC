@@ -117,7 +117,8 @@
     "openApp": "Fungula app",
     "trafficSurchargeIncluded": "Malevi garivamo levi lya traffic",
     "coordinatesCopied": "Ma coordinates ga copy mu clipboard!",
-    "copyCoordinatesPrompt": "Copy ma coordinates:"
+    "copyCoordinatesPrompt": "Copy ma coordinates:",
+    "moreOnOffice": "Kamanie amangi kulu wa {{officeName}}"
   },
   "officeList": {
     "searchResults": "Tsilondeku tsa Mulondo",

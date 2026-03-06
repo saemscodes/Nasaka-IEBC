@@ -117,7 +117,8 @@
     "openApp": "Evora app",
     "trafficSurchargeIncluded": "Amafaranga gangetangwa okwongera kwa emigare",
     "coordinatesCopied": "Ebipimo binyereirwe!",
-    "copyCoordinatesPrompt": "Nyera ebipimo:"
+    "copyCoordinatesPrompt": "Nyera ebipimo:",
+    "moreOnOffice": "Amang'ana ayange igoro yo {{officeName}}"
   },
   "officeList": {
     "searchResults": "Ebinto Ebirinkenwe Koronderera",

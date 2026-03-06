@@ -117,7 +117,8 @@
     "openApp": "Idwe app",
     "trafficSurchargeIncluded": "Ewoi ngitunga apedori",
     "coordinatesCopied": "Ngitunga gul!",
-    "copyCoordinatesPrompt": "Gul ngitunga:"
+    "copyCoordinatesPrompt": "Gul ngitunga:",
+    "moreOnOffice": "Ng'akiro nache e-juu a {{officeName}}"
   },
   "officeList": {
     "searchResults": "Akam Ewoi",

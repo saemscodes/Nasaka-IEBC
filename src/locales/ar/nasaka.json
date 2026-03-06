@@ -117,7 +117,8 @@
     "openApp": "فتح التطبيق",
     "trafficSurchargeIncluded": "الأسعار تشمل رسوم الازدحام المروري",
     "coordinatesCopied": "تم نسخ الإحداثيات إلى الحافظة!",
-    "copyCoordinatesPrompt": "نسخ الإحداثيات:"
+    "copyCoordinatesPrompt": "نسخ الإحداثيات:",
+    "moreOnOffice": "المزيد عن {{officeName}}"
   },
   "officeList": {
     "searchResults": "نتائج البحث",

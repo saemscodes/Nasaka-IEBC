@@ -117,7 +117,8 @@
     "openApp": "ایپ کھولیں",
     "trafficSurchargeIncluded": "قیمتوں میں ٹریفک اضافی چارج شامل ہے",
     "coordinatesCopied": "نقاط کلپ بورڈ میں کاپی ہو گئے!",
-    "copyCoordinatesPrompt": "نقاط کاپی کریں:"
+    "copyCoordinatesPrompt": "نقاط کاپی کریں:",
+    "moreOnOffice": "{{officeName}} کے بارے میں مزید"
   },
   "officeList": {
     "searchResults": "تلاش کے نتائج",

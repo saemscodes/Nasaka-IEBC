@@ -1459,16 +1459,17 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                   {step === 3 && 'Office Details'}
                   {step === 4 && 'Submission Complete'}
                 </h2>
-                {/* Progress indicator */}
-                <div className="flex items-center space-x-1">
-                  {[1, 2, 3, 4].map((stepNum) => (
+                {/* iOS-style compact progress bar */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-gray-400 whitespace-nowrap">
+                    Step {step} of 4
+                  </span>
+                  <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                     <div
-                      key={stepNum}
-                      className={`w-2 h-2 rounded-full ${stepNum === step ? 'bg-green-600' :
-                        stepNum < step ? 'bg-green-400' : 'bg-gray-300'
-                        }`}
+                      className="h-full bg-green-500 rounded-full transition-all duration-500 ease-out"
+                      style={{ width: `${(step / 4) * 100}%` }}
                     />
-                  ))}
+                  </div>
                 </div>
               </div>
               <button
@@ -1509,11 +1510,11 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                   <div className="grid grid-cols-1 gap-4">
                     <button
                       onClick={() => handleMethodSelect('current_location')}
-                      className="p-4 border-2 border-gray-200 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all text-left focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                      className="p-4 border-2 border-gray-200 rounded-2xl hover:border-green-500 hover:bg-green-50 transition-all text-left focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 active:scale-[0.98] shadow-sm hover:shadow-md duration-200"
                       aria-label="Use my current location"
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center shadow-inner">
                           <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
@@ -1528,11 +1529,11 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
 
                     <button
                       onClick={() => handleMethodSelect('drop_pin')}
-                      className="p-4 border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      className="p-4 border-2 border-gray-200 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-all text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.98] shadow-sm hover:shadow-md duration-200"
                       aria-label="Drop a pin on map"
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center shadow-inner">
                           <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                           </svg>
@@ -1547,11 +1548,11 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
 
                     <button
                       onClick={() => handleMethodSelect('google_maps')}
-                      className="p-4 border-2 border-gray-200 rounded-xl hover:border-red-500 hover:bg-red-50 transition-all text-left focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                      className="p-4 border-2 border-gray-200 rounded-2xl hover:border-red-500 hover:bg-red-50 transition-all text-left focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 active:scale-[0.98] shadow-sm hover:shadow-md duration-200"
                       aria-label="Paste Google Maps link"
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                        <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center shadow-inner">
                           <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                           </svg>
@@ -1758,25 +1759,39 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     </div>
                   )}
 
-                  <div className="flex space-x-3 pt-4">
+                  <div className="flex space-x-3 pt-6">
                     <button
                       onClick={() => setStep(1)}
-                      className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-xl font-medium hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                      className={`flex-1 px-4 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] duration-300 border shadow-md flex items-center justify-center space-x-2 ${isDark
+                          ? 'bg-ios-gray-800/40 border-white/10 text-ios-gray-400 hover:bg-ios-gray-800/60'
+                          : 'bg-ios-gray-100 border-black/5 text-ios-gray-600 hover:bg-gray-200'
+                        }`}
                     >
-                      Back
+                      <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                      </svg>
+                      <span>Back</span>
                     </button>
                     <button
                       onClick={() => setStep(3)}
                       disabled={!position || isGettingLocation}
-                      className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                      className={`flex-1 px-4 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] duration-300 shadow-xl flex items-center justify-center space-x-2 text-white disabled:opacity-50 disabled:cursor-not-allowed ${isDark
+                          ? 'bg-ios-blue-600 shadow-ios-blue/30 border border-white/10'
+                          : 'bg-ios-blue shadow-ios-blue/20 border border-black/5'
+                        }`}
                     >
                       {isGettingLocation ? (
                         <div className="flex items-center justify-center space-x-2">
-                          <LoadingSpinner size="small" />
+                          <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
                           <span>Getting Location...</span>
                         </div>
                       ) : (
-                        'Continue to Details'
+                        <>
+                          <span>Continue to Details</span>
+                          <svg className="w-5 h-5 flex-shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 5l7 7-7 7" />
+                          </svg>
+                        </>
                       )}
                     </button>
                   </div>
@@ -2002,26 +2017,40 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     </div>
                   </div>
 
-                  <div className="flex space-x-3 pt-4">
+                  <div className="flex space-x-3 pt-6">
                     <button
                       type="button"
                       onClick={() => setStep(2)}
-                      className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-xl font-medium hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                      className={`flex-1 px-4 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] duration-300 border shadow-md flex items-center justify-center space-x-2 ${isDark
+                          ? 'bg-ios-gray-800/40 border-white/10 text-ios-gray-400 hover:bg-ios-gray-800/60'
+                          : 'bg-ios-gray-100 border-black/5 text-ios-gray-600 hover:bg-gray-200'
+                        }`}
                     >
-                      Back
+                      <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                      </svg>
+                      <span>Back</span>
                     </button>
                     <button
                       type="submit"
                       disabled={!agreement || isSubmitting}
-                      className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                      className={`flex-1 px-4 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] duration-300 shadow-xl flex items-center justify-center space-x-2 text-white disabled:opacity-50 disabled:cursor-not-allowed ${isDark
+                          ? 'bg-ios-blue-600 shadow-ios-blue/30 border border-white/10'
+                          : 'bg-ios-blue shadow-ios-blue/20 border border-black/5'
+                        }`}
                     >
                       {isSubmitting ? (
-                        <div className="flex items-center justify-center space-x-2">
-                          <LoadingSpinner size="small" />
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
                           <span>Submitting...</span>
                         </div>
                       ) : (
-                        'Submit Contribution'
+                        <>
+                          <span>Submit Contribution</span>
+                          <svg className="w-5 h-5 flex-shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 5l7 7-7 7" />
+                          </svg>
+                        </>
                       )}
                     </button>
                   </div>
@@ -2062,18 +2091,27 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                           )}
                         </p>
                       </div>
-                      <div className="flex space-x-3 pt-2">
+                      <div className="flex space-x-3 pt-6">
                         <button
                           onClick={handleClose}
-                          className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-xl font-medium hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                          className={`flex-1 px-4 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] duration-300 border shadow-md flex items-center justify-center space-x-2 ${isDark
+                              ? 'bg-ios-gray-800/40 border-white/10 text-ios-gray-400 hover:bg-ios-gray-800/60'
+                              : 'bg-ios-gray-100 border-black/5 text-ios-gray-600 hover:bg-gray-200'
+                            }`}
                         >
-                          Continue Browsing
+                          <span>Continue Browsing</span>
                         </button>
                         <button
                           onClick={() => window.location.reload()}
-                          className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                          className={`flex-1 px-4 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] duration-300 shadow-xl flex items-center justify-center space-x-2 text-white ${isDark
+                              ? 'bg-ios-blue-600 shadow-ios-blue/30 border border-white/10'
+                              : 'bg-ios-blue shadow-ios-blue/20 border border-black/5'
+                            }`}
                         >
-                          Reload Map & See Updates
+                          <span>Reload & See Updates</span>
+                          <svg className="w-5 h-5 flex-shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
                         </button>
                       </div>
                     </>

@@ -117,7 +117,8 @@
     "openApp": "Bak app",
     "trafficSurchargeIncluded": "Bei emeta ongesha te ilamotonishe",
     "coordinatesCopied": "Inhini aikokir!",
-    "copyCoordinatesPrompt": "Kokir inhini:"
+    "copyCoordinatesPrompt": "Kokir inhini:",
+    "moreOnOffice": "Pooki nena bo {{officeName}}"
   },
   "officeList": {
     "searchResults": "Enkataarr E Dorobo",

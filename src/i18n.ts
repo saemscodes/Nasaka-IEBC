@@ -150,7 +150,8 @@ const resources: LanguageResources = {
         openApp: "Open app",
         trafficSurchargeIncluded: "Prices include traffic surcharge",
         coordinatesCopied: "Coordinates copied to clipboard!",
-        copyCoordinatesPrompt: "Copy coordinates:"
+        copyCoordinatesPrompt: "Copy coordinates:",
+        moreOnOffice: "More on {{officeName}}"
       },
       officeList: {
         searchResults: "Search Results",

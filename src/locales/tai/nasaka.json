@@ -117,7 +117,8 @@
     "openApp": "Fungua app",
     "trafficSurchargeIncluded": "Bei ni pamoja na ongezeko la maghari",
     "coordinatesCopied": "Vipimo vinakiriwa!",
-    "copyCoordinatesPrompt": "Nakirira vipimo:"
+    "copyCoordinatesPrompt": "Nakirira vipimo:",
+    "moreOnOffice": "Maũndũ mangĩ kũduana na {{officeName}}"
   },
   "officeList": {
     "searchResults": "Ijumbo La Kutafuta",

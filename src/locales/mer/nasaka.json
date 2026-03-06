@@ -117,7 +117,8 @@
     "openApp": "Rura app",
     "trafficSurchargeIncluded": "Mbeca nimeta mbeca yongewe buthuku",
     "coordinatesCopied": "Mariiri makokirirwe!",
-    "copyCoordinatesPrompt": "Kokira mariiri:"
+    "copyCoordinatesPrompt": "Kokira mariiri:",
+    "moreOnOffice": "Maũntũ mangĩ kũgiĩ {{officeName}}"
   },
   "officeList": {
     "searchResults": "Mboco cia Gucaria",
