@@ -1,0 +1,56 @@
+name: Admin Task Runner (HITL)
+
+on:
+  workflow_dispatch:
+    inputs:
+      task_id:
+        description: 'Admin Task ID from Supabase'
+        required: true
+      task_type:
+        description: 'Type of task to run'
+        required: true
+        type: choice
+        options:
+          - iebc_verification
+          - coord_correction
+          - geocode_sync
+
+jobs:
+  execute-task:
+    name: Execute ${{ github.event.inputs.task_type }}
+    runs-on: ubuntu-latest
+    
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      ADMIN_TASK_ID: ${{ github.event.inputs.task_id }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests python-dotenv
+
+      - name: Run Script
+        run: |
+          case "${{ github.event.inputs.task_type }}" in
+            "iebc_verification")
+              python scripts/verify_iebc_data.py --task-id "${{ github.event.inputs.task_id }}"
+              ;;
+            "coord_correction")
+              python scripts/fix_all_coords.py --apply --task-id "${{ github.event.inputs.task_id }}"
+              ;;
+            *)
+              echo "Unknown task type: ${{ github.event.inputs.task_type }}"
+              exit 1
+              ;;
+          esac

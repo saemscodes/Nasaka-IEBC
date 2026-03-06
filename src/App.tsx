@@ -35,7 +35,7 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 
 // Import supabase client from existing location
 import { supabase } from "@/integrations/supabase/client";
-import AdminVerification from './pages/Admin/AdminVerification';
+import AdminNexus from './pages/Admin/AdminNexus';
 
 // Import i18n configuration
 import '@/i18n';
@@ -385,14 +385,10 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     return <AdminLogin onLogin={handleLogin} />;
   }
 
-  if (!isVerified) {
-    return <AdminVerification onVerified={() => setIsVerified(true)} />;
-  }
-
   return <>{children}</>;
 };
 
-// ✅ Contributions Dashboard Component
+// ✅ Contributions Dashboard Component (Legacy, preserved but not primarily used)
 const ContributionsDashboard = React.lazy(() => import('@/components/Admin/ContributionsDashboard'));
 
 // ✅ Helper for legacy dynamic route redirection
@@ -486,22 +482,16 @@ const AppContent = () => {
 
         {/* ✅ ACTIVE SECURE ADMIN ROUTES */}
         <Route
-          path="/admin/contributions"
+          path="/admin/*"
           element={
             <AdminRoute>
-              <React.Suspense fallback={
-                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading Admin Dashboard...</p>
-                  </div>
-                </div>
-              }>
-                <ContributionsDashboard counties={KENYAN_COUNTIES} />
-              </React.Suspense>
+              <AdminNexus />
             </AdminRoute>
           }
         />
+
+        {/* Legacy redirect for specific admin path */}
+        <Route path="/admin/contributions" element={<Navigate to="/admin" replace />} />
 
         {/* ✅ Admin password reset route */}
         <Route

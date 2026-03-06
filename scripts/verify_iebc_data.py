@@ -17,16 +17,14 @@ Usage:
   python scripts/verify_iebc_data.py --json-output # Print JSON to stdout
 """
 
-import os
-import sys
-import json
-import math
-import time
-import argparse
-import logging
-from datetime import datetime, timezone
-from pathlib import Path
 from typing import Dict, List, Tuple, Optional
+
+# Admin Task Integration
+try:
+    from admin_task_lib import AdminTask
+    HAS_ADMIN_LIB = True
+except ImportError:
+    HAS_ADMIN_LIB = False
 
 try:
     import requests
@@ -392,53 +390,11 @@ def save_report(report: Dict, output_dir: Path) -> Path:
 # Main
 # ============================================================================
 
-def main():
-    parser = argparse.ArgumentParser(description="IEBC Office Data Verification Tool")
-    parser.add_argument("--quick", action="store_true", help="Skip Nominatim cross-reference")
-    parser.add_argument("--json-output", action="store_true", help="Print JSON report to stdout")
-    args = parser.parse_args()
-
-    if not HAS_REQUESTS:
-        logger.error("'requests' library required. Install with: pip install requests")
-        sys.exit(1)
-
-    api_key = SUPABASE_KEY or SUPABASE_ANON_KEY
-    if not api_key:
-        logger.error("No Supabase key found.")
-        sys.exit(1)
-
-    logger.info("=" * 60)
-    logger.info("IEBC Office Data Verification Tool")
-    logger.info("=" * 60)
-
-    client = SupabaseClient(SUPABASE_URL, api_key)
-    offices = client.fetch_all_offices()
-    logger.info(f"Fetched {len(offices)} offices from database")
-
-    report = run_verification(offices, skip_nominatim=args.quick)
-
-    logger.info(f"\n{'='*60}")
-    logger.info(f"VERIFICATION RESULTS:")
-    logger.info(f"  Total offices:     {report['total_offices']}")
-    logger.info(f"  Total issues:      {report['total_issues']}")
-    logger.info(f"  Critical issues:   {report['critical_issues']}")
-    logger.info(f"  Warning issues:    {report['warning_issues']}")
-    logger.info(f"  Info issues:       {report['info_issues']}")
-    logger.info(f"  Health score:      {report['health_score']}/100")
-    logger.info(f"{'='*60}\n")
-
-    if report["issues"]:
-        logger.info("Issues found:")
-        for issue in report["issues"][:20]:
-            severity_icon = {"critical": "🔴", "warning": "🟡", "info": "🔵"}.get(issue.get("severity"), "⚪")
-            logger.info(f"  {severity_icon} [{issue['type']}] {issue['message']}")
-        if len(report["issues"]) > 20:
-            logger.info(f"  ... and {len(report['issues']) - 20} more issues")
-
-    report_path = save_report(report, REPORT_DIR)
-
-    if args.json_output:
-        print(json.dumps(report, indent=2, default=str))
+    if task:
+        if report["critical_issues"] > 0:
+            task.fail(f"Verification failed with {report['critical_issues']} critical issues.")
+        else:
+            task.complete(f"Verification successful. Health score: {report['health_score']}/100")
 
     if report["critical_issues"] > 0:
         logger.warning(f"\n⚠️  {report['critical_issues']} CRITICAL issues found!")
@@ -446,6 +402,107 @@ def main():
     else:
         logger.info("\n✅ No critical issues found.")
         sys.exit(0)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="IEBC Office Data Verification Tool")
+    parser.add_argument("--quick", action="store_true", help="Skip Nominatim cross-reference")
+    parser.add_argument("--json-output", action="store_true", help="Print JSON report to stdout")
+    parser.add_argument("--task-id", help="Admin Task ID for HITL reporting")
+    args = parser.parse_args()
+
+    # Initialize Admin Task if ID provided
+    task = None
+    task_id = args.task_id or os.getenv("ADMIN_TASK_ID")
+    if task_id and HAS_ADMIN_LIB:
+        task = AdminTask(task_id)
+        task.log("Initialising IEBC Data Verification Task...", level='step')
+
+    if not HAS_REQUESTS:
+        msg = "'requests' library required. Install with: pip install requests"
+        if task: task.fail(msg)
+        logger.error(msg)
+        sys.exit(1)
+
+    api_key = SUPABASE_KEY or SUPABASE_ANON_KEY
+    if not api_key:
+        msg = "No Supabase key found."
+        if task: task.fail(msg)
+        logger.error(msg)
+        sys.exit(1)
+
+    logger.info("=" * 60)
+    logger.info("IEBC Office Data Verification Tool")
+    logger.info("=" * 60)
+
+    if task: task.log("Fetching offices from Supabase...", level='info')
+    client = SupabaseClient(SUPABASE_URL, api_key)
+    try:
+        offices = client.fetch_all_offices()
+        logger.info(f"Fetched {len(offices)} offices from database")
+        if task: task.log(f"Successfully fetched {len(offices)} offices.", level='info')
+    except Exception as e:
+        if task: task.fail(f"Failed to fetch offices: {str(e)}")
+        raise
+
+    # Override logging to pipe to Task Runner
+    if task:
+        # Wrap the verification to log steps
+        logger.info("  [1/5] Checking for null coordinates...")
+        task.log("Checking for null coordinates...", level='step')
+        null_issues = check_null_coordinates(offices)
+        
+        logger.info("  [2/5] Checking for out-of-bounds coordinates...")
+        task.log("Checking for out-of-bounds coordinates...", level='step')
+        oob_issues = check_out_of_bounds(offices)
+        
+        logger.info("  [3/5] Detecting geometric clustering...")
+        task.log("Detecting geometric clustering...", level='step')
+        cluster_issues = check_clustering(offices)
+        
+        logger.info("  [4/5] Checking for duplicate entries...")
+        task.log("Checking for duplicate entries...", level='step')
+        duplicate_issues = check_duplicates(offices)
+        
+        nom_issues = []
+        if not args.quick:
+            logger.info("  [5/5] Cross-referencing with Nominatim...")
+            task.log("Cross-referencing with Nominatim (Heavy Task)...", level='step')
+            nom_issues = check_nominatim(offices)
+            
+        all_issues = null_issues + oob_issues + cluster_issues + duplicate_issues + nom_issues
+        
+        critical_count = sum(1 for i in all_issues if i.get("severity") == "critical")
+        warning_count = sum(1 for i in all_issues if i.get("severity") == "warning")
+        
+        report = {
+            "verification_timestamp": datetime.now(timezone.utc).isoformat(),
+            "total_offices": len(offices),
+            "total_issues": len(all_issues),
+            "critical_issues": critical_count,
+            "warning_issues": warning_count,
+            "info_issues": sum(1 for i in all_issues if i.get("severity") == "info"),
+            "health_score": max(0, 100 - (critical_count * 10) - (warning_count * 3)),
+            "issues": all_issues,
+        }
+    else:
+        report = run_verification(offices, skip_nominatim=args.quick)
+
+    logger.info(f"\n{'='*60}")
+    logger.info(f"VERIFICATION RESULTS:")
+    logger.info(f"  Health score: {report['health_score']}/100")
+    logger.info(f"{'='*60}\n")
+
+    if report["issues"]:
+        if task: task.log(f"Found {len(report['issues'])} potential issues.", level='warn')
+        for issue in report["issues"][:10]:
+            severity_icon = {"critical": "🔴", "warning": "🟡", "info": "🔵"}.get(issue.get("severity"), "⚪")
+            logger.info(f"  {severity_icon} [{issue['type']}] {issue['message']}")
+
+    save_report(report, REPORT_DIR)
+
+    if args.json_output:
+        print(json.dumps(report, indent=2, default=str))
 
 
 if __name__ == "__main__":

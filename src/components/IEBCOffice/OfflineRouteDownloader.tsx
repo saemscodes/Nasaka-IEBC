@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useEffect, useImperativeHandle, forwardRef, useMemo } from 'react';
 import { getTilesForRoute, getStorageEstimate, requestPersistentStorage } from '@/utils/tileUtils';
 import type { TileDownloadPlan } from '@/utils/tileUtils';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -7,9 +7,11 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface OfflineRouteDownloaderProps {
-    routeGeometry: any;
+    office: any;
+    userLocation: any;
+    currentRoute: any;
     className?: string;
-    onGoToDetails?: () => void;
+    onClose: () => void;
 }
 
 export interface OfflineDownloaderHandle {
@@ -20,9 +22,11 @@ export interface OfflineDownloaderHandle {
 type DownloadStatus = 'idle' | 'calculating' | 'ready' | 'downloading' | 'done' | 'error';
 
 const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteDownloaderProps>(({
-    routeGeometry,
+    office,
+    userLocation,
+    currentRoute,
     className = '',
-    onGoToDetails
+    onClose
 }, ref) => {
     const { t } = useTranslation('nasaka');
     const { theme } = useTheme();
@@ -33,6 +37,12 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
     const [plan, setPlan] = useState<TileDownloadPlan | null>(null);
     const [progress, setProgress] = useState(0);
     const [storageUsed, setStorageUsed] = useState<string>('');
+
+    // Extract geometry from currentRoute if available
+    const routeGeometry = useMemo(() => {
+        if (!currentRoute || !currentRoute[0]) return null;
+        return currentRoute[0].coordinates || currentRoute[0]._coordinates || null;
+    }, [currentRoute]);
 
     // Expose methods to parent
     useImperativeHandle(ref, () => ({
@@ -69,7 +79,6 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
     }, [routeGeometry, downloadMode]);
 
     const handleDownload = async () => {
-        // If already downloading or done, don't restart unless error
         if (status === 'downloading' || status === 'done') {
             if (status === 'done') toast.info("Tiles already cached!");
             return;
@@ -80,7 +89,6 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
             return;
         }
 
-        // Request persistent storage
         await requestPersistentStorage();
 
         setStatus('downloading');
@@ -90,7 +98,7 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
             const cache = await caches.open('osm-tiles-cache');
             const total = plan.tiles.length;
             let completed = 0;
-            const concurrency = 8; // Increased for "HAM" performance
+            const concurrency = 8;
 
             for (let i = 0; i < total; i += concurrency) {
                 const batch = plan.tiles.slice(i, i + concurrency);
@@ -115,7 +123,6 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                 duration: 5000
             });
 
-            // Refresh storage info
             const est = await getStorageEstimate();
             if (est) setStorageUsed(`${est.usedMB} MB / ${est.quotaMB} MB (${est.percentUsed}%)`);
         } catch (err) {
@@ -125,158 +132,166 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
         }
     };
 
-    if (!routeGeometry) return null;
-
     return (
         <motion.div
-            layout
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className={`
-                rounded-3xl border overflow-hidden transition-all duration-500
-                ${isDark
-                    ? 'bg-ios-gray-900/40 border-white/10 backdrop-blur-3xl'
-                    : 'bg-white/40 border-black/5 backdrop-blur-3xl'
-                }
-                shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)]
-                ${className}
-            `}
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'spring', stiffness: 400, damping: 40 }}
+            className={`office-list-panel open ${className}`}
         >
-            {/* Glossy Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
-
             {/* Header */}
-            <div className="px-5 py-4 flex items-center gap-4 relative z-10">
-                <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className={`
-                        w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg
-                        ${isDark ? 'bg-ios-blue/30 border border-ios-blue/30' : 'bg-ios-blue/10 border border-ios-blue/20'}
-                    `}
-                >
-                    <svg
-                        className={`w-6 h-6 ${isDark ? 'text-ios-blue-400' : 'text-ios-blue'}`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+            <div className="sticky top-0 bg-background/95 dark:bg-card/95 backdrop-blur-xl border-b border-border z-10 px-5 py-4">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-xl font-bold text-foreground">
+                            {t('offline.sidebarTitle', 'Offline Maps')}
+                        </h2>
+                        <p className="text-sm text-muted-foreground mt-1">
+                            {office?.constituency_name ? `Route to ${office.constituency_name}` : 'Trip Protection'}
+                        </p>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-accent hover:bg-accent/80 transition-colors"
+                        aria-label="Close panel"
                     >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2.5}
-                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                        />
-                    </svg>
-                </motion.div>
+                        <svg className="w-5 h-5 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
 
-                <div className="flex-1 min-w-0">
-                    <h4 className={`text-base font-bold tracking-tight ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>
-                        {t('offline.title', 'Offline Trip Protection')}
-                    </h4>
-                    <p className={`text-xs font-medium mt-0.5 opacity-70 ${isDark ? 'text-ios-gray-300' : 'text-ios-gray-600'}`}>
-                        {t('offline.description', 'Save map details for dead zones')}
+            {/* Scrollable Content */}
+            <div className="overflow-y-auto h-full green-scrollbar p-5 space-y-6">
+                {/* Intro Card */}
+                <div className={`p-4 rounded-2xl border ${isDark ? 'bg-ios-gray-800/50 border-white/5' : 'bg-ios-gray-100 border-black/5'}`}>
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDark ? 'bg-ios-blue/20 text-ios-blue-400' : 'bg-ios-blue/10 text-ios-blue'}`}>
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 className="font-bold">{t('offline.protectionTitle', 'Trip Protection')}</h3>
+                            <p className="text-[10px] uppercase tracking-wider opacity-50 font-bold">Persistent Storage Mode</p>
+                        </div>
+                    </div>
+                    <p className="text-sm opacity-70 leading-relaxed">
+                        {t('offline.sidebarDesc', 'Download map tiles along your route to ensure navigation continues even when you lose internet connection in "dead zones".')}
                     </p>
                 </div>
 
-                {onGoToDetails && (
-                    <button
-                        onClick={onGoToDetails}
-                        className={`p-2 rounded-full transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}
-                    >
-                        <svg className="w-5 h-5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
-                )}
-            </div>
+                {/* Configuration Section */}
+                <div className="space-y-4">
+                    <h3 className="text-sm font-bold px-1 uppercase tracking-widest opacity-40">{t('offline.config', 'Configuration')}</h3>
 
-            {/* Content Area */}
-            <AnimatePresence mode="wait">
-                {status !== 'downloading' && status !== 'done' ? (
-                    <motion.div
-                        key="controls"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="px-5 pb-5 space-y-4"
-                    >
-                        {/* Mode Selector */}
-                        <div className={`flex rounded-2xl p-1 ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
+                    <div className={`rounded-2xl border p-4 ${isDark ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                        <p className="text-xs font-bold mb-3 opacity-60">{t('offline.coverage', 'Coverage Area')}</p>
+                        <div className="grid grid-cols-2 gap-2">
                             {['minimal', 'extended'].map((mode) => (
                                 <button
                                     key={mode}
                                     onClick={() => setDownloadMode(mode as any)}
-                                    className={`flex-1 text-xs font-bold py-2.5 rounded-xl transition-all duration-300
+                                    className={`py-3 px-2 rounded-xl text-[11px] font-bold transition-all border
                                         ${downloadMode === mode
-                                            ? 'bg-white dark:bg-ios-gray-800 text-ios-blue shadow-sm scale-[1.02]'
-                                            : 'text-ios-gray-500 hover:text-ios-gray-700 dark:hover:text-ios-gray-300'
+                                            ? 'bg-ios-blue border-ios-blue text-white shadow-lg shadow-ios-blue/20'
+                                            : isDark
+                                                ? 'bg-ios-gray-800 border-white/5 text-ios-gray-400'
+                                                : 'bg-white border-black/5 text-ios-gray-600'
                                         }
                                     `}
                                 >
-                                    {mode === 'minimal' ? t('offline.modeMinimal', 'Route Only') : t('offline.modeExtended', 'Full Area')}
+                                    {mode === 'minimal' ? 'Route Only' : 'Full Corridor'}
                                 </button>
                             ))}
                         </div>
+                        <p className="text-[10px] mt-3 opacity-50 italic">
+                            {downloadMode === 'minimal'
+                                ? 'Caches 500m around the route path.'
+                                : 'Caches 1.5km around the route for more context.'}
+                        </p>
+                    </div>
 
-                        {/* Stats & Action */}
-                        <div className="flex items-center justify-between">
-                            <div className="text-xs font-semibold opacity-60">
-                                {plan?.tileCount || 0} {t('offline.tiles', 'tiles')} · ~{plan?.estimatedSizeMB || 0} MB
-                            </div>
-                            <button
-                                onClick={handleDownload}
-                                disabled={status === 'calculating'}
-                                className={`px-6 py-2.5 rounded-2xl text-sm font-bold shadow-xl transition-all active:scale-95
-                                    ${status === 'calculating' ? 'opacity-50 cursor-not-allowed' : ''}
-                                    ${isDark ? 'bg-ios-blue text-white' : 'bg-ios-blue text-white'}
-                                `}
-                            >
-                                {status === 'error' ? t('common.retry', 'Retry') : t('offline.downloadRoute', 'Download Now')}
-                            </button>
+                    {/* Stats */}
+                    <div className={`rounded-2xl border p-4 ${isDark ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-xs font-bold opacity-60 underline decoration-ios-blue/30 underline-offset-4">{t('offline.estSize', 'Estimated Payload')}</span>
+                            <span className="text-xs font-black">{plan?.estimatedSizeMB || 0} MB</span>
                         </div>
-                    </motion.div>
-                ) : (
-                    <motion.div
-                        key="progress"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="px-5 pb-6"
-                    >
-                        <div className="flex justify-between items-end mb-2">
-                            <span className="text-xs font-bold text-ios-blue">
-                                {status === 'done' ? t('offline.statusComplete', 'PROTECTION ACTIVE') : t('offline.statusDownloading', 'SECURING TRIP...')}
-                            </span>
-                            <span className="text-lg font-black italic">{progress}%</span>
+                        <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold opacity-60 underline decoration-ios-blue/30 underline-offset-4">{t('offline.tileCount', 'Tile Count')}</span>
+                            <span className="text-xs font-black">{plan?.tileCount || 0} items</span>
                         </div>
-                        <div className={`w-full h-3 rounded-full overflow-hidden p-0.5 ${isDark ? 'bg-white/10' : 'bg-black/5'}`}>
-                            <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: `${progress}%` }}
-                                className="h-full rounded-full bg-gradient-to-r from-ios-blue via-ios-blue-light to-white shadow-[0_0_10px_rgba(0,122,255,0.5)]"
-                            />
-                        </div>
-                        {status === 'done' && (
-                            <motion.p
+                    </div>
+                </div>
+
+                {/* Download Status Area */}
+                <div className="pt-2">
+                    <AnimatePresence mode="wait">
+                        {status !== 'downloading' && status !== 'done' ? (
+                            <motion.button
+                                key="btn-down"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="text-[10px] text-center mt-2 font-bold uppercase tracking-widest opacity-50"
+                                onClick={handleDownload}
+                                disabled={status === 'calculating' || !routeGeometry}
+                                className={`w-full py-4 rounded-2xl font-black text-sm tracking-widest uppercase transition-all active:scale-[0.98] shadow-2xl
+                                    ${!routeGeometry ? 'bg-ios-gray-500 opacity-50 cursor-not-allowed' : 'bg-ios-blue text-white shadow-ios-blue/30'}
+                                `}
                             >
-                                persistent storage locked ✓
-                            </motion.p>
+                                {!routeGeometry ? 'Select a Route First' : status === 'calculating' ? 'Calculating...' : t('offline.startSecure', 'Initialize Protection')}
+                            </motion.button>
+                        ) : (
+                            <motion.div
+                                key="progress-area"
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className={`p-5 rounded-2xl border-2 ${status === 'done' ? 'border-green-500/50 bg-green-500/10' : 'border-ios-blue/50 bg-ios-blue/10'}`}
+                            >
+                                <div className="flex justify-between items-end mb-3">
+                                    <span className={`text-[11px] font-black tracking-widest ${status === 'done' ? 'text-green-500' : 'text-ios-blue'}`}>
+                                        {status === 'done' ? 'TRIP SECURED ✓' : 'PROTECTING ROUTE...'}
+                                    </span>
+                                    <span className="text-2xl font-black">{progress}%</span>
+                                </div>
+                                <div className={`w-full h-4 rounded-full overflow-hidden p-1 ${isDark ? 'bg-black/40' : 'bg-white/40'}`}>
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${progress}%` }}
+                                        className={`h-full rounded-full ${status === 'done' ? 'bg-green-500' : 'bg-ios-blue shadow-[0_0_15px_rgba(0,122,255,0.6)]'}`}
+                                    />
+                                </div>
+                                {status === 'done' && (
+                                    <p className="text-[10px] mt-4 font-bold text-center opacity-70">
+                                        MAP DATA STORED IN PERSISTENT CACHE
+                                    </p>
+                                )}
+                            </motion.div>
                         )}
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* Storage Info Footer */}
-            {storageUsed && (
-                <div className={`px-5 py-2.5 text-[10px] font-bold tracking-tight border-t ${isDark ? 'border-white/5 bg-white/5 text-ios-gray-500' : 'border-black/5 bg-black/5 text-ios-gray-500'}`}>
-                    DEVICE CAPACITY: {storageUsed.toUpperCase()}
+                    </AnimatePresence>
                 </div>
-            )}
+
+                {/* Device Info */}
+                {storageUsed && (
+                    <div className="pt-4 border-t border-border mt-4">
+                        <div className="flex items-center gap-2 mb-2 opacity-40">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            </svg>
+                            <span className="text-[10px] font-black uppercase tracking-widest">{t('offline.storageStatus', 'Device Storage Status')}</span>
+                        </div>
+                        <p className="text-[10px] font-bold opacity-60 ml-5">{storageUsed.toUpperCase()}</p>
+                    </div>
+                )}
+
+                {/* Bottom Padding */}
+                <div className="h-10" />
+            </div>
         </motion.div>
     );
 });
 
 export default OfflineRouteDownloader;
+

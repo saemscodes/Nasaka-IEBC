@@ -2,36 +2,34 @@
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "skipLibCheck": true,
-
-    /* Bundler mode - remove isolatedModules for composite build */
+    /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    "isolatedModules": false,
+    "isolatedModules": true,
     "moduleDetection": "force",
-
-    /* Composite (required for project references) */
-    "composite": true,
-    "noEmit": false,
-    "declaration": true,
-    "emitDeclarationOnly": true,
+    /* Type-check only — Vite handles bundling */
+    "noEmit": true,
     "jsx": "react-jsx",
-
     /* Linting */
     "strict": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noImplicitAny": false,
     "noFallthroughCasesInSwitch": false,
-
     /* Path mapping */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     },
-
     /* Additional IEBC-specific options */
     "allowJs": true,
     "resolveJsonModule": true,
@@ -40,11 +38,19 @@
     "forceConsistentCasingInFileNames": true,
     "strictNullChecks": false,
     "noImplicitReturns": false,
-    "noImplicitThis": false,
-
-    /* build info location to avoid collisions */
-    "tsBuildInfoFile": "./node_modules/.cache/tsbuildinfo/tsconfig.app.tsbuildinfo"
+    "noImplicitThis": false
   },
-  "include": ["src/**/*", "src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts", "src/**/*.json"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx"]
+  "include": [
+    "src/**/*",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.d.ts",
+    "src/**/*.json"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ]
 }

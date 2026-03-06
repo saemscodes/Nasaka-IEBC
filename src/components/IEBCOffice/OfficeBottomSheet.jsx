@@ -743,17 +743,22 @@ const OfficeBottomSheet = ({
                         if (areaSlug === countySlug) areaSlug = `${areaSlug}-town`;
                         navigate(`/${countySlug}/${areaSlug}`);
                       }}
-                      className={`w-full mb-6 font-bold py-4 px-6 rounded-2xl flex items-center justify-between transition-all active:scale-[0.98] duration-300 shadow-xl ${isDark
+                      className={`w-full mb-6 font-bold min-h-[4.5rem] px-5 py-3 rounded-2xl flex items-center justify-between transition-all active:scale-[0.98] duration-300 shadow-xl ${isDark
                         ? 'bg-ios-blue-600 text-white shadow-ios-blue/20 border border-white/10'
                         : 'bg-ios-blue text-white shadow-ios-blue/15 border border-black/5'
                         }`}
                     >
-                      <span className="text-sm leading-snug text-left">
-                        {t('bottomSheet.moreOnOffice', { officeName: office.office_name || office.constituency_name || t('office.officeName', 'IEBC Office'), defaultValue: `More on {{officeName}}` })}
+                      <span className="text-sm font-black leading-snug text-left pr-4">
+                        {t('bottomSheet.moreOnOffice', {
+                          officeName: office.office_name || getOfficeDisplayName(office) || office.constituency_name || t('office.officeName', 'IEBC Office'),
+                          defaultValue: `More on {{officeName}}`
+                        })}
                       </span>
-                      <svg className="w-5 h-5 opacity-80 flex-shrink-0 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                      </svg>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-white/20' : 'bg-black/10'}`}>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
                     </button>
 
                     <div className={`grid gap-3 ${hasLocationAccess ? 'grid-cols-2' : 'grid-cols-1'
@@ -794,11 +799,11 @@ const OfficeBottomSheet = ({
                           </svg>
                         </div>
                         {hasLocationAccess && cheapestFare && cheapestFare.provider === 'bolt' ? (
-                          <span className="mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">
+                          <span className={`mt-1 text-[10px] font-black px-2 py-0.5 rounded-full ${isDark ? 'bg-green-500/20 text-green-400' : 'bg-green-600 text-white shadow-sm'}`}>
                             {formatFare(cheapestFare.total)}
                           </span>
                         ) : (
-                          <span className="mt-1 text-[10px] opacity-70 font-medium">{t('bottomSheet.openApp', 'Open app')}</span>
+                          <span className={`mt-1 text-[10px] font-bold ${isDark ? 'opacity-70' : 'text-green-700'}`}>{t('bottomSheet.openApp', 'Open app')}</span>
                         )}
                       </button>
 
@@ -821,17 +826,26 @@ const OfficeBottomSheet = ({
                       {/* Apple Maps Button */}
                       <button
                         onClick={openAppleMaps}
-                        className={`w-full py-3 px-3 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-md hover:shadow-lg ${isDark
-                          ? 'bg-white/10 border-white/10 text-white hover:bg-white/15'
-                          : 'bg-gray-100/60 border-black/5 text-ios-gray-900 hover:bg-gray-200/60'
+                        className={`group relative overflow-hidden w-full py-5 px-3 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-md hover:shadow-lg ${isDark
+                          ? 'bg-ios-gray-900/40 border-white/10 text-white hover:bg-ios-gray-800/60'
+                          : 'bg-white border-black/5 text-ios-gray-900 hover:bg-gray-50'
                           }`}
                       >
-                        <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
-                          <svg viewBox="-1.5 0 20 20" className={`w-full h-full ${isDark ? 'fill-white' : 'fill-black'}`}>
-                            <path d="M5.7 3.193c.73-.845 1.22-2.022 1.086-3.193-1.05.04-2.321.671-3.074 1.515-.676.749-1.267 1.946-1.108 3.094 1.17.087 2.366-.57 3.095-1.416m2.628 7.432c.03 3.027 2.77 4.034 2.801 4.047-.022.071-.438 1.435-1.444 2.845-.87 1.218-1.773 2.431-3.196 2.457-1.397.025-1.847-.794-3.446-.794-1.598 0-2.098.768-3.42 0.819-1.373 0.049-2.42-1.318-3.296-2.532-1.794-2.483-3.164-7.017-1.324-10.077.914-1.52 2.547-2.483 4.32-2.507 1.348-.025 2.621.869 3.445.869.824 0 2.375-1.075 4-0.917.68.027 2.59.264 3.818 1.985-.1.059-2.28 1.275-2.257 3.8z" />
+                        <div className="h-5 w-full flex items-center justify-center">
+                          <svg viewBox="-1.5 0 20 20" className={`h-full w-auto ${isDark ? 'fill-white' : 'fill-black'}`}>
+                            <g transform="translate(-46, -7279)">
+                              <path d="M57.5708873,7282.19296 C58.2999598,7281.34797 58.7914012,7280.17098 58.6569121,7279 C57.6062792,7279.04 56.3352055,7279.67099 55.5818643,7280.51498 C54.905374,7281.26397 54.3148354,7282.46095 54.4735932,7283.60894 C55.6455696,7283.69593 56.8418148,7283.03894 57.5708873,7282.19296 M60.1989864,7289.62485 C60.2283111,7292.65181 62.9696641,7293.65879 63,7293.67179 C62.9777537,7293.74279 62.562152,7295.10677 61.5560117,7296.51675 C60.6853718,7297.73474 59.7823735,7298.94772 58.3596204,7298.97372 C56.9621472,7298.99872 56.5121648,7298.17973 54.9134635,7298.17973 C53.3157735,7298.17973 52.8162425,7298.94772 51.4935978,7298.99872 C50.1203933,7299.04772 49.0738052,7297.68074 48.197098,7296.46676 C46.4032359,7293.98379 45.0330649,7289.44985 46.8734421,7286.3899 C47.7875635,7284.87092 49.4206455,7283.90793 51.1942837,7283.88393 C52.5422083,7283.85893 53.8153044,7284.75292 54.6394294,7284.75292 C55.4635543,7284.75292 57.0106846,7283.67793 58.6366882,7283.83593 C59.3172232,7283.86293 61.2283842,7284.09893 62.4549652,7285.8199 C62.355868,7285.8789 60.1747177,7287.09489 60.1989864,7289.62485" />
+                            </g>
                           </svg>
                         </div>
-                        <span className="text-sm font-bold tracking-tight">{t('bottomSheet.openInAppleMaps', 'Apple Maps')}</span>
+                        <div className="flex flex-col items-center">
+                          <span className="text-[11px] font-black tracking-tight leading-tight">Apple Maps</span>
+                          {hasLocationAccess && distanceToOffice && (
+                            <span className={`text-[10px] font-bold mt-0.5 ${isDark ? 'text-ios-blue-400' : 'text-ios-blue'}`}>
+                              ~ KES {Math.max(50, Math.round(distanceToOffice * 15))} (Bus)
+                            </span>
+                          )}
+                        </div>
                       </button>
                     </div>
 
@@ -844,9 +858,9 @@ const OfficeBottomSheet = ({
                           : 'bg-white/60 border-black/5 text-ios-gray-600 hover:bg-white/80'
                           }`}
                       >
-                        <svg className="w-5 h-5 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-                          <rect x="6" y="11" width="13" height="13" rx="3" />
-                          <path d="M6 19C4.34 19 3 17.66 3 16V10C3 6.23 3 4.34 4.17 3.17C5.34 2 7.23 2 11 2H15C16.66 2 18 3.34 18 5" />
+                        <svg className="w-5 h-5 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-all duration-300" viewBox="0 0 24 24" fill="none">
+                          <path d="M15.24 2H11.3458C9.58159 1.99999 8.18418 1.99997 7.09054 2.1476C5.96501 2.29953 5.05402 2.61964 4.33559 3.34096C3.61717 4.06227 3.29833 4.97692 3.14701 6.10697C2.99997 7.205 2.99999 8.60802 3 10.3793V16.2169C3 17.725 3.91995 19.0174 5.22717 19.5592C5.15989 18.6498 5.15994 17.3737 5.16 16.312L5.16 11.3976L5.16 11.3024C5.15993 10.0207 5.15986 8.91644 5.27828 8.03211C5.40519 7.08438 5.69139 6.17592 6.4253 5.43906C7.15921 4.70219 8.06404 4.41485 9.00798 4.28743C9.88877 4.16854 10.9887 4.1686 12.2652 4.16867L12.36 4.16868H15.24L15.3348 4.16867C16.6113 4.1686 17.7088 4.16854 18.5896 4.28743C18.0627 2.94779 16.7616 2 15.24 2Z" fill="currentColor" />
+                          <path d="M6.6001 11.3974C6.6001 8.67119 6.6001 7.3081 7.44363 6.46118C8.28716 5.61426 9.64481 5.61426 12.3601 5.61426H15.2401C17.9554 5.61426 19.313 5.61426 20.1566 6.46118C21.0001 7.3081 21.0001 8.6712 21.0001 11.3974V16.2167C21.0001 18.9429 21.0001 20.306 20.1566 21.1529C19.313 21.9998 17.9554 21.9998 15.2401 21.9998H12.3601C9.64481 21.9998 8.28716 21.9998 7.44363 21.1529C6.6001 20.306 6.6001 18.9429 6.6001 16.2167V11.3974Z" fill="currentColor" />
                         </svg>
                         <span className="text-sm">{t('bottomSheet.copyCoordinates', 'Copy Coordinates')}</span>
                       </button>

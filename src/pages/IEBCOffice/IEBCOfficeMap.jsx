@@ -19,6 +19,7 @@ import { useMapControls } from '@/hooks/useMapControls';
 import { findNearestOffice, findNearestOffices } from '@/utils/geoUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { getTrafficInfo } from '@/utils/kenyaFareCalculator';
+import { getTravelInsights } from '@/services/travelService';
 import L from 'leaflet';
 import { SEOHead } from '@/components/SEO/SEOHead';
 
@@ -328,23 +329,46 @@ const IEBCOfficeMap = () => {
   }, [hasLocationAccess, openListPanel]);
 
   // Handle route found event - ONLY IF WE HAVE LOCATION ACCESS
-  const handleRouteFound = useCallback((routes) => {
+  const handleRouteFound = useCallback(async (routes) => {
     setCurrentRoute(routes);
     setRoutingError(null);
 
     // Build travel insights from route + traffic data
-    if (routes?.[0]) {
+    if (routes?.[0] && userLocation?.latitude && userLocation?.longitude && selectedOffice?.latitude && selectedOffice?.longitude) {
+      try {
+        const insights = await getTravelInsights(
+          [userLocation.latitude, userLocation.longitude],
+          [selectedOffice.latitude, selectedOffice.longitude]
+        );
+
+        // Merge with existing logic if needed, or just sets the rich insights
+        setTravelInsights(insights);
+      } catch (err) {
+        console.error('[IEBCOfficeMap] Rich insights failed, falling back to basic:', err);
+        const trafficInfo = getTrafficInfo();
+        setTravelInsights({
+          trafficCondition: trafficInfo?.description || 'Normal traffic',
+          trafficIcon: trafficInfo?.icon || '🚗',
+          trafficColor: trafficInfo?.color || 'text-green-500',
+          routeDistance: (routes[0].summary.totalDistance / 1000).toFixed(1),
+          routeTime: Math.round(routes[0].summary.totalTime / 60),
+          severity: 'low',
+          score: 10,
+          weatherDesc: 'Checking...',
+          weatherIcon: 'cloudy'
+        });
+      }
+    } else if (routes?.[0]) {
       const trafficInfo = getTrafficInfo();
-      setTravelInsights(prev => ({
-        ...prev,
+      setTravelInsights({
         trafficCondition: trafficInfo?.description || 'Normal traffic',
         trafficIcon: trafficInfo?.icon || '🚗',
         trafficColor: trafficInfo?.color || 'text-green-500',
         routeDistance: (routes[0].summary.totalDistance / 1000).toFixed(1),
         routeTime: Math.round(routes[0].summary.totalTime / 60),
-      }));
+      });
     }
-  }, []);
+  }, [userLocation, selectedOffice]);
 
   // Handle route error - ONLY IF WE HAVE LOCATION ACCESS
   const handleRouteError = useCallback((error) => {
@@ -860,15 +884,17 @@ const IEBCOfficeMap = () => {
       </AnimatePresence>
 
       {/* Offline Route Downloader Sidebar */}
-      {showOfflineDownloader && hasLocationAccess && selectedOffice && (
-        <OfflineRouteDownloader
-          ref={offlineDownloaderRef}
-          office={selectedOffice}
-          userLocation={userLocation}
-          currentRoute={currentRoute}
-          onClose={() => setShowOfflineDownloader(false)}
-        />
-      )}
+      <AnimatePresence>
+        {showOfflineDownloader && hasLocationAccess && selectedOffice && (
+          <OfflineRouteDownloader
+            ref={offlineDownloaderRef}
+            office={selectedOffice}
+            userLocation={userLocation}
+            currentRoute={currentRoute}
+            onClose={() => setShowOfflineDownloader(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Office Bottom Sheet - WITH LOCATION ACCESS PROP */}
       <OfficeBottomSheet
