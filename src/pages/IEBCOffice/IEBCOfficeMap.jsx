@@ -12,11 +12,13 @@ import OfficeBottomSheet from '@/components/IEBCOffice/OfficeBottomSheet';
 import OfficeListPanel from '@/components/IEBCOffice/OfficeListPanel';
 import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
 import ContributeLocationButton from '@/components/IEBCOffice/ContributeLocationButton';
+import OfflineRouteDownloader from '@/components/IEBCOffice/OfflineRouteDownloader';
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 import { useIEBCOffices } from '@/hooks/useIEBCOffices';
 import { useMapControls } from '@/hooks/useMapControls';
 import { findNearestOffice, findNearestOffices } from '@/utils/geoUtils';
 import { supabase } from '@/integrations/supabase/client';
+import { getTrafficInfo } from '@/utils/kenyaFareCalculator';
 import L from 'leaflet';
 import { SEOHead } from '@/components/SEO/SEOHead';
 
@@ -79,6 +81,10 @@ const IEBCOfficeMap = () => {
   const [routeBadgePosition, setRouteBadgePosition] = useState({ x: 20, y: 140 });
   const [isDraggingRouteBadge, setIsDraggingRouteBadge] = useState(false);
   const [urlQueryProcessed, setUrlQueryProcessed] = useState(false);
+  const [travelInsights, setTravelInsights] = useState({});
+  const [showOfflineDownloader, setShowOfflineDownloader] = useState(false);
+
+  const offlineDownloaderRef = useRef(null);
 
   const mapInstanceRef = useRef(null);
   const tileLayersRef = useRef({});
@@ -325,6 +331,19 @@ const IEBCOfficeMap = () => {
   const handleRouteFound = useCallback((routes) => {
     setCurrentRoute(routes);
     setRoutingError(null);
+
+    // Build travel insights from route + traffic data
+    if (routes?.[0]) {
+      const trafficInfo = getTrafficInfo();
+      setTravelInsights(prev => ({
+        ...prev,
+        trafficCondition: trafficInfo?.description || 'Normal traffic',
+        trafficIcon: trafficInfo?.icon || '🚗',
+        trafficColor: trafficInfo?.color || 'text-green-500',
+        routeDistance: (routes[0].summary.totalDistance / 1000).toFixed(1),
+        routeTime: Math.round(routes[0].summary.totalTime / 60),
+      }));
+    }
   }, []);
 
   // Handle route error - ONLY IF WE HAVE LOCATION ACCESS
@@ -595,6 +614,20 @@ const IEBCOfficeMap = () => {
             </svg>
           </button>
 
+          {/* Offline Download Button */}
+          {hasLocationAccess && selectedOffice && (
+            <button
+              onClick={() => setShowOfflineDownloader(prev => !prev)}
+              className="ios-control-btn"
+              aria-label={t('offlineDownloader.downloadOffline', 'Download for offline')}
+              title="Download route for offline use"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            </button>
+          )}
+
           {!hasLocationAccess && (
             <button
               onClick={handleRetryLocation}
@@ -721,6 +754,19 @@ const IEBCOfficeMap = () => {
                 </div>
               )
             )}
+            {/* Traffic + Weather quick-glance */}
+            {travelInsights?.trafficCondition && !isOffline && (
+              <div className="flex items-center gap-2 mt-1 text-[10px]">
+                <span className={travelInsights.trafficColor || 'text-green-500'}>
+                  {travelInsights.trafficIcon} {travelInsights.trafficCondition}
+                </span>
+                {travelInsights.weatherDesc && (
+                  <span className="text-muted-foreground">
+                    • {travelInsights.weatherDesc}
+                  </span>
+                )}
+              </div>
+            )}
             {/* Drag handle indicator */}
             <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-1 bg-gray-400 rounded-full opacity-60 transition-opacity duration-200 hover:opacity-80"></div>
           </motion.div>
@@ -813,6 +859,17 @@ const IEBCOfficeMap = () => {
         )}
       </AnimatePresence>
 
+      {/* Offline Route Downloader Sidebar */}
+      {showOfflineDownloader && hasLocationAccess && selectedOffice && (
+        <OfflineRouteDownloader
+          ref={offlineDownloaderRef}
+          office={selectedOffice}
+          userLocation={userLocation}
+          currentRoute={currentRoute}
+          onClose={() => setShowOfflineDownloader(false)}
+        />
+      )}
+
       {/* Office Bottom Sheet - WITH LOCATION ACCESS PROP */}
       <OfficeBottomSheet
         office={selectedOffice || nearestOffice}
@@ -820,11 +877,12 @@ const IEBCOfficeMap = () => {
         onOfficeSelect={handleOfficeSelect}
         currentRoute={currentRoute}
         routingError={routingError}
+        travelInsights={travelInsights}
         state={bottomSheetState}
         onExpand={handleBottomSheetExpand}
         onCollapse={handleBottomSheetCollapse}
         onClose={handleBottomSheetClose}
-        hasLocationAccess={hasLocationAccess} // CRITICAL: Pass location access status
+        hasLocationAccess={hasLocationAccess}
       />
     </div>
   );

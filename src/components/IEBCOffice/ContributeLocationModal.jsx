@@ -1,5 +1,6 @@
 // src/components/IEBCOffice/ContributeLocationModal.jsx
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useTheme } from '@/contexts/ThemeContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { useContributeLocation } from '@/hooks/useContributeLocation';
@@ -580,6 +581,8 @@ const validateConstituencyCountyMatch = (constituencyName, countyName) => {
 };
 
 const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [step, setStep] = useState(1);
   const [selectedMethod, setSelectedMethod] = useState(null);
   const [position, setPosition] = useState(null);
@@ -1763,8 +1766,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     <button
                       onClick={() => setStep(1)}
                       className={`flex-1 px-4 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] duration-300 border shadow-md flex items-center justify-center space-x-2 ${isDark
-                          ? 'bg-ios-gray-800/40 border-white/10 text-ios-gray-400 hover:bg-ios-gray-800/60'
-                          : 'bg-ios-gray-100 border-black/5 text-ios-gray-600 hover:bg-gray-200'
+                        ? 'bg-ios-gray-800/40 border-white/10 text-ios-gray-400 hover:bg-ios-gray-800/60'
+                        : 'bg-ios-gray-100 border-black/5 text-ios-gray-600 hover:bg-gray-200'
                         }`}
                     >
                       <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1776,8 +1779,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                       onClick={() => setStep(3)}
                       disabled={!position || isGettingLocation}
                       className={`flex-1 px-4 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] duration-300 shadow-xl flex items-center justify-center space-x-2 text-white disabled:opacity-50 disabled:cursor-not-allowed ${isDark
-                          ? 'bg-ios-blue-600 shadow-ios-blue/30 border border-white/10'
-                          : 'bg-ios-blue shadow-ios-blue/20 border border-black/5'
+                        ? 'bg-ios-blue-600 shadow-ios-blue/30 border border-white/10'
+                        : 'bg-ios-blue shadow-ios-blue/20 border border-black/5'
                         }`}
                     >
                       {isGettingLocation ? (
@@ -2022,8 +2025,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                       type="button"
                       onClick={() => setStep(2)}
                       className={`flex-1 px-4 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] duration-300 border shadow-md flex items-center justify-center space-x-2 ${isDark
-                          ? 'bg-ios-gray-800/40 border-white/10 text-ios-gray-400 hover:bg-ios-gray-800/60'
-                          : 'bg-ios-gray-100 border-black/5 text-ios-gray-600 hover:bg-gray-200'
+                        ? 'bg-ios-gray-800/40 border-white/10 text-ios-gray-400 hover:bg-ios-gray-800/60'
+                        : 'bg-ios-gray-100 border-black/5 text-ios-gray-600 hover:bg-gray-200'
                         }`}
                     >
                       <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2035,8 +2038,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                       type="submit"
                       disabled={!agreement || isSubmitting}
                       className={`flex-1 px-4 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] duration-300 shadow-xl flex items-center justify-center space-x-2 text-white disabled:opacity-50 disabled:cursor-not-allowed ${isDark
-                          ? 'bg-ios-blue-600 shadow-ios-blue/30 border border-white/10'
-                          : 'bg-ios-blue shadow-ios-blue/20 border border-black/5'
+                        ? 'bg-ios-blue-600 shadow-ios-blue/30 border border-white/10'
+                        : 'bg-ios-blue shadow-ios-blue/20 border border-black/5'
                         }`}
                     >
                       {isSubmitting ? (
@@ -2095,8 +2098,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                         <button
                           onClick={handleClose}
                           className={`flex-1 px-4 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] duration-300 border shadow-md flex items-center justify-center space-x-2 ${isDark
-                              ? 'bg-ios-gray-800/40 border-white/10 text-ios-gray-400 hover:bg-ios-gray-800/60'
-                              : 'bg-ios-gray-100 border-black/5 text-ios-gray-600 hover:bg-gray-200'
+                            ? 'bg-ios-gray-800/40 border-white/10 text-ios-gray-400 hover:bg-ios-gray-800/60'
+                            : 'bg-ios-gray-100 border-black/5 text-ios-gray-600 hover:bg-gray-200'
                             }`}
                         >
                           <span>Continue Browsing</span>
@@ -2104,8 +2107,8 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                         <button
                           onClick={() => window.location.reload()}
                           className={`flex-1 px-4 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] duration-300 shadow-xl flex items-center justify-center space-x-2 text-white ${isDark
-                              ? 'bg-ios-blue-600 shadow-ios-blue/30 border border-white/10'
-                              : 'bg-ios-blue shadow-ios-blue/20 border border-black/5'
+                            ? 'bg-ios-blue-600 shadow-ios-blue/30 border border-white/10'
+                            : 'bg-ios-blue shadow-ios-blue/20 border border-black/5'
                             }`}
                         >
                           <span>Reload & See Updates</span>

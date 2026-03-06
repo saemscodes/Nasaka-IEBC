@@ -54,7 +54,7 @@ jobs:
         run: npm audit --audit-level=high
         
       - name: Run Snyk (if configured)
-        if: ${{ secrets.SNYK_TOKEN }}
+        if: ${{ env.SNYK_TOKEN != '' }}
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}

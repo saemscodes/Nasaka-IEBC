@@ -20,6 +20,11 @@ import {
   getTrafficInfo,
   FARE_DISCLAIMER
 } from '@/utils/kenyaFareCalculator';
+import {
+  getOfficeDisplayName,
+  getOfficeLandmark,
+  getOfficeLandmarkDistance,
+} from '@/utils/officeNameNormalizer';
 import UberModal from './UberModal';
 import OfflineRouteDownloader from './OfflineRouteDownloader';
 import i18next from 'i18next';
@@ -270,7 +275,17 @@ const OfficeBottomSheet = ({
                     }`}>
                     {office.office_name || office.constituency_name || t('office.officeName', 'IEBC Office')}
                   </h3>
-                  <p className={`text-sm mt-1 line-clamp-1 transition-colors duration-300 ${isDark ? 'text-ios-gray-300' : 'text-muted-foreground'
+                  {(() => {
+                    const dn = getOfficeDisplayName(office);
+                    const cn = (office.constituency_name || '').toLowerCase();
+                    return dn && dn.toLowerCase() !== cn && dn !== 'IEBC Office' ? (
+                      <p className={`text-xs font-medium mt-0.5 line-clamp-1 transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-primary'
+                        }`}>
+                        📍 {dn}
+                      </p>
+                    ) : null;
+                  })()}
+                  <p className={`text-sm mt-0.5 line-clamp-1 transition-colors duration-300 ${isDark ? 'text-ios-gray-300' : 'text-muted-foreground'
                     }`}>
                     {office.constituency_name && office.county
                       ? `${office.constituency_name}, ${office.county}`
@@ -326,6 +341,26 @@ const OfficeBottomSheet = ({
                       }`}>
                       {office.office_name || office.constituency_name || t('office.officeName', 'IEBC Office')}
                     </h2>
+                    {(() => {
+                      const dn = getOfficeDisplayName(office);
+                      const cn = (office.constituency_name || '').toLowerCase();
+                      return dn && dn.toLowerCase() !== cn && dn !== 'IEBC Office' ? (
+                        <p className={`text-sm font-medium mt-1 transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-primary'
+                          }`}>
+                          📍 {dn}
+                        </p>
+                      ) : null;
+                    })()}
+                    {(() => {
+                      const lm = getOfficeLandmark(office);
+                      const dist = getOfficeLandmarkDistance(office);
+                      return lm ? (
+                        <p className={`text-xs mt-1 transition-colors duration-300 ${isDark ? 'text-ios-gray-400' : 'text-muted-foreground'
+                          }`}>
+                          📌 {t('office.nearLandmark', 'Near')}: {lm}{dist && dist !== 'On-site' ? ` (${dist})` : dist === 'On-site' ? ' — On-site' : ''}
+                        </p>
+                      ) : null;
+                    })()}
                     {office.office_type && (
                       <span className={`inline-block mt-2 px-3 py-1 text-xs font-medium rounded-full transition-colors duration-300 ${isDark
                         ? 'bg-ios-blue/30 text-ios-blue-400'
@@ -821,15 +856,33 @@ const OfficeBottomSheet = ({
 
                 {/* Close Button */}
                 <div className={`sticky bottom-0 pt-4 pb-2 mt-6 border-t transition-colors duration-300 ${isDark
-                  ? 'bg-card border-ios-gray-600'
-                  : 'bg-background border-border'
-                  }`}>
+                  ? 'border-white/10'
+                  : 'border-black/5'
+                  }`}
+                  style={{
+                    background: isDark
+                      ? 'rgba(15, 15, 25, 0.6)'
+                      : 'rgba(255, 255, 255, 0.6)',
+                    backdropFilter: 'blur(20px) saturate(180%)',
+                    WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                  }}
+                >
                   <button
                     onClick={onClose}
                     className={`w-full font-bold py-4 px-6 rounded-2xl transition-all active:scale-[0.98] duration-300 ${isDark
-                      ? 'bg-ios-gray-800 hover:bg-ios-gray-700 text-white border border-white/5'
-                      : 'bg-ios-gray-100 hover:bg-ios-gray-200 text-ios-gray-900 border border-black/5'
+                      ? 'text-white border border-white/10 hover:border-white/20'
+                      : 'text-ios-gray-900 border border-black/5 hover:border-black/10'
                       }`}
+                    style={{
+                      background: isDark
+                        ? 'rgba(255, 255, 255, 0.08)'
+                        : 'rgba(0, 0, 0, 0.04)',
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                      boxShadow: isDark
+                        ? '0 -1px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06)'
+                        : '0 -1px 12px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.7)',
+                    }}
                   >
                     {t('common.close', 'Close')}
                   </button>

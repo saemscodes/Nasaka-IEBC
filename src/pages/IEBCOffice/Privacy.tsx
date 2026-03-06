@@ -182,7 +182,7 @@ const Privacy = () => {
                 <div className="space-y-6">
                     <CollapsibleSection id="s1" title="1. Who We Are & Scope" icon={GlobeIcon}>
                         <p className="mb-4">
-                            <strong>Nasaka IEBC</strong> (operating at <em>recall254.vercel.app</em>) is an independent civic technology platform developed and maintained by <strong>Civic Education Kenya (CEKA)</strong>, a non-governmental civic education organisation registered in the Republic of Kenya.
+                            <strong>Nasaka IEBC</strong> (operating at <em>recall254.vercel.app</em>) is an independent civic technology platform developed and maintained by <strong>Civic Education Kenya (CEKA)</strong>, a non-governmental civic education organisation in the process of acquiring registration in the Republic of Kenya.
                         </p>
                         <p className="mb-4">
                             This Privacy Policy applies to all users of the Nasaka platform, including its web application, Progressive Web App (PWA), developer API, open dataset, and any associated community or verification workflows. It explains what information we collect, why we collect it, how we use and protect it, and what rights you have over your data.
