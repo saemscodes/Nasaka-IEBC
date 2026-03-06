@@ -257,6 +257,26 @@ const resources: LanguageResources = {
         uberXLDesc: "Larger vehicles for groups",
         priceUnavailable: "Price unavailable",
         cancel: "Cancel"
+      },
+      offline: {
+        title: "Offline Trip Protection",
+        sidebarTitle: "Offline Access",
+        description: "Stay prepared for your journey. Download essential map data and route information to navigate even when you lose connectivity.",
+        buttonLabel: "Access Offline Settings",
+        downloadRoute: "Download Route Only",
+        downloadArea: "Download Surrounding Area",
+        modeMinimal: "Minimal",
+        modeExtended: "Extended",
+        statusIdle: "Ready to download",
+        statusDownloading: "Downloading tiles...",
+        statusComplete: "Download successful!",
+        statusError: "Download failed. Please try again.",
+        goDetails: "View Details",
+        closeSidebar: "Close Sidebar",
+        stayPrepared: "Stay Prepared",
+        selectToEnable: "Select an office or route to enable offline downloads",
+        tiles: "tiles",
+        featureExplanation: "Welcome to Nasaka IEBC! This premium tool ensures you're never lost. It caches high-performance map tiles along your route or around the IEBC office destination. Once downloaded, you can view the map, track your progress, and access verified office records—even without an active internet connection."
       }
     }
   }

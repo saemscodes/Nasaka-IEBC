@@ -2,6 +2,7 @@ import React, { useState, useEffect, useImperativeHandle, forwardRef } from 'rea
 import { getTilesForRoute, getStorageEstimate, requestPersistentStorage } from '@/utils/tileUtils';
 import type { TileDownloadPlan } from '@/utils/tileUtils';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -23,6 +24,7 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
     className = '',
     onGoToDetails
 }, ref) => {
+    const { t } = useTranslation('nasaka');
     const { theme } = useTheme();
     const isDark = theme === 'dark';
 
@@ -170,10 +172,10 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
 
                 <div className="flex-1 min-w-0">
                     <h4 className={`text-base font-bold tracking-tight ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>
-                        Offline Trip Protection
+                        {t('offline.title', 'Offline Trip Protection')}
                     </h4>
                     <p className={`text-xs font-medium mt-0.5 opacity-70 ${isDark ? 'text-ios-gray-300' : 'text-ios-gray-600'}`}>
-                        Save map details for dead zones
+                        {t('offline.description', 'Save map details for dead zones')}
                     </p>
                 </div>
 
@@ -212,7 +214,7 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                                         }
                                     `}
                                 >
-                                    {mode === 'minimal' ? 'Route Only' : 'Full Area'}
+                                    {mode === 'minimal' ? t('offline.modeMinimal', 'Route Only') : t('offline.modeExtended', 'Full Area')}
                                 </button>
                             ))}
                         </div>
@@ -220,7 +222,7 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                         {/* Stats & Action */}
                         <div className="flex items-center justify-between">
                             <div className="text-xs font-semibold opacity-60">
-                                {plan?.tileCount || 0} tiles · ~{plan?.estimatedSizeMB || 0} MB
+                                {plan?.tileCount || 0} {t('offline.tiles', 'tiles')} · ~{plan?.estimatedSizeMB || 0} MB
                             </div>
                             <button
                                 onClick={handleDownload}
@@ -230,7 +232,7 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                                     ${isDark ? 'bg-ios-blue text-white' : 'bg-ios-blue text-white'}
                                 `}
                             >
-                                {status === 'error' ? 'Retry' : 'Download Now'}
+                                {status === 'error' ? t('common.retry', 'Retry') : t('offline.downloadRoute', 'Download Now')}
                             </button>
                         </div>
                     </motion.div>
@@ -243,7 +245,7 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                     >
                         <div className="flex justify-between items-end mb-2">
                             <span className="text-xs font-bold text-ios-blue">
-                                {status === 'done' ? 'PROTECTION ACTIVE' : 'SECURING TRIP...'}
+                                {status === 'done' ? t('offline.statusComplete', 'PROTECTION ACTIVE') : t('offline.statusDownloading', 'SECURING TRIP...')}
                             </span>
                             <span className="text-lg font-black italic">{progress}%</span>
                         </div>

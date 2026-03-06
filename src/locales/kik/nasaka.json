@@ -216,5 +216,25 @@
     "select": "Thuura",
     "optional": "Gũtiagĩrĩire",
     "required": "No mũhaka"
+  },
+  "offline": {
+    "title": "Ũgitĩri wa Rũgendo Rũtarĩ Neti",
+    "sidebarTitle": "Kũhũthĩra rĩrĩa gũtarĩ Neti",
+    "description": "Wĩhaarĩrie nĩ ũndũ wa rũgendo rwaku. Harũrũkia ũhoro wa mepu na njĩra nĩguo ũhote kũgerera o na rĩrĩa neti ĩrathira.",
+    "buttonLabel": "Hingũra Mũbango wa Offline",
+    "downloadRoute": "Harũrũkia Njĩra Tu",
+    "downloadArea": "Harũrũkia Gĩcigo Kĩu Gĩothe",
+    "modeMinimal": "Kĩnini",
+    "modeExtended": "Kĩnene",
+    "statusIdle": "Nĩ kĩhaarĩrie kũharũrũka",
+    "statusDownloading": "Kũharũrũkia mepu...",
+    "statusComplete": "Nĩ kũharũrũkĩte wega!",
+    "statusError": "Gũtiathira kũharũrũka. Caria rĩngĩ.",
+    "goDetails": "Rora Ũhoro",
+    "closeSidebar": "Hinga Sidebar",
+    "stayPrepared": "Ikara Wĩhaarĩirie",
+    "selectToEnable": "Thuura wabici kana njĩra nĩguo wambĩrĩrie kũdownload offline",
+    "tiles": "tiles",
+    "featureExplanation": "Ũhoro na Karibu Nasaka IEBC! Thimũ ĩno nĩ ya mwanya nĩguo ũtikeere. Ĩigaga mepu kando ya njĩra yaku kana hakuhĩ na wabici ya IEBC kũrĩa ũrathiĩ. Wa rĩkia kũiganĩra, no ũhote kuona mepu, ũthime rũgendo rwaku, na ũhote kuona ũhoro wa wabici ũrĩa ũrũmĩtie—o na rĩrĩa gũtarĩ neti."
   }
 }

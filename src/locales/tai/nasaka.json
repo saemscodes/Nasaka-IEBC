@@ -224,5 +224,25 @@
     "uberXLDesc": "Maghari makubwa kwa vikundi",
     "priceUnavailable": "Bei ndaipatikana",
     "cancel": "Leka"
+  },
+  "offline": {
+    "title": "Uzinzi wa Safari Offline",
+    "sidebarTitle": "Access ya Offline",
+    "description": "Jiandae kwa safari yako. Download data ya ramani na njia nikughosera kidei o na ka huna neti.",
+    "buttonLabel": "Fungua Mipango ya Offline",
+    "downloadRoute": "Download Njira Tu",
+    "downloadArea": "Download Pao Yisi",
+    "modeMinimal": "Kidogo",
+    "modeExtended": "Muno",
+    "statusIdle": "Jiandaye kudownload",
+    "statusDownloading": "Nidownload map tiles...",
+    "statusComplete": "Idownload ni sawa!",
+    "statusError": "Kudownload kwaghaluka. Kethya khabiri.",
+    "goDetails": "Vona Ufisio",
+    "closeSidebar": "Kumbusa Sidebar",
+    "stayPrepared": "Kethya Wiko Sawa",
+    "selectToEnable": "Chaghua ofisi ama njira nikughosera kudownload offline",
+    "tiles": "tiles",
+    "featureExplanation": "Karibu Nasaka IEBC! Kifaa eno premium nijakuuzinza nduulale. Nikuvuna map tiles kidei vyavihi na njira yako ama pao ofisi ya IEBC udhiye. Ukidownload, unanyala kuvona ramani, ghosera njira yako, na yuda ufisio wa ofisi udhenyiwe—o na ka huna internet."
   }
 }

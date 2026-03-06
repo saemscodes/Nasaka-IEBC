@@ -223,5 +223,25 @@
     "keywords": "Ofisi ya IEBC, usajili wa wapiga kura Kenya, tafuta ofisi ya IEBC, wapiga kura waliosajiliwa Kenya",
     "ogTitle": "Nasaka IEBC - Usajili wa Wapiga Kura Umerahisishwa",
     "ogDescription": "Tafuta ofisi ya IEBC iliyo karibu nawe mara moja."
+  },
+  "offline": {
+    "title": "Ulinzi wa Safari Offline",
+    "sidebarTitle": "Ufikiaji wa Offline",
+    "description": "Jitayarishe kwa safari yako. Pakua data muhimu ya ramani na maelezo ya njia ili upate njia hata unapopoteza unganisho.",
+    "buttonLabel": "Akses Mipangilio ya Offline",
+    "downloadRoute": "Pakua Njia Tu",
+    "downloadArea": "Pakua Eneo Lote lilihusika",
+    "modeMinimal": "Kawaida",
+    "modeExtended": "Kamili",
+    "statusIdle": "Tayari kupakua",
+    "statusDownloading": "Tunapakua map tiles...",
+    "statusComplete": "Pakua imefanikiwa!",
+    "statusError": "Imeshindwa kupakua. Tafadhali jaribu tena.",
+    "goDetails": "Angalia Maelezo",
+    "closeSidebar": "Funga Sidebar",
+    "stayPrepared": "Baki Umejiandaa",
+    "selectToEnable": "Chagua ofisi au njia ili kuwezesha upakuaji wa offline",
+    "tiles": "vigae",
+    "featureExplanation": "Karibu Nasaka IEBC! Chombo hiki cha hali ya juu kinahakikisha hutapotea kamwe. Kinahifadhi vigae vya ramani vyenye utendajaji wa hali ya juu kando ya njia yako au karibu na ofisi ya IEBC unayoelekea. Mara tu unapopakua, unaweza kuona ramani, kufuatilia maendeleo yako, na kupata maelezo ya ofisi yaliyothibitishwa—hata bila unganisho la mtandao."
   }
 }

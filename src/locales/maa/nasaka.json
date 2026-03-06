@@ -224,5 +224,25 @@
     "uberXLDesc": "Ilamotonishe edorop te ilturanak",
     "priceUnavailable": "Bei metii",
     "cancel": "Baik"
+  },
+  "offline": {
+    "title": "Enkisidai e Enkataarr Offline",
+    "sidebarTitle": "Access e Offline",
+    "description": "Taré nkiroru ninye. Download enkataarr e map nɛ́ tɨrɨtɨ ɔ̀shɔ̀mɔ̀ nɛ́ɛ́dɔ̀l kuleke te esiraian metii internet.",
+    "buttonLabel": "Bak Settings e Offline",
+    "downloadRoute": "Download Tɨrɨtɨ ɔ̀bɔ̀",
+    "downloadArea": "Download Enkop Ninye Aing'",
+    "modeMinimal": "Akiti",
+    "modeExtended": "Oleng",
+    "statusIdle": "Eitoboki aitum",
+    "statusDownloading": "Ɛtʉmɨkɨ map tiles...",
+    "statusComplete": "Eitoboki aitum sidai!",
+    "statusError": "Meitoboki aitum. Taré riak tena.",
+    "goDetails": "Oirora Tɨrɨtɨ",
+    "closeSidebar": "Ruk Sidebar",
+    "stayPrepared": "Tapala nkiaru",
+    "selectToEnable": "Salula ofisi au tɨrɨtɨ nɛ́ɛ́tʉ̀m download offline",
+    "tiles": "tiles",
+    "featureExplanation": "Karibu Nasaka IEBC! Enkisidai eni nɛsɨ́ dàɨ̀ nɛ́ɨ́tɔɔ̀ ninye mɛ́làl. Ɛdɔ́l map tiles sidai tɛ tɨrɨtɨ ninye au viyanyi vya ofisi IEBC ɔ̀shɔ̀mɔ̀. Te aitum ninye, inyalo edol map, nɛ́ɨ́tɨbɨ̀r tɨrɨtɨ, nɛ́ɛ́tʉ̀m enkataarr e kaji IEBC lɔɔ́ɨ̀lɔɔ̀—te esiraian metii internet."
   }
 }

@@ -224,5 +224,25 @@
     "uberXLDesc": "Ngari ninene cia antu banji",
     "priceUnavailable": "Mbeca ntiri yo",
     "cancel": "Tiga"
+  },
+  "offline": {
+    "title": "Utirikania bwa Rugendo Offline",
+    "sidebarTitle": "Access ya Offline",
+    "description": "Tondeka wihaaririe nionthe rugendo rwaku. Download uthuku bwa map na njira nionthe ukone bubui ona kwithirwe guti internet.",
+    "buttonLabel": "Rura Settings cia Offline",
+    "downloadRoute": "Download Njira Tu",
+    "downloadArea": "Download Gicigo Giothe Kiri Athembere",
+    "modeMinimal": "Matin",
+    "modeExtended": "Maduong'",
+    "statusIdle": "Nukwihaariria gutuma",
+    "statusDownloading": "Rikidownload map tiles...",
+    "statusComplete": "Download nithirirwe wega!",
+    "statusError": "Kwaga kudownload. Tondeka ugerie kairi.",
+    "goDetails": "Ona Utaari",
+    "closeSidebar": "Ruga Sidebar",
+    "stayPrepared": "Ikara Wihaaririe",
+    "selectToEnable": "Thuura ofisi kana njira niguo wambiririe kudownload offline",
+    "tiles": "tiles",
+    "featureExplanation": "Karibu Nasaka IEBC! Chombo kino kia buteera burathikuu nikiteeraga utakeere. Nikigaga map tiles cia nguvu kando ya njira yaku kana athembere na kati ya IEBC kuria urathiimba. Wakia kudownload, no ukone map, urore rugendo rwaku, na ukone uthuku bura thikonithie bwa kati—ona kwithirwe guti internet."
   }
 }

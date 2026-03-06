@@ -224,5 +224,25 @@
     "uberXLDesc": "Uber ya Mbogi! Walete Wote!",
     "priceUnavailable": "Ni Kaa Bei Imefanya Ile Kitu",
     "cancel": "Acha Tu"
+  },
+  "offline": {
+    "title": "Ulinzi wa Safari Offline",
+    "sidebarTitle": "Access ya Offline",
+    "description": "Jipange kwa safari yako. Download data muhimu ya ramani na maelezo ya njia ndiyo usipotee hata kaa huna neti.",
+    "buttonLabel": "Fungua Mipangilio ya Offline",
+    "downloadRoute": "Download Njia Tu",
+    "downloadArea": "Download Side Hiyo Yote",
+    "modeMinimal": "Kawaida",
+    "modeExtended": "Full Kabisa",
+    "statusIdle": "Ziko tayari kudownload",
+    "statusDownloading": "Tunadownload map tiles...",
+    "statusComplete": "Imedownload fiti!",
+    "statusError": "Imebant kudownload. Ebu try tena.",
+    "goDetails": "Cheki Maelezo",
+    "closeSidebar": "Funga Side",
+    "stayPrepared": "Kaa Rada",
+    "selectToEnable": "Chagua ofisi ama rada uweze kudownload offline",
+    "tiles": "tiles",
+    "featureExplanation": "Karibu Nasaka IEBC! Hii premium tool inahakikisha hupotei. Inahifadhi map tiles za nguvu kando ya njia yako ama karibu na ofisi ya IEBC unago. Ukishadownload, unaweza kuona map, kucheki rada yako, na kupata info ya ofisi imethibitishwa—hata kama huna bundles."
   }
 }

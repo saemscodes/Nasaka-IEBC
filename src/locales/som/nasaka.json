@@ -224,5 +224,25 @@
     "uberXLDesc": "Gaadiid waaweyn kooxaha",
     "priceUnavailable": "Qiimo lama heli karo",
     "cancel": "Jooji"
+  },
+  "offline": {
+    "title": "Ilaalinta Safarka Offline",
+    "sidebarTitle": "Helitaanka Offline",
+    "description": "U diyaar garow safarkaaga. Soo dejiso xogta khariidadda ee muhiimka ah iyo macluumaadka wadada si aad u socoto xitaa marka aad weydo internet-ka.",
+    "buttonLabel": "Fur Dejinta Offline",
+    "downloadRoute": "Soo Dejiso Wadada Kaliya",
+    "downloadArea": "Soo Dejiso Aagga Ku Hareeraysan",
+    "modeMinimal": "Yar",
+    "modeExtended": "Ballaran",
+    "statusIdle": "Wuxuu diyaar u yahay soo dejinta",
+    "statusDownloading": "Soo dejinta tiles-ka khariidadda...",
+    "statusComplete": "Soo dejintu way guuleysatay!",
+    "statusError": "Soo dejintu way fashilantay. Fadlan isku day mar kale.",
+    "goDetails": "Arag Faahfaahinta",
+    "closeSidebar": "Xidh Dhinac-u-Xidhan",
+    "stayPrepared": "Diyaar Noqo",
+    "selectToEnable": "Xulo xafiis ama wado si aad u furto soo dejinta offline",
+    "tiles": "tiles",
+    "featureExplanation": "Ku soo dhawaada Nasaka IEBC! Qalabkan qaaliga ah wuxuu hubinayaa inaadan waligaa lumin. Waxay kaydisaa tiles-ka khariidadda ee waxqabadka sare leh ee marinkaaga ama hareeraha goobta xafiiska IEBC. Marka la soo dejiyo, waxaad arki kartaa khariidadda, la socon kartaa horumarkaaga, oo aad geli kartaa diiwaannada xafiiska ee la xaqiijiyay—xitaa adigoon haysan internet firfircoon."
   }
 }

@@ -224,5 +224,25 @@
     "uberXLDesc": "Ewoi ngibaren",
     "priceUnavailable": "Ewoi pe",
     "cancel": "Akimekin"
+  },
+  "offline": {
+    "title": "Ewoi Offline Rito",
+    "sidebarTitle": "Access Offline",
+    "description": "Idwe ngitunga loce. Download map data ka ewoi akam IEBC ngitunga ngibaren loce.",
+    "buttonLabel": "Idwe Settings Offline",
+    "downloadRoute": "Download Ewoi Pe",
+    "downloadArea": "Download Ngitunga Apedori",
+    "modeMinimal": "Ngibaren",
+    "modeExtended": "Nyenyei",
+    "statusIdle": "Idwe download",
+    "statusDownloading": "Akimat map tiles...",
+    "statusComplete": "Download alotuno!",
+    "statusError": "Download bir. Idwe nyenyei.",
+    "goDetails": "Arag Ewoi",
+    "closeSidebar": "Akigol Sidebar",
+    "stayPrepared": "Idwe ngibaren",
+    "selectToEnable": "Lok ofisi ka ewoi akam download offline",
+    "tiles": "tiles",
+    "featureExplanation": "Karibu Nasaka IEBC! Ewoi loce alotuno aye akam ngitunga loce. Ikacit map tiles ngibaren ewoi loce ka hafi na IEBC ngitunga alotuno. download alotuno, idwe map, idwe ewoi loce, ka idwe IEBC ngitunga registers—ka pe internet."
   }
 }

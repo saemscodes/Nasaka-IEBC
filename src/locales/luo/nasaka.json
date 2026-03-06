@@ -223,5 +223,25 @@
     "uberXLDesc": "Motoka maduong' ma tiyo gi joot",
     "priceUnavailable": "Nengo pok oo",
     "cancel": "Gor"
+  },
+  "offline": {
+    "title": "Rito mar Wuoth ka Ofadho",
+    "sidebarTitle": "Donjo ka Ofadho",
+    "description": "Bed ka iikori pi wuoth. Pimo weche mag map gi yo mondo inyal wuoth kata ka internet onge.",
+    "buttonLabel": "Yab Seth mag Offline",
+    "downloadRoute": "Pimo Yo Kende",
+    "downloadArea": "Pimo Alwora Duto",
+    "modeMinimal": "Matin",
+    "modeExtended": "Maduong'",
+    "statusIdle": "Oikore pimo",
+    "statusDownloading": "Pimo map...",
+    "statusComplete": "Opimo kare!",
+    "statusError": "Owetho pimo. Tem kendo.",
+    "goDetails": "Nen Weche",
+    "closeSidebar": "Lor Sidebar",
+    "stayPrepared": "Bed Moikore",
+    "selectToEnable": "Yier ofisi kata yo mondo ichak download offline",
+    "tiles": "tiles",
+    "featureExplanation": "Karibu Nasaka IEBC! Giri maduong'ni konyi mondo kik ilal. Orito map tiles mabey e yor wuothi kata machiegni gi ofis mar IEBC ma idhiye. Ka oseopimo, inyalo neno map, neno kaka iwuotho, kendo inyalo yudo weche mag ofis ma oadier—hata ka onge internet."
   }
 }

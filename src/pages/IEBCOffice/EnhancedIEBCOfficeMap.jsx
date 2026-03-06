@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useCallback, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import EnhancedMapContainer from '../../components/IEBCOffice/EnhancedMapContainer';
 import UserLocationMarker from '../../components/IEBCOffice/UserLocationMarker';
@@ -19,6 +19,7 @@ import { findNearestOffice, findNearestOffices } from '../../utils/geoUtils';
 import { useTheme } from '@/contexts/ThemeContext';
 
 const EnhancedIEBCOfficeMap = () => {
+  const { t } = useTranslation('nasaka');
   const navigate = useNavigate();
   const { state } = useLocation();
   const userLocation = state?.userLocation;
@@ -45,6 +46,7 @@ const EnhancedIEBCOfficeMap = () => {
   const [isLayerPanelOpen, setIsLayerPanelOpen] = useState(false);
   const [currentRoute, setCurrentRoute] = useState(null);
   const [travelInsights, setTravelInsights] = useState(null);
+  const [isOfflineSidebarOpen, setIsOfflineSidebarOpen] = useState(false);
   const downloaderRef = useRef(null);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -283,6 +285,17 @@ const EnhancedIEBCOfficeMap = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
+
+          {/* New Download/Offline Button */}
+          <button
+            onClick={() => setIsOfflineSidebarOpen(true)}
+            className="p-2 rounded-xl hover:bg-ios-gray-100 transition-colors"
+            aria-label="Offline downloader"
+          >
+            <svg className="w-6 h-6 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+          </button>
         </div>
       </motion.div>
 
@@ -295,78 +308,113 @@ const EnhancedIEBCOfficeMap = () => {
         userLocation={userLocation}
       />
 
-      {/* Offline Route Downloader — above bottom sheet */}
-      {(currentRoute?.[0] || selectedOffice) && (
-        <div className="absolute bottom-24 left-4 right-4 flex flex-col gap-3 pointer-events-none">
-          {/* Action Row — HAM Floating Controls */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ type: 'spring', damping: 20, stiffness: 300, delay: 0.1 }}
-            className="flex gap-2 pointer-events-auto"
-          >
-            <button
-              onClick={() => downloaderRef.current?.startDownload('minimal')}
-              className={`
-                flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-xs
-                backdrop-blur-2xl border shadow-[0_8px_32px_rgba(0,0,0,0.12)] active:scale-95 transition-all
-                ${isDark
-                  ? 'bg-ios-gray-900/60 border-white/10 text-white'
-                  : 'bg-white/70 border-black/5 text-ios-gray-900'
-                }
-              `}
-            >
-              <div className="w-5 h-5 rounded-lg bg-ios-blue/10 flex items-center justify-center">
-                <svg className="w-3.5 h-3.5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-              </div>
-              Protect Trip
-            </button>
-
-            <button
-              onClick={() => downloaderRef.current?.startDownload('extended')}
-              className={`
-                flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-xs
-                backdrop-blur-2xl border shadow-[0_8px_32px_rgba(0,0,0,0.12)] active:scale-95 transition-all
-                ${isDark
-                  ? 'bg-ios-gray-900/60 border-white/10 text-white'
-                  : 'bg-white/70 border-black/5 text-ios-gray-900'
-                }
-              `}
-            >
-              <div className="w-5 h-5 rounded-lg bg-ios-blue/10 flex items-center justify-center">
-                <svg className="w-3.5 h-3.5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 20l-5.447-2.724A2 2 0 013 15.382V5.618a2 2 0 011.447-1.894L9 1m0 19l6-3m-6 3V1m6 16l5.447 2.724A2 2 0 0021 17.822V8.056a2 2 0 00-1.447-1.894L15 1m0 16V1m0 0L9 4" />
-                </svg>
-              </div>
-              Protect Area
-            </button>
-          </motion.div>
-
-          {/* Main Downloader Component */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="pointer-events-auto"
-            style={{ zIndex: 'var(--z-fixed-badges, 1005)' }}
-          >
-            <OfflineRouteDownloader
-              ref={downloaderRef}
-              routeGeometry={currentRoute?.[0]?.coordinates || currentRoute?.[0]?.geometry || currentRoute?.[0] || (selectedOffice ? { type: 'Point', coordinates: [selectedOffice.longitude, selectedOffice.latitude] } : null)}
-              onGoToDetails={() => {
-                const btn = document.querySelector('.office-details-expand-btn');
-                if (btn) btn.click();
-                setTimeout(() => {
-                  const el = document.getElementById('offline-protection-section');
-                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 400);
-              }}
+      {/* ── PREMIUM OFFLINE SIDEBAR ── */}
+      <AnimatePresence>
+        {isOfflineSidebarOpen && (
+          <>
+            {/* Backdrop Blur */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsOfflineSidebarOpen(false)}
+              className="absolute inset-0 bg-black/20 backdrop-blur-sm z-[2000]"
             />
-          </motion.div>
-        </div>
-      )}
+
+            {/* Sidebar Content */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className={`
+                absolute right-0 top-0 bottom-0 w-80 md:w-96 z-[2001]
+                shadow-2xl flex flex-col border-l
+                ${isDark ? 'bg-ios-gray-900/80 border-white/10' : 'bg-white/80 border-black/5'}
+                backdrop-blur-3xl
+              `}
+            >
+              {/* Header */}
+              <div className="p-6 flex items-center justify-between border-b border-white/10">
+                <div>
+                  <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>
+                    {t('offline.sidebarTitle', 'Offline Access')}
+                  </h3>
+                  <p className={`text-xs mt-1 ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>
+                    {t('offline.title', 'Offline Trip Protection')}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsOfflineSidebarOpen(false)}
+                  className={`p-2 rounded-full ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'} transition-colors`}
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Scrollable Content */}
+              <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                {/* Feature Explanation */}
+                <div className={`
+                  mb-8 p-4 rounded-2xl border
+                  ${isDark ? 'bg-blue-500/10 border-blue-500/20' : 'bg-blue-50 border-blue-200'}
+                `}>
+                  <div className="flex items-start space-x-3">
+                    <div className="p-2 rounded-xl bg-ios-blue/20">
+                      <svg className="w-5 h-5 text-ios-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className={`text-sm font-bold ${isDark ? 'text-blue-300' : 'text-blue-800'}`}>
+                        {t('offline.stayPrepared', 'Stay Prepared')}
+                      </h4>
+                      <p className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-ios-gray-300' : 'text-ios-gray-600'}`}>
+                        {t('offline.featureExplanation', 'This tool caches map tiles along your route or destination.')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Downloader Component */}
+                {(currentRoute?.[0] || selectedOffice) ? (
+                  <div className="space-y-6">
+                    <div className={`p-4 rounded-2xl border ${isDark ? 'bg-black/20 border-white/5' : 'bg-white/40 border-black/5'}`}>
+                      <OfflineRouteDownloader
+                        ref={downloaderRef}
+                        routeGeometry={currentRoute?.[0]?.coordinates || currentRoute?.[0]?.geometry || currentRoute?.[0] || (selectedOffice ? { type: 'Point', coordinates: [selectedOffice.longitude, selectedOffice.latitude] } : null)}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-48 text-center px-4">
+                    <div className="w-16 h-16 rounded-full bg-ios-gray-100 flex items-center justify-center mb-4">
+                      <svg className="w-8 h-8 text-ios-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      </svg>
+                    </div>
+                    <p className={`text-sm font-medium ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-600'}`}>
+                      {t('offline.selectToEnable', 'Select an office or route to enable offline downloads')}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 border-t border-white/10">
+                <button
+                  onClick={() => setIsOfflineSidebarOpen(false)}
+                  className="w-full py-4 rounded-2xl bg-ios-blue text-white font-bold active:scale-95 transition-all shadow-lg shadow-ios-blue/20"
+                >
+                  {t('common.close', 'Done')}
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Bottom Sheet */}
       <OfficeBottomSheet

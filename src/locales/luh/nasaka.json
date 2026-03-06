@@ -224,5 +224,25 @@
     "uberXLDesc": "Motoka tsinene kwa avandu mamingi",
     "priceUnavailable": "Levi litavizeki ndahi",
     "cancel": "Viza"
+  },
+  "offline": {
+    "title": "Uvulunzi wa Lwendo Offline",
+    "sidebarTitle": "Kuhurura Offline",
+    "description": "Wihaharie khu lwendo lwavio. Download tsilori tsa map no muvaririro gu inzira kumulola chimali o na kusingavera na net.",
+    "buttonLabel": "Fungula Mipangilio ga Offline",
+    "downloadRoute": "Download Inzira Yimwenga",
+    "downloadArea": "Download Side Yosi",
+    "modeMinimal": "Mutini",
+    "modeExtended": "Munene",
+    "statusIdle": "Ruhiire ku download",
+    "statusDownloading": "Kilituma map tiles...",
+    "statusComplete": "Ku download kuvirahiive!",
+    "statusError": "Kudownload gutwamiri. Kihuma geria navindi.",
+    "goDetails": "Lola Mulori",
+    "closeSidebar": "Funga Sidebar",
+    "stayPrepared": "Kaa na Virahi",
+    "selectToEnable": "Salula ofisi ama inzira kumutilola kudownload offline",
+    "tiles": "tiles",
+    "featureExplanation": "Karibu Nasaka IEBC! Chindu chino premium kikurindanga muno utaza kulala. Kikuvika map tiles ga chimali kando ya inzira yaveyu ama hafi na ofisi ya IEBC kumulokuja. Wamala kudownload, mungavona map, mulola lwendo lwavio, no kulola tsilori tsa ofisi tsio tsinyitshiishwe—o na kusingavera na net."
   }
 }

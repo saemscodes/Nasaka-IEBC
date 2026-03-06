@@ -224,5 +224,25 @@
     "uberXLDesc": "Emigare binene bia chikungu",
     "priceUnavailable": "Amafaranga tagavonyeke",
     "cancel": "Rega"
+  },
+  "offline": {
+    "title": "Okorinda Endia Offline",
+    "sidebarTitle": "Access ya Offline",
+    "description": "Iikere pi endia yao. Download amatampi ya karte na njira nigo urone obuya hata ka onge neti.",
+    "buttonLabel": "Evora Mipango ya Offline",
+    "downloadRoute": "Download Njira Tu",
+    "downloadArea": "Download Gesera Riosi",
+    "modeMinimal": "Meke",
+    "modeExtended": "Enene",
+    "statusIdle": "Oikore kodownload",
+    "statusDownloading": "Nodownload map tiles...",
+    "statusComplete": "Download yakoreirwe buya!",
+    "statusError": "Download yakora ekibi. Gerera khabiri.",
+    "goDetails": "Rora Amatampi",
+    "closeSidebar": "Hinga Sidebar",
+    "stayPrepared": "Iika Oikore",
+    "selectToEnable": "Churura ebiro kana endia nigo oche okudownload offline",
+    "tiles": "tiles",
+    "featureExplanation": "Karibu Nasaka IEBC! Ekinto kono kia buya nigo gekorinda otaralala. Gekosimba map tiles chia boseo kando ya njira yao kana ovikiiri n'ebiro ria IEBC koria oragende. Wa download, inyalo rora karte, rora njira yao, na unyore amatampi ya ebiro marangire—hata ka onge internet."
   }
 }

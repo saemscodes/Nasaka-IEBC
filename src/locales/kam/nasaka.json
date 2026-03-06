@@ -224,5 +224,25 @@
     "uberXLDesc": "Ngali nene sya kĩthuku",
     "priceUnavailable": "Kyalo kĩtambĩkanaa",
     "cancel": "Tikithya"
+  },
+  "offline": {
+    "title": "Ũgitĩri wa Kyalo Offline",
+    "sidebarTitle": "Access ya Offline",
+    "description": "Tethya wĩhaarĩrie nĩ ũndũ wa kyalo kyaku. Download ũvoo mũnene wa mũthemba na nzĩla nĩguo ũvone wega o na kĩvĩndũ kĩtheu kĩtheu.",
+    "buttonLabel": "Vũla Mũvango wa Offline",
+    "downloadRoute": "Download Nzĩla Tu",
+    "downloadArea": "Download Kĩvandũ Kyonthe",
+    "modeMinimal": "Kĩnini",
+    "modeExtended": "Kĩnene",
+    "statusIdle": "Nĩwĩhaarĩtye kũũdownload",
+    "statusDownloading": "Nĩkũdownload map tiles...",
+    "statusComplete": "Kũdownload kũthelu wega!",
+    "statusError": "Kũdownload kũvĩtĩte. Kethya ĩngĩ.",
+    "goDetails": "Ona Ũvoo",
+    "closeSidebar": "Kumya Sidebar",
+    "stayPrepared": "Ekala Wĩhaarĩtye",
+    "selectToEnable": "Thũũla wofisi kana nzĩla nĩguo wambĩĩe kũdownload offline",
+    "tiles": "tiles",
+    "featureExplanation": "Nĩ kwa kũmũkethya Nasaka IEBC! Thimũ ĩno nzeo nĩ ta ũkonyanya nzĩla nĩguo ũtakye. Ĩhaisangya map tiles moseo kando ya nzĩla yaku kana vĩkĩĩ na wofisi ya IEBC kũla ũkũthiĩa. Wa kũdownload, no wone mũthemba, kũvenda nzĩla yaku, na kũvata ũvoo wa wofisi ũla wĩtĩkĩtu—o na vate internet."
   }
 }
