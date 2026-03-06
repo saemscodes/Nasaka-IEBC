@@ -490,9 +490,6 @@ const AppContent = () => {
           }
         />
 
-        {/* Legacy redirect for specific admin path */}
-        <Route path="/admin/contributions" element={<Navigate to="/admin" replace />} />
-
         {/* ✅ Admin password reset route */}
         <Route
           path="/admin/reset-password"
@@ -515,8 +512,8 @@ const AppContent = () => {
         />
 
         {/* ✅ ACTIVE Redirect old admin paths to secure route */}
-        <Route path="/admin" element={<Navigate to="/admin/contributions" replace />} />
-        <Route path="/dashboard" element={<Navigate to="/admin/contributions" replace />} />
+        <Route path="/admin" element={<Navigate to="/admin/" replace />} />
+        <Route path="/dashboard" element={<Navigate to="/admin/" replace />} />
 
         {/* ✅ Root path redirects to IEBC Office splash page */}
         {/* Already handled by path="/" at the top */}

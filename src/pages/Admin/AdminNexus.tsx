@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import AdminSidebar from '@/components/Admin/AdminSidebar';
 import AdminVerification from './AdminVerification';
-import { Toaster } from 'sonner';
 
 // Lazy load tabs to keep initial bundle light
 const InsightsOverview = React.lazy(() => import('@/components/Admin/tabs/InsightsOverview'));
@@ -36,8 +35,6 @@ const AdminNexus = () => {
 
     return (
         <div className="min-h-screen bg-[#050608] text-white flex overflow-hidden font-sans">
-            <Toaster position="top-right" expand={true} richColors closeButton />
-
             <AdminSidebar
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
