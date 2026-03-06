@@ -27,6 +27,26 @@ import {
 } from '@/utils/officeNameNormalizer';
 import UberModal from './UberModal';
 import OfflineRouteDownloader from './OfflineRouteDownloader';
+import {
+  MapPin,
+  Navigation,
+  Phone,
+  Clock,
+  Banknote,
+  Cloud,
+  CloudRain,
+  Wind,
+  AlertTriangle,
+  ChevronRight,
+  Info,
+  Layers,
+  Download,
+  Wallet,
+  Car,
+  Bike,
+  Sparkles,
+  Users
+} from 'lucide-react';
 import i18next from 'i18next';
 import { useNavigate } from 'react-router-dom';
 import { slugify } from '@/components/SEO/SEOHead';
@@ -271,22 +291,48 @@ const OfficeBottomSheet = ({
             <div className="px-5 py-3 cursor-pointer" onClick={handlePeekTap}>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h3 className={`font-semibold text-lg line-clamp-1 transition-colors duration-300 ${isDark ? 'text-white' : 'text-foreground'
-                    }`}>
-                    {office.office_name || office.constituency_name || t('office.officeName', 'IEBC Office')}
-                  </h3>
-                  {(() => {
-                    const dn = getOfficeDisplayName(office);
-                    const cn = (office.constituency_name || '').toLowerCase();
-                    return dn && dn.toLowerCase() !== cn && dn !== 'IEBC Office' ? (
-                      <p className={`text-xs font-medium mt-0.5 line-clamp-1 transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-primary'
-                        }`}>
-                        📍 {dn}
-                      </p>
-                    ) : null;
-                  })()}
-                  <p className={`text-sm mt-0.5 line-clamp-1 transition-colors duration-300 ${isDark ? 'text-ios-gray-300' : 'text-muted-foreground'
-                    }`}>
+                  <div className="flex items-center gap-2">
+                    <h3 className={`font-semibold text-lg line-clamp-1 transition-colors duration-300 ${isDark ? 'text-white' : 'text-foreground'}`}>
+                      {office.office_name || office.constituency_name || t('office.officeName', 'IEBC Office')}
+                    </h3>
+                  </div>
+
+                  <div className="flex items-center gap-3 mt-1 overflow-x-auto no-scrollbar pb-1">
+                    {(() => {
+                      const dn = getOfficeDisplayName(office);
+                      const cn = (office.constituency_name || '').toLowerCase();
+                      return dn && dn.toLowerCase() !== cn && dn !== 'IEBC Office' ? (
+                        <div className="flex items-center gap-1 shrink-0">
+                          <MapPin className={`w-3 h-3 ${isDark ? 'text-ios-blue-400' : 'text-primary'}`} />
+                          <p className={`text-[11px] font-medium transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-primary'}`}>
+                            {dn}
+                          </p>
+                        </div>
+                      ) : null;
+                    })()}
+
+                    {/* Weather & Traffic in Peek as requested */}
+                    {hasLocationAccess && travelInsights && (
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div className="flex items-center gap-1">
+                          {travelInsights.weatherDesc?.toLowerCase().includes('rain') ? (
+                            <CloudRain className="w-3 h-3 text-blue-400" />
+                          ) : (
+                            <Cloud className="w-3 h-3 text-ios-gray-400" />
+                          )}
+                          <span className="text-[11px] text-muted-foreground">{travelInsights.weatherDesc}</span>
+                        </div>
+                        {trafficInfo && (
+                          <div className="flex items-center gap-1">
+                            <Car className={`w-3 h-3 ${trafficInfo.color}`} />
+                            <span className={`text-[11px] ${trafficInfo.color}`}>{trafficInfo.description}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <p className={`text-xs mt-0.5 line-clamp-1 opacity-60 transition-colors duration-300 ${isDark ? 'text-ios-gray-300' : 'text-muted-foreground'}`}>
                     {office.constituency_name && office.county
                       ? `${office.constituency_name}, ${office.county}`
                       : office.county || office.constituency_name || t('office.location', 'Location')}
@@ -295,30 +341,21 @@ const OfficeBottomSheet = ({
 
                 {/* Show distance and fare ONLY if we have location access */}
                 {hasLocationAccess && distanceToOffice && (
-                  <div className="ml-4 text-right">
-                    <span className={`text-sm font-medium transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-primary'
-                      }`}>
-                      {t('office.distance', { distance: distanceToOffice.toFixed(1) })}
-                    </span>
+                  <div className="ml-4 text-right shrink-0">
+                    <div className="flex items-center justify-end gap-1">
+                      <Navigation className={`w-3 h-3 ${isDark ? 'text-ios-blue-400' : 'text-primary'}`} />
+                      <span className={`text-sm font-bold transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-primary'}`}>
+                        {distanceToOffice.toFixed(1)} km
+                      </span>
+                    </div>
                     {cheapestFare && (
-                      <p className={`text-xs mt-1 font-semibold transition-colors duration-300 ${isDark ? 'text-green-400' : 'text-green-600'
-                        }`}>
-                        {formatFare(cheapestFare.total)}
-                      </p>
+                      <div className="flex items-center justify-end gap-1 mt-0.5">
+                        <Wallet className="w-3 h-3 text-green-500" />
+                        <p className={`text-xs font-black transition-colors duration-300 ${isDark ? 'text-green-400' : 'text-green-600'}`}>
+                          {formatFare(cheapestFare.total)}
+                        </p>
+                      </div>
                     )}
-                  </div>
-                )}
-                {/* Show different message when no location access */}
-                {!hasLocationAccess && (
-                  <div className="ml-4 text-right">
-                    <span className={`text-sm font-medium transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-primary'
-                      }`}>
-                      {t('office.tapForDirections', 'Tap for directions')}
-                    </span>
-                    <p className={`text-xs mt-1 transition-colors duration-300 ${isDark ? 'text-ios-gray-400' : 'text-muted-foreground'
-                      }`}>
-                      {t('office.noLocationAccess', 'No location access')}
-                    </p>
                   </div>
                 )}
               </div>
@@ -355,10 +392,15 @@ const OfficeBottomSheet = ({
                       const lm = getOfficeLandmark(office);
                       const dist = getOfficeLandmarkDistance(office);
                       return lm ? (
-                        <p className={`text-xs mt-1 transition-colors duration-300 ${isDark ? 'text-ios-gray-400' : 'text-muted-foreground'
-                          }`}>
-                          📌 {t('office.nearLandmark', 'Near')}: {lm}{dist && dist !== 'On-site' ? ` (${dist})` : dist === 'On-site' ? ' — On-site' : ''}
-                        </p>
+                        <div className="flex items-center gap-1.5 mt-1.5 opacity-70">
+                          <MapPin className="w-3.5 h-3.5" />
+                          <p className="text-xs font-semibold uppercase tracking-wider">
+                            {t('office.nearLandmark', 'Near')}: <span className={isDark ? 'text-white' : 'text-black'}>{lm}</span>
+                            {dist && dist !== 'On-site' ? (
+                              <span className="ml-1 opacity-60"> — {dist} to IEBC Office</span>
+                            ) : dist === 'On-site' ? ' — On-site' : ''}
+                          </p>
+                        </div>
                       ) : null;
                     })()}
                     {office.office_type && (
@@ -409,19 +451,21 @@ const OfficeBottomSheet = ({
                       : 'bg-gradient-to-br from-green-50 to-blue-50 border-green-200'
                       }`}>
                       <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-lg">💰</span>
+                        <div className="flex items-center space-x-3">
+                          <div className={`p-2 rounded-xl ${isDark ? 'bg-green-500/20' : 'bg-green-100'}`}>
+                            <Banknote className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
+                          </div>
                           <div>
-                            <h4 className={`text-sm font-semibold ${isDark ? 'text-green-300' : 'text-green-800'
-                              }`}>
+                            <h4 className={`text-sm font-black uppercase tracking-widest ${isDark ? 'text-green-300' : 'text-green-800'}`}>
                               {t('bottomSheet.estimatedRideCost', 'Estimated Ride Cost')}
                             </h4>
                             <div className="flex items-center space-x-2 mt-0.5">
-                              <span className={`text-xs ${trafficInfo?.color || 'text-gray-500'}`}>
-                                {trafficInfo?.icon || '🚗'} {trafficInfo?.description || t('bottomSheet.normalTraffic', 'Normal traffic')}
+                              <span className={`text-xs font-bold leading-none flex items-center gap-1 ${trafficInfo?.color || 'text-gray-500'}`}>
+                                {trafficInfo?.icon === 'sunrise' ? <Clock className="w-3 h-3" /> : <Car className="w-3 h-3" />}
+                                {trafficInfo?.description || t('bottomSheet.normalTraffic', 'Normal traffic')}
                               </span>
-                              <span className={`text-xs ${isDark ? 'text-ios-gray-400' : 'text-gray-600'
-                                }`}>
+                              <div className="w-1 h-1 rounded-full bg-current opacity-30" />
+                              <span className={`text-xs font-bold ${isDark ? 'text-ios-gray-400' : 'text-gray-600'}`}>
                                 {distanceToOffice?.toFixed(1)} km
                               </span>
                             </div>
@@ -444,14 +488,18 @@ const OfficeBottomSheet = ({
                           }`}>
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className={`text-xs font-medium ${isDark ? 'text-ios-gray-300' : 'text-gray-600'
-                                }`}>
-                                💡 {t('bottomSheet.cheapestOption', 'Cheapest Option')}
+                              <p className={`text-[10px] font-black uppercase tracking-wider mb-1 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
+                                {t('bottomSheet.cheapestOption', 'Best Price')}
                               </p>
-                              <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'
-                                }`}>
-                                {cheapestFare.icon} {cheapestFare.displayName}
-                              </p>
+                              <div className="flex items-center gap-2">
+                                {cheapestFare.icon === 'car' ? <Car className="w-5 h-5" /> :
+                                  cheapestFare.icon === 'motorcycle' ? <Bike className="w-5 h-5" /> :
+                                    cheapestFare.icon === 'sparkles' ? <Sparkles className="w-5 h-5" /> :
+                                      <Users className="w-5 h-5" />}
+                                <p className={`text-lg font-black ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                  {cheapestFare.displayName}
+                                </p>
+                              </div>
                             </div>
                             <div className="text-right">
                               <p className={`text-2xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'
@@ -600,14 +648,16 @@ const OfficeBottomSheet = ({
                       : 'bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200'
                       }`}>
                       <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-lg">🧭</span>
+                        <div className="flex items-center space-x-3">
+                          <div className={`p-2 rounded-xl ${isDark ? 'bg-purple-500/20' : 'bg-purple-100'}`}>
+                            <Navigation className={`w-5 h-5 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
+                          </div>
                           <div>
-                            <h4 className={`text-sm font-semibold ${isDark ? 'text-purple-300' : 'text-purple-800'}`}>
+                            <h4 className={`text-sm font-black uppercase tracking-widest ${isDark ? 'text-purple-300' : 'text-purple-800'}`}>
                               Travel Difficulty
                             </h4>
-                            <p className={`text-xs mt-0.5 ${isDark ? 'text-ios-gray-400' : 'text-gray-600'}`}>
-                              Real-time conditions analysis
+                            <p className={`text-xs font-bold mt-0.5 ${isDark ? 'text-ios-gray-400' : 'text-gray-600'}`}>
+                              Real-time logic diagnostics
                             </p>
                           </div>
                         </div>
@@ -761,91 +811,106 @@ const OfficeBottomSheet = ({
                       </div>
                     </button>
 
-                    <div className={`grid gap-3 ${hasLocationAccess ? 'grid-cols-2' : 'grid-cols-1'
-                      }`}>
-                      {/* Uber Button */}
+                    <div className="grid gap-4 grid-cols-2">
+                      {/* Uber Button - Mirroring Bolt Style as requested */}
                       <button
                         onClick={() => openUber()}
-                        className={`group relative overflow-hidden w-full py-5 px-3 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-md hover:shadow-lg ${isDark
-                          ? 'bg-black/40 border-white/10 text-white hover:bg-black/50'
-                          : 'bg-gray-50/60 border-black/5 text-ios-gray-900 hover:bg-gray-100/60'
+                        className={`group relative overflow-hidden w-full py-6 px-4 rounded-3xl flex flex-col items-center justify-center gap-3 transition-all active:scale-[0.96] duration-500 shadow-2xl border ${isDark
+                          ? 'bg-ios-gray-900/60 border-white/5 text-white hover:bg-ios-gray-800'
+                          : 'bg-white border-black/5 text-ios-gray-900 hover:bg-gray-50'
                           }`}
                       >
-                        <div className="h-4 w-full flex items-center justify-center">
-                          <svg viewBox="0 0 512 512" className="h-full w-auto fill-current">
-                            <path d="M119.8,303.6c17.6,0,31.3-13.6,31.3-33.8V191.3h19.1V318.6H151.3V306.8a45.9,45.9,0,0,1-33.6,14c-27.3,0-48.2-19.8-48.2-49.8V191.4H88.6v78.5c0,20.5,13.4,33.7,31.2,33.7m64.6-112.3h18.4v46.4a46.11,46.11,0,0,1,32.9-13.8,48.45,48.45,0,0,1,0,96.9A46.52,46.52,0,0,1,202.6,307v11.6H184.4V191.3Zm50,113.2a32.2,32.2,0,1,0-32-32.4v.2a32,32,0,0,0,31.8,32.2h.2M339.3,224c26.7,0,46.4,20.5,46.4,48.2v6H310.3A31.09,31.09,0,0,0,341,304.6c10.7,0,19.8-4.4,26.7-13.6l13.3,9.8c-9.3,12.4-23.1,19.8-40,19.8-27.8,0-49.3-20.7-49.3-48.4-.1-26.2,20.5-48.2,47.6-48.2m-28.8,39.6H367c-3.1-14.2-14.5-23.6-28.2-23.6-13.5,0-25,9.5-28.3,23.6m124.4-21.4c-12,0-20.7,9.3-20.7,23.6v52.7H395.8V225.8H414v11.5c4.5-7.5,12-12.2,22.2-12.2h6.4v17.1Z" />
-                          </svg>
+                        <div className="h-6 w-full flex items-center justify-center pointer-events-none">
+                          <img
+                            src="/context/Button icons/Uber_logo_2018 (1).svg"
+                            className={`h-full w-auto transition-transform duration-500 group-hover:scale-110 ${isDark ? 'invert' : ''}`}
+                            alt="Uber"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'block';
+                            }}
+                          />
+                          <span className="font-black text-xl hidden">Uber</span>
                         </div>
-                        {hasLocationAccess && cheapestFare && cheapestFare.provider === 'uber' ? (
-                          <span className={`mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${isDark ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-700'}`}>
-                            {formatFare(cheapestFare.total)}
-                          </span>
-                        ) : (
-                          <span className={`mt-1 text-[10px] opacity-60 font-medium`}>{t('bottomSheet.openApp', 'Open app')}</span>
+                        {hasLocationAccess && fareEstimates && (
+                          <div className={`mt-1 font-black text-xs px-3 py-1 rounded-full shadow-lg transition-colors duration-500 ${cheapestFare?.provider === 'uber'
+                              ? 'bg-green-500 text-white'
+                              : isDark ? 'bg-ios-gray-700 text-green-400' : 'bg-green-50 text-green-600'
+                            }`}>
+                            {(() => {
+                              const uberFares = Object.values(fareEstimates.uber).map(f => f.total);
+                              const minUber = Math.min(...uberFares);
+                              return formatFare(minUber);
+                            })()}
+                          </div>
+                        )}
+                        {!hasLocationAccess && (
+                          <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest">{t('bottomSheet.openApp', 'Open app')}</span>
                         )}
                       </button>
 
                       {/* Bolt Button */}
                       <button
                         onClick={openBolt}
-                        className={`group relative overflow-hidden w-full py-5 px-3 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-md hover:shadow-lg ${isDark
+                        className={`group relative overflow-hidden w-full py-6 px-4 rounded-3xl flex flex-col items-center justify-center gap-3 transition-all active:scale-[0.96] duration-500 shadow-2xl border ${isDark
                           ? 'bg-green-600/10 border-green-500/20 text-green-400 hover:bg-green-600/15'
                           : 'bg-green-50/60 border-green-200 text-green-800 hover:bg-green-100/60'
                           }`}
                       >
-                        <div className="h-5 w-full flex items-center justify-center">
-                          <svg viewBox="0 0 111.9 65" className="h-full w-auto fill-current">
-                            <path d="M30.4,23c4.4-7.1,2.2-16.4-4.8-20.8C23.2,0.8,20.5,0,17.7,0H0v48.9h19.9c8.3,0,15-6.8,15-15.1 C34.9,29.7,33.3,25.9,30.4,23z M11.4,11.5h6.3c2,0,3.6,1.6,3.6,3.6c0,2-1.6,3.6-3.6,3.6h-6.3V11.5z M19.9,37.4h-8.5v-7.2h8.5 c2,0,3.6,1.6,3.6,3.6C23.5,35.8,21.9,37.4,19.9,37.4z M90,0v48.9H78.6V2.4L90,0z M56.8,13.9c-9.7,0-17.6,7.9-17.6,17.7 c0,9.8,7.9,17.7,17.6,17.7c9.7,0,17.6-7.9,17.6-17.7C74.3,21.8,66.5,13.9,56.8,13.9z M56.8,37.4c-3.2,0-5.7-2.6-5.7-5.7 c0-3.2,2.5-5.7,5.7-5.7c3.2,0,5.7,2.6,5.7,5.7C62.5,34.8,59.9,37.4,56.8,37.4z M62.5,59.3c0,3.2-2.6,5.7-5.7,5.7 c-3.1,0-5.7-2.6-5.7-5.7c0-3.2,2.6-5.7,5.7-5.7C59.9,53.5,62.5,56.1,62.5,59.3z M111.8,14.5V26h-5.7v9c0,2.7,0.9,4.7,3.2,4.7 c0.9,0,1.7-0.1,2.5-0.3v8.5c-1.7,0.9-3.6,1.4-5.6,1.4h-0.1c-0.1,0-0.1,0-0.2,0c-0.1,0-0.1,0-0.2,0h-0.1l-0.2,0 C99.1,49,94.7,45,94.7,37.9v0v0V26V8.2l11.4-2.4v8.8H111.8z" />
-                          </svg>
+                        <div className="h-6 w-full flex items-center justify-center pointer-events-none">
+                          <img
+                            src="/context/Button icons/Bolt_idw_2V0lyO_0.svg"
+                            className="h-full w-auto transition-transform duration-500 group-hover:scale-110"
+                            alt="Bolt"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'block';
+                            }}
+                          />
+                          <span className="font-black text-xl hidden text-green-600">Bolt</span>
                         </div>
-                        {hasLocationAccess && cheapestFare && cheapestFare.provider === 'bolt' ? (
-                          <span className={`mt-1 text-[10px] font-black px-2 py-0.5 rounded-full ${isDark ? 'bg-green-500/20 text-green-400' : 'bg-green-600 text-white shadow-sm'}`}>
-                            {formatFare(cheapestFare.total)}
-                          </span>
-                        ) : (
-                          <span className={`mt-1 text-[10px] font-bold ${isDark ? 'opacity-70' : 'text-green-700'}`}>{t('bottomSheet.openApp', 'Open app')}</span>
+                        {hasLocationAccess && fareEstimates && (
+                          <div className={`mt-1 font-black text-xs px-3 py-1 rounded-full shadow-lg transition-colors duration-500 ${cheapestFare?.provider === 'bolt'
+                              ? 'bg-green-600 text-white'
+                              : isDark ? 'bg-green-900/40 text-green-400' : 'bg-green-600 text-white'
+                            }`}>
+                            {(() => {
+                              const boltFares = Object.values(fareEstimates.bolt).map(f => f.total);
+                              const minBolt = Math.min(...boltFares);
+                              return formatFare(minBolt);
+                            })()}
+                          </div>
                         )}
                       </button>
 
                       {/* Google Maps Button */}
                       <button
                         onClick={openGoogleMaps}
-                        className={`w-full py-3 px-3 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-md hover:shadow-lg ${isDark
-                          ? 'bg-blue-600/10 border-blue-500/20 text-blue-400 hover:bg-blue-600/15'
-                          : 'bg-blue-50/60 border-blue-200 text-blue-800 hover:bg-blue-100/60'
+                        className={`w-full py-4 px-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-xl ${isDark
+                          ? 'bg-blue-600/10 border-blue-500/20 text-white hover:bg-blue-600/15'
+                          : 'bg-blue-50/60 border-blue-200 text-blue-900 hover:bg-blue-100/60'
                           }`}
                       >
-                        <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
-                          <svg viewBox="0 0 24 24" className="w-full h-full">
-                            <path fill="#4285F4" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z" />
-                          </svg>
-                        </div>
-                        <span className="text-sm font-bold tracking-tight">{t('bottomSheet.openInGoogleMaps', 'Google Maps')}</span>
+                        <Navigation className={`w-6 h-6 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+                        <span className="text-xs font-black uppercase tracking-tight">{t('bottomSheet.openInGoogleMaps', 'Google Maps')}</span>
                       </button>
 
-                      {/* Apple Maps Button */}
+                      {/* Apple Maps Button - Cleaned from hardcoded Bus info */}
                       <button
                         onClick={openAppleMaps}
-                        className={`group relative overflow-hidden w-full py-5 px-3 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-md hover:shadow-lg ${isDark
-                          ? 'bg-ios-gray-900/40 border-white/10 text-white hover:bg-ios-gray-800/60'
+                        className={`group relative overflow-hidden w-full py-4 px-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-xl ${isDark
+                          ? 'bg-ios-gray-900/60 border-white/10 text-white hover:bg-ios-gray-800'
                           : 'bg-white border-black/5 text-ios-gray-900 hover:bg-gray-50'
                           }`}
                       >
-                        <div className="h-5 w-full flex items-center justify-center">
-                          <svg viewBox="-1.5 0 20 20" className={`h-full w-auto ${isDark ? 'fill-white' : 'fill-black'}`}>
-                            <g transform="translate(-46, -7279)">
-                              <path d="M57.5708873,7282.19296 C58.2999598,7281.34797 58.7914012,7280.17098 58.6569121,7279 C57.6062792,7279.04 56.3352055,7279.67099 55.5818643,7280.51498 C54.905374,7281.26397 54.3148354,7282.46095 54.4735932,7283.60894 C55.6455696,7283.69593 56.8418148,7283.03894 57.5708873,7282.19296 M60.1989864,7289.62485 C60.2283111,7292.65181 62.9696641,7293.65879 63,7293.67179 C62.9777537,7293.74279 62.562152,7295.10677 61.5560117,7296.51675 C60.6853718,7297.73474 59.7823735,7298.94772 58.3596204,7298.97372 C56.9621472,7298.99872 56.5121648,7298.17973 54.9134635,7298.17973 C53.3157735,7298.17973 52.8162425,7298.94772 51.4935978,7298.99872 C50.1203933,7299.04772 49.0738052,7297.68074 48.197098,7296.46676 C46.4032359,7293.98379 45.0330649,7289.44985 46.8734421,7286.3899 C47.7875635,7284.87092 49.4206455,7283.90793 51.1942837,7283.88393 C52.5422083,7283.85893 53.8153044,7284.75292 54.6394294,7284.75292 C55.4635543,7284.75292 57.0106846,7283.67793 58.6366882,7283.83593 C59.3172232,7283.86293 61.2283842,7284.09893 62.4549652,7285.8199 C62.355868,7285.8789 60.1747177,7287.09489 60.1989864,7289.62485" />
-                            </g>
-                          </svg>
+                        <div className="h-6 w-full flex items-center justify-center pointer-events-none mb-1">
+                          <img
+                            src="/context/Button icons/apple-173-svgrepo-com.svg"
+                            className={`h-full w-auto ${isDark ? 'invert' : ''}`}
+                            alt="Apple Maps"
+                          />
                         </div>
-                        <div className="flex flex-col items-center">
-                          <span className="text-[11px] font-black tracking-tight leading-tight">Apple Maps</span>
-                          {hasLocationAccess && distanceToOffice && (
-                            <span className={`text-[10px] font-bold mt-0.5 ${isDark ? 'text-ios-blue-400' : 'text-ios-blue'}`}>
-                              ~ KES {Math.max(50, Math.round(distanceToOffice * 15))} (Bus)
-                            </span>
-                          )}
-                        </div>
+                        <span className="text-xs font-black uppercase tracking-tight">Apple Maps</span>
                       </button>
                     </div>
 

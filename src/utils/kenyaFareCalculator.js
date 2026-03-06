@@ -17,7 +17,7 @@ export const UBER_NAIROBI_RATES = {
     bookingFee: 0,
     displayName: 'Chap Chap',
     description: 'Motorcycle taxis',
-    icon: '🏍️',
+    icon: 'motorcycle',
     provider: 'uber'
   },
   uberx: {
@@ -28,7 +28,7 @@ export const UBER_NAIROBI_RATES = {
     bookingFee: 0,
     displayName: 'UberX',
     description: 'Everyday affordable rides',
-    icon: '🚗',
+    icon: 'car',
     provider: 'uber'
   },
   comfort: {
@@ -39,7 +39,7 @@ export const UBER_NAIROBI_RATES = {
     bookingFee: 0,
     displayName: 'Comfort',
     description: 'Newer cars with extra legroom',
-    icon: '✨',
+    icon: 'sparkles',
     provider: 'uber'
   },
   uberxl: {
@@ -50,7 +50,7 @@ export const UBER_NAIROBI_RATES = {
     bookingFee: 0,
     displayName: 'UberXL',
     description: 'Larger vehicles for groups',
-    icon: '🚙',
+    icon: 'users',
     provider: 'uber'
   }
 };
@@ -64,7 +64,7 @@ export const UBER_MOMBASA_RATES = {
     bookingFee: 0,
     displayName: 'UberX',
     description: 'Affordable, everyday rides',
-    icon: '🚗',
+    icon: 'car',
     provider: 'uber'
   }
 };
@@ -79,7 +79,7 @@ export const BOLT_NAIROBI_RATES = {
     bookingFee: 0,
     displayName: 'Bolt Boda',
     description: 'Motorcycle rides',
-    icon: '🏍️',
+    icon: 'motorcycle',
     provider: 'bolt'
   },
   economy: {
@@ -90,7 +90,7 @@ export const BOLT_NAIROBI_RATES = {
     bookingFee: 0,
     displayName: 'Bolt Economy',
     description: 'Budget-friendly rides',
-    icon: '🚗',
+    icon: 'car-front',
     provider: 'bolt'
   },
   base: {
@@ -101,7 +101,7 @@ export const BOLT_NAIROBI_RATES = {
     bookingFee: 0,
     displayName: 'Bolt',
     description: 'Standard rides',
-    icon: '🚙',
+    icon: 'car',
     provider: 'bolt'
   },
   xl: {
@@ -112,7 +112,7 @@ export const BOLT_NAIROBI_RATES = {
     bookingFee: 0,
     displayName: 'Bolt XL',
     description: 'Larger vehicles for groups',
-    icon: '🚐',
+    icon: 'users',
     provider: 'bolt'
   }
 };
@@ -127,7 +127,7 @@ export const TRAFFIC_MULTIPLIERS = {
     description: 'Morning rush hour',
     additionalMinutes: 10,
     color: 'text-orange-500',
-    icon: '🌅'
+    icon: 'sunrise'
   },
   rush_evening: {
     timeRange: '17:00-20:00',
@@ -135,7 +135,7 @@ export const TRAFFIC_MULTIPLIERS = {
     description: 'Evening rush hour',
     additionalMinutes: 15,
     color: 'text-red-500',
-    icon: '🌇'
+    icon: 'sunset'
   },
   midday: {
     timeRange: '09:30-17:00',
@@ -143,7 +143,7 @@ export const TRAFFIC_MULTIPLIERS = {
     description: 'Moderate traffic',
     additionalMinutes: 5,
     color: 'text-yellow-500',
-    icon: '☀️'
+    icon: 'sun'
   },
   night: {
     timeRange: '20:00-07:00',
@@ -151,50 +151,62 @@ export const TRAFFIC_MULTIPLIERS = {
     description: 'Light traffic',
     additionalMinutes: 0,
     color: 'text-blue-400',
-    icon: '🌙'
+    icon: 'moon'
   },
   weekend: {
     multiplier: 0.95,
     description: 'Weekend - lighter traffic',
     additionalMinutes: 0,
     color: 'text-green-500',
-    icon: '🎉'
+    icon: 'party-popper'
   }
 };
 
 /**
- * Get current traffic condition based on time
+ * Get current traffic condition based on time and weather
  */
-export function getCurrentTrafficCondition() {
+export function getCurrentTrafficCondition(weatherData = null) {
   const now = new Date();
   const hour = now.getHours();
   const minute = now.getMinutes();
   const currentTime = hour + minute / 60;
   const isWeekend = now.getDay() === 0 || now.getDay() === 6;
 
+  let condition = TRAFFIC_MULTIPLIERS.night;
+
   if (isWeekend) {
-    return TRAFFIC_MULTIPLIERS.weekend;
+    condition = { ...TRAFFIC_MULTIPLIERS.weekend };
+  } else if (currentTime >= 7 && currentTime < 9.5) {
+    condition = { ...TRAFFIC_MULTIPLIERS.rush_morning };
+  } else if (currentTime >= 17 && currentTime < 20) {
+    condition = { ...TRAFFIC_MULTIPLIERS.rush_evening };
+  } else if (currentTime >= 9.5 && currentTime < 17) {
+    condition = { ...TRAFFIC_MULTIPLIERS.midday };
   }
 
-  if (currentTime >= 7 && currentTime < 9.5) {
-    return TRAFFIC_MULTIPLIERS.rush_morning;
-  } else if (currentTime >= 17 && currentTime < 20) {
-    return TRAFFIC_MULTIPLIERS.rush_evening;
-  } else if (currentTime >= 9.5 && currentTime < 17) {
-    return TRAFFIC_MULTIPLIERS.midday;
-  } else {
-    return TRAFFIC_MULTIPLIERS.night;
+  // Apply weather impact (Rain sensitivity as requested)
+  if (weatherData) {
+    const isRaining = weatherData.isRaining || (weatherData.weatherDesc && weatherData.weatherDesc.toLowerCase().includes('rain'));
+    if (isRaining) {
+      condition.multiplier *= 1.25; // Increase multiplier by 25% for rain
+      condition.additionalMinutes += 10; // Add 10 more minutes
+      condition.description += ' + Heavy Rain';
+      condition.icon = 'cloud-rain';
+      condition.color = 'text-blue-600';
+    }
   }
+
+  return condition;
 }
 
 /**
  * Get traffic info for display
  */
-export function getTrafficInfo() {
-  const traffic = getCurrentTrafficCondition();
+export function getTrafficInfo(weatherData = null) {
+  const traffic = getCurrentTrafficCondition(weatherData);
   return {
     ...traffic,
-    displayText: `${traffic.icon} ${traffic.description}`
+    displayText: `${traffic.description}`
   };
 }
 
@@ -246,7 +258,7 @@ export function calculateFare(distanceKm, estimatedMinutes, rateCard, options = 
 export function calculateAllFares(distanceKm, estimatedMinutes, city = 'nairobi') {
   const traffic = getCurrentTrafficCondition();
   const rates = city === 'mombasa' ? UBER_MOMBASA_RATES : UBER_NAIROBI_RATES;
-  
+
   const results = {
     uber: {},
     bolt: {},
@@ -306,7 +318,7 @@ export function formatFare(amount) {
  */
 export function getFareRange(fares) {
   const allFares = [];
-  
+
   ['uber', 'bolt'].forEach(provider => {
     if (fares[provider]) {
       Object.values(fares[provider]).forEach(fare => {
@@ -329,7 +341,7 @@ export function getFareRange(fares) {
  */
 export function estimateTravelTime(distanceKm) {
   const traffic = getCurrentTrafficCondition();
-  
+
   const speeds = {
     rush_morning: 15,
     rush_evening: 12,
@@ -340,7 +352,7 @@ export function estimateTravelTime(distanceKm) {
 
   const speed = speeds[traffic.description] || 25;
   const baseMinutes = (distanceKm / speed) * 60;
-  
+
   return Math.round(baseMinutes);
 }
 

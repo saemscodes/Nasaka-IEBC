@@ -134,11 +134,11 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
 
     return (
         <motion.div
-            initial={{ x: '-100%' }}
+            initial={{ x: '100%' }}
             animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{ type: 'spring', stiffness: 400, damping: 40 }}
-            className={`office-list-panel open ${className}`}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className={`office-list-panel open fixed right-0 top-0 h-full w-[400px] z-[100] bg-background border-l border-border shadow-2xl ${className}`}
         >
             {/* Header */}
             <div className="sticky top-0 bg-background/95 dark:bg-card/95 backdrop-blur-xl border-b border-border z-10 px-5 py-4">
@@ -238,10 +238,10 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                                 onClick={handleDownload}
                                 disabled={status === 'calculating' || !routeGeometry}
                                 className={`w-full py-4 rounded-2xl font-black text-sm tracking-widest uppercase transition-all active:scale-[0.98] shadow-2xl
-                                    ${!routeGeometry ? 'bg-ios-gray-500 opacity-50 cursor-not-allowed' : 'bg-ios-blue text-white shadow-ios-blue/30'}
+                                    ${!routeGeometry ? 'bg-ios-gray-500 opacity-50 cursor-not-allowed' : 'bg-ios-blue text-white shadow-ios-blue/30 hover:bg-ios-blue-600'}
                                 `}
                             >
-                                {!routeGeometry ? 'Select a Route First' : status === 'calculating' ? 'Calculating...' : t('offline.startSecure', 'Initialize Protection')}
+                                {!routeGeometry ? 'Select a Route First' : status === 'calculating' ? 'Calculating...' : t('offline.startSecure', 'Protect Trip')}
                             </motion.button>
                         ) : (
                             <motion.div

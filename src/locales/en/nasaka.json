@@ -57,7 +57,8 @@
     "far": "Far",
     "location": "Location",
     "locationUnavailable": "Location Unavailable",
-    "officeName": "IEBC Office"
+    "officeName": "IEBC Office",
+    "nearLandmark": "Near"
   },
   "bottomSheet": {
     "locationAccessRequired": "Location Access Required",
@@ -117,7 +118,16 @@
     "openApp": "Open app",
     "trafficSurchargeIncluded": "Prices include traffic surcharge",
     "coordinatesCopied": "Coordinates copied to clipboard!",
-    "copyCoordinatesPrompt": "Copy coordinates:"
+    "copyCoordinatesPrompt": "Copy coordinates:",
+    "protectionTitle": "Trip Protection",
+    "config": "Configuration",
+    "coverage": "Coverage Area",
+    "estSize": "Estimated Payload",
+    "tileCount": "Tile Count",
+    "startSecure": "Protect Trip",
+    "storageStatus": "Device Storage Status",
+    "sidebarTitle": "Offline Maps",
+    "sidebarDesc": "Download map tiles along your route to ensure navigation continues even when you lose internet connection in \"dead zones\"."
   },
   "officeList": {
     "searchResults": "Search Results",
