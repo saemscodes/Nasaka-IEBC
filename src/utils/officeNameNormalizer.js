@@ -168,7 +168,7 @@ function cleanDisplayName(raw) {
 // ─── Compose Smart Office Display Name ───────────────────────────────────────
 // Combines office_location + landmark into a clean, aesthetic display name.
 // Priority: clean_office_location > IEBC_OFFICE_NAMES lookup > normalized office_location
-export function getOfficeDisplayName(office) {
+function getOfficeDisplayName(office) {
     if (!office) return 'IEBC Office';
 
     const constituencyName = (office.constituency_name || office.constituency || '').trim();
@@ -201,7 +201,7 @@ export function getOfficeDisplayName(office) {
 }
 
 // Get a clean landmark description
-export function getOfficeLandmark(office) {
+function getOfficeLandmark(office) {
     if (!office) return null;
 
     // Check static lookup first
@@ -219,7 +219,7 @@ export function getOfficeLandmark(office) {
 }
 
 // Get a clean distance-from-landmark string
-export function getOfficeLandmarkDistance(office) {
+function getOfficeLandmarkDistance(office) {
     const code = office?.constituency_code;
     const lookup = code ? IEBC_OFFICE_NAMES[code] : null;
     if (lookup?.distance) {
