@@ -1,3 +1,4 @@
+// src/components/IEBCOffice/OfflineRouteDownloader.tsx
 import React, { useState, useEffect, useImperativeHandle, forwardRef, useMemo } from 'react';
 import { getTilesForRoute, getStorageEstimate, requestPersistentStorage } from '@/utils/tileUtils';
 import type { TileDownloadPlan } from '@/utils/tileUtils';
@@ -5,6 +6,32 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+
+// === INTERNAL SVG COMPONENTS ===
+const IconSun = ({ className = "w-4 h-4" }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 7C9.23858 7 7 9.23858 7 12C7 14.7614 9.23858 17 12 17C14.7614 17 17 14.7614 17 12C17 9.23858 14.7614 7 12 7Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M12 1V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M12 21V23" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M4.22 4.22L5.64 5.64" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M18.36 18.36L19.78 19.78" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M1 12H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M21 12H23" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M4.22 19.78L5.64 18.36" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M18.36 5.64L19.78 4.22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+);
+
+const IconCar = ({ className = "w-4 h-4" }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18.1565 17.5878L19.2335 19.9572C19.4673 20.4716 19.1219 21.0581 18.572 21.1118C16.1438 21.3489 11.2334 21.6667 9.4 21.6667C7.56667 21.6667 2.65623 21.3489 0.228023 21.1118C-0.32185 21.0581 -0.667253 20.4716 -0.433519 19.9572L0.643492 17.5878" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M17.3333 13V17.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M1.46667 13V17.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M3.73333 19C4.65381 19 5.4 18.2538 5.4 17.3333C5.4 16.4129 4.65381 15.6667 3.73333 15.6667C2.81286 15.6667 2.06667 16.4129 2.06667 17.3333C2.06667 18.2538 2.81286 19 3.73333 19Z" fill="currentColor" />
+        <path d="M15.0667 19C15.9871 19 16.7333 18.2538 16.7333 17.3333C16.7333 16.4129 15.9871 15.6667 15.0667 15.6667C14.1462 15.6667 13.4 16.4129 13.4 17.3333C13.4 18.2538 14.1462 19 15.0667 19Z" fill="currentColor" />
+        <path d="M16.5 9.77197L15.9189 6.86616C15.5492 5.01777 13.9181 3.66663 12.0287 3.66663H6.7712C4.88179 3.66663 3.25071 5.01777 2.88102 6.86616L2.29995 9.77197C2.0834 10.8547 2.50341 11.9701 3.38531 12.6559L4.44521 13.4795C5.02102 13.9271 5.73199 14.1666 6.46332 14.1666H12.3366C13.0679 14.1666 13.7789 13.9271 14.3547 13.4795L15.4146 12.6559C16.2965 11.9701 16.7165 10.8547 16.5 9.77197Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+);
 
 interface OfflineRouteDownloaderProps {
     office: any;
@@ -194,7 +221,7 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                             {travelInsights && (
                                 <div className="flex items-center gap-3">
                                     <div className={`p-2 rounded-xl ${isDark ? 'bg-ios-blue/20' : 'bg-ios-blue/10'}`}>
-                                        <img src="/context/Button icons/sun-svgrepo-com.svg" className="w-4 h-4" alt="weather" />
+                                        <IconSun className="w-4 h-4" />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-center">
@@ -210,7 +237,7 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                             {trafficInfo && (
                                 <div className="flex items-center gap-3 border-t pt-3 border-border/20">
                                     <div className={`p-2 rounded-xl ${isDark ? 'bg-orange-500/20' : 'bg-orange-500/10'}`}>
-                                        <img src="/context/Button icons/car-front-view-609-svgrepo-com.svg" className="w-4 h-4" alt="traffic" />
+                                        <IconCar className="w-4 h-4" />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-[10px] font-bold opacity-50 uppercase tracking-tighter">{t('offline.traffic', 'Traffic')}</p>
