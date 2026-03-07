@@ -16,8 +16,9 @@
     "search": "Ronderera",
     "filter": "Sorora",
     "select": "Churura",
-    "optional": "Tiechageke",
-    "required": "Echageke"
+    "optional": "Inya taito",
+    "required": "Inya ochuno",
+    "dismiss": "Ndera Omosura"
   },
   "splash": {
     "title": "NASAKA",
@@ -48,8 +49,6 @@
     "query": "Ekeburio"
   },
   "office": {
-    "tapForDirections": "Shisha nigo umanye njira",
-    "noLocationAccess": "Tamona ekibi kia kumania gesera",
     "distance": "{{distance}} km",
     "veryClose": "Orivikiiri muno",
     "nearby": "Ovikiiri",
@@ -117,8 +116,11 @@
     "openApp": "Evora app",
     "trafficSurchargeIncluded": "Amafaranga gangetangwa okwongera kwa emigare",
     "coordinatesCopied": "Ebipimo binyereirwe!",
-    "copyCoordinatesPrompt": "Nyera ebipimo:",
-    "moreOnOffice": "Amang'ana ayange igoro yo {{officeName}}"
+    "copyCoordinatesPrompt": "Kopera amapicha:",
+    "moreOnOffice": "Amatampi Amarangire Ya IEBC: {{officeName}}",
+    "offlineMap": "Okorinda Endia",
+    "tapForDirections": "Shisha nigo umanye njira",
+    "noLocationAccess": "Tamona ekibi kia kumania gesera"
   },
   "officeList": {
     "searchResults": "Ebinto Ebirinkenwe Koronderera",

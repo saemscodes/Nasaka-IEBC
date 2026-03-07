@@ -27,29 +27,34 @@ import {
 } from '@/utils/officeNameNormalizer';
 import UberModal from './UberModal';
 import OfflineRouteDownloader from './OfflineRouteDownloader';
-import {
-  MapPin,
-  Navigation,
-  Phone,
-  Clock,
-  Banknote,
-  Cloud,
-  CloudRain,
-  Wind,
-  AlertTriangle,
-  ChevronRight,
-  Info,
-  Layers,
-  Download,
-  Wallet,
-  Car,
-  Bike,
-  Sparkles,
-  Users
-} from 'lucide-react';
 import i18next from 'i18next';
 import { useNavigate } from 'react-router-dom';
 import { slugify } from '@/components/SEO/SEOHead';
+
+// Premium SVG Component: Uber Logo (2018)
+const UberLogo = ({ className }) => (
+  <svg viewBox="0 0 512 512" className={className} fill="currentColor">
+    <path d="M119.8,303.6c17.6,0,31.3-13.6,31.3-33.8V191.3h19.1V318.6H151.3V306.8a45.9,45.9,0,0,1-33.6,14c-27.3,0-48.2-19.8-48.2-49.8V191.4H88.6v78.5c0,20.5,13.4,33.7,31.2,33.7m64.6-112.3h18.4v46.4a46.11,46.11,0,0,1,32.9-13.8,48.45,48.45,0,0,1,0,96.9A46.52,46.52,0,0,1,202.6,307v11.6H184.4V191.3Zm50,113.2a32.2,32.2,0,1,0-32-32.4v.2a32,32,0,0,0,31.8,32.2h.2M339.3,224c26.7,0,46.4,20.5,46.4,48.2v6H310.3A31.09,31.09,0,0,0,341,304.6c10.7,0,19.8-4.4,26.7-13.6l13.3,9.8c-9.3,12.4-23.1,19.8-40,19.8-27.8,0-49.3-20.7-49.3-48.4-.1-26.2,20.5-48.2,47.6-48.2m-28.8,39.6H367c-3.1-14.2-14.5-23.6-28.2-23.6-13.5,0-25,9.5-28.3,23.6m124.4-21.4c-12,0-20.7,9.3-20.7,23.6v52.7H395.8V225.8H414v11.5c4.5-7.5,12-12.2,22.2-12.2h6.4v17.1Z" />
+  </svg>
+);
+
+// Premium SVG Component: Apple Logo [#173]
+const AppleLogo = ({ className }) => (
+  <svg viewBox="-1.5 0 20 20" className={className} fill="currentColor">
+    <g transform="translate(-46, -7279)">
+      <path d="M57.5708873,7282.19296 C58.2999598,7281.34797 58.7914012,7280.17098 58.6569121,7279 C57.6062792,7279.04 56.3352055,7279.67099 55.5818643,7280.51498 C54.905374,7281.26397 54.3148354,7282.46095 54.4735932,7283.60894 C55.6455696,7283.69593 56.8418148,7283.03894 57.5708873,7282.19296 M60.1989864,7289.62485 C60.2283111,7292.65181 62.9696641,7293.65879 63,7293.67179 C62.9777537,7293.74279 62.562152,7295.10677 61.5560117,7296.51675 C60.6853718,7297.73474 59.7823735,7298.94772 58.3596204,7298.97372 C56.9621472,7298.99872 56.5121648,7298.17973 54.9134635,7298.17973 C53.3157735,7298.17973 52.8162425,7298.94772 51.4935978,7298.99872 C50.1203933,7299.04772 49.0738052,7297.68074 48.197098,7296.46676 C46.4032359,7293.98379 45.0330649,7289.44985 46.8734421,7286.3899 C47.7875635,7284.87092 49.4206455,7283.90793 51.1942837,7283.88393 C52.5422083,7283.85893 53.8153044,7284.75292 54.6394294,7284.75292 C55.4635543,7284.75292 57.0106846,7283.67793 58.6366882,7283.83593 C59.3172232,7283.86293 61.2283842,7284.09893 62.4549652,7285.8199 C62.355868,7285.8789 60.1747177,7287.09489 60.1989864,7289.62485" />
+    </g>
+  </svg>
+);
+
+// Premium SVG Component: Copy Icon
+const CopyIcon = ({ className }) => (
+  <svg viewBox="0 0 24 24" className={className} fill="none">
+    <path d="M15.24 2H11.3458C9.58159 1.99999 8.18418 1.99997 7.09054 2.1476C5.96501 2.29953 5.05402 2.61964 4.33559 3.34096C3.61717 4.06227 3.29833 4.97692 3.14701 6.10697C2.99997 7.205 2.99999 8.60802 3 10.3793V16.2169C3 17.725 3.91995 19.0174 5.22717 19.5592C5.15989 18.6498 5.15994 17.3737 5.16 16.312L5.16 11.3976L5.16 11.3024C5.15993 10.0207 5.15986 8.91644 5.27828 8.03211C5.40519 7.08438 5.69139 6.17592 6.4253 5.43906C7.15921 4.70219 8.06404 4.41485 9.00798 4.28743C9.88877 4.16854 10.9887 4.1686 12.2652 4.16867L12.36 4.16868H15.24L15.3348 4.16867C16.6113 4.1686 17.7088 4.16854 18.5896 4.28743C18.0627 2.94779 16.7616 2 15.24 2Z" fill="currentColor" />
+    <path d="M6.6001 11.3974C6.6001 8.67119 6.6001 7.3081 7.44363 6.46118C8.28716 5.61426 9.64481 5.61426 12.3601 5.61426H15.2401C17.9554 5.61426 19.313 5.61426 20.1566 6.46118C21.0001 7.3081 21.0001 8.6712 21.0001 11.3974V16.2167C21.0001 18.9429 21.0001 20.306 20.1566 21.1529C19.313 21.9998 17.9554 21.9998 15.2401 21.9998H12.3601C9.64481 21.9998 8.28716 21.9998 7.44363 21.1529C6.6001 20.306 6.6001 18.9429 6.6001 16.2167V11.3974Z" fill="currentColor" />
+  </svg>
+);
+
 const OfficeBottomSheet = ({
   office,
   userLocation,
@@ -65,6 +70,7 @@ const OfficeBottomSheet = ({
   const navigate = useNavigate();
   const [dragY, setDragY] = useState(0);
   const [showUberModal, setShowUberModal] = useState(false);
+  const [showOfflineDownloader, setShowOfflineDownloader] = useState(false);
   const [showFareDetails, setShowFareDetails] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isCollapsingForModal, setIsCollapsingForModal] = useState(false);
@@ -77,7 +83,7 @@ const OfficeBottomSheet = ({
 
   // Handle backdrop click to minimize
   const handleBackdropClick = (e) => {
-    if (e.target === backdropRef.current && state === 'expanded' && !showUberModal) {
+    if (e.target === backdropRef.current && state === 'expanded' && !showUberModal && !showOfflineDownloader) {
       onCollapse?.();
     }
   };
@@ -85,13 +91,13 @@ const OfficeBottomSheet = ({
   // Handle escape key to minimize
   useEffect(() => {
     const handleEscapeKey = (e) => {
-      if (e.key === 'Escape' && state === 'expanded' && !showUberModal) {
+      if (e.key === 'Escape' && state === 'expanded' && !showUberModal && !showOfflineDownloader) {
         onCollapse?.();
       }
     };
     document.addEventListener('keydown', handleEscapeKey);
     return () => document.removeEventListener('keydown', handleEscapeKey);
-  }, [state, showUberModal, onCollapse]);
+  }, [state, showUberModal, showOfflineDownloader, onCollapse]);
 
   // Calculate distance to office - ONLY if we have location access
   const distanceToOffice = useMemo(() => {
@@ -230,23 +236,17 @@ const OfficeBottomSheet = ({
 
   if (!office && state === 'hidden') return null;
 
-  // Get provider colors
-  const googleColors = getProviderColors('google', isDark);
-  const appleColors = getProviderColors('apple', isDark);
-  const uberColors = getProviderColors('uber', isDark);
-  const boltColors = getProviderColors('bolt', isDark);
-
   return (
     <>
       {/* Backdrop for tapping outside - Only when expanded and no modal open */}
       <AnimatePresence>
-        {state === 'expanded' && !showUberModal && (
+        {state === 'expanded' && !showUberModal && !showOfflineDownloader && (
           <motion.div
             ref={backdropRef}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="office-bottom-sheet-backdrop active backdrop-transition"
+            className={`office-bottom-sheet-backdrop active backdrop-blur-md transition-all duration-300 ${isDark ? 'bg-black/60' : 'bg-black/20'}`}
             onClick={handleBackdropClick}
             style={{ cursor: 'pointer' }}
           />
@@ -275,87 +275,57 @@ const OfficeBottomSheet = ({
             }}
             exit={{ y: '100%' }}
             className={`office-bottom-sheet ${state} ${isDark
-              ? 'bg-card border-border text-foreground'
-              : 'bg-white border-ios-gray-200 text-ios-gray-900'
-              } transition-colors duration-300`}
+              ? 'bg-[#0A0A0F] border-white/10 text-white shadow-[0_-8px_40px_rgba(0,0,0,0.6)]'
+              : 'bg-white border-ios-gray-200 text-ios-gray-900 shadow-[0_-8px_30px_rgba(0,0,0,0.08)]'
+              } rounded-t-[2.5rem] backdrop-blur-3xl overflow-hidden transition-colors duration-300`}
             style={{ y: dragY }}
           >
             {/* Drag Handle */}
             <div
-              className={`bottom-sheet-handle ${isDark ? 'bg-ios-gray-400' : 'bg-ios-gray-300'
+              className={`w-12 h-1.5 mx-auto mt-3 rounded-full ${isDark ? 'bg-white/10' : 'bg-ios-gray-300'
                 } transition-colors duration-300`}
               onPointerDown={e => dragControls.start(e)}
             />
 
             {/* Peek Preview */}
-            <div className="px-5 py-3 cursor-pointer" onClick={handlePeekTap}>
+            <div className="px-6 py-4 cursor-pointer" onClick={handlePeekTap}>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className={`font-semibold text-lg line-clamp-1 transition-colors duration-300 ${isDark ? 'text-white' : 'text-foreground'}`}>
-                      {office.office_name || office.constituency_name || t('office.officeName', 'IEBC Office')}
-                    </h3>
-                  </div>
-
-                  <div className="flex items-center gap-3 mt-1 overflow-x-auto no-scrollbar pb-1">
-                    {(() => {
-                      const dn = getOfficeDisplayName(office);
-                      const cn = (office.constituency_name || '').toLowerCase();
-                      return dn && dn.toLowerCase() !== cn && dn !== 'IEBC Office' ? (
-                        <div className="flex items-center gap-1 shrink-0">
-                          <MapPin className={`w-3 h-3 ${isDark ? 'text-ios-blue-400' : 'text-primary'}`} />
-                          <p className={`text-[11px] font-medium transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-primary'}`}>
-                            {dn}
-                          </p>
-                        </div>
-                      ) : null;
-                    })()}
-
-                    {/* Weather & Traffic in Peek as requested */}
-                    {hasLocationAccess && travelInsights && (
-                      <div className="flex items-center gap-3 shrink-0">
-                        <div className="flex items-center gap-1">
-                          {travelInsights.weatherDesc?.toLowerCase().includes('rain') ? (
-                            <CloudRain className="w-3 h-3 text-blue-400" />
-                          ) : (
-                            <Cloud className="w-3 h-3 text-ios-gray-400" />
-                          )}
-                          <span className="text-[11px] text-muted-foreground">{travelInsights.weatherDesc}</span>
-                        </div>
-                        {trafficInfo && (
-                          <div className="flex items-center gap-1">
-                            <Car className={`w-3 h-3 ${trafficInfo.color}`} />
-                            <span className={`text-[11px] ${trafficInfo.color}`}>{trafficInfo.description}</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <p className={`text-xs mt-0.5 line-clamp-1 opacity-60 transition-colors duration-300 ${isDark ? 'text-ios-gray-300' : 'text-muted-foreground'}`}>
-                    {office.constituency_name && office.county
-                      ? `${office.constituency_name}, ${office.county}`
-                      : office.county || office.constituency_name || t('office.location', 'Location')}
+                  <h3 className={`font-bold text-xl tracking-tight transition-colors duration-300 ${isDark ? 'text-white' : 'text-ios-gray-900'
+                    }`}>
+                    {office.office_name || office.constituency_name || t('office.officeName', 'IEBC Office')}
+                  </h3>
+                  <p className={`text-sm font-medium mt-1 transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-[#007AFF]'
+                    }`}>
+                    📍 {office.constituency_name}, {office.county}
                   </p>
                 </div>
 
                 {/* Show distance and fare ONLY if we have location access */}
                 {hasLocationAccess && distanceToOffice && (
-                  <div className="ml-4 text-right shrink-0">
-                    <div className="flex items-center justify-end gap-1">
-                      <Navigation className={`w-3 h-3 ${isDark ? 'text-ios-blue-400' : 'text-primary'}`} />
-                      <span className={`text-sm font-bold transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-primary'}`}>
-                        {distanceToOffice.toFixed(1)} km
-                      </span>
-                    </div>
+                  <div className="ml-4 text-right">
+                    <span className={`text-sm font-black transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-[#007AFF]'
+                      }`}>
+                      {t('office.distance', { distance: distanceToOffice.toFixed(1) })}
+                    </span>
                     {cheapestFare && (
-                      <div className="flex items-center justify-end gap-1 mt-0.5">
-                        <Wallet className="w-3 h-3 text-green-500" />
-                        <p className={`text-xs font-black transition-colors duration-300 ${isDark ? 'text-green-400' : 'text-green-600'}`}>
-                          {formatFare(cheapestFare.total)}
-                        </p>
-                      </div>
+                      <p className={`text-xs mt-1 font-black transition-colors duration-300 ${isDark ? 'text-green-400' : 'text-green-600'
+                        }`}>
+                        {formatFare(cheapestFare.total)}
+                      </p>
                     )}
+                  </div>
+                )}
+                {!hasLocationAccess && (
+                  <div className="ml-4 text-right">
+                    <span className={`text-sm font-black transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-[#007AFF]'
+                      }`}>
+                      {t('office.tapForDirections', 'Tap for Directions')}
+                    </span>
+                    <p className={`text-xs mt-1 font-medium transition-colors duration-300 ${isDark ? 'text-ios-gray-500' : 'text-ios-gray-400'
+                      }`}>
+                      {t('office.noLocationAccess', 'No Location Access')}
+                    </p>
                   </div>
                 )}
               </div>
@@ -364,615 +334,459 @@ const OfficeBottomSheet = ({
             {/* Expanded Content */}
             {state === 'expanded' && (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ delay: 0.1 }}
-                className="bottom-sheet-content green-scrollbar"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ delay: 0.1, duration: 0.3 }}
+                className="px-6 pb-10 space-y-6 overflow-y-auto max-h-[calc(85vh-80px)] premium-scrollbar"
               >
-                <div className="space-y-4">
-                  {/* Header */}
-                  <div className={`border-b pb-4 transition-colors duration-300 ${isDark ? 'border-ios-gray-600' : 'border-border'
-                    }`}>
-                    <h2 className={`text-2xl font-bold transition-colors duration-300 ${isDark ? 'text-white' : 'text-foreground'
-                      }`}>
-                      {office.office_name || office.constituency_name || t('office.officeName', 'IEBC Office')}
-                    </h2>
-                    {(() => {
-                      const dn = getOfficeDisplayName(office);
-                      const cn = (office.constituency_name || '').toLowerCase();
-                      return dn && dn.toLowerCase() !== cn && dn !== 'IEBC Office' ? (
-                        <p className={`text-sm font-medium mt-1 transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-primary'
-                          }`}>
-                          📍 {dn}
-                        </p>
-                      ) : null;
-                    })()}
-                    {(() => {
-                      const lm = getOfficeLandmark(office);
-                      const dist = getOfficeLandmarkDistance(office);
-                      return lm ? (
-                        <div className="flex items-center gap-1.5 mt-1.5 opacity-70">
-                          <MapPin className="w-3.5 h-3.5" />
-                          <p className="text-xs font-semibold uppercase tracking-wider">
-                            {t('office.nearLandmark', 'Near')}: <span className={isDark ? 'text-white' : 'text-black'}>{lm}</span>
-                            {dist && dist !== 'On-site' ? (
-                              <span className="ml-1 opacity-60"> — {dist} to IEBC Office</span>
-                            ) : dist === 'On-site' ? ' — On-site' : ''}
-                          </p>
-                        </div>
-                      ) : null;
-                    })()}
+                {/* Header Info */}
+                <div className={`pt-2 pb-6 border-b transition-colors duration-300 ${isDark ? 'border-white/5' : 'border-ios-gray-100'
+                  }`}>
+                  <div className="flex flex-wrap gap-2 mb-4">
                     {office.office_type && (
-                      <span className={`inline-block mt-2 px-3 py-1 text-xs font-medium rounded-full transition-colors duration-300 ${isDark
-                        ? 'bg-ios-blue/30 text-ios-blue-400'
-                        : 'bg-primary/20 text-primary'
+                      <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full ${isDark
+                        ? 'bg-ios-blue/10 text-ios-blue-400 border border-ios-blue/20'
+                        : 'bg-[#007AFF]/10 text-[#007AFF] border border-[#007AFF]/20'
                         }`}>
                         {office.office_type}
                       </span>
                     )}
+                    <button
+                      onClick={() => setShowOfflineDownloader(true)}
+                      className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-2 ${isDark
+                        ? 'bg-white/5 text-white border border-white/10 hover:bg-white/10'
+                        : 'bg-ios-gray-100 text-ios-gray-900 border border-black/5 hover:bg-ios-gray-200'
+                        } transition-all active:scale-[0.95]`}
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      {t('bottomSheet.offlineMap', 'Trip Protection')}
+                    </button>
                   </div>
 
-                  {/* LOCATION ACCESS WARNING - SHOW WHEN NO ACCESS */}
-                  {!hasLocationAccess && (
-                    <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark
-                      ? 'bg-yellow-900/20 border-yellow-700/30'
-                      : 'bg-yellow-50 border-yellow-200'
-                      }`}>
-                      <div className="flex items-start space-x-3">
-                        <span className="text-xl mt-0.5">📍</span>
-                        <div className="flex-1">
-                          <h4 className={`text-sm font-semibold mb-1 ${isDark ? 'text-yellow-300' : 'text-yellow-800'
-                            }`}>
-                            {t('bottomSheet.locationAccessRequired', 'Location Access Required')}
-                          </h4>
-                          <p className={`text-xs ${isDark ? 'text-yellow-200' : 'text-yellow-700'
-                            }`}>
-                            {t('bottomSheet.locationAccessDesc', 'Enable location access to see fare estimates, get directions from your current location, and find the nearest route to this office.')}
+                  {(() => {
+                    const lm = getOfficeLandmark(office);
+                    const dist = getOfficeLandmarkDistance(office);
+                    return lm ? (
+                      <div className={`p-4 rounded-2xl mb-4 flex items-center gap-3 ${isDark ? 'bg-white/5 border border-white/5' : 'bg-ios-gray-50 border border-ios-gray-100'}`}>
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDark ? 'bg-white/10' : 'bg-white shadow-sm'}`}>
+                          <span className="text-xl">📍</span>
+                        </div>
+                        <div>
+                          <p className={`text-[11px] font-black uppercase tracking-tight ${isDark ? 'text-ios-gray-500' : 'text-ios-gray-400'}`}>
+                            {t('office.nearLandmark', 'Exact Location Landmark')}
                           </p>
-                          <button
-                            onClick={() => window.location.reload()}
-                            className={`mt-2 text-xs px-3 py-1 rounded-full font-medium transition-colors ${isDark
-                              ? 'bg-yellow-700 hover:bg-yellow-600 text-white'
-                              : 'bg-yellow-200 hover:bg-yellow-300 text-yellow-900'
-                              }`}
-                          >
-                            {t('bottomSheet.enableLocationAccess', 'Enable Location Access')}
-                          </button>
+                          <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>
+                            {lm} <span className={`ml-1 font-medium ${isDark ? 'text-ios-blue-400' : 'text-[#007AFF]'}`}>{dist}</span>
+                          </p>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    ) : null;
+                  })()}
+                </div>
 
-                  {/* FARE ESTIMATES CARD - ONLY SHOW IF LOCATION ACCESS GRANTED */}
-                  {hasLocationAccess && fareEstimates && (
-                    <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark
-                      ? 'bg-gradient-to-br from-green-900/20 to-blue-900/20 border-green-700/30'
-                      : 'bg-gradient-to-br from-green-50 to-blue-50 border-green-200'
-                      }`}>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-3">
-                          <div className={`p-2 rounded-xl ${isDark ? 'bg-green-500/20' : 'bg-green-100'}`}>
-                            <Banknote className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
-                          </div>
-                          <div>
-                            <h4 className={`text-sm font-black uppercase tracking-widest ${isDark ? 'text-green-300' : 'text-green-800'}`}>
-                              {t('bottomSheet.estimatedRideCost', 'Estimated Ride Cost')}
-                            </h4>
-                            <div className="flex items-center space-x-2 mt-0.5">
-                              <span className={`text-xs font-bold leading-none flex items-center gap-1 ${trafficInfo?.color || 'text-gray-500'}`}>
-                                {trafficInfo?.icon === 'sunrise' ? <Clock className="w-3 h-3" /> : <Car className="w-3 h-3" />}
-                                {trafficInfo?.description || t('bottomSheet.normalTraffic', 'Normal traffic')}
-                              </span>
-                              <div className="w-1 h-1 rounded-full bg-current opacity-30" />
-                              <span className={`text-xs font-bold ${isDark ? 'text-ios-gray-400' : 'text-gray-600'}`}>
-                                {distanceToOffice?.toFixed(1)} km
-                              </span>
-                            </div>
-                          </div>
-                        </div>
+                {/* LOCATION ACCESS WARNING */}
+                {!hasLocationAccess && (
+                  <div className={`rounded-[2rem] p-5 border transition-all duration-300 ${isDark
+                    ? 'bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/20'
+                    : 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200'
+                    }`}>
+                    <div className="flex items-start space-x-4">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-yellow-500/20' : 'bg-white shadow-md'}`}>
+                        <span className="text-2xl">⚠️</span>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className={`text-base font-black tracking-tight mb-1 ${isDark ? 'text-yellow-400' : 'text-yellow-800'}`}>
+                          {t('bottomSheet.locationAccessRequired', 'Location Access Required')}
+                        </h4>
+                        <p className={`text-xs font-medium leading-relaxed ${isDark ? 'text-ios-gray-400' : 'text-yellow-700/80'}`}>
+                          {t('bottomSheet.locationAccessDesc', 'Enable location access to calculate real-time fares, travel difficulty, and precise directions from your current position.')}
+                        </p>
                         <button
-                          onClick={() => setShowFareDetails(!showFareDetails)}
-                          className={`text-xs px-3 py-1 rounded-full transition-colors ${isDark
-                            ? 'bg-ios-gray-700 text-ios-gray-300 hover:bg-ios-gray-600'
-                            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                          onClick={() => window.location.reload()}
+                          className={`mt-4 w-full py-3 rounded-xl font-black text-sm transition-all active:scale-[0.98] ${isDark
+                            ? 'bg-yellow-500 text-black hover:bg-yellow-400 shadow-lg shadow-yellow-500/20'
+                            : 'bg-yellow-500 text-white hover:bg-yellow-600 shadow-lg shadow-yellow-500/15'
                             }`}
                         >
-                          {showFareDetails ? t('bottomSheet.hide', 'Hide') : t('bottomSheet.showAll', 'Show All')}
+                          {t('bottomSheet.enableLocationAccess', 'Enable Access')}
                         </button>
                       </div>
+                    </div>
+                  </div>
+                )}
 
-                      {/* Cheapest Option Highlight */}
-                      {cheapestFare && (
-                        <div className={`rounded-lg p-3 mb-3 ${isDark ? 'bg-black/30' : 'bg-white/80'
-                          }`}>
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className={`text-[10px] font-black uppercase tracking-wider mb-1 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
-                                {t('bottomSheet.cheapestOption', 'Best Price')}
-                              </p>
-                              <div className="flex items-center gap-2">
-                                {cheapestFare.icon === 'car' ? <Car className="w-5 h-5" /> :
-                                  cheapestFare.icon === 'motorcycle' ? <Bike className="w-5 h-5" /> :
-                                    cheapestFare.icon === 'sparkles' ? <Sparkles className="w-5 h-5" /> :
-                                      <Users className="w-5 h-5" />}
-                                <p className={`text-lg font-black ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                  {cheapestFare.displayName}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className={`text-2xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'
-                                }`}>
-                                {formatFare(cheapestFare.total)}
-                              </p>
-                              <p className={`text-xs ${isDark ? 'text-ios-gray-400' : 'text-gray-500'
-                                }`}>
-                                ~{cheapestFare.estimatedMinutes} {t('bottomSheet.estimatedTime', 'min')}
+                {/* FARE ESTIMATES CARD */}
+                {hasLocationAccess && fareEstimates && (
+                  <div className={`rounded-[2rem] p-6 border transition-all duration-300 ${isDark
+                    ? 'bg-card border-white/5 shadow-2xl saturate-[1.1]'
+                    : 'bg-ios-gray-50 border-ios-gray-100'
+                    }`}>
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDark ? 'bg-green-500/10' : 'bg-white shadow-sm'}`}>
+                          <span className="text-xl">💰</span>
+                        </div>
+                        <div>
+                          <h4 className={`text-sm font-black tracking-tight ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>
+                            {t('bottomSheet.estimatedRideCost', 'Route Pricing')}
+                          </h4>
+                          <div className="flex items-center space-x-2 mt-0.5">
+                            <span className={`text-[10px] font-bold ${trafficInfo?.color || 'text-gray-500'}`}>
+                              {trafficInfo?.icon || '🚗'} {trafficInfo?.description || t('bottomSheet.normalTraffic', 'Normal traffic')}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setShowFareDetails(!showFareDetails)}
+                        className={`text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full transition-all active:scale-[0.95] ${isDark
+                          ? 'bg-white/5 text-ios-gray-400 hover:bg-white/10'
+                          : 'bg-white text-ios-gray-600 border border-ios-gray-200 hover:bg-ios-gray-50 shadow-sm'
+                          }`}
+                      >
+                        {showFareDetails ? t('bottomSheet.hide', 'Hide') : t('bottomSheet.details', 'Details')}
+                      </button>
+                    </div>
+
+                    {cheapestFare && (
+                      <div className={`rounded-3xl p-5 mb-4 ${isDark
+                        ? 'bg-gradient-to-br from-green-500/10 to-transparent border border-green-500/20'
+                        : 'bg-white border border-green-200 shadow-sm'
+                        }`}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className={`text-[10px] font-black uppercase tracking-[0.1em] mb-1 ${isDark ? 'text-green-400' : 'text-green-600'}`}>
+                              {t('bottomSheet.cheapestOption', 'Best Value Option')}
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <span className="text-2xl">{cheapestFare.icon}</span>
+                              <p className={`text-lg font-black tracking-tight ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>
+                                {cheapestFare.displayName}
                               </p>
                             </div>
                           </div>
+                          <div className="text-right">
+                            <p className={`text-2xl font-black ${isDark ? 'text-green-400' : 'text-green-600'}`}>
+                              {formatFare(cheapestFare.total)}
+                            </p>
+                            <p className={`text-[10px] font-bold ${isDark ? 'text-ios-gray-500' : 'text-ios-gray-400'}`}>
+                              ~{cheapestFare.estimatedMinutes} {t('bottomSheet.estimatedTime', 'min drive')}
+                            </p>
+                          </div>
                         </div>
-                      )}
+                      </div>
+                    )}
 
-                      {/* Detailed Fare Breakdown */}
-                      <AnimatePresence>
-                        {showFareDetails && fareEstimates && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="space-y-3 mt-3"
-                          >
-                            {/* Uber Options */}
-                            <div>
-                              <p className={`text-xs font-semibold mb-2 ${isDark ? 'text-ios-gray-300' : 'text-gray-700'
-                                }`}>
-                                {t('bottomSheet.uberServices', 'Uber Services')}
-                              </p>
-                              <div className="grid grid-cols-2 gap-2">
-                                {Object.entries(fareEstimates.uber).map(([key, fare]) => (
+                    <AnimatePresence>
+                      {showFareDetails && fareEstimates && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="space-y-4 mt-4"
+                        >
+                          {/* Uber Breakdown */}
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between px-2">
+                              <p className={`text-[11px] font-black uppercase tracking-widest ${isDark ? 'text-ios-gray-500' : 'text-ios-gray-400'}`}>Uber</p>
+                              <UberLogo className={`h-3 w-auto ${isDark ? 'text-white/40' : 'text-black/30'}`} />
+                            </div>
+                            <div className="grid grid-cols-1 gap-2">
+                              {Object.entries(fareEstimates.uber).map(([key, fare]) => (
+                                <div
+                                  key={key}
+                                  className={`p-4 rounded-2xl flex items-center justify-between transition-all ${isDark
+                                    ? 'bg-white/5 border border-white/5'
+                                    : 'bg-white border border-ios-gray-100 shadow-sm'
+                                    }`}
+                                >
+                                  <div className="flex items-center gap-4">
+                                    <span className="text-2xl">{fare.icon}</span>
+                                    <div>
+                                      <p className={`text-sm font-black ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>
+                                        {fare.displayName}
+                                      </p>
+                                      <p className={`text-[10px] font-bold ${isDark ? 'text-ios-gray-500' : 'text-ios-gray-400'}`}>
+                                        {fare.description}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className={`text-sm font-black ${isDark ? 'text-green-400' : 'text-green-600'}`}>
+                                      {formatFare(fare.total)}
+                                    </p>
+                                    {fare.trafficSurcharge > 0 && (
+                                      <p className={`text-[9px] font-black text-orange-500 uppercase tracking-tighter`}>
+                                        +{formatFare(fare.trafficSurcharge)} Traffic
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Bolt Breakdown */}
+                          {fareEstimates.bolt && (
+                            <div className="space-y-2 mt-4">
+                              <div className="flex items-center justify-between px-2">
+                                <p className={`text-[11px] font-black uppercase tracking-widest ${isDark ? 'text-ios-gray-500' : 'text-ios-gray-400'}`}>Bolt</p>
+                                <svg viewBox="0 0 111.9 65" className={`h-3 w-auto ${isDark ? 'fill-white/40' : 'fill-black/30'}`}><path d="M30.4,23c4.4-7.1,2.2-16.4-4.8-20.8C23.2,0.8,20.5,0,17.7,0H0v48.9h19.9c8.3,0,15-6.8,15-15.1 C34.9,29.7,33.3,25.9,30.4,23z M11.4,11.5h6.3c2,0,3.6,1.6,3.6,3.6c0,2-1.6,3.6-3.6,3.6h-6.3V11.5z M19.9,37.4h-8.5v-7.2h8.5 c2,0,3.6,1.6,3.6,3.6C23.5,35.8,21.9,37.4,19.9,37.4z M90,0v48.9H78.6V2.4L90,0z M56.8,13.9c-9.7,0-17.6,7.9-17.6,17.7 c0,9.8,7.9,17.7,17.6,17.7c9.7,0,17.6-7.9,17.6-17.7C74.3,21.8,66.5,13.9,56.8,13.9z M56.8,37.4c-3.2,0-5.7-2.6-5.7-5.7 c0-3.2,2.5-5.7,5.7-5.7c3.2,0,5.7,2.6,5.7,5.7C62.5,34.8,59.9,37.4,56.8,37.4z M62.5,59.3c0,3.2-2.6,5.7-5.7,5.7 c-3.1,0-5.7-2.6-5.7-5.7c0-3.2,2.6-5.7,5.7-5.7C59.9,53.5,62.5,56.1,62.5,59.3z M111.8,14.5V26h-5.7v9c0,2.7,0.9,4.7,3.2,4.7 c0.9,0,1.7-0.1,2.5-0.3v8.5c-1.7,0.9-3.6,1.4-5.6,1.4h-0.1c-0.1,0-0.1,0-0.2,0c-0.1,0-0.1,0-0.2,0h-0.1l-0.2,0 C99.1,49,94.7,45,94.7,37.9v0v0V26V8.2l11.4-2.4v8.8H111.8z" /></svg>
+                              </div>
+                              <div className="grid grid-cols-1 gap-2">
+                                {Object.entries(fareEstimates.bolt).map(([key, fare]) => (
                                   <div
                                     key={key}
-                                    className={`p-3 rounded-lg border ${isDark
-                                      ? 'bg-black/20 border-gray-700'
-                                      : 'bg-white/60 border-gray-200'
+                                    className={`p-4 rounded-2xl flex items-center justify-between transition-all ${isDark
+                                      ? 'bg-white/5 border border-white/5'
+                                      : 'bg-white border border-ios-gray-100 shadow-sm'
                                       }`}
                                   >
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                      <span className="text-2xl">{fare.icon}</span>
                                       <div>
-                                        <div className="flex items-center space-x-2">
-                                          <span className="text-sm">{fare.icon}</span>
-                                          <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'
-                                            }`}>
-                                            {fare.displayName}
-                                          </span>
-                                        </div>
-                                        <p className={`text-xs mt-1 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'
-                                          }`}>
+                                        <p className={`text-sm font-black ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>
+                                          {fare.displayName}
+                                        </p>
+                                        <p className={`text-[10px] font-bold ${isDark ? 'text-ios-gray-500' : 'text-ios-gray-400'}`}>
                                           {fare.description}
                                         </p>
                                       </div>
-                                      <div className="text-right">
-                                        <p className={`text-sm font-bold ${isDark ? 'text-green-400' : 'text-green-600'
-                                          }`}>
-                                          {formatFare(fare.total)}
-                                        </p>
-                                        {fare.trafficSurcharge > 0 && (
-                                          <p className={`text-xs ${isDark ? 'text-orange-400' : 'text-orange-600'
-                                            }`}>
-                                            +{formatFare(fare.trafficSurcharge)}
-                                          </p>
-                                        )}
-                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className={`text-sm font-black ${isDark ? 'text-green-400' : 'text-green-600'}`}>
+                                        {formatFare(fare.total)}
+                                      </p>
                                     </div>
                                   </div>
                                 ))}
                               </div>
                             </div>
-
-                            {/* Bolt Options */}
-                            {fareEstimates.bolt && (
-                              <div>
-                                <p className={`text-xs font-semibold mb-2 ${isDark ? 'text-ios-gray-300' : 'text-gray-700'
-                                  }`}>
-                                  {t('bottomSheet.boltServices', 'Bolt Services')}
-                                </p>
-                                <div className="grid grid-cols-2 gap-2">
-                                  {Object.entries(fareEstimates.bolt).map(([key, fare]) => (
-                                    <div
-                                      key={key}
-                                      className={`p-3 rounded-lg border ${isDark
-                                        ? 'bg-black/20 border-gray-700'
-                                        : 'bg-white/60 border-gray-200'
-                                        }`}
-                                    >
-                                      <div className="flex items-center justify-between">
-                                        <div>
-                                          <div className="flex items-center space-x-2">
-                                            <span className="text-sm">{fare.icon}</span>
-                                            <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'
-                                              }`}>
-                                              {fare.displayName}
-                                            </span>
-                                          </div>
-                                          <p className={`text-xs mt-1 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'
-                                            }`}>
-                                            {fare.description}
-                                          </p>
-                                        </div>
-                                        <div className="text-right">
-                                          <p className={`text-sm font-bold ${isDark ? 'text-green-400' : 'text-green-600'
-                                            }`}>
-                                            {formatFare(fare.total)}
-                                          </p>
-                                          {fare.trafficSurcharge > 0 && (
-                                            <p className={`text-xs ${isDark ? 'text-orange-400' : 'text-orange-600'
-                                              }`}>
-                                              +{formatFare(fare.trafficSurcharge)}
-                                            </p>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Traffic Info */}
-                            {fareEstimates.traffic?.multiplier > 1 && (
-                              <div className={`text-xs p-2 rounded mt-2 ${isDark
-                                ? 'bg-orange-900/20 text-orange-300'
-                                : 'bg-orange-50 text-orange-700'
-                                }`}>
-                                ⚠️ {fareEstimates.traffic.description} - {t('bottomSheet.trafficSurchargeIncluded', 'Prices include traffic surcharge')}
-                              </div>
-                            )}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-
-                      {/* Disclaimer */}
-                      <p className={`text-xs mt-3 italic ${isDark ? 'text-ios-gray-400' : 'text-gray-500'
-                        }`}>
-                        {FARE_DISCLAIMER.en}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* ── TRAVEL DIFFICULTY CARD ── */}
-                  {travelInsights && (
-                    <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark
-                      ? 'bg-gradient-to-br from-purple-900/20 to-indigo-900/20 border-purple-700/30'
-                      : 'bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200'
-                      }`}>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-3">
-                          <div className={`p-2 rounded-xl ${isDark ? 'bg-purple-500/20' : 'bg-purple-100'}`}>
-                            <Navigation className={`w-5 h-5 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
-                          </div>
-                          <div>
-                            <h4 className={`text-sm font-black uppercase tracking-widest ${isDark ? 'text-purple-300' : 'text-purple-800'}`}>
-                              Travel Difficulty
-                            </h4>
-                            <p className={`text-xs font-bold mt-0.5 ${isDark ? 'text-ios-gray-400' : 'text-gray-600'}`}>
-                              Real-time logic diagnostics
-                            </p>
-                          </div>
-                        </div>
-                        <span className={`text-xl font-bold px-3 py-1 rounded-xl ${travelInsights.severity === 'low'
-                          ? isDark ? 'bg-green-900/40 text-green-400' : 'bg-green-100 text-green-700'
-                          : travelInsights.severity === 'medium'
-                            ? isDark ? 'bg-yellow-900/40 text-yellow-400' : 'bg-yellow-100 text-yellow-700'
-                            : isDark ? 'bg-red-900/40 text-red-400' : 'bg-red-100 text-red-700'
-                          }`}>
-                          {travelInsights.score}
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2">
-                        {/* Weather */}
-                        <div className={`p-2.5 rounded-lg ${isDark ? 'bg-black/20' : 'bg-white/60'
-                          }`}>
-                          <p className={`text-xs font-medium ${isDark ? 'text-ios-gray-300' : 'text-gray-700'}`}>
-                            Weather
-                          </p>
-                          <p className={`text-sm font-semibold mt-0.5 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            {travelInsights.weatherDesc}
-                          </p>
-                          {travelInsights.temperature !== null && (
-                            <p className={`text-xs mt-0.5 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
-                              {travelInsights.temperature}°C
-                            </p>
                           )}
-                        </div>
-
-                        {/* Wind */}
-                        <div className={`p-2.5 rounded-lg ${isDark ? 'bg-black/20' : 'bg-white/60'
-                          }`}>
-                          <p className={`text-xs font-medium ${isDark ? 'text-ios-gray-300' : 'text-gray-700'}`}>
-                            Conditions
-                          </p>
-                          {travelInsights.windSpeed !== null && (
-                            <p className={`text-sm font-semibold mt-0.5 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                              💨 {travelInsights.windSpeed} km/h
-                            </p>
-                          )}
-                          {travelInsights.precipProb !== null && travelInsights.precipProb > 0 && (
-                            <p className={`text-xs mt-0.5 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
-                              🌧️ {travelInsights.precipProb}% rain
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Score Explanation */}
-                      <p className={`text-xs mt-3 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
-                        Score: 0 (easiest) → 100 (hardest). Factors: distance, time, traffic, weather.
-                      </p>
-
-                      {travelInsights.stale && (
-                        <p className={`text-xs mt-1 italic ${isDark ? 'text-ios-gray-500' : 'text-gray-400'}`}>
-                          ⏱ Some data may be stale — check again when online
-                        </p>
+                        </motion.div>
                       )}
-                    </div>
-                  )}
+                    </AnimatePresence>
 
-                  {/* Location Information */}
-                  <div className="space-y-2">
-                    {office.constituency_name && (
-                      <div className="flex items-center text-sm">
-                        <span className={isDark ? 'text-ios-gray-400' : 'text-gray-500'}>
-                          📍 {office.constituency_name}, {office.county}
-                        </span>
-                      </div>
-                    )}
-                    {office.phone && (
-                      <div className="flex items-center text-sm">
-                        <a href={`tel:${office.phone}`} className={`hover:underline ${isDark ? 'text-ios-blue-300' : 'text-blue-600'
-                          }`}>
-                          📞 {office.phone}
-                        </a>
-                      </div>
-                    )}
+                    <p className={`text-[10px] mt-4 font-bold italic opacity-60 leading-relaxed ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>
+                      {FARE_DISCLAIMER.en}
+                    </p>
                   </div>
+                )}
 
-                  {/* Distance & Route Info - ONLY SHOW IF LOCATION ACCESS GRANTED */}
-                  {hasLocationAccess && distanceToOffice && (
-                    <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark
-                      ? 'bg-ios-blue/20 border-ios-blue/30'
-                      : 'bg-primary/10 border-primary/20'
-                      }`}>
-                      <div className="flex items-center justify-between">
+                {/* TRAVEL DIFFICULTY CARD */}
+                {travelInsights && (
+                  <div className={`rounded-[2rem] p-6 border transition-all duration-300 ${isDark
+                    ? 'bg-gradient-to-br from-[#12121A] to-[#0A0A0F] border-white/5 shadow-inner shadow-white/5'
+                    : 'bg-white border-ios-gray-100 shadow-sm'
+                    }`}>
+                    <div className="flex items-center justify-between mb-5">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${isDark ? 'bg-ios-blue/10' : 'bg-ios-blue-50'}`}>
+                          <span className="text-xl">🧭</span>
+                        </div>
                         <div>
-                          <p className={`text-sm font-medium transition-colors duration-300 ${isDark ? 'text-ios-gray-200' : 'text-foreground'
-                            }`}>
-                            {t('bottomSheet.distance', 'Distance')}
-                          </p>
-                          <p className={`text-2xl font-bold mt-1 transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-primary'
-                            }`}>
-                            {distanceToOffice.toFixed(1)} km
+                          <h4 className={`text-sm font-black tracking-tight ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>
+                            Travel Difficulty
+                          </h4>
+                          <p className={`text-[10px] font-bold ${isDark ? 'text-ios-gray-500' : 'text-ios-gray-400'}`}>
+                            Real-time condition analysis
                           </p>
                         </div>
-                        {currentRoute && currentRoute[0] && (
-                          <div className="text-right">
-                            <p className={`text-sm font-medium transition-colors duration-300 ${isDark ? 'text-ios-gray-200' : 'text-foreground'
-                              }`}>
-                              {t('bottomSheet.driveTime', 'Drive Time')}
-                            </p>
-                            <p
-                              className={`text-2xl font-bold mt-1 transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-primary'
-                                }`}
-                            >
-                              {i18next.language === 'en'
-                                ? `${Math.round(currentRoute[0].summary.totalTime / 60)} ${t('bottomSheet.estimatedTime', 'min')}`
-                                : `${t('bottomSheet.estimatedTime', 'min')} ${Math.round(currentRoute[0].summary.totalTime / 60)}`}
-                            </p>
-                          </div>
-                        )}
+                      </div>
+                      <div className={`px-4 py-2 rounded-2xl text-lg font-black ${travelInsights.severity === 'low'
+                        ? isDark ? 'bg-green-500/10 text-green-400' : 'bg-green-50 text-green-700'
+                        : travelInsights.severity === 'medium'
+                          ? isDark ? 'bg-orange-500/10 text-orange-400' : 'bg-orange-50 text-orange-700'
+                          : isDark ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-700'
+                        } border ${travelInsights.severity === 'low' ? 'border-green-500/20' : travelInsights.severity === 'medium' ? 'border-orange-500/20' : 'border-red-500/20'}`}>
+                        {travelInsights.score}
                       </div>
                     </div>
-                  )}
 
-                  {/* GET THERE SECTION - CONDITIONAL BASED ON LOCATION ACCESS */}
-                  <div className="space-y-3 pt-4 border-t border-border/10">
-                    <h4
-                      className={`text-center text-xs font-bold tracking-[0.2em] uppercase mb-4 ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-500'
-                        }`}
-                    >
-                      {t('bottomSheet.navigationOptions', 'Get There')}
-                    </h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className={`p-4 rounded-3xl ${isDark ? 'bg-white/5' : 'bg-ios-gray-50 border border-black/5'}`}>
+                        <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isDark ? 'text-ios-gray-500' : 'text-ios-gray-400'}`}>
+                          Weather
+                        </p>
+                        <p className={`text-sm font-black ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>
+                          {travelInsights.weatherDesc}
+                        </p>
+                        {travelInsights.temperature !== null && (
+                          <p className={`text-xs font-black mt-1 ${isDark ? 'text-ios-blue-400' : 'text-[#007AFF]'}`}>
+                            {travelInsights.temperature}°C
+                          </p>
+                        )}
+                      </div>
+                      <div className={`p-4 rounded-3xl ${isDark ? 'bg-white/5' : 'bg-ios-gray-50 border border-black/5'}`}>
+                        <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isDark ? 'text-ios-gray-500' : 'text-ios-gray-400'}`}>
+                          Conditions
+                        </p>
+                        <div className="flex flex-col gap-1 mt-1">
+                          <p className={`text-sm font-black ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>
+                            💨 {travelInsights.windSpeed} km/h
+                          </p>
+                          {travelInsights.precipProb !== null && travelInsights.precipProb > 0 && (
+                            <p className={`text-xs font-black text-ios-blue-400`}>
+                              🌧️ {travelInsights.precipProb}% Rain
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
 
-                    {/* ✅ View Full Details Link (Full Ham) */}
-                    <button
-                      onClick={() => {
-                        const countySlug = slugify(office.county);
-                        let areaSlug = slugify(office.constituency_name || '');
-                        if (areaSlug === countySlug) areaSlug = `${areaSlug}-town`;
-                        navigate(`/${countySlug}/${areaSlug}`);
-                      }}
-                      className={`w-full mb-6 font-bold min-h-[4.5rem] px-5 py-3 rounded-2xl flex items-center justify-between transition-all active:scale-[0.98] duration-300 shadow-xl ${isDark
-                        ? 'bg-ios-blue-600 text-white shadow-ios-blue/20 border border-white/10'
-                        : 'bg-ios-blue text-white shadow-ios-blue/15 border border-black/5'
-                        }`}
-                    >
-                      <span className="text-sm font-black leading-snug text-left pr-4">
-                        {t('bottomSheet.moreOnOffice', {
-                          officeName: office.office_name || getOfficeDisplayName(office) || office.constituency_name || t('office.officeName', 'IEBC Office'),
-                          defaultValue: `More on {{officeName}}`
-                        })}
+                    <div className="mt-4 p-4 rounded-2xl bg-black/10 border border-white/5">
+                      <p className={`text-[10px] font-bold leading-relaxed ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>
+                        Score Basis: Distance ({distanceToOffice?.toFixed(1)}km), Time ({fareEstimates?.estimatedMinutes}min), Traffic ({trafficInfo?.description}), and Weather intensity.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* GET THERE SECTION */}
+                <div className="pt-6 space-y-5">
+                  <h4 className={`text-center text-[10px] font-black tracking-[0.4em] uppercase ${isDark ? 'text-ios-gray-700' : 'text-ios-gray-400'}`}>
+                    Launch Navigation
+                  </h4>
+
+                  {/* High Priority: More on Office */}
+                  <button
+                    onClick={() => {
+                      const countySlug = slugify(office.county);
+                      let areaSlug = slugify(office.constituency_name || '');
+                      if (areaSlug === countySlug) areaSlug = `${areaSlug}-town`;
+                      navigate(`/${countySlug}/${areaSlug}`);
+                    }}
+                    className={`w-full group min-h-[5.5rem] px-8 py-5 rounded-[2.5rem] flex items-center justify-between transition-all active:scale-[0.98] duration-300 shadow-2xl ${isDark
+                      ? 'bg-[#007AFF] text-white shadow-[#007AFF]/30 border border-white/10'
+                      : 'bg-[#007AFF] text-white shadow-[#007AFF]/20'
+                      }`}
+                  >
+                    <div className="text-left">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-80 mb-1">Official Records</p>
+                      <span className="text-lg font-black tracking-tight leading-tight block">
+                        Full Data on {office.office_name || getOfficeDisplayName(office) || office.constituency_name}
                       </span>
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-white/20' : 'bg-black/10'}`}>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
-                        </svg>
+                    </div>
+                    <div className={`w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 bg-white/20 backdrop-blur-xl border border-white/20 group-hover:scale-110 transition-all`}>
+                      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3.5} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </button>
+
+                  {/* App Selection Grid */}
+                  <div className={`grid gap-4 ${hasLocationAccess ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                    {/* Uber Button */}
+                    <button
+                      onClick={() => openUber()}
+                      className={`group w-full py-8 px-5 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 transition-all active:scale-[0.96] duration-500 border-2 ${isDark
+                        ? 'bg-[#050505] border-white/5 hover:border-white/10 text-white'
+                        : 'bg-white border-ios-gray-100 hover:bg-ios-gray-50 text-ios-gray-900 shadow-xl'
+                        }`}
+                    >
+                      <UberLogo className="h-7 w-auto" />
+                      <div className="text-center group-hover:translate-y-[-2px] transition-transform">
+                        <p className="text-[12px] font-black tracking-tighter uppercase">Request Ride</p>
+                        {hasLocationAccess && cheapestFare && cheapestFare.provider === 'uber' ? (
+                          <p className={`text-[10px] font-bold mt-1 px-3 py-1 rounded-full bg-green-500/10 text-green-400`}>
+                            {formatFare(cheapestFare.total)}
+                          </p>
+                        ) : (
+                          <p className="text-[10px] font-black opacity-30 tracking-[0.2em] mt-1">UBER APP</p>
+                        )}
                       </div>
                     </button>
 
-                    <div className="grid gap-4 grid-cols-2">
-                      {/* Uber Button - Mirroring Bolt Style as requested */}
-                      <button
-                        onClick={() => openUber()}
-                        className={`group relative overflow-hidden w-full py-6 px-4 rounded-3xl flex flex-col items-center justify-center gap-3 transition-all active:scale-[0.96] duration-500 shadow-2xl border ${isDark
-                          ? 'bg-ios-gray-900/60 border-white/5 text-white hover:bg-ios-gray-800'
-                          : 'bg-white border-black/5 text-ios-gray-900 hover:bg-gray-50'
-                          }`}
-                      >
-                        <div className="h-6 w-full flex items-center justify-center pointer-events-none">
-                          <img
-                            src="/context/Button icons/Uber_logo_2018 (1).svg"
-                            className={`h-full w-auto transition-transform duration-500 group-hover:scale-110 ${isDark ? 'invert' : ''}`}
-                            alt="Uber"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'block';
-                            }}
-                          />
-                          <span className="font-black text-xl hidden">Uber</span>
-                        </div>
+                    {/* Bolt Button */}
+                    <button
+                      onClick={openBolt}
+                      className={`group w-full py-8 px-5 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 transition-all active:scale-[0.96] duration-500 border-2 ${isDark
+                        ? 'bg-green-600/5 border-green-500/10 hover:border-green-500/20 text-green-400'
+                        : 'bg-green-50/30 border-green-200 hover:bg-green-50 text-green-700 shadow-lg'
+                        }`}
+                    >
+                      <div className="h-7 w-auto flex items-center justify-center">
+                        <svg viewBox="0 0 111.9 65" className="h-full w-auto fill-current"><path d="M30.4,23c4.4-7.1,2.2-16.4-4.8-20.8C23.2,0.8,20.5,0,17.7,0H0v48.9h19.9c8.3,0,15-6.8,15-15.1 C34.9,29.7,33.3,25.9,30.4,23z M11.4,11.5h6.3c2,0,3.6,1.6,3.6,3.6c0,2-1.6,3.6-3.6,3.6h-6.3V11.5z M19.9,37.4h-8.5v-7.2h8.5 c2,0,3.6,1.6,3.6,3.6C23.5,35.8,21.9,37.4,19.9,37.4z M90,0v48.9H78.6V2.4L90,0z M56.8,13.9c-9.7,0-17.6,7.9-17.6,17.7 c0,9.8,7.9,17.7,17.6,17.7c9.7,0,17.6-7.9,17.6-17.7C74.3,21.8,66.5,13.9,56.8,13.9z M56.8,37.4c-3.2,0-5.7-2.6-5.7-5.7 c0-3.2,2.5-5.7,5.7-5.7c3.2,0,5.7,2.6,5.7,5.7C62.5,34.8,59.9,37.4,56.8,37.4z M62.5,59.3c0,3.2-2.6,5.7-5.7,5.7 c-3.1,0-5.7-2.6-5.7-5.7c0-3.2,2.6-5.7,5.7-5.7C59.9,53.5,62.5,56.1,62.5,59.3z M111.8,14.5V26h-5.7v9c0,2.7,0.9,4.7,3.2,4.7 c0.9,0,1.7-0.1,2.5-0.3v8.5c-1.7,0.9-3.6,1.4-5.6,1.4h-0.1c-0.1,0-0.1,0-0.2,0c-0.1,0-0.1,0-0.2,0h-0.1l-0.2,0 C99.1,49,94.7,45,94.7,37.9v0v0V26V8.2l11.4-2.4v8.8H111.8z" /></svg>
+                      </div>
+                      <div className="text-center group-hover:translate-y-[-2px] transition-transform">
+                        <p className="text-[12px] font-black tracking-tighter uppercase">Bolt Economy</p>
+                        {hasLocationAccess && cheapestFare && cheapestFare.provider === 'bolt' ? (
+                          <p className={`text-[10px] font-bold mt-1 px-3 py-1 rounded-full bg-green-500/10 text-green-400`}>
+                            {formatFare(cheapestFare.total)}
+                          </p>
+                        ) : (
+                          <p className="text-[10px] font-black opacity-30 tracking-[0.2em] mt-1">BOLT APP</p>
+                        )}
+                      </div>
+                    </button>
+
+                    {/* Google Maps Button */}
+                    <button
+                      onClick={openGoogleMaps}
+                      className={`w-full py-8 px-5 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 transition-all active:scale-[0.96] duration-500 border-2 ${isDark
+                        ? 'bg-blue-600/5 border-blue-500/10 hover:border-blue-500/20 text-blue-400'
+                        : 'bg-blue-50/30 border-blue-200 hover:bg-blue-100 text-blue-800 shadow-lg'
+                        }`}
+                    >
+                      <div className="h-7 w-auto flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" className="h-full w-auto"><path fill="#4285F4" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z" /></svg>
+                      </div>
+                      <p className="text-[12px] font-black tracking-[0.1em] uppercase">Google Maps</p>
+                    </button>
+
+                    {/* Apple Maps Button */}
+                    <button
+                      onClick={openAppleMaps}
+                      className={`w-full py-8 px-5 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 transition-all active:scale-[0.96] duration-500 border-2 ${isDark
+                        ? 'bg-[#15151A] border-white/5 hover:border-white/15 text-white shadow-inner'
+                        : 'bg-white border-ios-gray-100 hover:bg-ios-gray-50 text-ios-gray-900 shadow-md'
+                        }`}
+                    >
+                      <AppleLogo className="h-7 w-auto" />
+                      <div className="text-center">
+                        <p className="text-[12px] font-black tracking-[0.1em] uppercase">Apple Maps</p>
                         {hasLocationAccess && fareEstimates && (
-                          <div className={`mt-1 font-black text-xs px-3 py-1 rounded-full shadow-lg transition-colors duration-500 ${cheapestFare?.provider === 'uber'
-                              ? 'bg-green-500 text-white'
-                              : isDark ? 'bg-ios-gray-700 text-green-400' : 'bg-green-50 text-green-600'
-                            }`}>
-                            {(() => {
-                              const uberFares = Object.values(fareEstimates.uber).map(f => f.total);
-                              const minUber = Math.min(...uberFares);
-                              return formatFare(minUber);
-                            })()}
-                          </div>
+                          <p className={`text-[10px] font-bold mt-1 text-ios-blue-400`}>
+                            Live Pricing In-App
+                          </p>
                         )}
-                        {!hasLocationAccess && (
-                          <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest">{t('bottomSheet.openApp', 'Open app')}</span>
-                        )}
-                      </button>
-
-                      {/* Bolt Button */}
-                      <button
-                        onClick={openBolt}
-                        className={`group relative overflow-hidden w-full py-6 px-4 rounded-3xl flex flex-col items-center justify-center gap-3 transition-all active:scale-[0.96] duration-500 shadow-2xl border ${isDark
-                          ? 'bg-green-600/10 border-green-500/20 text-green-400 hover:bg-green-600/15'
-                          : 'bg-green-50/60 border-green-200 text-green-800 hover:bg-green-100/60'
-                          }`}
-                      >
-                        <div className="h-6 w-full flex items-center justify-center pointer-events-none">
-                          <img
-                            src="/context/Button icons/Bolt_idw_2V0lyO_0.svg"
-                            className="h-full w-auto transition-transform duration-500 group-hover:scale-110"
-                            alt="Bolt"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'block';
-                            }}
-                          />
-                          <span className="font-black text-xl hidden text-green-600">Bolt</span>
-                        </div>
-                        {hasLocationAccess && fareEstimates && (
-                          <div className={`mt-1 font-black text-xs px-3 py-1 rounded-full shadow-lg transition-colors duration-500 ${cheapestFare?.provider === 'bolt'
-                              ? 'bg-green-600 text-white'
-                              : isDark ? 'bg-green-900/40 text-green-400' : 'bg-green-600 text-white'
-                            }`}>
-                            {(() => {
-                              const boltFares = Object.values(fareEstimates.bolt).map(f => f.total);
-                              const minBolt = Math.min(...boltFares);
-                              return formatFare(minBolt);
-                            })()}
-                          </div>
-                        )}
-                      </button>
-
-                      {/* Google Maps Button */}
-                      <button
-                        onClick={openGoogleMaps}
-                        className={`w-full py-4 px-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-xl ${isDark
-                          ? 'bg-blue-600/10 border-blue-500/20 text-white hover:bg-blue-600/15'
-                          : 'bg-blue-50/60 border-blue-200 text-blue-900 hover:bg-blue-100/60'
-                          }`}
-                      >
-                        <Navigation className={`w-6 h-6 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
-                        <span className="text-xs font-black uppercase tracking-tight">{t('bottomSheet.openInGoogleMaps', 'Google Maps')}</span>
-                      </button>
-
-                      {/* Apple Maps Button - Cleaned from hardcoded Bus info */}
-                      <button
-                        onClick={openAppleMaps}
-                        className={`group relative overflow-hidden w-full py-4 px-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-xl ${isDark
-                          ? 'bg-ios-gray-900/60 border-white/10 text-white hover:bg-ios-gray-800'
-                          : 'bg-white border-black/5 text-ios-gray-900 hover:bg-gray-50'
-                          }`}
-                      >
-                        <div className="h-6 w-full flex items-center justify-center pointer-events-none mb-1">
-                          <img
-                            src="/context/Button icons/apple-173-svgrepo-com.svg"
-                            className={`h-full w-auto ${isDark ? 'invert' : ''}`}
-                            alt="Apple Maps"
-                          />
-                        </div>
-                        <span className="text-xs font-black uppercase tracking-tight">Apple Maps</span>
-                      </button>
-                    </div>
-
-                    {/* Copy Coordinates */}
-                    {office.latitude && office.longitude && (
-                      <button
-                        onClick={copyCoords}
-                        className={`w-full group font-bold py-4 px-4 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.96] duration-300 backdrop-blur-3xl border shadow-md hover:shadow-lg ${isDark
-                          ? 'bg-ios-gray-800/40 border-white/5 text-ios-gray-300 hover:bg-ios-gray-800/60'
-                          : 'bg-white/60 border-black/5 text-ios-gray-600 hover:bg-white/80'
-                          }`}
-                      >
-                        <svg className="w-5 h-5 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-all duration-300" viewBox="0 0 24 24" fill="none">
-                          <path d="M15.24 2H11.3458C9.58159 1.99999 8.18418 1.99997 7.09054 2.1476C5.96501 2.29953 5.05402 2.61964 4.33559 3.34096C3.61717 4.06227 3.29833 4.97692 3.14701 6.10697C2.99997 7.205 2.99999 8.60802 3 10.3793V16.2169C3 17.725 3.91995 19.0174 5.22717 19.5592C5.15989 18.6498 5.15994 17.3737 5.16 16.312L5.16 11.3976L5.16 11.3024C5.15993 10.0207 5.15986 8.91644 5.27828 8.03211C5.40519 7.08438 5.69139 6.17592 6.4253 5.43906C7.15921 4.70219 8.06404 4.41485 9.00798 4.28743C9.88877 4.16854 10.9887 4.1686 12.2652 4.16867L12.36 4.16868H15.24L15.3348 4.16867C16.6113 4.1686 17.7088 4.16854 18.5896 4.28743C18.0627 2.94779 16.7616 2 15.24 2Z" fill="currentColor" />
-                          <path d="M6.6001 11.3974C6.6001 8.67119 6.6001 7.3081 7.44363 6.46118C8.28716 5.61426 9.64481 5.61426 12.3601 5.61426H15.2401C17.9554 5.61426 19.313 5.61426 20.1566 6.46118C21.0001 7.3081 21.0001 8.6712 21.0001 11.3974V16.2167C21.0001 18.9429 21.0001 20.306 20.1566 21.1529C19.313 21.9998 17.9554 21.9998 15.2401 21.9998H12.3601C9.64481 21.9998 8.28716 21.9998 7.44363 21.1529C6.6001 20.306 6.6001 18.9429 6.6001 16.2167V11.3974Z" fill="currentColor" />
-                        </svg>
-                        <span className="text-sm">{t('bottomSheet.copyCoordinates', 'Copy Coordinates')}</span>
-                      </button>
-                    )}
+                      </div>
+                    </button>
                   </div>
-                </div>
 
-                {/* Close Button */}
-                <div className={`sticky bottom-0 pt-4 pb-2 mt-6 border-t transition-colors duration-300 ${isDark
-                  ? 'border-white/10'
-                  : 'border-black/5'
-                  }`}
-                  style={{
-                    background: isDark
-                      ? 'rgba(15, 15, 25, 0.6)'
-                      : 'rgba(255, 255, 255, 0.6)',
-                    backdropFilter: 'blur(20px) saturate(180%)',
-                    WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                  }}
-                >
+                  {/* Copy Button */}
                   <button
-                    onClick={onClose}
-                    className={`w-full font-bold py-4 px-6 rounded-2xl transition-all active:scale-[0.98] duration-300 ${isDark
-                      ? 'text-white border border-white/10 hover:border-white/20'
-                      : 'text-ios-gray-900 border border-black/5 hover:border-black/10'
+                    onClick={copyCoords}
+                    className={`w-full py-6 px-8 rounded-[2.5rem] flex items-center justify-center gap-4 transition-all active:scale-[0.98] border-2 ${isDark
+                      ? 'bg-white/5 border-white/5 text-ios-gray-400 hover:text-white hover:bg-white/10'
+                      : 'bg-ios-gray-50 border-black/5 text-ios-gray-500 hover:bg-ios-gray-100 shadow-sm'
                       }`}
-                    style={{
-                      background: isDark
-                        ? 'rgba(255, 255, 255, 0.08)'
-                        : 'rgba(0, 0, 0, 0.04)',
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
-                      boxShadow: isDark
-                        ? '0 -1px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06)'
-                        : '0 -1px 12px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.7)',
-                    }}
                   >
-                    {t('common.close', 'Close')}
+                    <CopyIcon className="w-6 h-6 flex-shrink-0 opacity-60" />
+                    <span className="text-sm font-black uppercase tracking-[0.3em]">{t('bottomSheet.copyCoordinates', 'Copy GPS Coordinates')}</span>
                   </button>
                 </div>
+
+                {/* Main Dismiss Button */}
+                <button
+                  onClick={onClose}
+                  className={`w-full font-black py-6 px-10 rounded-[2.5rem] tracking-[0.4em] uppercase text-[10px] transition-all active:scale-[0.98] duration-400 ${isDark
+                    ? 'bg-white/10 text-white hover:bg-white/20 border border-white/10'
+                    : 'bg-black text-white hover:bg-ios-gray-900 shadow-2xl shadow-black/20'
+                    }`}
+                >
+                  {t('common.close', 'Dismiss View')}
+                </button>
               </motion.div>
             )}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Uber Modal - ALWAYS RENDERED BUT CONDITIONALLY SHOWN */}
+      {/* Sidebars and Modals */}
       <UberModal
         isOpen={showUberModal}
         onClose={() => setShowUberModal(false)}
@@ -981,6 +795,17 @@ const OfficeBottomSheet = ({
         destination={destination}
         fareEstimates={fareEstimates}
       />
+
+      <AnimatePresence>
+        {showOfflineDownloader && (
+          <OfflineRouteDownloader
+            office={office}
+            userLocation={userLocation}
+            currentRoute={currentRoute}
+            onClose={() => setShowOfflineDownloader(false)}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 };

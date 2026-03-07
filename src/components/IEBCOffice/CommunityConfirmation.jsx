@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import LoadingSpinner from './LoadingSpinner';
+import { MapPin, ShieldCheck, Clock } from 'lucide-react';
 
 const CommunityConfirmation = ({ contributionId, currentConfirmations = 0 }) => {
   const [isConfirming, setIsConfirming] = useState(false);
@@ -20,7 +21,7 @@ const CommunityConfirmation = ({ contributionId, currentConfirmations = 0 }) => 
     ];
 
     const fingerprint = components.join('|');
-    
+
     // Simple hash function
     let hash = 0;
     for (let i = 0; i < fingerprint.length; i++) {
@@ -28,7 +29,7 @@ const CommunityConfirmation = ({ contributionId, currentConfirmations = 0 }) => 
       hash = ((hash << 5) - hash) + char;
       hash = hash & hash;
     }
-    
+
     return Math.abs(hash).toString(36);
   };
 
@@ -44,11 +45,11 @@ const CommunityConfirmation = ({ contributionId, currentConfirmations = 0 }) => 
     const R = 6371; // Earth's radius in km
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c * 1000; // Distance in meters
   };
 
@@ -208,15 +209,15 @@ const CommunityConfirmation = ({ contributionId, currentConfirmations = 0 }) => 
 
       <div className="mt-3 text-xs text-gray-500 space-y-1">
         <div className="flex items-center space-x-2">
-          <span>📍</span>
+          <MapPin className="w-3 h-3 text-blue-500" />
           <span>You must be within 500m of the office</span>
         </div>
         <div className="flex items-center space-x-2">
-          <span>🔒</span>
+          <ShieldCheck className="w-3 h-3 text-green-500" />
           <span>Your exact location is not stored</span>
         </div>
         <div className="flex items-center space-x-2">
-          <span>🕒</span>
+          <Clock className="w-3 h-3 text-orange-500" />
           <span>Only one confirmation per device</span>
         </div>
       </div>

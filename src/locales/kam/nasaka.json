@@ -17,7 +17,8 @@
     "filter": "Syetula",
     "select": "Thũũla",
     "optional": "Ndĩendekaa",
-    "required": "Nĩ ũndũ mũnene"
+    "required": "Nĩ ũndũ mũnene",
+    "dismiss": "Etheesya Wĩoni"
   },
   "splash": {
     "title": "NASAKA",
@@ -118,7 +119,10 @@
     "trafficSurchargeIncluded": "Kyalo nĩkũneneaa kyalo kĩa ngali nyĩngĩ",
     "coordinatesCopied": "Makoo nĩmakooviĩtwe!",
     "copyCoordinatesPrompt": "Koovia makoo:",
-    "moreOnOffice": "Maũndũ angĩ ĩũlũ wa {{officeName}}"
+    "moreOnOffice": "Ũvoo Ũtheu wa IEBC: {{officeName}}",
+    "offlineMap": "Ũgitĩri wa Kyalo",
+    "tapForDirections": "Kanyĩta nĩguo ũvonanie nzĩla",
+    "noLocationAccess": "Ndĩna ũtambĩko wa athĩ"
   },
   "officeList": {
     "searchResults": "Kĩla Kũvatĩte",

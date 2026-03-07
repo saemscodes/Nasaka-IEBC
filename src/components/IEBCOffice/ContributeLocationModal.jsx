@@ -1,13 +1,14 @@
 // src/components/IEBCOffice/ContributeLocationModal.jsx
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
+import { Check, AlertTriangle, Info, Camera, MapPin, Search, Globe, ChevronLeft, ChevronRight, X, AlertCircle } from 'lucide-react';
 import { useContributeLocation } from '@/hooks/useContributeLocation';
 import MapContainer from '@/components/IEBCOffice/MapContainer';
 import UserLocationMarker from '@/components/IEBCOffice/UserLocationMarker';
 import GeoJSONLayerManager from '@/components/IEBCOffice/GeoJSONLayerManager';
-import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
+import LoadingSpinner from './LoadingSpinner';
 import { supabase } from '@/integrations/supabase/client';
 import L from 'leaflet';
 
@@ -1042,7 +1043,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
         } else if (limitedAccuracy <= 20) {
           setLocationError({
             type: 'success',
-            message: `✓ Good accuracy (±${Math.round(limitedAccuracy)}m). You're within the recommended 20m range.`
+            message: 'Good accuracy (±' + Math.round(limitedAccuracy) + 'm). You\'re within the recommended 20m range.'
           });
         }
       } else {
@@ -1418,8 +1419,14 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     if (code && isValidMatch) {
       return (
         <div className="mt-1">
-          <p className="text-xs text-green-600">✓ Valid constituency: {constituency} in {county}</p>
-          <p className="text-xs text-green-600">✓ Code: {code}</p>
+          <p className="text-xs text-green-600 flex items-center gap-1">
+            <Check className="w-3 h-3" />
+            Valid constituency: {constituency} in {county}
+          </p>
+          <p className="text-xs text-green-600 flex items-center gap-1">
+            <Check className="w-3 h-3" />
+            Code: {code}
+          </p>
         </div>
       );
     }
@@ -1427,7 +1434,10 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     if (!isValidMatch) {
       return (
         <div className="mt-1">
-          <p className="text-xs text-red-600">⚠ "{constituency}" is not a valid constituency in {county}</p>
+          <p className="text-xs text-red-600 flex items-center gap-1">
+            <AlertTriangle className="w-3 h-3" />
+            "{constituency}" is not a valid constituency in {county}
+          </p>
           <p className="text-xs text-gray-500 mt-1">Please select a valid constituency from the suggestions.</p>
         </div>
       );
@@ -1435,7 +1445,10 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
 
     return (
       <div className="mt-1">
-        <p className="text-xs text-yellow-600">⚠ Constituency validated but code not available</p>
+        <p className="text-xs text-yellow-600 flex items-center gap-1">
+          <AlertTriangle className="w-3 h-3" />
+          Constituency validated but code not available
+        </p>
         <p className="text-xs text-gray-500 mt-1">This won't affect your submission. The constituency is valid.</p>
       </div>
     );
@@ -1525,7 +1538,10 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                         <div>
                           <h4 className="font-semibold text-gray-900">Use My Current Location</h4>
                           <p className="text-sm text-gray-600">Stand at the IEBC office and capture your GPS coordinates</p>
-                          <p className="text-xs text-green-600 mt-1">✓ Most accurate method</p>
+                          <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                            <Check className="w-3 h-3" />
+                            Most accurate method
+                          </p>
                         </div>
                       </div>
                     </button>
@@ -1544,7 +1560,10 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                         <div>
                           <h4 className="font-semibold text-gray-900">Drop a Pin on Map</h4>
                           <p className="text-sm text-gray-600">Manually place a pin on the exact office location</p>
-                          <p className="text-xs text-blue-600 mt-1">✓ Good for precise placement</p>
+                          <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
+                            <Check className="w-3 h-3" />
+                            Good for precise placement
+                          </p>
                         </div>
                       </div>
                     </button>
@@ -1563,7 +1582,10 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                         <div>
                           <h4 className="font-semibold text-gray-900">Paste Google Maps Link</h4>
                           <p className="text-sm text-gray-600">Share a Google Maps URL or coordinates</p>
-                          <p className="text-xs text-red-600 mt-1">✓ Quick and convenient</p>
+                          <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                            <Check className="w-3 h-3" />
+                            Quick and convenient
+                          </p>
                         </div>
                       </div>
                     </button>
@@ -1600,8 +1622,9 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                               Accuracy: ±{Math.round(accuracy)} meters
                             </span>
                             {accuracy <= 20 && (
-                              <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                                ✓ Good Accuracy
+                              <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                                <Check className="w-3 h-3" />
+                                Good Accuracy
                               </span>
                             )}
                           </div>
@@ -1654,8 +1677,9 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
 
                       {parseResult && (
                         <div className="bg-green-50 rounded-lg p-3 mt-2">
-                          <p className="text-sm text-green-700">
-                            ✓ Coordinates extracted: {parseResult.lat.toFixed(6)}, {parseResult.lng.toFixed(6)}
+                          <p className="text-sm text-green-700 flex items-center gap-1">
+                            <Check className="w-3 h-3" />
+                            Coordinates extracted: {parseResult.lat.toFixed(6)}, {parseResult.lng.toFixed(6)}
                           </p>
                         </div>
                       )}
@@ -1986,8 +2010,9 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                           </div>
                         )}
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        📸 Photos with GPS data are prioritized for fast verification
+                      <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                        <Camera className="w-3 h-3" />
+                        Photos with GPS data are prioritized for fast verification
                       </p>
                     </div>
 
@@ -2077,10 +2102,10 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                       <div className="bg-green-50 rounded-xl p-4 border border-green-200">
                         <p className="text-sm text-green-700 text-left">
                           <strong className="block mb-2">What happens next:</strong>
-                          <span className="block mb-1">✓ Your submission enters our moderation queue</span>
-                          <span className="block mb-1">✓ Our team will verify the location data for accuracy</span>
-                          <span className="block mb-1">✓ Once approved, it will be added to the official database</span>
-                          <span className="block">✓ You'll be helping thousands of Kenyans find accurate IEBC office locations</span>
+                          <span className="flex items-center gap-2 mb-1"><Check className="w-3 h-3 text-green-600" /> Your submission enters our moderation queue</span>
+                          <span className="flex items-center gap-2 mb-1"><Check className="w-3 h-3 text-green-600" /> Our team will verify the location data for accuracy</span>
+                          <span className="flex items-center gap-2 mb-1"><Check className="w-3 h-3 text-green-600" /> Once approved, it will be added to the official database</span>
+                          <span className="flex items-center gap-2"><Check className="w-3 h-3 text-green-600" /> You'll be helping thousands of Kenyans find accurate IEBC office locations</span>
                         </p>
                       </div>
                       <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">

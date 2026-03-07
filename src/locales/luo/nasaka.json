@@ -17,7 +17,8 @@
     "filter": "Yier",
     "select": "Yier",
     "optional": "Ok ochuno",
-    "required": "Ochuno"
+    "required": "Ochuno",
+    "dismiss": "Gol Manyiso"
   },
   "splash": {
     "title": "NASAKA",
@@ -117,7 +118,10 @@
     "trafficSurchargeIncluded": "Nengo nitie sisa mar miture",
     "coordinatesCopied": "Kar kwan okopi kare!",
     "copyCoordinatesPrompt": "Kop kar kwan:",
-    "moreOnOffice": "Weche mamoko kuom {{officeName}}"
+    "moreOnOffice": "Weche Madier mag IEBC: {{officeName}}",
+    "offlineMap": "Rito mar Wuoth",
+    "tapForDirections": "Tapuru mondo one yo",
+    "noLocationAccess": "Onge thuolo mar donjo kama entie"
   },
   "officeList": {
     "searchResults": "Jibuoko ma iyudi",

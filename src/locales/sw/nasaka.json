@@ -89,7 +89,10 @@
     "distanceAway": "Uko mita {{distance}} mbali. Tafadhali sogea ndani ya mita {{maxDistance}} kutoka ofisi ili kuthibitisha.",
     "confirmationFailed": "Imeshindwa kuwasilisha uthibitisho. Tafadhali jaribu tena.",
     "locationPermissionRequired": "Ruhusa ya eneo inahitajika kuthibitisha. Tafadhali wezesha ufikiaji wa eneo na ujaribu tena.",
-    "moreOnOffice": "Zaidi kuhusu {{officeName}}"
+    "moreOnOffice": "Data Kamili ya IEBC: {{officeName}}",
+    "offlineMap": "Ulinzi wa Safari",
+    "tapForDirections": "Gusa kwa maelekezo ya njia",
+    "noLocationAccess": "Hakuna ufikiaji wa eneo"
   },
   "officeList": {
     "searchResults": "Matokeo ya Utafutaji",
@@ -213,6 +216,7 @@
     "select": "Chagua",
     "optional": "Si lazima",
     "required": "Inahitajika",
+    "dismiss": "Funga Onesho",
     "language": "Lugha",
     "changeLanguage": "Badili lugha",
     "longPressHint": "Bonyeza kwa urefu kupata jawabu lako kwa haraka"

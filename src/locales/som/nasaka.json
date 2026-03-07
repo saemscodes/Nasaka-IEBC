@@ -17,7 +17,8 @@
     "filter": "Filtar",
     "select": "Xulo",
     "optional": "Ikhtiyaari",
-    "required": "Loo baahan yahay"
+    "required": "Loo baahan yahay",
+    "dismiss": "Xidh Muqaalka"
   },
   "splash": {
     "title": "NASAKA",
@@ -118,7 +119,10 @@
     "trafficSurchargeIncluded": "Qiimaha waxaa ku jira kharashka gaadiidka",
     "coordinatesCopied": "Isku-duubyada waxaa loo nuquliyay clipboard!",
     "copyCoordinatesPrompt": "Nuqul isku-duubyada:",
-    "moreOnOffice": "In kabadan {{officeName}}"
+    "moreOnOffice": "Xogta Buuxda ee IEBC: {{officeName}}",
+    "offlineMap": "Ilaalinta Safarka",
+    "tapForDirections": "Taabo Tilmaamaha",
+    "noLocationAccess": "Ma Heli Karto Goobta"
   },
   "officeList": {
     "searchResults": "Natiijooyinka Raadinta",

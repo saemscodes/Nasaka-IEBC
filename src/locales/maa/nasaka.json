@@ -17,7 +17,8 @@
     "filter": "Irikina",
     "select": "Char",
     "optional": "Mekitaasho",
-    "required": "Eitaasho"
+    "required": "Eitaasho",
+    "dismiss": "Baik Enkataarr"
   },
   "splash": {
     "title": "NASAKA",
@@ -118,7 +119,10 @@
     "trafficSurchargeIncluded": "Bei emeta ongesha te ilamotonishe",
     "coordinatesCopied": "Inhini aikokir!",
     "copyCoordinatesPrompt": "Kokir inhini:",
-    "moreOnOffice": "Pooki nena bo {{officeName}}"
+    "moreOnOffice": "Enkataarr e IEBC aing': {{officeName}}",
+    "offlineMap": "Enkisidai e Enkataarr",
+    "tapForDirections": "Dung' te oltung'ani",
+    "noLocationAccess": "Metii enkisidai e ninye"
   },
   "officeList": {
     "searchResults": "Enkataarr E Dorobo",

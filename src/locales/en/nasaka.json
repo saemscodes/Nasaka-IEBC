@@ -17,7 +17,8 @@
     "filter": "Filter",
     "select": "Select",
     "optional": "Optional",
-    "required": "Required"
+    "required": "Required",
+    "dismiss": "Dismiss View"
   },
   "splash": {
     "title": "NASAKA",
@@ -127,7 +128,11 @@
     "startSecure": "Protect Trip",
     "storageStatus": "Device Storage Status",
     "sidebarTitle": "Offline Maps",
-    "sidebarDesc": "Download map tiles along your route to ensure navigation continues even when you lose internet connection in \"dead zones\"."
+    "sidebarDesc": "Download map tiles along your route to ensure navigation continues even when you lose internet connection in \"dead zones\".",
+    "offlineMap": "Trip Protection",
+    "moreOnOffice": "Full IEBC Data: {{officeName}}",
+    "tapForDirections": "Tap for Directions",
+    "noLocationAccess": "No Location Access"
   },
   "officeList": {
     "searchResults": "Search Results",

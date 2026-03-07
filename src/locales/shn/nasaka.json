@@ -17,7 +17,8 @@
     "filter": "Chuja",
     "select": "Chagua",
     "optional": "Si lazma",
-    "required": "Ni lazma"
+    "required": "Ni lazma",
+    "dismiss": "Ebu Gwaya Hii Page"
   },
   "splash": {
     "title": "NASAKA",
@@ -118,7 +119,10 @@
     "trafficSurchargeIncluded": "Cost plus ukiongeza za kabej [jam]",
     "coordinatesCopied": "Coordinates zimecopy kwa clipboard!",
     "copyCoordinatesPrompt": "Copy coordinates:",
-    "moreOnOffice": "Mambo zaidi kuhusu {{officeName}}"
+    "moreOnOffice": "Info yote ya IEBC: {{officeName}}",
+    "offlineMap": "Ulinzi wa Safari",
+    "tapForDirections": "Finya upate ma-directions",
+    "noLocationAccess": "Manze hatukuoni"
   },
   "officeList": {
     "searchResults": "Si tumepata hivi",

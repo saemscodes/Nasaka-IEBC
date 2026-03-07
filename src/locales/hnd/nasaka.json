@@ -17,7 +17,8 @@
     "filter": "فلٹر کریں",
     "select": "منتخب کریں",
     "optional": "اختیاری",
-    "required": "ضروری"
+    "required": "ضروری",
+    "dismiss": "منظر برخاست کریں"
   },
   "splash": {
     "title": "NASAKA",
@@ -118,7 +119,10 @@
     "trafficSurchargeIncluded": "قیمتوں میں ٹریفک اضافی چارج شامل ہے",
     "coordinatesCopied": "نقاط کلپ بورڈ میں کاپی ہو گئے!",
     "copyCoordinatesPrompt": "نقاط کاپی کریں:",
-    "moreOnOffice": "{{officeName}} کے بارے میں مزید"
+    "moreOnOffice": "کی مکمل معلومات IEBC : {{officeName}}",
+    "offlineMap": "سفر کا تحفظ",
+    "tapForDirections": "سمت کے لیے ٹیپ کریں",
+    "noLocationAccess": "مقام تک رسائی نہیں ہے"
   },
   "officeList": {
     "searchResults": "تلاش کے نتائج",

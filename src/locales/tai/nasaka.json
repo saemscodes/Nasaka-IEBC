@@ -17,7 +17,8 @@
     "filter": "Sorora",
     "select": "Chaghua",
     "optional": "Sio lazima",
-    "required": "Ni lazima"
+    "required": "Ni lazima",
+    "dismiss": "Ondoa Muonekano"
   },
   "splash": {
     "title": "NASAKA",
@@ -117,8 +118,11 @@
     "openApp": "Fungua app",
     "trafficSurchargeIncluded": "Bei ni pamoja na ongezeko la maghari",
     "coordinatesCopied": "Vipimo vinakiriwa!",
-    "copyCoordinatesPrompt": "Nakirira vipimo:",
-    "moreOnOffice": "Maũndũ mangĩ kũduana na {{officeName}}"
+    "copyCoordinatesPrompt": "Nakirira Vipimo:",
+    "moreOnOffice": "Ufisio Wisi wa IEBC: {{officeName}}",
+    "offlineMap": "Uzinzi wa Safari",
+    "tapForDirections": "Finya nikughosera njira",
+    "noLocationAccess": "Kwiyara rukisa la pao"
   },
   "officeList": {
     "searchResults": "Ijumbo La Kutafuta",

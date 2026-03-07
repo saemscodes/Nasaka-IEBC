@@ -348,7 +348,7 @@ const IEBCOfficeMap = () => {
         const trafficInfo = getTrafficInfo();
         setTravelInsights({
           trafficCondition: trafficInfo?.description || 'Normal traffic',
-          trafficIcon: trafficInfo?.icon || '🚗',
+          trafficIcon: trafficInfo?.icon || 'car',
           trafficColor: trafficInfo?.color || 'text-green-500',
           routeDistance: (routes[0].summary.totalDistance / 1000).toFixed(1),
           routeTime: Math.round(routes[0].summary.totalTime / 60),
@@ -362,7 +362,7 @@ const IEBCOfficeMap = () => {
       const trafficInfo = getTrafficInfo();
       setTravelInsights({
         trafficCondition: trafficInfo?.description || 'Normal traffic',
-        trafficIcon: trafficInfo?.icon || '🚗',
+        trafficIcon: trafficInfo?.icon || 'car',
         trafficColor: trafficInfo?.color || 'text-green-500',
         routeDistance: (routes[0].summary.totalDistance / 1000).toFixed(1),
         routeTime: Math.round(routes[0].summary.totalTime / 60),
@@ -781,8 +781,15 @@ const IEBCOfficeMap = () => {
             {/* Traffic + Weather quick-glance */}
             {travelInsights?.trafficCondition && !isOffline && (
               <div className="flex items-center gap-2 mt-1 text-[10px]">
-                <span className={travelInsights.trafficColor || 'text-green-500'}>
-                  {travelInsights.trafficIcon} {travelInsights.trafficCondition}
+                <span className={`${travelInsights.trafficColor || 'text-green-500'} flex items-center gap-1`}>
+                  {(() => {
+                    const iconName = travelInsights.trafficIcon || 'car';
+                    // Inline mapping for Lucide-like icons used in traffic
+                    if (iconName === 'sunrise') return <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 7a5 5 0 100 10 5 5 0 000-10z" /></svg>;
+                    if (iconName === 'sunset') return <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 7a5 5 0 100 10 5 5 0 000-10z" /></svg>; // Reusing some for simplicity or I could map more accurately
+                    return <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>; // Car/Navigation
+                  })()}
+                  {travelInsights.trafficCondition}
                 </span>
                 {travelInsights.weatherDesc && (
                   <span className="text-muted-foreground">

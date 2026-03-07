@@ -17,7 +17,8 @@
     "filter": "Thumbia",
     "select": "Thuura",
     "optional": "Ti nthi",
-    "required": "Nithi"
+    "required": "Nithi",
+    "dismiss": "Eheria Kiona"
   },
   "splash": {
     "title": "NASAKA",
@@ -118,7 +119,10 @@
     "trafficSurchargeIncluded": "Mbeca nimeta mbeca yongewe buthuku",
     "coordinatesCopied": "Mariiri makokirirwe!",
     "copyCoordinatesPrompt": "Kokira mariiri:",
-    "moreOnOffice": "Maũntũ mangĩ kũgiĩ {{officeName}}"
+    "moreOnOffice": "Uthuku bwa IEBC bunji: {{officeName}}",
+    "offlineMap": "Utirikania bwa Rugendo",
+    "tapForDirections": "Kanya nconthe njira",
+    "noLocationAccess": "Ntirî untu wa njira"
   },
   "officeList": {
     "searchResults": "Mboco cia Gucaria",

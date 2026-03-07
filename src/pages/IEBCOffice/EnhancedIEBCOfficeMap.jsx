@@ -17,6 +17,7 @@ import { useIEBCOffices } from '../../hooks/useIEBCOffices';
 import { useMapControls } from '../../hooks/useMapControls';
 import { findNearestOffice, findNearestOffices } from '../../utils/geoUtils';
 import { useTheme } from '@/contexts/ThemeContext';
+import { Thermometer, Wind, CloudRain } from 'lucide-react';
 
 const EnhancedIEBCOfficeMap = () => {
   const { t } = useTranslation('nasaka');
@@ -494,17 +495,17 @@ const EnhancedIEBCOfficeMap = () => {
               </div>
               {travelInsights.temperature !== null && (
                 <div className="flex items-center gap-1.5 mt-1">
-                  <span className="text-xs text-muted-foreground">
-                    🌡️ {travelInsights.temperature}°C
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Thermometer className="w-3 h-3" /> {travelInsights.temperature}°C
                   </span>
                   {travelInsights.windSpeed !== null && (
-                    <span className="text-xs text-muted-foreground">
-                      · 💨 {travelInsights.windSpeed} km/h
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      · <Wind className="w-3 h-3" /> {travelInsights.windSpeed} km/h
                     </span>
                   )}
                   {travelInsights.precipProb !== null && travelInsights.precipProb > 0 && (
-                    <span className="text-xs text-muted-foreground">
-                      · 🌧️ {travelInsights.precipProb}%
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      · <CloudRain className="w-3 h-3" /> {travelInsights.precipProb}%
                     </span>
                   )}
                 </div>
