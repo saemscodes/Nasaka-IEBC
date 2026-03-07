@@ -1,7 +1,9 @@
 
-// src/api/ai-proxy.ts
+// api/ai-proxy.ts
 // Proxy for Hugging Face, Groq, and Gemini APIs to solve CORS and 403 errors
-// Using Vercel edge/serverless function approach
+// Using Vercel Edge Function approach
+
+export const config = { runtime: 'edge' };
 
 export default async function handler(req: Request): Promise<Response> {
     // ─── Only allow POST ────────────────────────────────────────────────────────

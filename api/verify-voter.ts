@@ -1,4 +1,6 @@
 
+export const config = { runtime: 'edge' };
+
 export interface VoterVerificationRequest {
   nationalId: string;
   constituency: string;
@@ -73,7 +75,7 @@ export default async function handler(req: Request): Promise<Response> {
 
       // Log successful verification for audit trail
       console.log(`Voter verification successful: ${nationalId} in ${constituency}`);
-      
+
       return Response.json(response);
     } else {
       return Response.json({
@@ -84,7 +86,7 @@ export default async function handler(req: Request): Promise<Response> {
 
   } catch (error) {
     console.error('Voter verification error:', error);
-    
+
     // Return mock verification for development
     return simulateVoterVerification('unknown', 'unknown');
   }
@@ -94,7 +96,7 @@ export default async function handler(req: Request): Promise<Response> {
 function simulateVoterVerification(nationalId: string, constituency: string): Response {
   const mockWards = ['Ziwani', 'Kariokor', 'Ngara', 'Landhies', 'Nairobi Central'];
   const randomWard = mockWards[Math.floor(Math.random() * mockWards.length)];
-  
+
   const response: VoterVerificationResponse = {
     verified: true,
     voterDetails: {
@@ -109,6 +111,6 @@ function simulateVoterVerification(nationalId: string, constituency: string): Re
   };
 
   console.log(`Mock voter verification: ${nationalId} verified in ${constituency}/${randomWard}`);
-  
+
   return Response.json(response);
 }

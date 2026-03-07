@@ -1,3 +1,4 @@
+export const config = { runtime: 'edge' };
 
 export interface PetitionStats {
   totalSignatures: number;
@@ -27,10 +28,10 @@ export default async function handler(req: Request): Promise<Response> {
   try {
     // In production, these would be real-time queries from Supabase
     // For now, we'll simulate realistic data
-    
+
     const currentTime = new Date();
     const last24Hours = new Date(currentTime.getTime() - 24 * 60 * 60 * 1000);
-    
+
     // Simulate database queries
     const stats: PetitionStats = {
       totalSignatures: 8750,
@@ -73,7 +74,7 @@ export default async function handler(req: Request): Promise<Response> {
 
     // Log for monitoring
     console.log(`Petition stats request: ${stats.totalSignatures} signatures, ${stats.complianceScore}% compliance`);
-    
+
     return Response.json(stats, {
       headers: {
         'Cache-Control': 'public, max-age=60', // Cache for 1 minute
@@ -84,7 +85,7 @@ export default async function handler(req: Request): Promise<Response> {
 
   } catch (error) {
     console.error('Error fetching petition stats:', error);
-    
+
     return Response.json({
       error: 'Failed to fetch petition statistics'
     }, { status: 500 });

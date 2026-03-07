@@ -1,3 +1,4 @@
+export const config = { runtime: 'edge' };
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -51,22 +52,22 @@ export default async function handler(req: Request): Promise<Response> {
         apiResponse = await integrateWithGEDA(sessionId, voterData, deviceFingerprint);
         redirectUrl = apiResponse.signatureUrl;
         break;
-        
+
       case 'tendaworld':
         apiResponse = await integrateWithTendaWorld(sessionId, voterData, deviceFingerprint);
         redirectUrl = apiResponse.signatureUrl;
         break;
-        
+
       case 'emudhra':
         apiResponse = await integrateWithEmudhra(sessionId, voterData, deviceFingerprint);
         redirectUrl = apiResponse.signatureUrl;
         break;
-        
+
       case 'icta':
         apiResponse = await integrateWithICTA(sessionId, voterData, deviceFingerprint);
         redirectUrl = apiResponse.signatureUrl;
         break;
-        
+
       default:
         return Response.json({
           success: false,
@@ -89,7 +90,7 @@ export default async function handler(req: Request): Promise<Response> {
       expires_at: expiresAt,
       redirect_url: redirectUrl
     };
-    
+
     // TODO: Uncomment when signature_sessions table is created
     // await supabase.from('signature_sessions').insert(sessionData);
     console.log('Signature session created:', sessionData);
@@ -105,7 +106,7 @@ export default async function handler(req: Request): Promise<Response> {
 
   } catch (error) {
     console.error('Signature session creation error:', error);
-    
+
     return Response.json({
       success: false,
       error: 'Failed to create signature session'
@@ -185,7 +186,7 @@ async function integrateWithTendaWorld(sessionId: string, voterData: any, device
     });
 
     const data = await response.json();
-    
+
     if (data.signature_method === 'ussd') {
       return {
         signatureUrl: `tel:*483*58*${data.session_code}#`,

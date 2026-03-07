@@ -163,3 +163,13 @@ export const handle404 = (
         };
     }
 };
+
+export const config = { runtime: 'edge' };
+
+export default async function handler(req: Request) {
+    const url = new URL(req.url);
+    const path = url.pathname;
+    const search = url.search;
+    const res = handle404(path, search);
+    return Response.json(res);
+}
