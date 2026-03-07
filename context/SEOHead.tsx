@@ -15,7 +15,7 @@
  *   <SEOHead
  *     title="IEBC Offices in Nairobi | Find & Navigate — Nasaka IEBC"
  *     description="Find every IEBC constituency and registration office in Nairobi County. Interactive map with live directions."
- *     canonical="https://recall254.vercel.app/iebc-office/nairobi"
+ *     canonical="https://nasakaiebc.civiceducationkenya.com/nairobi"
  *     schema={officeSchema}  // optional JSON-LD object
  *   />
  */
@@ -37,7 +37,7 @@ interface SEOHeadProps {
   noIndex?: boolean;
 }
 
-const DEFAULT_OG_IMAGE = 'https://recall254.vercel.app/og-image.png';
+const DEFAULT_OG_IMAGE = 'https://nasakaiebc.civiceducationkenya.com/og-image.png';
 const SITE_NAME = 'Nasaka IEBC';
 const TWITTER_HANDLE = '@CivicEdKenya';
 
@@ -128,7 +128,7 @@ export function generateOfficeSchema(office: {
       name: 'Independent Electoral and Boundaries Commission (IEBC)',
       url: 'https://www.iebc.or.ke',
     },
-    url: `https://recall254.vercel.app/iebc-office/${office.constituency
+    url: `https://nasakaiebc.civiceducationkenya.com/${office.constituency
       .toLowerCase()
       .replace(/\s+/g, '-')}`,
   };
@@ -148,7 +148,7 @@ export function IEBCMapPage() {
       <SEOHead
         title="IEBC Office Finder Kenya | Find IEBC Offices Near You — Nasaka IEBC"
         description="Find and navigate to any IEBC registration or constituency office across Kenya. Community-verified map with live directions. Built for the 2027 General Election."
-        canonical="https://recall254.vercel.app/iebc-office"
+        canonical="https://nasakaiebc.civiceducationkenya.com/iebc-office"
       />
       // ... rest of map UI
     </>
@@ -165,7 +165,7 @@ export function IEBCOfficeDetail({ office }) {
       <SEOHead
         title={`${office.name} IEBC Office | Address, Hours & Directions`}
         description={`IEBC office in ${office.constituency}, ${office.county} County. Get directions, contact details, and community-verified information.`}
-        canonical={`https://recall254.vercel.app/iebc-office/${office.slug}`}
+        canonical={`https://nasakaiebc.civiceducationkenya.com/${office.slug}`}
         schema={schema}
       />
       // ... rest of office detail UI
@@ -180,7 +180,7 @@ export function IEBCCountyPage({ county }) {
       <SEOHead
         title={`IEBC Offices in ${county.name} County | Interactive Map — Nasaka IEBC`}
         description={`Find all IEBC constituency and registration offices in ${county.name} County, Kenya. Interactive map with live directions and community verification.`}
-        canonical={`https://recall254.vercel.app/iebc-office/${county.slug}`}
+        canonical={`https://nasakaiebc.civiceducationkenya.com/${county.slug}`}
       />
       // ...
     </>

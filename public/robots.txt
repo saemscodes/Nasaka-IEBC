@@ -33,7 +33,7 @@ Disallow: /private/
 Disallow: /secure/
 
 # Sitemap location
-Sitemap: https://recall254.vercel.app/sitemap.xml
+Sitemap: https://nasakaiebc.civiceducationkenya.com/sitemap.xml
 
 # Crawl delay (optional - adjust based on server capacity)
 Crawl-delay: 1

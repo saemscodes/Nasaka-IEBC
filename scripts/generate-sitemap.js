@@ -18,7 +18,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const SITE_URL = 'https://recall254.vercel.app';
+const SITE_URL = 'https://nasakaiebc.civiceducationkenya.com';
 const OUTPUT_PATH = resolve(__dirname, '..', 'public', 'sitemap.xml');
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;

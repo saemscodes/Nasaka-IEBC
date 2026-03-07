@@ -243,7 +243,7 @@ jobs:
         uses: JarvusInnovations/webpagetest-github-action@v1
         with:
           apiKey: ${{ secrets.WEBPAGETEST_API_KEY }}
-          url: 'https://recall254.vercel.app/iebc-office'
+          url: 'https://nasakaiebc.civiceducationkenya.com'
           location: 'Dulles:Chrome'
           pollResults: 30
           timeout: 300

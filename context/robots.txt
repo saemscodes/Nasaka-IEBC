@@ -17,4 +17,4 @@ Disallow: /*.env
 Disallow: /src/
 
 # Sitemap location — submit this URL to Google Search Console too
-Sitemap: https://recall254.vercel.app/sitemap.xml
+Sitemap: https://nasakaiebc.civiceducationkenya.com/sitemap.xml

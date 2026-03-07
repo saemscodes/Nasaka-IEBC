@@ -9,7 +9,7 @@
 
 import { Helmet } from 'react-helmet-async';
 
-const SITE_URL = 'https://recall254.vercel.app';
+const SITE_URL = 'https://nasakaiebc.civiceducationkenya.com';
 const DEFAULT_OG_IMAGE = `${SITE_URL}/1.webp`;
 const SITE_NAME = 'Nasaka IEBC';
 const TWITTER_HANDLE = '@CivicEdKenya';

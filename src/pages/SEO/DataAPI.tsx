@@ -104,7 +104,7 @@ const DataAPI = () => {
                         "@type": "Dataset",
                         "name": "Nasaka IEBC Constituency Office Directory",
                         "description": "A community-verified dataset of IEBC constituency offices and registration centers across Kenya, including geolocation coordinates and contact details.",
-                        "url": "https://recall254.vercel.app/data-api",
+                        "url": "https://nasakaiebc.civiceducationkenya.com/data-api",
                         "creator": {
                             "@type": "Organization",
                             "name": "Civic Education Kenya (CEKA)"

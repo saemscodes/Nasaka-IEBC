@@ -5,7 +5,7 @@
 ## 🎯 What is Nasaka IEBC?
 
 <p align="center">
-  <a href="https://recall254.vercel.app/iebc-office">
+  <a href="https://nasakaiebc.civiceducationkenya.com">
     <img src="https://github.com/SaemsCodes/recall-254/blob/main/public/nasaka-logo-blue.png" alt="Nasaka IEBC Logo" width="200" style="border-radius: 50%;"/>
   </a>
 </p>
@@ -15,10 +15,10 @@
 </p>
 
 <p align="center">
-  <a href="https://recall254.vercel.app/iebc-office">
+  <a href="https://nasakaiebc.civiceducationkenya.com">
     <img src="https://img.shields.io/badge/Live-App-green" alt="Live App">
   </a>
-  <a href="https://recall254.vercel.app">
+  <a href="https://nasakaiebc.civiceducationkenya.com">
     <img src="https://img.shields.io/badge/Built%20by-CEKA-blue" alt="Built by CEKA">
   </a>
 </p>
@@ -63,7 +63,7 @@ Every office entry shows:
 
 ## 🚀 How It Works
 
-1. **Visit the map** at [recall254.vercel.app/iebc-office](https://recall254.vercel.app/iebc-office)
+1. **Visit the map** at [Nasaka IEBC](https://nasakaiebc.civiceducationkenya.com/iebc-office)
 2. **Allow location access** (optional but recommended)
 3. **Browse or search** for IEBC offices near you
 4. **Click any office** to view details and get directions
@@ -162,7 +162,7 @@ Your choice. Let us know your thoughts.
 
 ## 🔗 Links
 
-- **Main Platform:** [recall254.vercel.app/iebc-office](https://recall254.vercel.app/iebc-office)
+- **Main Platform:** [Nasaka IEBC](https://nasakaiebc.civiceducationkenya.com/iebc-office)
 - **Download the App:** [Nasaka IEBC Android App](https://linktr.ee/civiceducationke)
 - **Instagram:** [@CivicEdKenya](https://www.instagram.com/civiceducationke/)
 - **X (Twitter):** [@CivicEdKenya](https://x.com/CivicEdKenya)
@@ -201,4 +201,4 @@ Nasaka IEBC is an independent civic-tech project. While we strive for accuracy b
 
 ---
 
-**Ready to explore?** 👉 [**Launch Nasaka IEBC**](https://recall254.vercel.app/iebc-office)
+**Ready to explore?** 👉 [**Launch Nasaka IEBC**](https://nasakaiebc.civiceducationkenya.com)
