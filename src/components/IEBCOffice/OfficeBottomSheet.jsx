@@ -307,6 +307,28 @@ const OfficeBottomSheet = ({
                   </div>
                 )}
               </div>
+
+              {/* QUICK GLANCE WEATHER/TRAFFIC (USER REQUEST) */}
+              {hasLocationAccess && (travelInsights || trafficInfo) && (
+                <div className={`mt-2 flex items-center space-x-3 px-1 animate-fade-in`}>
+                  {travelInsights && (
+                    <div className="flex items-center space-x-1">
+                      <img src="/context/Button icons/sun-svgrepo-com.svg" className="w-3.5 h-3.5" alt="weather" />
+                      <span className={`text-[11px] font-bold ${isDark ? 'text-ios-gray-300' : 'text-gray-600'}`}>
+                        {travelInsights.weatherDesc} • {travelInsights.temperature}°C
+                      </span>
+                    </div>
+                  )}
+                  {trafficInfo && (
+                    <div className="flex items-center space-x-1">
+                      <img src="/context/Button icons/car-front-view-609-svgrepo-com.svg" className="w-3.5 h-3.5" alt="traffic" />
+                      <span className={`text-[11px] font-bold ${trafficInfo.color || ''}`}>
+                        {trafficInfo.description}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Expanded Content */}
@@ -343,7 +365,7 @@ const OfficeBottomSheet = ({
                       : 'bg-yellow-50 border-yellow-200'
                       }`}>
                       <div className="flex items-start space-x-3">
-                        <span className="text-xl mt-0.5">📍</span>
+                        <img src="/context/Button icons/map-pin-svgrepo-com.svg" className="w-5 h-5 mt-0.5" alt="location" />
                         <div className="flex-1">
                           <h4 className={`text-sm font-semibold mb-1 ${isDark ? 'text-yellow-300' : 'text-yellow-800'
                             }`}>
@@ -375,7 +397,7 @@ const OfficeBottomSheet = ({
                       }`}>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-2">
-                          <span className="text-lg">💰</span>
+                          <img src="/context/Button icons/wallet-svgrepo-com.svg" className="w-5 h-5" alt="cost" />
                           <div>
                             <h4 className={`text-sm font-semibold ${isDark ? 'text-green-300' : 'text-green-800'
                               }`}>
@@ -383,7 +405,8 @@ const OfficeBottomSheet = ({
                             </h4>
                             <div className="flex items-center space-x-2 mt-0.5">
                               <span className={`text-xs ${trafficInfo?.color || 'text-gray-500'}`}>
-                                {trafficInfo?.icon || '🚗'} {trafficInfo?.description || t('bottomSheet.normalTraffic', 'Normal traffic')}
+                                <img src={trafficInfo?.icon?.includes('sun') ? "/context/Button icons/sun-svgrepo-com.svg" : (trafficInfo?.icon?.includes('cloud') ? "/context/Button icons/weather-rain-material-2-svgrepo-com.svg" : "/context/Button icons/car-front-view-609-svgrepo-com.svg")} className="w-4 h-4 inline-block mr-1" alt="traffic" />
+                                {trafficInfo?.description || t('bottomSheet.normalTraffic', 'Normal traffic')}
                               </span>
                               <span className={`text-xs ${isDark ? 'text-ios-gray-400' : 'text-gray-600'
                                 }`}>
@@ -411,7 +434,8 @@ const OfficeBottomSheet = ({
                             <div>
                               <p className={`text-xs font-medium ${isDark ? 'text-ios-gray-300' : 'text-gray-600'
                                 }`}>
-                                💡 {t('bottomSheet.cheapestOption', 'Cheapest Option')}
+                                <img src="/context/Button icons/sun-svgrepo-com.svg" className="w-3 h-3 inline-block mr-1" alt="tip" />
+                                {t('bottomSheet.cheapestOption', 'Cheapest Option')}
                               </p>
                               <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'
                                 }`}>
@@ -543,7 +567,8 @@ const OfficeBottomSheet = ({
                                 ? 'bg-orange-900/20 text-orange-300'
                                 : 'bg-orange-50 text-orange-700'
                                 }`}>
-                                ⚠️ {fareEstimates.traffic.description} - {t('bottomSheet.trafficSurchargeIncluded', 'Prices include traffic surcharge')}
+                                <img src="/context/Button icons/sun-svgrepo-com.svg" className="w-4 h-4 inline-block mr-1" alt="warning" />
+                                {fareEstimates.traffic.description} - {t('bottomSheet.trafficSurchargeIncluded', 'Prices include traffic surcharge')}
                               </div>
                             )}
                           </motion.div>
@@ -563,7 +588,13 @@ const OfficeBottomSheet = ({
                     <div className="mt-4 px-4">
                       <div className="bg-primary/5 dark:bg-primary/10 rounded-2xl p-1 border border-primary/10">
                         <OfflineRouteDownloader
-                          routeGeometry={currentRoute?.[0]?.coordinates || currentRoute?.[0]?.geometry || currentRoute?.[0] || (office ? { type: 'Point', coordinates: [office.longitude, office.latitude] } : null)}
+                          office={office}
+                          userLocation={userLocation}
+                          currentRoute={currentRoute}
+                          routingError={routingError}
+                          travelInsights={travelInsights}
+                          trafficInfo={trafficInfo}
+                          onClose={() => { }} // Controlled by parent if needed
                         />
                       </div>
                     </div>
@@ -577,7 +608,7 @@ const OfficeBottomSheet = ({
                       }`}>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-2">
-                          <span className="text-lg">🧭</span>
+                          <img src="/context/Button icons/compass-svgrepo-com.svg" className="w-5 h-5" alt="compass" />
                           <div>
                             <h4 className={`text-sm font-semibold ${isDark ? 'text-purple-300' : 'text-purple-800'}`}>
                               Travel Difficulty
@@ -622,12 +653,14 @@ const OfficeBottomSheet = ({
                           </p>
                           {travelInsights.windSpeed !== null && (
                             <p className={`text-sm font-semibold mt-0.5 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                              💨 {travelInsights.windSpeed} km/h
+                              <img src="/context/Button icons/weather-windy-svgrepo-com.svg" className="w-4 h-4 inline-block mr-1" alt="wind" />
+                              {travelInsights.windSpeed} km/h
                             </p>
                           )}
                           {travelInsights.precipProb !== null && travelInsights.precipProb > 0 && (
                             <p className={`text-xs mt-0.5 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
-                              🌧️ {travelInsights.precipProb}% rain
+                              <img src="/context/Button icons/weather-rain-material-2-svgrepo-com.svg" className="w-4 h-4 inline-block mr-1" alt="rain" />
+                              {travelInsights.precipProb}% rain
                             </p>
                           )}
                         </div>
@@ -651,7 +684,8 @@ const OfficeBottomSheet = ({
                     {office.constituency_name && (
                       <div className="flex items-center text-sm">
                         <span className={isDark ? 'text-ios-gray-400' : 'text-gray-500'}>
-                          📍 {office.constituency_name}, {office.county}
+                          <img src="/context/Button icons/map-pin-svgrepo-com.svg" className="w-4 h-4 inline-block mr-1 opacity-70" alt="location" />
+                          {office.constituency_name}, {office.county}
                         </span>
                       </div>
                     )}
@@ -659,7 +693,8 @@ const OfficeBottomSheet = ({
                       <div className="flex items-center text-sm">
                         <a href={`tel:${office.phone}`} className={`hover:underline ${isDark ? 'text-ios-blue-300' : 'text-blue-600'
                           }`}>
-                          📞 {office.phone}
+                          <img src="/context/Button icons/phone-rounded-svgrepo-com.svg" className="w-4 h-4 inline-block mr-1" alt="phone" />
+                          {office.phone}
                         </a>
                       </div>
                     )}
@@ -738,7 +773,7 @@ const OfficeBottomSheet = ({
                         className={`w-full font-semibold py-3 px-4 rounded-2xl flex flex-col items-center justify-center space-y-1 transition-all active:scale-95 duration-300 ${uberColors.bg} ${uberColors.text} ${uberColors.hover} ${uberColors.border} ${uberColors.shadow}`}
                       >
                         <div className="flex items-center space-x-2">
-                          <span className="text-lg">🚗</span>
+                          <img src="/context/Button icons/car-front-view-616-svgrepo-com.svg" className="w-5 h-5" alt="uber" />
                           <span className="text-sm font-medium">
                             {t('bottomSheet.bookWithUber', 'Uber')}
                           </span>
@@ -763,7 +798,7 @@ const OfficeBottomSheet = ({
                         className={`w-full font-semibold py-3 px-4 rounded-2xl flex flex-col items-center justify-center space-y-1 transition-all active:scale-95 duration-300 ${boltColors.bg}  ${boltColors.text} ${boltColors.hover} ${boltColors.border} ${boltColors.shadow}`}
                       >
                         <div className="flex items-center space-x-2">
-                          <span className="text-lg">⚡</span>
+                          <img src="/context/Button icons/Bolt_idw_2V0lyO_0.svg" className="w-5 h-5" alt="bolt" />
                           <span className="text-sm font-medium">
                             {t('bottomSheet.bookWithBolt', 'Bolt')}
                           </span>
@@ -785,7 +820,7 @@ const OfficeBottomSheet = ({
                         onClick={openGoogleMaps}
                         className={`w-full font-semibold py-3 px-4 rounded-2xl flex items-center justify-center space-x-2 transition-all active:scale-95 duration-300 ${googleColors.bg} ${googleColors.text} ${googleColors.hover} ${googleColors.border} ${googleColors.shadow}`}
                       >
-                        <span className="text-lg">🗺️</span>
+                        <img src="/context/Button icons/Google_Maps_icon_(2026).svg" className="w-5 h-5" alt="google maps" />
                         <span className="text-sm font-medium">
                           {t('bottomSheet.openInGoogleMaps', 'Google Maps')}
                         </span>
@@ -796,7 +831,7 @@ const OfficeBottomSheet = ({
                         onClick={openAppleMaps}
                         className={`w-full font-semibold py-3 px-4 rounded-2xl flex items-center justify-center space-x-2 transition-all active:scale-95 duration-300 ${appleColors.bg} ${appleColors.text} ${appleColors.hover} ${appleColors.border} ${appleColors.shadow}`}
                       >
-                        <span className="text-lg">🍎</span>
+                        <img src="/context/Button icons/apple-173-svgrepo-com.svg" className="w-5 h-5" alt="apple maps" />
                         <span className="text-sm font-medium">
                           {t('bottomSheet.openInAppleMaps', 'Apple Maps')}
                         </span>
@@ -854,7 +889,7 @@ const OfficeBottomSheet = ({
             )}
           </motion.div>
         )}
-      </AnimatePresen ce>
+      </AnimatePresence>
 
       {/* Uber Modal - ALWAYS RENDERED BUT CONDITIONALLY SHOWN */}
       <UberModal

@@ -10,6 +10,9 @@ interface OfflineRouteDownloaderProps {
     office: any;
     userLocation: any;
     currentRoute: any;
+    routingError: any;
+    travelInsights: any;
+    trafficInfo: any;
     className?: string;
     onClose: () => void;
 }
@@ -25,6 +28,9 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
     office,
     userLocation,
     currentRoute,
+    routingError,
+    travelInsights,
+    trafficInfo,
     className = '',
     onClose
 }, ref) => {
@@ -181,6 +187,32 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                     <p className="text-sm opacity-70 leading-relaxed">
                         {t('offline.sidebarDesc', 'Download map tiles along your route to ensure navigation continues even when you lose internet connection in "dead zones".')}
                     </p>
+
+                    {/* RESTORED WEATHER & TRAFFIC DETAILS */}
+                    {(travelInsights || trafficInfo) && (
+                        <div className={`mt-4 grid grid-cols-2 gap-2 p-3 rounded-xl ${isDark ? 'bg-black/40' : 'bg-white/40'}`}>
+                            {travelInsights && (
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold opacity-50 uppercase">{t('offline.weather', 'Weather')}</p>
+                                    <div className="flex items-center gap-1">
+                                        <img src="/context/Button icons/sun-svgrepo-com.svg" className="w-3 h-3" alt="weather" />
+                                        <span className="text-xs font-bold">{travelInsights.weatherDesc}</span>
+                                    </div>
+                                    <p className="text-[10px] opacity-70">{travelInsights.temperature}°C • {travelInsights.precipProb}% Rain</p>
+                                </div>
+                            )}
+                            {trafficInfo && (
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold opacity-50 uppercase">{t('offline.traffic', 'Traffic')}</p>
+                                    <div className="flex items-center gap-1">
+                                        <img src="/context/Button icons/car-front-view-609-svgrepo-com.svg" className="w-3 h-3" alt="traffic" />
+                                        <span className={`text-xs font-bold ${trafficInfo.color || ''}`}>{trafficInfo.description}</span>
+                                    </div>
+                                    <p className="text-[10px] opacity-70">{t('offline.realTime', 'Live Updates')}</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Configuration Section */}
