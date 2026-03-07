@@ -57,7 +57,7 @@ const LayerControlPanel = ({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
         </svg>
       ),
-      color: 'purple'
+      color: 'blue'
     },
     {
       id: 'user-location',
@@ -138,25 +138,21 @@ const LayerControlPanel = ({
               <button
                 key={option.id}
                 onClick={() => handleBaseMapChange(option.id)}
-                className={`relative p-4 rounded-xl border-2 transition-all ${
-                  baseMap === option.id
+                className={`relative p-4 rounded-xl border-2 transition-all ${baseMap === option.id
                     ? 'border-primary bg-primary/10'
                     : 'border-border bg-background hover:border-muted-foreground'
-                }`}
+                  }`}
               >
                 <div className="flex flex-col items-center text-center">
-                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-2 ${
-                    baseMap === option.id ? 'bg-primary/20' : 'bg-muted'
-                  }`}>
-                    <svg className={`w-6 h-6 ${
-                      baseMap === option.id ? 'text-primary' : 'text-muted-foreground'
-                    }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-2 ${baseMap === option.id ? 'bg-primary/20' : 'bg-muted'
+                    }`}>
+                    <svg className={`w-6 h-6 ${baseMap === option.id ? 'text-primary' : 'text-muted-foreground'
+                      }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={option.preview} />
                     </svg>
                   </div>
-                  <span className={`text-sm font-medium ${
-                    baseMap === option.id ? 'text-primary' : 'text-foreground'
-                  }`}>
+                  <span className={`text-sm font-medium ${baseMap === option.id ? 'text-primary' : 'text-foreground'
+                    }`}>
                     {option.name}
                   </span>
                   <span className="text-xs text-muted-foreground mt-1">
@@ -185,8 +181,8 @@ const LayerControlPanel = ({
             {availableLayers.map((layer) => {
               const isActive =
                 layer.id === 'user-location'
-                ? !!userLocation || layers.includes(layer.id)
-                : layers.includes(layer.id);
+                  ? !!userLocation || layers.includes(layer.id)
+                  : layers.includes(layer.id);
               const isDisabled = layer.disabled;
 
               return (
@@ -194,61 +190,55 @@ const LayerControlPanel = ({
                   key={layer.id}
                   onClick={() => handleLayerToggle(layer.id)}
                   disabled={isDisabled}
-                  className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
-                    isDisabled
+                  className={`w-full p-4 rounded-xl border-2 transition-all text-left ${isDisabled
                       ? 'border-muted bg-muted opacity-50 cursor-not-allowed'
                       : isActive
-                      ? 'border-primary bg-primary/10'
-                      : 'border-border bg-background hover:border-muted-foreground'
-                  }`}
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border bg-background hover:border-muted-foreground'
+                    }`}
                 >
                   <div className="flex items-start">
-                    <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center ${
-                      isDisabled
+                    <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center ${isDisabled
                         ? 'bg-muted'
                         : isActive
-                        ? 'bg-primary/20'
-                        : 'bg-muted'
-                    }`}>
-                      <div className={`${
-                        isDisabled
+                          ? 'bg-primary/20'
+                          : 'bg-muted'
+                      }`}>
+                      <div className={`${isDisabled
                           ? 'text-muted-foreground'
                           : isActive
-                          ? 'text-primary'
-                          : 'text-muted-foreground'
-                      }`}>
+                            ? 'text-primary'
+                            : 'text-muted-foreground'
+                        }`}>
                         {layer.icon}
                       </div>
                     </div>
 
                     <div className="ml-4 flex-1">
                       <div className="flex items-center justify-between">
-                        <h4 className={`text-base font-semibold ${
-                          isDisabled ? 'text-muted-foreground' : 'text-foreground'
-                        }`}>
+                        <h4 className={`text-base font-semibold ${isDisabled ? 'text-muted-foreground' : 'text-foreground'
+                          }`}>
                           {layer.name}
                         </h4>
-                        <motion.div 
-                          className={`relative inline-flex items-center w-12 h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${
-                            isDisabled
+                        <motion.div
+                          className={`relative inline-flex items-center w-12 h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${isDisabled
                               ? 'bg-muted/50'
                               : isActive
-                              ? 'bg-primary'
-                              : 'bg-muted'
-                          }`}
+                                ? 'bg-primary'
+                                : 'bg-muted'
+                            }`}
                           style={{
-                            boxShadow: isActive && !isDisabled 
-                              ? '0 0 0 2px rgba(var(--primary-rgb, 34, 197, 94), 0.2), inset 0 1px 2px rgba(0, 0, 0, 0.1)' 
+                            boxShadow: isActive && !isDisabled
+                              ? '0 0 0 2px rgba(var(--primary-rgb, 34, 197, 94), 0.2), inset 0 1px 2px rgba(0, 0, 0, 0.1)'
                               : 'inset 0 1px 2px rgba(0, 0, 0, 0.1)'
                           }}
                           whileTap={!isDisabled ? { scale: 0.95 } : {}}
                         >
-                          <div className={`absolute inset-0 rounded-full ${
-                            isActive && !isDisabled 
-                              ? 'bg-gradient-to-r from-primary to-primary/90' 
+                          <div className={`absolute inset-0 rounded-full ${isActive && !isDisabled
+                              ? 'bg-gradient-to-r from-primary to-primary/90'
                               : 'bg-gradient-to-r from-muted to-muted/80'
-                          }`} />
-                          
+                            }`} />
+
                           <motion.span
                             className="absolute w-5 h-5 bg-white rounded-full z-10"
                             initial={false}
@@ -273,7 +263,7 @@ const LayerControlPanel = ({
                               filter: 'brightness(1.02)'
                             }}
                           />
-                          
+
                           <motion.span
                             className="absolute w-4 h-4 bg-white/20 rounded-full z-0"
                             initial={false}
@@ -295,7 +285,7 @@ const LayerControlPanel = ({
                             <motion.div
                               className="absolute inset-0 rounded-full z-0"
                               initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ 
+                              animate={{
                                 opacity: [0, 0.4, 0],
                                 scale: [0.8, 1.3, 1]
                               }}
@@ -312,7 +302,7 @@ const LayerControlPanel = ({
                           )}
 
                           {!isActive && !isDisabled && (
-                            <div 
+                            <div
                               className="absolute inset-0 rounded-full"
                               style={{
                                 boxShadow: 'inset 0 1px 3px rgba(0, 0, 0, 0.1)',
@@ -322,9 +312,8 @@ const LayerControlPanel = ({
                           )}
                         </motion.div>
                       </div>
-                      <p className={`text-sm mt-1 ${
-                        isDisabled ? 'text-muted-foreground' : 'text-muted-foreground'
-                      }`}>
+                      <p className={`text-sm mt-1 ${isDisabled ? 'text-muted-foreground' : 'text-muted-foreground'
+                        }`}>
                         {layer.description}
                       </p>
                       {isDisabled && layer.id === 'user-location' && (

@@ -813,14 +813,14 @@ const OfficeBottomSheet = ({
                   {/* ── TRAVEL DIFFICULTY CARD ── */}
                   {travelInsights && (
                     <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark
-                      ? 'bg-gradient-to-br from-purple-900/20 to-indigo-900/20 border-purple-700/30'
-                      : 'bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200'
+                      ? 'bg-gradient-to-br from-blue-900/20 to-blue-900/20 border-blue-700/30'
+                      : 'bg-gradient-to-br from-blue-50 to-blue-50 border-blue-200'
                       }`}>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-2">
                           <IconCompass className="w-5 h-5" />
                           <div>
-                            <h4 className={`text-sm font-semibold ${isDark ? 'text-purple-300' : 'text-purple-800'}`}>
+                            <h4 className={`text-sm font-semibold ${isDark ? 'text-blue-300' : 'text-blue-800'}`}>
                               Travel Difficulty
                             </h4>
                             <p className={`text-xs mt-0.5 ${isDark ? 'text-ios-gray-400' : 'text-gray-600'}`}>
@@ -887,13 +887,13 @@ const OfficeBottomSheet = ({
                         </p>
                       )}
 
-                      {/* AI Intelligence Layer Display */}
+                      {/* AI Intelligence Layer Display — Nasaka Blue Theme */}
                       {travelInsights.aiScore !== null && travelInsights.aiScore !== undefined && (
-                        <div className={`mt-4 p-3 rounded-xl border ${isDark ? 'bg-purple-500/10 border-purple-500/20' : 'bg-purple-50 border-purple-200'}`}>
+                        <div className={`mt-4 p-3 rounded-xl border ${isDark ? 'bg-[#0b63c6]/10 border-[#0b63c6]/30' : 'bg-blue-50 border-blue-200'}`}>
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
                               <div className={`w-2 h-2 rounded-full ${travelInsights.aiConfidence === 'high' ? 'bg-green-500' : travelInsights.aiConfidence === 'medium' ? 'bg-yellow-500' : 'bg-red-500'} animate-pulse`} />
-                              <span className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
+                              <span className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-blue-400' : 'text-[#0b63c6]'}`}>
                                 AI Intelligence
                               </span>
                             </div>
@@ -902,14 +902,14 @@ const OfficeBottomSheet = ({
                                 <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-600 dark:text-green-400 font-bold">✓ Ground Truth</span>
                               )}
                               <span className={`text-lg font-black ${travelInsights.aiScore <= 25 ? (isDark ? 'text-green-400' : 'text-green-600')
-                                  : travelInsights.aiScore <= 50 ? (isDark ? 'text-yellow-400' : 'text-yellow-600')
-                                    : travelInsights.aiScore <= 75 ? (isDark ? 'text-orange-400' : 'text-orange-600')
-                                      : (isDark ? 'text-red-400' : 'text-red-600')
+                                : travelInsights.aiScore <= 50 ? (isDark ? 'text-yellow-400' : 'text-yellow-600')
+                                  : travelInsights.aiScore <= 75 ? (isDark ? 'text-orange-400' : 'text-orange-600')
+                                    : (isDark ? 'text-red-400' : 'text-red-600')
                                 }`}>{travelInsights.aiScore}<span className="text-xs font-medium opacity-60">/100</span></span>
                             </div>
                           </div>
                           {travelInsights.aiReason && (
-                            <p className={`text-xs leading-relaxed ${isDark ? 'text-purple-200/70' : 'text-purple-700/70'}`}>
+                            <p className={`text-xs leading-relaxed ${isDark ? 'text-blue-100/70' : 'text-blue-900/70'}`}>
                               {travelInsights.aiReason}
                             </p>
                           )}
@@ -920,7 +920,7 @@ const OfficeBottomSheet = ({
                           )}
                           <div className={`text-[9px] mt-2 flex items-center gap-1 ${isDark ? 'text-ios-gray-500' : 'text-gray-400'}`}>
                             <span>Powered by</span>
-                            <span className="font-bold uppercase">{
+                            <span className="font-bold uppercase text-[#0b63c6]">{
                               travelInsights.aiProvider === 'consensus' ? 'Nasaka Consensus'
                                 : travelInsights.aiProvider === 'mistral' ? 'Mistral-7B'
                                   : travelInsights.aiProvider === 'groq' ? 'Groq/Llama 3'

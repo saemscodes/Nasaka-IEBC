@@ -24,6 +24,7 @@ export interface AIConsensusInput {
     timeMins: number;
     isVerified: boolean;
     currentScore: number;
+    isFallbackDistance?: boolean; // True if using Haversine instead of real routing
 }
 
 export interface AIScoreResult {
@@ -121,8 +122,9 @@ SCORING RULES:
 - 26-50: Moderate (some weather, medium distance)
 - 51-75: Difficult (rain/wind, long distance, or unverified)
 - 76-100: Very difficult (severe weather + long distance + unverified)
-- Factor in Kenyan road conditions: unpaved roads in rural areas add difficulty
-- Rain in Kenya significantly impacts road safety and travel time
+- Spatial Intuition: ${input.isFallbackDistance ? `Note: Routing APIs failed. Using Haversine distance. Apply your knowledge of ${input.county} County terrain (e.g. mountainous, desert, urban traffic) to refine the difficulty.` : 'Routing data is accurate.'}
+- Factor in Kenyan road conditions: unpaved roads in rural areas add difficulty.
+- Rain in Kenya significantly impacts road safety and travel time.
 
 Return ONLY a valid JSON object with no markdown formatting, no code blocks, no extra text:
 {"score": <number 0-100>, "reason": "<one sentence explanation>"}`;

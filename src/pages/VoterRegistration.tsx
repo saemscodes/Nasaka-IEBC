@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
+import {
   MapPin, Users, FileText, Clock, Shield,
   Phone, Mail, ExternalLink, Download
 } from 'lucide-react';
@@ -20,7 +20,7 @@ const VoterRegistrationPage = () => {
   // Voter registration requirements
   const requirements = [
     "Must be a Kenyan citizen",
-    "Must be 18 years and above", 
+    "Must be 18 years and above",
     "Must possess a valid Kenyan ID or Passport",
     "Must be of sound mind",
     "Must not have been declared bankrupt",
@@ -40,7 +40,7 @@ const VoterRegistrationPage = () => {
       description: "Complete the Application for Registration form (Form A)"
     },
     {
-      step: 3, 
+      step: 3,
       title: "Receive Acknowledgement",
       description: "Get your registration acknowledgement slip with voter details"
     },
@@ -60,7 +60,7 @@ const VoterRegistrationPage = () => {
             IEBC Voter Registration
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Find your nearest voter registration office and get all the information you need 
+            Find your nearest voter registration office and get all the information you need
             to register as a voter in Kenya's electoral process
           </p>
           <div className="flex flex-wrap justify-center gap-3 mt-6">
@@ -72,7 +72,7 @@ const VoterRegistrationPage = () => {
               <MapPin className="w-3 h-3 mr-1" />
               290 Constituency Offices
             </Badge>
-            <Badge variant="secondary" className="bg-purple-100 text-purple-700 text-sm py-1 px-3">
+            <Badge variant="secondary" className="bg-blue-100 text-blue-700 text-sm py-1 px-3">
               <Users className="w-3 h-3 mr-1" />
               47 Counties Covered
             </Badge>
@@ -107,7 +107,7 @@ const VoterRegistrationPage = () => {
           <TabsContent value="map" className="space-y-4">
             <Card className="border-0 shadow-lg">
               <CardContent className="p-0">
-                <IEBCVoterRegistrationMap 
+                <IEBCVoterRegistrationMap
                   showVoterRegistrationInfo={false}
                   className="w-full"
                 />
@@ -154,9 +154,9 @@ const VoterRegistrationPage = () => {
                       Important Notice
                     </h4>
                     <p className="text-sm text-yellow-700">
-                      Multiple voter registration is illegal under Kenyan law. Persons who register 
-                      more than once are liable to a fine not exceeding KSh 100,000 or imprisonment 
-                      for up to one year, or both. Such persons will be barred from participating 
+                      Multiple voter registration is illegal under Kenyan law. Persons who register
+                      more than once are liable to a fine not exceeding KSh 100,000 or imprisonment
+                      for up to one year, or both. Such persons will be barred from participating
                       in the immediate election and the next that follows.
                     </p>
                   </div>
@@ -174,8 +174,8 @@ const VoterRegistrationPage = () => {
                   <div className="space-y-3">
                     <h4 className="font-semibold text-gray-900">Continuous Voter Registration</h4>
                     <p className="text-sm text-gray-600">
-                      The IEBC conducts continuous voter registration at constituency offices 
-                      throughout the year. However, major registration drives are typically 
+                      The IEBC conducts continuous voter registration at constituency offices
+                      throughout the year. However, major registration drives are typically
                       announced before general elections.
                     </p>
                   </div>
@@ -206,12 +206,12 @@ const VoterRegistrationPage = () => {
           {/* Process Tab */}
           <TabsContent value="process">
             <Card className="border-0 shadow-lg">
-              <CardHeader className="bg-purple-600 text-white">
+              <CardHeader className="bg-blue-600 text-white">
                 <CardTitle className="flex items-center">
                   <Clock className="w-5 h-5 mr-2" />
                   Voter Registration Process
                 </CardTitle>
-                <CardDescription className="text-purple-100">
+                <CardDescription className="text-blue-100">
                   Follow these simple steps to register as a voter in Kenya
                 </CardDescription>
               </CardHeader>
@@ -219,8 +219,8 @@ const VoterRegistrationPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {processSteps.map((step) => (
                     <div key={step.step} className="text-center">
-                      <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-2xl font-bold text-purple-600">{step.step}</span>
+                      <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-2xl font-bold text-[#0b63c6]">{step.step}</span>
                       </div>
                       <h3 className="font-semibold text-gray-900 mb-2">{step.title}</h3>
                       <p className="text-sm text-gray-600">{step.description}</p>
@@ -280,8 +280,8 @@ const VoterRegistrationPage = () => {
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                       <h4 className="font-semibold text-green-800 mb-2">Transfer of Registration</h4>
                       <p className="text-sm text-green-700">
-                        You can transfer your voter registration to another constituency 
-                        during registration periods. Visit any IEBC office with your 
+                        You can transfer your voter registration to another constituency
+                        during registration periods. Visit any IEBC office with your
                         current registration details and new address information.
                       </p>
                     </div>
@@ -294,26 +294,26 @@ const VoterRegistrationPage = () => {
           {/* Contact Tab */}
           <TabsContent value="contact">
             <Card className="border-0 shadow-lg">
-              <CardHeader className="bg-indigo-600 text-white">
+              <CardHeader className="bg-blue-800 text-white">
                 <CardTitle className="flex items-center">
                   <Phone className="w-5 h-5 mr-2" />
                   Contact IEBC
                 </CardTitle>
-                <CardDescription className="text-indigo-100">
+                <CardDescription className="text-blue-100">
                   Get in touch with the Independent Electoral and Boundaries Commission
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                   {iebcContacts.map((contact, index) => (
-                    <div key={index} className="text-center p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-                      <h3 className="font-semibold text-indigo-900 mb-3">{contact.type}</h3>
+                    <div key={index} className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <h3 className="font-semibold text-blue-900 mb-3">{contact.type}</h3>
                       <div className="space-y-2">
-                        <div className="flex items-center justify-center text-sm text-indigo-700">
+                        <div className="flex items-center justify-center text-sm text-blue-700">
                           <Phone className="w-4 h-4 mr-2" />
                           {contact.phone}
                         </div>
-                        <div className="flex items-center justify-center text-sm text-indigo-700">
+                        <div className="flex items-center justify-center text-sm text-blue-700">
                           <Mail className="w-4 h-4 mr-2" />
                           {contact.email}
                         </div>
@@ -365,8 +365,8 @@ const VoterRegistrationPage = () => {
         {/* Footer Information */}
         <div className="mt-8 text-center text-sm text-gray-500">
           <p>
-            This service is provided to help Kenyan citizens find voter registration information. 
-            Always verify information with official IEBC sources. Data sourced from IEBC PDF documents 
+            This service is provided to help Kenyan citizens find voter registration information.
+            Always verify information with official IEBC sources. Data sourced from IEBC PDF documents
             and geocoded using OpenStreetMap Nominatim.
           </p>
           <p className="mt-2">

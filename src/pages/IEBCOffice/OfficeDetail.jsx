@@ -411,7 +411,7 @@ const OfficeDetail = () => {
 
                 {/* Live Intelligence Section */}
                 {(liveIntelligence || intelligenceLoading) && (
-                    <section className={`rounded-3xl p-6 border ${isDark ? 'bg-gradient-to-br from-purple-900/20 to-transparent border-purple-800/30' : 'bg-gradient-to-br from-purple-50 to-white border-purple-100'}`}>
+                    <section className={`rounded-3xl p-6 border ${isDark ? 'bg-gradient-to-br from-blue-900/20 to-transparent border-blue-800/30' : 'bg-gradient-to-br from-blue-50 to-white border-blue-100'}`}>
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-bold flex items-center gap-2">
                                 <div className={`w-2 h-2 rounded-full ${intelligenceLoading ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`} />
@@ -420,7 +420,7 @@ const OfficeDetail = () => {
                             <button
                                 onClick={fetchIntelligence}
                                 disabled={intelligenceLoading}
-                                className={`text-xs font-medium px-3 py-1.5 rounded-full transition-all active:scale-95 ${isDark ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/30' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'} ${intelligenceLoading ? 'opacity-50' : ''}`}
+                                className={`text-xs font-medium px-3 py-1.5 rounded-full transition-all active:scale-95 ${isDark ? 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/30' : 'bg-blue-100 text-[#0b63c6] hover:bg-blue-200'} ${intelligenceLoading ? 'opacity-50' : ''}`}
                             >
                                 {intelligenceLoading ? 'Checking...' : 'Refresh'}
                             </button>
@@ -428,7 +428,7 @@ const OfficeDetail = () => {
 
                         {intelligenceLoading && !liveIntelligence ? (
                             <div className="flex items-center justify-center py-6">
-                                <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                                <div className="w-6 h-6 border-2 border-[#0b63c6] border-t-transparent rounded-full animate-spin" />
                                 <span className={`ml-3 text-sm ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>Consulting AI providers...</span>
                             </div>
                         ) : liveIntelligence ? (
@@ -456,31 +456,31 @@ const OfficeDetail = () => {
                                 <div className="flex items-center justify-between">
                                     <span className={`text-sm ${isDark ? 'text-ios-gray-300' : 'text-gray-600'}`}>Visit Difficulty</span>
                                     <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${liveIntelligence.severity === 'low' ? 'bg-green-500/20 text-green-600 dark:text-green-400'
-                                            : liveIntelligence.severity === 'medium' ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
-                                                : 'bg-red-500/20 text-red-600 dark:text-red-400'
+                                        : liveIntelligence.severity === 'medium' ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
+                                            : 'bg-red-500/20 text-red-600 dark:text-red-400'
                                         }`}>{liveIntelligence.score}/100</span>
                                 </div>
 
-                                {/* AI Intelligence */}
+                                {/* AI Intelligence — Nasaka Blue Theme */}
                                 {liveIntelligence.aiScore !== null && liveIntelligence.aiScore !== undefined && (
-                                    <div className={`mt-2 p-3 rounded-xl ${isDark ? 'bg-purple-500/10' : 'bg-purple-50'}`}>
+                                    <div className={`mt-2 p-3 rounded-xl border ${isDark ? 'bg-[#0b63c6]/10 border-[#0b63c6]/30' : 'bg-blue-50 border-blue-200'}`}>
                                         <div className="flex items-center justify-between mb-1">
-                                            <span className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
-                                                AI Score
+                                            <span className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-blue-400' : 'text-[#0b63c6]'}`}>
+                                                AI Intelligence
                                             </span>
                                             <div className="flex items-center gap-1.5">
                                                 {liveIntelligence.aiGroundTruthVerified && (
                                                     <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-600 dark:text-green-400 font-bold">✓ Verified</span>
                                                 )}
                                                 <span className={`text-lg font-black ${liveIntelligence.aiScore <= 25 ? 'text-green-500'
-                                                        : liveIntelligence.aiScore <= 50 ? 'text-yellow-500'
-                                                            : liveIntelligence.aiScore <= 75 ? 'text-orange-500'
-                                                                : 'text-red-500'
+                                                    : liveIntelligence.aiScore <= 50 ? 'text-yellow-500'
+                                                        : liveIntelligence.aiScore <= 75 ? 'text-orange-500'
+                                                            : 'text-red-500'
                                                     }`}>{liveIntelligence.aiScore}<span className="text-xs opacity-60">/100</span></span>
                                             </div>
                                         </div>
                                         {liveIntelligence.aiReason && (
-                                            <p className={`text-xs leading-relaxed ${isDark ? 'text-purple-200/70' : 'text-purple-700/70'}`}>
+                                            <p className={`text-xs leading-relaxed ${isDark ? 'text-blue-100/70' : 'text-blue-900/70'}`}>
                                                 {liveIntelligence.aiReason}
                                             </p>
                                         )}
@@ -490,7 +490,7 @@ const OfficeDetail = () => {
                                             </p>
                                         )}
                                         <p className={`text-[9px] mt-1.5 ${isDark ? 'text-ios-gray-500' : 'text-gray-400'}`}>
-                                            Powered by <span className="font-bold uppercase">{liveIntelligence.aiProvider === 'consensus' ? 'Nasaka Consensus' : liveIntelligence.aiProvider}</span> • {liveIntelligence.aiConfidence} confidence
+                                            Powered by <span className="font-bold uppercase text-[#0b63c6]">{liveIntelligence.aiProvider === 'consensus' ? 'Nasaka Consensus' : liveIntelligence.aiProvider}</span> • {liveIntelligence.aiConfidence} confidence
                                         </p>
                                     </div>
                                 )}
@@ -502,6 +502,7 @@ const OfficeDetail = () => {
                         ) : null}
                     </section>
                 )}
+
 
                 {/* Voter Registration Pillar */}
                 <section className={`rounded-3xl p-6 border ${isDark ? 'bg-gradient-to-br from-green-900/20 to-transparent border-green-800/30' : 'bg-gradient-to-br from-green-50 to-white border-green-100'}`}>
@@ -558,7 +559,7 @@ const OfficeDetail = () => {
                     </p>
                 </footer>
             </main>
-        </div>
+        </div >
     );
 };
 

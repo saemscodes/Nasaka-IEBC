@@ -382,7 +382,8 @@ export async function getTravelInsights(
             distanceKm: parseFloat(distanceKm.toFixed(1)),
             timeMins: Math.round(timeMins),
             isVerified: officeContext?.verified ?? true,
-            currentScore: score
+            currentScore: score,
+            isFallbackDistance: !route // True if we used Haversine fallback
         };
         aiResult = await getAIDifficultyScore(aiInput);
     } catch {

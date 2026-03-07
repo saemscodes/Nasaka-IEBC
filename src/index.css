@@ -18,26 +18,26 @@
   --z-index-map-markers: 10;
   --z-index-map-popups: 20;
   --z-index-map-routes: 15;
-  
+
   /* Map Container - SEPARATE STACKING CONTEXT */
   --z-index-map-container: 100;
-  
+
   /* UI Overlay System - ABOVE MAP */
   --z-index-overlay-base: 1000;
   --z-index-search-bar: 1001;
   --z-index-control-buttons: 1002;
   --z-index-layer-control: 1003;
-  
+
   /* Interactive Panels - HIGHEST */
   --z-index-bottom-sheet: 2000;
   --z-index-list-panel: 2001;
   --z-index-layer-panel: 2002;
-  
+
   /* System Overlays */
   --z-index-loading-overlay: 3000;
   --z-index-error-overlay: 3001;
   --z-index-toast-notifications: 3002;
-  
+
   /* Maximum system z-index */
   --z-index-max: 9999;
 
@@ -55,7 +55,7 @@
   --ios-light-text-primary: rgba(28, 28, 30, 0.95);
   --ios-light-text-secondary: rgba(60, 60, 67, 0.8);
   --ios-light-text-tertiary: rgba(60, 60, 67, 0.6);
-  
+
   /* Dark Mode Colors */
   --ios-dark-surface: rgba(28, 28, 30, 0.95);
   --ios-dark-surface-hover: rgba(44, 44, 46, 0.8);
@@ -64,7 +64,7 @@
   --ios-dark-text-primary: rgba(255, 255, 255, 0.95);
   --ios-dark-text-secondary: rgba(235, 235, 245, 0.8);
   --ios-dark-text-tertiary: rgba(235, 235, 245, 0.6);
-  
+
   /* iOS Blue Colors */
   --ios-blue: rgba(0, 122, 255, 1);
   --ios-blue-dark: rgba(10, 132, 255, 1);
@@ -79,14 +79,14 @@
 
 /* High contrast shadow systems */
 .shadow-ios-high {
-  box-shadow: 
+  box-shadow:
     0 24px 48px rgba(0, 0, 0, 0.18),
     0 12px 24px rgba(0, 0, 0, 0.12),
     0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
 .shadow-ios-high-dark {
-  box-shadow: 
+  box-shadow:
     0 24px 48px rgba(0, 0, 0, 0.35),
     0 12px 24px rgba(0, 0, 0, 0.25),
     0 0 0 1px rgba(255, 255, 255, 0.1);
@@ -96,44 +96,44 @@
 
 /* Dark mode background patterns */
 .bg-pattern-grid {
-  background-image: 
+  background-image:
     radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+    radial-gradient(circle at 75% 75%, rgba(11, 99, 198, 0.05) 0%, transparent 50%);
   background-size: 50px 50px, 100px 100px;
 }
 
 .bg-pattern-grid-dark {
-  background-image: 
+  background-image:
     radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+    radial-gradient(circle at 75% 75%, rgba(11, 99, 198, 0.1) 0%, transparent 50%);
   background-size: 50px 50px, 100px 100px;
 }
 
 .bg-grid-white {
   background-image: linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-                   linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
   background-size: 50px 50px;
 }
 
 .bg-grid-dark {
   background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-                   linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   background-size: 50px 50px;
 }
 
 /* Dark mode vignette overlays */
 .bg-vignette-light {
-  background: radial-gradient(ellipse at center, 
-    transparent 0%, 
-    rgba(255, 255, 255, 0.8) 40%,
-    rgba(255, 255, 255, 0.9) 100%);
+  background: radial-gradient(ellipse at center,
+      transparent 0%,
+      rgba(255, 255, 255, 0.8) 40%,
+      rgba(255, 255, 255, 0.9) 100%);
 }
 
 .bg-vignette-dark {
-  background: radial-gradient(ellipse at center, 
-    transparent 0%, 
-    rgba(0, 0, 0, 0.3) 40%,
-    rgba(0, 0, 0, 0.6) 100%);
+  background: radial-gradient(ellipse at center,
+      transparent 0%,
+      rgba(0, 0, 0, 0.3) 40%,
+      rgba(0, 0, 0, 0.6) 100%);
 }
 
 /* Dark mode glass morphism utilities */
@@ -206,6 +206,7 @@
 
 /* Green scrollbar styling */
 @layer base {
+
   /* Webkit browsers (Chrome, Safari, Edge) */
   ::-webkit-scrollbar {
     width: 8px;
@@ -322,7 +323,7 @@
     --chart-5: 27 87% 67%;
     --radius: 0.75rem;
   }
-  
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
@@ -355,6 +356,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -365,6 +367,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -375,6 +378,7 @@
     opacity: 0;
     transform: scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -382,9 +386,12 @@
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-10px);
   }
@@ -415,42 +422,34 @@
   transform-origin: center center;
 
   /* mask to fade image edges to transparent; center alpha ~0.45 */
-  -webkit-mask-image: linear-gradient(
-    to right,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.45) 48%,
-    rgba(0, 0, 0, 0.45) 52%,
-    rgba(0, 0, 0, 0) 100%
-  );
-  mask-image: linear-gradient(
-    to right,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.45) 48%,
-    rgba(0, 0, 0, 0.45) 52%,
-    rgba(0, 0, 0, 0) 100%
-  );
+  -webkit-mask-image: linear-gradient(to right,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.45) 48%,
+      rgba(0, 0, 0, 0.45) 52%,
+      rgba(0, 0, 0, 0) 100%);
+  mask-image: linear-gradient(to right,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.45) 48%,
+      rgba(0, 0, 0, 0.45) 52%,
+      rgba(0, 0, 0, 0) 100%);
 
   /* subtle pan animation (smooth, slow) */
-  animation: bg-pan 20s cubic-bezier(0.25,0.46,0.45,0.94) infinite;
+  animation: bg-pan 20s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
   will-change: transform;
 }
 
 /* Pattern overlay: faint streaks across entire background */
 .bg-pattern {
-  background-image: repeating-linear-gradient(
-      135deg,
+  background-image: repeating-linear-gradient(135deg,
       rgba(255, 255, 255, 0.02) 0px,
       rgba(255, 255, 255, 0.02) 2px,
       rgba(255, 255, 255, 0) 2px,
-      rgba(255, 255, 255, 0) 24px
-    ),
-    repeating-linear-gradient(
-      45deg,
+      rgba(255, 255, 255, 0) 24px),
+    repeating-linear-gradient(45deg,
       rgba(255, 255, 255, 0.01) 0px,
       rgba(255, 255, 255, 0.01) 1px,
       rgba(255, 255, 255, 0) 1px,
-      rgba(255, 255, 255, 0) 36px
-    );
+      rgba(255, 255, 255, 0) 36px);
   opacity: 0.06;
   mix-blend-mode: normal;
   transform-origin: center center;
@@ -461,15 +460,13 @@
 
 /* Light vignette to keep edges white and maintain "cloudy" feel */
 .bg-vignette {
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 1) 0%,
-    rgba(255, 255, 255, 0.98) 12%,
-    rgba(255, 255, 255, 0.95) 25%,
-    rgba(255, 255, 255, 0.85) 45%,
-    rgba(255, 255, 255, 0.95) 75%,
-    rgba(255, 255, 255, 1) 100%
-  );
+  background: linear-gradient(to bottom,
+      rgba(255, 255, 255, 1) 0%,
+      rgba(255, 255, 255, 0.98) 12%,
+      rgba(255, 255, 255, 0.95) 25%,
+      rgba(255, 255, 255, 0.85) 45%,
+      rgba(255, 255, 255, 0.95) 75%,
+      rgba(255, 255, 255, 1) 100%);
   pointer-events: none;
 }
 
@@ -477,19 +474,16 @@
 @media (max-width: 640px) {
   .bg-peek {
     animation-duration: 28s;
-    -webkit-mask-image: linear-gradient(
-      to right,
-      rgba(0, 0, 0, 0) 0%,
-      rgba(0, 0, 0, 0.5) 50%,
-      rgba(0, 0, 0, 0) 100%
-    );
-    mask-image: linear-gradient(
-      to right,
-      rgba(0, 0, 0, 0) 0%,
-      rgba(0, 0, 0, 0.5) 50%,
-      rgba(0, 0, 0, 0) 100%
-    );
+    -webkit-mask-image: linear-gradient(to right,
+        rgba(0, 0, 0, 0) 0%,
+        rgba(0, 0, 0, 0.5) 50%,
+        rgba(0, 0, 0, 0) 100%);
+    mask-image: linear-gradient(to right,
+        rgba(0, 0, 0, 0) 0%,
+        rgba(0, 0, 0, 0.5) 50%,
+        rgba(0, 0, 0, 0) 100%);
   }
+
   .bg-pattern {
     opacity: 0.04;
   }
@@ -500,9 +494,11 @@
   0% {
     transform: translate3d(-4%, 0, 0) scale(1.02);
   }
+
   50% {
     transform: translate3d(4%, 0, 0) scale(1.02);
   }
+
   100% {
     transform: translate3d(-4%, 0, 0) scale(1.02);
   }
@@ -512,6 +508,7 @@
   0% {
     background-position: 0 0, 0 0;
   }
+
   100% {
     background-position: 300px 300px, -300px -300px;
   }
@@ -558,7 +555,7 @@
   will-change: transform;
 }
 
-.fixed-search-container > * {
+.fixed-search-container>* {
   pointer-events: auto;
 }
 
@@ -574,7 +571,7 @@
 
 .search-container:focus-within {
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.18),
-              0 0 0 4px rgba(0, 122, 255, 0.1);
+    0 0 0 4px rgba(0, 122, 255, 0.1);
   transform: translateY(-2px);
 }
 
@@ -591,7 +588,7 @@
   transform: translateZ(0);
 }
 
-.fixed-controls-container > * {
+.fixed-controls-container>* {
   pointer-events: auto;
 }
 
@@ -632,7 +629,7 @@
   transform: translateZ(0);
 }
 
-.fixed-badge-container > * {
+.fixed-badge-container>* {
   pointer-events: auto;
 }
 
@@ -671,7 +668,7 @@
   box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
   transform: translateY(0);
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-              z-index 0s;
+    z-index 0s;
   will-change: transform;
   contain: layout style paint;
   padding-bottom: var(--spacing-safe-bottom);
@@ -886,24 +883,24 @@
     left: 12px;
     right: 12px;
   }
-  
+
   .fixed-controls-container {
     right: 12px;
   }
-  
+
   .ios-control-btn {
     width: 44px;
     height: 44px;
   }
-  
+
   .office-list-panel {
     width: 100vw;
   }
-  
+
   .layer-control-panel {
     width: 100vw;
   }
-  
+
   .office-bottom-sheet.expanded {
     max-height: 85vh;
   }
@@ -917,15 +914,15 @@
     border-radius: 24px;
     margin-bottom: 20px;
   }
-  
+
   .office-bottom-sheet.peek {
     transform: translateX(-50%) translateY(calc(100% - 80px));
   }
-  
+
   .office-bottom-sheet.expanded {
     transform: translateX(-50%) translateY(0);
   }
-  
+
   .office-bottom-sheet.hidden {
     transform: translateX(-50%) translateY(100%);
   }
@@ -941,6 +938,7 @@
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -948,7 +946,7 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  
+
   .bg-peek,
   .bg-pattern {
     animation: none !important;
@@ -958,6 +956,7 @@
 
 /* High contrast mode */
 @media (prefers-contrast: high) {
+
   .search-container,
   .ios-control-btn,
   .route-badge,
@@ -1053,7 +1052,7 @@
   pointer-events: none;
 }
 
-.overlay-system > * {
+.overlay-system>* {
   pointer-events: auto;
 }
 
@@ -1062,7 +1061,7 @@
   pointer-events: none;
 }
 
-.overlay-pass-through > * {
+.overlay-pass-through>* {
   pointer-events: auto;
 }
 
@@ -1145,6 +1144,7 @@
   from {
     transform: translateY(100%);
   }
+
   to {
     transform: translateY(0);
   }
@@ -1154,6 +1154,7 @@
   from {
     transform: translateY(0);
   }
+
   to {
     transform: translateY(100%);
   }
@@ -1163,6 +1164,7 @@
   from {
     transform: translateX(100%);
   }
+
   to {
     transform: translateX(0);
   }
@@ -1172,6 +1174,7 @@
   from {
     transform: translateX(-100%);
   }
+
   to {
     transform: translateX(0);
   }
@@ -1274,6 +1277,7 @@ button.ios-control-btn {
 
 /* Prevent zoom on iOS when focusing inputs */
 @media screen and (max-width: 640px) {
+
   .search-container input,
   input[type="text"],
   input[type="search"],
@@ -1492,6 +1496,7 @@ button.ios-control-btn {
 /* ===== PRINT STYLES ===== */
 
 @media print {
+
   .fixed-search-container,
   .fixed-controls-container,
   .fixed-badge-container,
@@ -1501,7 +1506,7 @@ button.ios-control-btn {
   .panel-backdrop {
     display: none !important;
   }
-  
+
   .ios-map-container {
     box-shadow: none;
     border-radius: 0;
@@ -1557,6 +1562,7 @@ button.ios-control-btn {
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
+
   .bg-iebc-pattern,
   .bg-iebc-pattern-dark {
     animation: none !important;
