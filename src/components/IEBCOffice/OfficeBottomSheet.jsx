@@ -20,6 +20,12 @@ import {
   getTrafficInfo,
   FARE_DISCLAIMER
 } from '@/utils/kenyaFareCalculator';
+import {
+  getOfficeDisplayName,
+  getOfficeLandmark,
+  getOfficeLandmarkDistance,
+} from '@/utils/officeNameNormalizer';
+import UberModal from './UberModal';
 import i18next from 'i18next';
 import { useNavigate } from 'react-router-dom';
 import { slugify } from '@/components/SEO/SEOHead';
@@ -385,6 +391,17 @@ const OfficeBottomSheet = ({
                     }`}>
                     {office.office_name || office.constituency_name || t('office.officeName', 'IEBC Office')}
                   </h3>
+                  {(() => {
+                    const dn = getOfficeDisplayName(office);
+                    const cn = (office.constituency_name || '').toLowerCase();
+                    return dn && dn.toLowerCase() !== cn && dn !== 'IEBC Office' ? (
+                      <p className={`text-xs font-medium mt-0.5 line-clamp-1 transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-primary'
+                        }`}>
+                        <IconPin className="w-3 h-3 inline-block mr-1" />
+                        {dn}
+                      </p>
+                    ) : null;
+                  })()}
                   <p className={`text-sm mt-1 line-clamp-1 transition-colors duration-300 ${isDark ? 'text-ios-gray-300' : 'text-muted-foreground'
                     }`}>
                     {office.constituency_name && office.county
@@ -463,6 +480,28 @@ const OfficeBottomSheet = ({
                       }`}>
                       {office.office_name || office.constituency_name || t('office.officeName', 'IEBC Office')}
                     </h2>
+                    {(() => {
+                      const dn = getOfficeDisplayName(office);
+                      const cn = (office.constituency_name || '').toLowerCase();
+                      return dn && dn.toLowerCase() !== cn && dn !== 'IEBC Office' ? (
+                        <p className={`text-sm font-medium mt-1 transition-colors duration-300 ${isDark ? 'text-ios-blue-400' : 'text-primary'
+                          }`}>
+                          <IconPin className="w-4 h-4 inline-block mr-1" />
+                          {dn}
+                        </p>
+                      ) : null;
+                    })()}
+                    {(() => {
+                      const lm = getOfficeLandmark(office);
+                      const dist = getOfficeLandmarkDistance(office);
+                      return lm ? (
+                        <p className={`text-xs mt-1 transition-colors duration-300 ${isDark ? 'text-ios-gray-400' : 'text-muted-foreground'
+                          }`}>
+                          <IconCompass className="w-4 h-4 inline-block mr-1" />
+                          {t('office.nearLandmark', 'Near')}: {lm}{dist && dist !== 'On-site' ? ` (${dist})` : dist === 'On-site' ? ' — On-site' : ''}
+                        </p>
+                      ) : null;
+                    })()}
                     {office.office_type && (
                       <span className={`inline-block mt-2 px-3 py-1 text-xs font-medium rounded-full transition-colors duration-300 ${isDark
                         ? 'bg-ios-blue/30 text-ios-blue-400'
