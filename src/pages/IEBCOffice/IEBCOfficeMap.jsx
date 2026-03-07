@@ -778,23 +778,18 @@ const IEBCOfficeMap = () => {
                 </div>
               )
             )}
-            {/* Traffic + Weather quick-glance */}
-            {travelInsights?.trafficCondition && !isOffline && (
-              <div className="flex items-center gap-2 mt-1 text-[10px]">
-                <span className={`${travelInsights.trafficColor || 'text-green-500'} flex items-center gap-1`}>
-                  {(() => {
-                    const iconName = travelInsights.trafficIcon || 'car';
-                    // Inline mapping for Lucide-like icons used in traffic
-                    if (iconName === 'sunrise') return <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 7a5 5 0 100 10 5 5 0 000-10z" /></svg>;
-                    if (iconName === 'sunset') return <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 7a5 5 0 100 10 5 5 0 000-10z" /></svg>; // Reusing some for simplicity or I could map more accurately
-                    return <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>; // Car/Navigation
-                  })()}
-                  {travelInsights.trafficCondition}
-                </span>
-                {travelInsights.weatherDesc && (
-                  <span className="text-muted-foreground">
-                    • {travelInsights.weatherDesc}
-                  </span>
+            {/* Traffic + Weather quick-glance (PREMIUM) */}
+            {travelInsights && !isOffline && (
+              <div className="flex items-center gap-3 mt-1.5 pt-1.5 border-t border-white/10 text-[9px] font-bold uppercase tracking-wider">
+                <div className="flex items-center gap-1">
+                  <img src="/context/Button icons/sun-svgrepo-com.svg" className="w-2.5 h-2.5" alt="weather" />
+                  <span className="text-white opacity-80">{travelInsights.weatherDesc} • {travelInsights.temperature}°C</span>
+                </div>
+                {travelInsights.trafficCondition && (
+                  <div className="flex items-center gap-1">
+                    <img src="/context/Button icons/car-front-view-609-svgrepo-com.svg" className="w-2.5 h-2.5" alt="traffic" />
+                    <span className={travelInsights.trafficColor || 'text-green-400'}>{travelInsights.trafficCondition}</span>
+                  </div>
                 )}
               </div>
             )}
@@ -898,6 +893,9 @@ const IEBCOfficeMap = () => {
             office={selectedOffice}
             userLocation={userLocation}
             currentRoute={currentRoute}
+            routingError={routingError}
+            travelInsights={travelInsights}
+            trafficInfo={getTrafficInfo()}
             onClose={() => setShowOfflineDownloader(false)}
           />
         )}

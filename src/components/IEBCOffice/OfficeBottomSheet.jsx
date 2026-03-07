@@ -582,24 +582,6 @@ const OfficeBottomSheet = ({
                       </p>
                     </div>
                   )}
-
-                  {/* Offline Trip Protection Section */}
-                  {(currentRoute?.[0] || office) && (
-                    <div className="mt-4 px-4">
-                      <div className="bg-primary/5 dark:bg-primary/10 rounded-2xl p-1 border border-primary/10">
-                        <OfflineRouteDownloader
-                          office={office}
-                          userLocation={userLocation}
-                          currentRoute={currentRoute}
-                          routingError={routingError}
-                          travelInsights={travelInsights}
-                          trafficInfo={trafficInfo}
-                          onClose={() => { }} // Controlled by parent if needed
-                        />
-                      </div>
-                    </div>
-                  )}
-
                   {/* ── TRAVEL DIFFICULTY CARD ── */}
                   {travelInsights && (
                     <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark

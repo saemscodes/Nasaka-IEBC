@@ -188,27 +188,37 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                         {t('offline.sidebarDesc', 'Download map tiles along your route to ensure navigation continues even when you lose internet connection in "dead zones".')}
                     </p>
 
-                    {/* RESTORED WEATHER & TRAFFIC DETAILS */}
+                    {/* RESTORED WEATHER & TRAFFIC DETAILS - PREMIUM FLEX LAYOUT */}
                     {(travelInsights || trafficInfo) && (
-                        <div className={`mt-4 grid grid-cols-2 gap-2 p-3 rounded-xl ${isDark ? 'bg-black/40' : 'bg-white/40'}`}>
+                        <div className={`mt-4 space-y-3 p-4 rounded-2xl ${isDark ? 'bg-black/30 border border-white/5' : 'bg-white/50 border border-black/5'}`}>
                             {travelInsights && (
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-bold opacity-50 uppercase">{t('offline.weather', 'Weather')}</p>
-                                    <div className="flex items-center gap-1">
-                                        <img src="/context/Button icons/sun-svgrepo-com.svg" className="w-3 h-3" alt="weather" />
-                                        <span className="text-xs font-bold">{travelInsights.weatherDesc}</span>
+                                <div className="flex items-center gap-3">
+                                    <div className={`p-2 rounded-xl ${isDark ? 'bg-ios-blue/20' : 'bg-ios-blue/10'}`}>
+                                        <img src="/context/Button icons/sun-svgrepo-com.svg" className="w-4 h-4" alt="weather" />
                                     </div>
-                                    <p className="text-[10px] opacity-70">{travelInsights.temperature}°C • {travelInsights.precipProb}% Rain</p>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex justify-between items-center">
+                                            <p className="text-[10px] font-bold opacity-50 uppercase tracking-tighter">{t('offline.weather', 'Weather')}</p>
+                                            <span className="text-[10px] font-bold text-ios-blue">{travelInsights.temperature}°C</span>
+                                        </div>
+                                        <p className="text-sm font-bold truncate leading-tight">{travelInsights.weatherDesc}</p>
+                                        <p className="text-[9px] opacity-60 font-medium">{travelInsights.precipProb}% {t('offline.precipChance', 'Precipitation Chance')}</p>
+                                    </div>
                                 </div>
                             )}
+
                             {trafficInfo && (
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-bold opacity-50 uppercase">{t('offline.traffic', 'Traffic')}</p>
-                                    <div className="flex items-center gap-1">
-                                        <img src="/context/Button icons/car-front-view-609-svgrepo-com.svg" className="w-3 h-3" alt="traffic" />
-                                        <span className={`text-xs font-bold ${trafficInfo.color || ''}`}>{trafficInfo.description}</span>
+                                <div className="flex items-center gap-3 border-t pt-3 border-border/20">
+                                    <div className={`p-2 rounded-xl ${isDark ? 'bg-orange-500/20' : 'bg-orange-500/10'}`}>
+                                        <img src="/context/Button icons/car-front-view-609-svgrepo-com.svg" className="w-4 h-4" alt="traffic" />
                                     </div>
-                                    <p className="text-[10px] opacity-70">{t('offline.realTime', 'Live Updates')}</p>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[10px] font-bold opacity-50 uppercase tracking-tighter">{t('offline.traffic', 'Traffic')}</p>
+                                        <div className="flex items-center justify-between">
+                                            <p className={`text-sm font-bold truncate ${trafficInfo.color || ''}`}>{trafficInfo.description}</p>
+                                            <span className="text-[9px] font-bold opacity-40 uppercase">{t('offline.realTime', 'Live')}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </div>
