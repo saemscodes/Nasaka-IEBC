@@ -155,18 +155,18 @@ async function fetchMistralScore(input: AIConsensusInput): Promise<AIScoreResult
 
     try {
         const prompt = buildScoringPrompt(input);
-        const res = await fetch('https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3', {
+        const res = await fetch('/api/ai-proxy', {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${HF_TOKEN}`,
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                inputs: `[INST] ${prompt} [/INST]`,
-                parameters: {
-                    max_new_tokens: 150,
-                    temperature: 0.1,
-                    return_full_text: false
+                provider: 'mistral',
+                body: {
+                    inputs: `[INST] ${prompt} [/INST]`,
+                    parameters: {
+                        max_new_tokens: 150,
+                        temperature: 0.1,
+                        return_full_text: false
+                    }
                 }
             }),
             signal: AbortSignal.timeout(15000)
@@ -203,21 +203,21 @@ async function fetchGroqScore(input: AIConsensusInput): Promise<AIScoreResult | 
 
     try {
         const prompt = buildScoringPrompt(input);
-        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        const res = await fetch('/api/ai-proxy', {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${GROQ_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                model: 'llama-3.3-70b-versatile',
-                messages: [
-                    { role: 'system', content: 'You are a precise scoring engine. Return only valid JSON.' },
-                    { role: 'user', content: prompt }
-                ],
-                temperature: 0.1,
-                max_tokens: 150,
-                response_format: { type: 'json_object' }
+                provider: 'groq',
+                body: {
+                    model: 'llama-3.3-70b-versatile',
+                    messages: [
+                        { role: 'system', content: 'You are a precise scoring engine. Return only valid JSON.' },
+                        { role: 'user', content: prompt }
+                    ],
+                    temperature: 0.1,
+                    max_tokens: 150,
+                    response_format: { type: 'json_object' }
+                }
             }),
             signal: AbortSignal.timeout(8000)
         });
@@ -260,22 +260,22 @@ async function fetchGeminiReferee(
             ? `${buildScoringPrompt(input)}\n\nTwo other AI models scored this location:\n- Model A: ${scoreA}/100\n- Model B: ${scoreB}/100\n\nConsider both scores and provide your own independent assessment. If they disagree by more than 25 points, lean toward the more conservative (higher difficulty) score for safety.`
             : buildScoringPrompt(input);
 
-        const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
+        const res = await fetch('/api/ai-proxy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                provider: 'gemini',
+                body: {
                     contents: [{ parts: [{ text: prompt }] }],
                     generationConfig: {
                         temperature: 0.1,
                         maxOutputTokens: 200,
                         responseMimeType: 'application/json'
                     }
-                }),
-                signal: AbortSignal.timeout(12000)
-            }
-        );
+                }
+            }),
+            signal: AbortSignal.timeout(12000)
+        });
 
         incrementAIQuota('gemini');
 
@@ -309,22 +309,22 @@ async function verifyGroundTruth(input: AIConsensusInput): Promise<{ verified: b
     try {
         const prompt = buildGroundTruthPrompt(input);
 
-        const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
+        const res = await fetch('/api/ai-proxy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                provider: 'gemini_ground',
+                body: {
                     contents: [{ parts: [{ text: prompt }] }],
                     tools: [{ google_search: {} }],
                     generationConfig: {
                         temperature: 0.1,
                         maxOutputTokens: 200
                     }
-                }),
-                signal: AbortSignal.timeout(15000)
-            }
-        );
+                }
+            }),
+            signal: AbortSignal.timeout(15000)
+        });
 
         incrementAIQuota('gemini_ground');
 
