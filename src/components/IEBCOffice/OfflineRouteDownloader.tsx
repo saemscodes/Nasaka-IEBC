@@ -10,26 +10,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 // === INTERNAL SVG COMPONENTS ===
 const IconSun = ({ className = "w-4 h-4" }) => (
     <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 7C9.23858 7 7 9.23858 7 12C7 14.7614 9.23858 17 12 17C14.7614 17 17 14.7614 17 12C17 9.23858 14.7614 7 12 7Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M12 1V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M12 21V23" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M4.22 4.22L5.64 5.64" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M18.36 18.36L19.78 19.78" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M1 12H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M21 12H23" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M4.22 19.78L5.64 18.36" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M18.36 5.64L19.78 4.22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M12 17C14.7614 17 17 14.7614 17 12C17 9.23858 14.7614 7 12 7C9.23858 7 7 9.23858 7 12C7 14.7614 9.23858 17 12 17Z" fill="currentColor" />
+        <path d="M12 2V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <path d="M12 20V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <path d="M4.92999 4.92999L6.33999 6.33999" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <path d="M17.66 17.66L19.07 19.07" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <path d="M2 12H4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <path d="M20 12H22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <path d="M6.33999 17.66L4.92999 19.07" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <path d="M19.07 4.92999L17.66 6.33999" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
 );
 
 const IconCar = ({ className = "w-4 h-4" }) => (
-    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M18.1565 17.5878L19.2335 19.9572C19.4673 20.4716 19.1219 21.0581 18.572 21.1118C16.1438 21.3489 11.2334 21.6667 9.4 21.6667C7.56667 21.6667 2.65623 21.3489 0.228023 21.1118C-0.32185 21.0581 -0.667253 20.4716 -0.433519 19.9572L0.643492 17.5878" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        <path d="M17.3333 13V17.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        <path d="M1.46667 13V17.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        <path d="M3.73333 19C4.65381 19 5.4 18.2538 5.4 17.3333C5.4 16.4129 4.65381 15.6667 3.73333 15.6667C2.81286 15.6667 2.06667 16.4129 2.06667 17.3333C2.06667 18.2538 2.81286 19 3.73333 19Z" fill="currentColor" />
-        <path d="M15.0667 19C15.9871 19 16.7333 18.2538 16.7333 17.3333C16.7333 16.4129 15.9871 15.6667 15.0667 15.6667C14.1462 15.6667 13.4 16.4129 13.4 17.3333C13.4 18.2538 14.1462 19 15.0667 19Z" fill="currentColor" />
-        <path d="M16.5 9.77197L15.9189 6.86616C15.5492 5.01777 13.9181 3.66663 12.0287 3.66663H6.7712C4.88179 3.66663 3.25071 5.01777 2.88102 6.86616L2.29995 9.77197C2.0834 10.8547 2.50341 11.9701 3.38531 12.6559L4.44521 13.4795C5.02102 13.9271 5.73199 14.1666 6.46332 14.1666H12.3366C13.0679 14.1666 13.7789 13.9271 14.3547 13.4795L15.4146 12.6559C16.2965 11.9701 16.7165 10.8547 16.5 9.77197Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <svg className={className} viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <path fill="currentColor" d="M466.963,233.298c-0.194-0.647-0.26-1.295-0.455-1.942c-5.633-22.539-19.234-43.007-38.406-59.652 c-19.82-17.294-45.727-30.507-75.197-37.761c-16.774-4.209-34.715-6.476-53.369-6.476c-18.652,0-36.594,2.268-53.369,6.476 c-38.018,9.392-70.08,28.628-90.871,53.757c-10.881,13.084-18.652,27.786-22.668,43.396h-3.238 c-4.34,0-151.428,11.464-126.559,119.822h68.59c-0.064-1.167-0.129-2.332-0.129-3.497c0-3.433,0.324-6.866,0.842-9.845 c4.793-27.073,28.238-46.763,55.766-46.763s50.973,19.69,55.701,46.568c0.584,3.173,0.906,6.606,0.906,10.04 c0,1.049-0.059,2.098-0.115,3.149c-0.012,0.032-0.004,0.078-0.014,0.11h0.008c-0.004,0.08-0.004,0.159-0.008,0.238h144.045 c-0.064-1.167-0.129-2.332-0.129-3.497c0-3.433,0.324-6.866,0.842-9.845c4.793-27.073,28.24-46.763,55.766-46.763 c27.527,0,50.972,19.69,55.701,46.503c0.584,3.238,0.906,6.672,0.906,10.105c0,1.045-0.058,2.09-0.115,3.137 c-0.01,0.035-0.002,0.087-0.014,0.122h0.01c-0.006,0.08-0.006,0.159-0.01,0.238h56.719c7.629,0,13.816-6.203,13.844-13.831 C512.213,263.339,513.328,250.078,466.963,233.298z" />
     </svg>
 );
 
