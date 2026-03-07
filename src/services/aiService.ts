@@ -5,9 +5,9 @@
 import { get, set } from 'idb-keyval';
 
 // ─── API Keys (VITE_ pattern matching existing codebase) ────────────────────
-const HF_TOKEN = import.meta.env.VITE_HF_API_TOKEN || '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';
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || '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';
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyDYwts04amm2BGIIGDzOLBU3hbErcAugjw';
+const HF_TOKEN = import.meta.env.VITE_HF_API_TOKEN;
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 export interface AIConsensusInput {
