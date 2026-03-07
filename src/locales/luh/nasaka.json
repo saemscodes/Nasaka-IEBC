@@ -16,9 +16,8 @@
     "search": "Londa",
     "filter": "Chera",
     "select": "Salula",
-    "optional": "Sibitinyu",
-    "required": "Sichuno",
-    "dismiss": "Resa Mulori"
+    "optional": "Sio ya kumanyisa",
+    "required": "Ya kumanyisa"
   },
   "splash": {
     "title": "NASAKA",
@@ -118,11 +117,8 @@
     "openApp": "Fungula app",
     "trafficSurchargeIncluded": "Malevi garivamo levi lya traffic",
     "coordinatesCopied": "Ma coordinates ga copy mu clipboard!",
-    "copyCoordinatesPrompt": "Kopele tsimanyi:",
-    "moreOnOffice": "Tsilori Tsa Chimali Tsa IEBC: {{officeName}}",
-    "offlineMap": "Uvulunzi wa Lwendo",
-    "tapForDirections": "Tsindira kwa Inzira",
-    "noLocationAccess": "Havana Kwitavizwa kwa Habali"
+    "copyCoordinatesPrompt": "Copy ma coordinates:",
+    "moreOnOffice": "Kamanie amangi kulu wa {{officeName}}"
   },
   "officeList": {
     "searchResults": "Tsilondeku tsa Mulondo",

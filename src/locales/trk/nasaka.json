@@ -17,8 +17,7 @@
     "filter": "Akityak",
     "select": "Akiseun",
     "optional": "Apedori",
-    "required": "Apet",
-    "dismiss": "Akimekin Alotuno"
+    "required": "Apet"
   },
   "splash": {
     "title": "NASAKA",
@@ -119,10 +118,7 @@
     "trafficSurchargeIncluded": "Ewoi ngitunga apedori",
     "coordinatesCopied": "Ngitunga gul!",
     "copyCoordinatesPrompt": "Gul ngitunga:",
-    "moreOnOffice": "Ewoi Nyenyei e-IEBC: {{officeName}}",
-    "offlineMap": "Ewoi Offline Rito",
-    "tapForDirections": "Idwe ewoi ngitunga",
-    "noLocationAccess": "Akimat Ngitunga Pe"
+    "moreOnOffice": "Ng'akiro nache e-juu a {{officeName}}"
   },
   "officeList": {
     "searchResults": "Akam Ewoi",

@@ -90,10 +90,7 @@
     "distance": "Ûraihu",
     "confirmationFailed": "Nĩ wagire kũruta ũira waku wa kũrĩa ũrĩ. Geria rĩngĩ.",
     "locationPermissionRequired": "Rutha ya gwetha handũ nĩ ũrabatarania nĩguo ũmenyithanio. Hũra kamũtĩ ka kũhingũra ũhoro wa Handũ na ũgerie rĩngĩ.",
-    "moreOnOffice": "Ũhoro wa Ma wa IEBC: {{officeName}}",
-    "offlineMap": "Ũgitĩri wa Rũgendo",
-    "tapForDirections": "Hũra nĩguo ũmenye njĩra",
-    "noLocationAccess": "Gũtirĩ kũhingũra harĩa ũrĩ"
+    "moreOnOffice": "Maũndũ mangĩ kũgiĩ {{officeName}}"
   },
   "officeList": {
     "searchResults": "Moimĩrĩro ma Gũthuthuria",
@@ -219,8 +216,7 @@
     "filter": "Kĩguũ",
     "select": "Thuura",
     "optional": "Gũtiagĩrĩire",
-    "required": "No mũhaka",
-    "dismiss": "Eheria Kĩoneki"
+    "required": "No mũhaka"
   },
   "offline": {
     "title": "Ũgitĩri wa Rũgendo Rũtarĩ Neti",

@@ -17,8 +17,7 @@
     "filter": "تصفية",
     "select": "اختيار",
     "optional": "اختياري",
-    "required": "مطلوب",
-    "dismiss": "إغلاق العرض"
+    "required": "مطلوب"
   },
   "splash": {
     "title": "NASAKA",
@@ -119,10 +118,7 @@
     "trafficSurchargeIncluded": "الأسعار تشمل رسوم الازدحام المروري",
     "coordinatesCopied": "تم نسخ الإحداثيات إلى الحافظة!",
     "copyCoordinatesPrompt": "نسخ الإحداثيات:",
-    "moreOnOffice": "بيانات IEBC الكاملة: {{officeName}}",
-    "offlineMap": "حماية الرحلة",
-    "tapForDirections": "اضغط للحصول على الاتجاهات",
-    "noLocationAccess": "لا يوجد وصول للموقع"
+    "moreOnOffice": "المزيد عن {{officeName}}"
   },
   "officeList": {
     "searchResults": "نتائج البحث",
