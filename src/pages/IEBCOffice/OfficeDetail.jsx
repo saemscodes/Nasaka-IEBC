@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+import { getTravelInsights } from '@/services/travelService';
 import {
     SEOHead,
     generateOfficeSchema,
@@ -45,6 +46,8 @@ const OfficeDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [nearbyOffices, setNearbyOffices] = useState([]);
+    const [liveIntelligence, setLiveIntelligence] = useState(null);
+    const [intelligenceLoading, setIntelligenceLoading] = useState(false);
 
     // Fix 5: Read persisted userLocation from sessionStorage for return navigation
     const savedUserLocation = useMemo(() => {
@@ -184,6 +187,35 @@ const OfficeDetail = () => {
             fetchOfficeData();
         }
     }, [fetchOfficeData, countySlug]);
+
+    // Live Intelligence — fetch travel + AI score when office has coordinates
+    const fetchIntelligence = useCallback(async () => {
+        if (!office?.latitude || !office?.longitude) return;
+        setIntelligenceLoading(true);
+        try {
+            // Use saved user location or default to Nairobi CBD for score context
+            const userLat = savedUserLocation?.latitude || -1.2921;
+            const userLon = savedUserLocation?.longitude || 36.8219;
+            const insights = await getTravelInsights(
+                [userLat, userLon],
+                [office.latitude, office.longitude],
+                {
+                    name: office.constituency_name,
+                    county: office.county,
+                    verified: office.verified
+                }
+            );
+            setLiveIntelligence(insights);
+        } catch {
+            // Non-blocking
+        } finally {
+            setIntelligenceLoading(false);
+        }
+    }, [office, savedUserLocation]);
+
+    useEffect(() => {
+        if (office) fetchIntelligence();
+    }, [office, fetchIntelligence]);
 
     const handleShare = async () => {
         const url = window.location.href;
@@ -376,6 +408,100 @@ const OfficeDetail = () => {
                         </div>
                     </div>
                 </section>
+
+                {/* Live Intelligence Section */}
+                {(liveIntelligence || intelligenceLoading) && (
+                    <section className={`rounded-3xl p-6 border ${isDark ? 'bg-gradient-to-br from-purple-900/20 to-transparent border-purple-800/30' : 'bg-gradient-to-br from-purple-50 to-white border-purple-100'}`}>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-bold flex items-center gap-2">
+                                <div className={`w-2 h-2 rounded-full ${intelligenceLoading ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`} />
+                                Live Intelligence
+                            </h3>
+                            <button
+                                onClick={fetchIntelligence}
+                                disabled={intelligenceLoading}
+                                className={`text-xs font-medium px-3 py-1.5 rounded-full transition-all active:scale-95 ${isDark ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/30' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'} ${intelligenceLoading ? 'opacity-50' : ''}`}
+                            >
+                                {intelligenceLoading ? 'Checking...' : 'Refresh'}
+                            </button>
+                        </div>
+
+                        {intelligenceLoading && !liveIntelligence ? (
+                            <div className="flex items-center justify-center py-6">
+                                <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                                <span className={`ml-3 text-sm ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>Consulting AI providers...</span>
+                            </div>
+                        ) : liveIntelligence ? (
+                            <div className="space-y-3">
+                                {/* Weather Row */}
+                                <div className="flex items-center justify-between">
+                                    <span className={`text-sm ${isDark ? 'text-ios-gray-300' : 'text-gray-600'}`}>Weather</span>
+                                    <span className="text-sm font-semibold">
+                                        {liveIntelligence.weatherDesc}
+                                        {liveIntelligence.temperature !== null && ` • ${liveIntelligence.temperature}°C`}
+                                    </span>
+                                </div>
+
+                                {/* Wind + Rain */}
+                                <div className="flex items-center justify-between">
+                                    <span className={`text-sm ${isDark ? 'text-ios-gray-300' : 'text-gray-600'}`}>Conditions</span>
+                                    <span className="text-sm font-semibold">
+                                        {liveIntelligence.windSpeed !== null && `Wind ${liveIntelligence.windSpeed} km/h`}
+                                        {liveIntelligence.precipProb > 0 && ` • ${liveIntelligence.precipProb}% rain`}
+                                        {(!liveIntelligence.windSpeed && !liveIntelligence.precipProb) && 'N/A'}
+                                    </span>
+                                </div>
+
+                                {/* Algorithm Score */}
+                                <div className="flex items-center justify-between">
+                                    <span className={`text-sm ${isDark ? 'text-ios-gray-300' : 'text-gray-600'}`}>Visit Difficulty</span>
+                                    <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${liveIntelligence.severity === 'low' ? 'bg-green-500/20 text-green-600 dark:text-green-400'
+                                            : liveIntelligence.severity === 'medium' ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
+                                                : 'bg-red-500/20 text-red-600 dark:text-red-400'
+                                        }`}>{liveIntelligence.score}/100</span>
+                                </div>
+
+                                {/* AI Intelligence */}
+                                {liveIntelligence.aiScore !== null && liveIntelligence.aiScore !== undefined && (
+                                    <div className={`mt-2 p-3 rounded-xl ${isDark ? 'bg-purple-500/10' : 'bg-purple-50'}`}>
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
+                                                AI Score
+                                            </span>
+                                            <div className="flex items-center gap-1.5">
+                                                {liveIntelligence.aiGroundTruthVerified && (
+                                                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-600 dark:text-green-400 font-bold">✓ Verified</span>
+                                                )}
+                                                <span className={`text-lg font-black ${liveIntelligence.aiScore <= 25 ? 'text-green-500'
+                                                        : liveIntelligence.aiScore <= 50 ? 'text-yellow-500'
+                                                            : liveIntelligence.aiScore <= 75 ? 'text-orange-500'
+                                                                : 'text-red-500'
+                                                    }`}>{liveIntelligence.aiScore}<span className="text-xs opacity-60">/100</span></span>
+                                            </div>
+                                        </div>
+                                        {liveIntelligence.aiReason && (
+                                            <p className={`text-xs leading-relaxed ${isDark ? 'text-purple-200/70' : 'text-purple-700/70'}`}>
+                                                {liveIntelligence.aiReason}
+                                            </p>
+                                        )}
+                                        {liveIntelligence.aiGroundTruthNote && (
+                                            <p className={`text-[10px] mt-1 italic ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
+                                                🌍 {liveIntelligence.aiGroundTruthNote}
+                                            </p>
+                                        )}
+                                        <p className={`text-[9px] mt-1.5 ${isDark ? 'text-ios-gray-500' : 'text-gray-400'}`}>
+                                            Powered by <span className="font-bold uppercase">{liveIntelligence.aiProvider === 'consensus' ? 'Nasaka Consensus' : liveIntelligence.aiProvider}</span> • {liveIntelligence.aiConfidence} confidence
+                                        </p>
+                                    </div>
+                                )}
+
+                                {liveIntelligence.stale && (
+                                    <p className={`text-[10px] italic text-center mt-2 ${isDark ? 'text-ios-gray-500' : 'text-gray-400'}`}>⏱ Data may be stale — tap Refresh for latest</p>
+                                )}
+                            </div>
+                        ) : null}
+                    </section>
+                )}
 
                 {/* Voter Registration Pillar */}
                 <section className={`rounded-3xl p-6 border ${isDark ? 'bg-gradient-to-br from-green-900/20 to-transparent border-green-800/30' : 'bg-gradient-to-br from-green-50 to-white border-green-100'}`}>

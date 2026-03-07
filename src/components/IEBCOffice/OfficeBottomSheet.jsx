@@ -886,6 +886,53 @@ const OfficeBottomSheet = ({
                           ⏱ Some data may be stale — check again when online
                         </p>
                       )}
+
+                      {/* AI Intelligence Layer Display */}
+                      {travelInsights.aiScore !== null && travelInsights.aiScore !== undefined && (
+                        <div className={`mt-4 p-3 rounded-xl border ${isDark ? 'bg-purple-500/10 border-purple-500/20' : 'bg-purple-50 border-purple-200'}`}>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-2 h-2 rounded-full ${travelInsights.aiConfidence === 'high' ? 'bg-green-500' : travelInsights.aiConfidence === 'medium' ? 'bg-yellow-500' : 'bg-red-500'} animate-pulse`} />
+                              <span className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
+                                AI Intelligence
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              {travelInsights.aiGroundTruthVerified && (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-600 dark:text-green-400 font-bold">✓ Ground Truth</span>
+                              )}
+                              <span className={`text-lg font-black ${travelInsights.aiScore <= 25 ? (isDark ? 'text-green-400' : 'text-green-600')
+                                  : travelInsights.aiScore <= 50 ? (isDark ? 'text-yellow-400' : 'text-yellow-600')
+                                    : travelInsights.aiScore <= 75 ? (isDark ? 'text-orange-400' : 'text-orange-600')
+                                      : (isDark ? 'text-red-400' : 'text-red-600')
+                                }`}>{travelInsights.aiScore}<span className="text-xs font-medium opacity-60">/100</span></span>
+                            </div>
+                          </div>
+                          {travelInsights.aiReason && (
+                            <p className={`text-xs leading-relaxed ${isDark ? 'text-purple-200/70' : 'text-purple-700/70'}`}>
+                              {travelInsights.aiReason}
+                            </p>
+                          )}
+                          {travelInsights.aiGroundTruthNote && (
+                            <p className={`text-[10px] mt-1.5 italic ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
+                              🌍 {travelInsights.aiGroundTruthNote}
+                            </p>
+                          )}
+                          <div className={`text-[9px] mt-2 flex items-center gap-1 ${isDark ? 'text-ios-gray-500' : 'text-gray-400'}`}>
+                            <span>Powered by</span>
+                            <span className="font-bold uppercase">{
+                              travelInsights.aiProvider === 'consensus' ? 'Nasaka Consensus'
+                                : travelInsights.aiProvider === 'mistral' ? 'Mistral-7B'
+                                  : travelInsights.aiProvider === 'groq' ? 'Groq/Llama 3'
+                                    : travelInsights.aiProvider === 'gemini' ? 'Gemini'
+                                      : travelInsights.aiProvider === 'cached' ? 'Cached'
+                                        : 'Algorithm'
+                            }</span>
+                            <span>•</span>
+                            <span>{travelInsights.aiConfidence} confidence</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 

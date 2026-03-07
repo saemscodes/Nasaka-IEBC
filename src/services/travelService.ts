@@ -1,6 +1,8 @@
 // src/services/travelService.ts
-// Travel Intelligence Service — OpenRouteService + Visual Crossing + Open-Meteo
+// Travel Intelligence Service — OpenRouteService + Visual Crossing + Open-Meteo + AI Consensus
 // Provides "Travel Difficulty Score" for IEBC office visits
+
+import { getAIDifficultyScore, type AIScoreResult, type AIConsensusInput } from './aiService';
 
 const ORS_API_KEY = import.meta.env.VITE_ORS_API_KEY || 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjA0ZTcwZDQyMTMwNjRmYzNiMmNjMzQyMTI2MTIxYTdmIiwiaCI6Im11cm11cjY0In0=';
 const VC_API_KEY = import.meta.env.VITE_VC_API_KEY || 'R8QQ25ARUVVFEZHJY3BX3DRGJ';
@@ -21,6 +23,13 @@ export interface TravelInsights {
     routeGeometry: any | null;
     stale: boolean;
     fetchedAt: number;
+    // AI Intelligence Layer (Nasaka Consensus)
+    aiScore: number | null;
+    aiReason: string | null;
+    aiProvider: string | null;
+    aiConfidence: 'high' | 'medium' | 'low' | null;
+    aiGroundTruthVerified: boolean;
+    aiGroundTruthNote: string | null;
 }
 
 export interface WeatherData {
@@ -305,7 +314,8 @@ const MAX_TIME_MINS = 120;
 
 export async function getTravelInsights(
     origin: [number, number],
-    dest: [number, number]
+    dest: [number, number],
+    officeContext?: { name?: string; county?: string; verified?: boolean }
 ): Promise<TravelInsights> {
     const [lat1, lon1] = origin;
     const [lat2, lon2] = dest;
@@ -356,6 +366,29 @@ export async function getTravelInsights(
 
     const score = Math.round(rawScore * 100);
 
+    // AI Intelligence Layer — non-blocking enhancement
+    let aiResult: AIScoreResult | null = null;
+    try {
+        const aiInput: AIConsensusInput = {
+            officeName: officeContext?.name || 'IEBC Office',
+            county: officeContext?.county || 'Kenya',
+            latitude: lat2,
+            longitude: lon2,
+            weatherDesc: weatherData.conditions,
+            temperature: weatherData.temp,
+            humidity: weatherData.humidity,
+            windSpeed: weatherData.windspeed,
+            precipProb: weatherData.precipprob,
+            distanceKm: parseFloat(distanceKm.toFixed(1)),
+            timeMins: Math.round(timeMins),
+            isVerified: officeContext?.verified ?? true,
+            currentScore: score
+        };
+        aiResult = await getAIDifficultyScore(aiInput);
+    } catch {
+        // AI is non-blocking — never prevents core insights from returning
+    }
+
     return {
         score,
         distanceKm: parseFloat(distanceKm.toFixed(1)),
@@ -369,7 +402,13 @@ export async function getTravelInsights(
         severity: score > 70 ? 'high' : score > 40 ? 'medium' : 'low',
         routeGeometry: route?.geometry || null,
         stale: !route || !weather,
-        fetchedAt: Date.now()
+        fetchedAt: Date.now(),
+        aiScore: aiResult?.score ?? null,
+        aiReason: aiResult?.reason ?? null,
+        aiProvider: aiResult?.provider ?? null,
+        aiConfidence: aiResult?.confidence ?? null,
+        aiGroundTruthVerified: aiResult?.groundTruthVerified ?? false,
+        aiGroundTruthNote: aiResult?.groundTruthNote ?? null
     };
 }
 

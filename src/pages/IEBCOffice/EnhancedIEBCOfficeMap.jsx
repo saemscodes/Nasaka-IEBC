@@ -105,7 +105,12 @@ const EnhancedIEBCOfficeMap = () => {
       try {
         const insights = await getTravelInsights(
           [userLocation.latitude, userLocation.longitude],
-          [selectedOffice.latitude, selectedOffice.longitude]
+          [selectedOffice.latitude, selectedOffice.longitude],
+          {
+            name: selectedOffice.constituency_name || selectedOffice.displayName,
+            county: selectedOffice.county,
+            verified: selectedOffice.verified
+          }
         );
         setTravelInsights(insights);
       } catch (err) {
@@ -512,6 +517,27 @@ const EnhancedIEBCOfficeMap = () => {
               )}
               {travelInsights.stale && (
                 <p className="text-xs text-muted-foreground/60 mt-0.5 italic text-center">May be stale</p>
+              )}
+              {travelInsights.aiScore !== null && travelInsights.aiScore !== undefined && (
+                <div className="mt-1.5 pt-1.5 border-t border-border/30">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">AI Intelligence</span>
+                    <div className="flex items-center gap-1">
+                      {travelInsights.aiGroundTruthVerified && (
+                        <span className="text-[9px] px-1 py-0.5 rounded bg-green-500/20 text-green-600 dark:text-green-400 font-bold">✓ Verified</span>
+                      )}
+                      <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${travelInsights.aiConfidence === 'high'
+                          ? 'bg-green-500/20 text-green-600 dark:text-green-400'
+                          : travelInsights.aiConfidence === 'medium'
+                            ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
+                            : 'bg-red-500/20 text-red-600 dark:text-red-400'
+                        }`}>{travelInsights.aiScore}/100</span>
+                    </div>
+                  </div>
+                  {travelInsights.aiReason && (
+                    <p className="text-[9px] text-muted-foreground/70 mt-0.5 leading-tight">{travelInsights.aiReason}</p>
+                  )}
+                </div>
               )}
             </div>
           )}
