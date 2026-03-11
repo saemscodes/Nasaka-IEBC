@@ -57,6 +57,7 @@ MAPBOX_API_KEY = os.getenv("MAPBOX_API_KEY")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+ORS_API_KEY = os.getenv("ORS_API_KEY")
 
 # Kenyan Counties (for validation)
 KENYAN_COUNTIES = [
@@ -429,6 +430,202 @@ class Geocoder:
         
         return ", ".join(parts)
 
+
+class LandmarkNormalizer:
+    """Reverse-geocode coordinates to the nearest recognized landmark via Nominatim"""
+
+    def __init__(self):
+        self.stats = {'success': 0, 'failed': 0, 'cached': 0}
+        self.cache = {}
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+    @sleep_and_retry
+    @limits(calls=1, period=1)
+    def reverse_geocode(self, lat: float, lon: float) -> Optional[str]:
+        cache_key = f"{round(lat, 5)},{round(lon, 5)}"
+        if cache_key in self.cache:
+            self.stats['cached'] += 1
+            return self.cache[cache_key]
+
+        try:
+            url = "https://nominatim.openstreetmap.org/reverse"
+            params = {
+                'lat': lat,
+                'lon': lon,
+                'format': 'json',
+                'zoom': 18,
+                'addressdetails': 1
+            }
+            headers = {'User-Agent': 'IEBC-Data-Pipeline/2.0 (nasakaiebc.civiceducationkenya.com)'}
+            response = requests.get(url, params=params, headers=headers, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+
+            address = data.get('address', {})
+            landmark = (
+                address.get('amenity') or
+                address.get('building') or
+                address.get('shop') or
+                address.get('office') or
+                address.get('road') or
+                address.get('suburb') or
+                address.get('village') or
+                address.get('town') or
+                address.get('city')
+            )
+
+            if landmark:
+                self.stats['success'] += 1
+                self.cache[cache_key] = landmark
+                return landmark
+            else:
+                self.stats['failed'] += 1
+                return None
+        except Exception as e:
+            logger.warning(f"Landmark normalization failed for ({lat}, {lon}): {e}")
+            self.stats['failed'] += 1
+            return None
+
+    def normalize(self, offices: List[Dict]) -> List[Dict]:
+        for i, office in enumerate(offices):
+            lat = office.get('latitude')
+            lon = office.get('longitude')
+            if lat and lon:
+                logger.info(f"Normalizing landmark {i+1}/{len(offices)}: {office.get('office_location', 'Unknown')}")
+                landmark = self.reverse_geocode(lat, lon)
+                if landmark:
+                    office['landmark_normalized'] = landmark
+                    office['landmark_source'] = 'nominatim'
+        logger.info(f"Landmark normalization stats: {self.stats}")
+        return offices
+
+
+class ElevationFetcher:
+    """Fetch elevation data from Open Topo Data API"""
+
+    def __init__(self):
+        self.stats = {'success': 0, 'failed': 0}
+        self.base_url = "https://api.opentopodata.org/v1/srtm30m"
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+    @sleep_and_retry
+    @limits(calls=1, period=1)
+    def fetch_elevation(self, lat: float, lon: float) -> Optional[float]:
+        try:
+            params = {'locations': f"{lat},{lon}"}
+            response = requests.get(self.base_url, params=params, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            if data.get('status') == 'OK' and data.get('results'):
+                elevation = data['results'][0].get('elevation')
+                if elevation is not None:
+                    self.stats['success'] += 1
+                    return float(elevation)
+            self.stats['failed'] += 1
+            return None
+        except Exception as e:
+            logger.warning(f"Elevation fetch failed for ({lat}, {lon}): {e}")
+            self.stats['failed'] += 1
+            return None
+
+    @staticmethod
+    def classify_walking_effort(elevation_meters: Optional[float]) -> Optional[str]:
+        if elevation_meters is None:
+            return None
+        if elevation_meters < 200:
+            return 'low'
+        elif elevation_meters < 800:
+            return 'moderate'
+        elif elevation_meters < 1500:
+            return 'high'
+        else:
+            return 'extreme'
+
+    def enrich(self, offices: List[Dict]) -> List[Dict]:
+        for i, office in enumerate(offices):
+            lat = office.get('latitude')
+            lon = office.get('longitude')
+            if lat and lon:
+                logger.info(f"Fetching elevation {i+1}/{len(offices)}: {office.get('office_location', 'Unknown')}")
+                elevation = self.fetch_elevation(lat, lon)
+                if elevation is not None:
+                    office['elevation_meters'] = elevation
+                    office['walking_effort'] = self.classify_walking_effort(elevation)
+        logger.info(f"Elevation fetch stats: {self.stats}")
+        return offices
+
+
+class IsochroneGenerator:
+    """Generate walking isochrone polygons from OpenRouteService"""
+
+    def __init__(self):
+        self.api_key = ORS_API_KEY
+        self.stats = {'success': 0, 'failed': 0, 'skipped': 0}
+        self.base_url = "https://api.openrouteservice.org/v2/isochrones/foot-walking"
+
+    @retry(stop=stop_after_attempt(2), wait=wait_exponential(multiplier=1, min=2, max=10))
+    @sleep_and_retry
+    @limits(calls=1, period=2)
+    def fetch_isochrone(self, lat: float, lon: float, ranges: List[int]) -> Optional[Dict]:
+        if not self.api_key:
+            return None
+        try:
+            headers = {
+                'Authorization': self.api_key,
+                'Content-Type': 'application/json'
+            }
+            body = {
+                'locations': [[lon, lat]],
+                'range': ranges,
+                'range_type': 'time',
+                'attributes': ['area', 'reachfactor']
+            }
+            response = requests.post(self.base_url, json=body, headers=headers, timeout=15)
+            response.raise_for_status()
+            data = response.json()
+            if data.get('features'):
+                self.stats['success'] += 1
+                return data
+            self.stats['failed'] += 1
+            return None
+        except Exception as e:
+            logger.warning(f"Isochrone fetch failed for ({lat}, {lon}): {e}")
+            self.stats['failed'] += 1
+            return None
+
+    def enrich(self, offices: List[Dict]) -> List[Dict]:
+        if not self.api_key:
+            logger.warning("ORS_API_KEY not set — skipping isochrone generation")
+            return offices
+
+        ranges_seconds = [900, 1800, 2700]
+
+        for i, office in enumerate(offices):
+            lat = office.get('latitude')
+            lon = office.get('longitude')
+            if not lat or not lon:
+                self.stats['skipped'] += 1
+                continue
+
+            logger.info(f"Generating isochrones {i+1}/{len(offices)}: {office.get('office_location', 'Unknown')}")
+            result = self.fetch_isochrone(lat, lon, ranges_seconds)
+
+            if result and result.get('features'):
+                features = result['features']
+                for feature in features:
+                    range_val = feature.get('properties', {}).get('value', 0)
+                    geojson_polygon = feature.get('geometry')
+                    if range_val == 900:
+                        office['isochrone_15min'] = geojson_polygon
+                    elif range_val == 1800:
+                        office['isochrone_30min'] = geojson_polygon
+                    elif range_val == 2700:
+                        office['isochrone_45min'] = geojson_polygon
+
+        logger.info(f"Isochrone generation stats: {self.stats}")
+        return offices
+
+
 class SupabaseIngester:
     """Ingest data to Supabase"""
     
@@ -490,8 +687,19 @@ class SupabaseIngester:
             'result_type': office.get('result_type'),
             'importance_score': office.get('importance_score'),
             'source': office.get('source'),
-            'verified': False
+            'verified': False,
+            'elevation_meters': office.get('elevation_meters'),
+            'walking_effort': office.get('walking_effort'),
+            'landmark_normalized': office.get('landmark_normalized'),
+            'landmark_source': office.get('landmark_source'),
         }
+
+        if office.get('isochrone_15min'):
+            prepared['isochrone_15min'] = json.dumps(office['isochrone_15min'])
+        if office.get('isochrone_30min'):
+            prepared['isochrone_30min'] = json.dumps(office['isochrone_30min'])
+        if office.get('isochrone_45min'):
+            prepared['isochrone_45min'] = json.dumps(office['isochrone_45min'])
         
         if office.get('latitude') and office.get('longitude'):
             prepared['geom'] = f"POINT({office['longitude']} {office['latitude']})"
@@ -599,6 +807,33 @@ def main():
             'offices_geocoded': len(geocoded_offices),
             'stats': geocoder.stats,
             'output_file': str(GEOCODED_CSV)
+        }
+
+        # PHASE 3b: Landmark Normalization
+        logger.info("\n[PHASE 3b] LANDMARK NORMALIZATION")
+        normalizer = LandmarkNormalizer()
+        geocoded_offices = normalizer.normalize(geocoded_offices)
+
+        report['phases']['landmark_normalization'] = {
+            'stats': normalizer.stats
+        }
+
+        # PHASE 3c: Elevation Enrichment
+        logger.info("\n[PHASE 3c] ELEVATION ENRICHMENT")
+        elevation_fetcher = ElevationFetcher()
+        geocoded_offices = elevation_fetcher.enrich(geocoded_offices)
+
+        report['phases']['elevation'] = {
+            'stats': elevation_fetcher.stats
+        }
+
+        # PHASE 3d: Isochrone Generation
+        logger.info("\n[PHASE 3d] ISOCHRONE GENERATION")
+        isochrone_gen = IsochroneGenerator()
+        geocoded_offices = isochrone_gen.enrich(geocoded_offices)
+
+        report['phases']['isochrones'] = {
+            'stats': isochrone_gen.stats
         }
         
         # PHASE 4: Create GeoJSON

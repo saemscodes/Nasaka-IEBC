@@ -17,32 +17,32 @@
   --z-map-markers: 400;
   --z-map-popups: 600;
   --z-map-routes: 500;
-  
+
   /* Panel Backdrop - ABOVE MAP, BELOW CONTROLS */
   --z-panel-backdrop: 999;
-  
+
   /* Fixed UI Controls - Above Everything */
   --z-fixed-search: 1000;
   --z-fixed-controls: 1001;
   --z-fixed-badges: 1002;
-  
+
   /* Panels & Sheets */
   --z-bottom-sheet-peek: 1100;
   --z-bottom-sheet-expanded: 1200;
   --z-list-panel: 1300;
   --z-layer-panel: 1400;
-  
+
   /* System Overlays */
   --z-loading: 2000;
   --z-error: 2001;
   --z-modal: 3000;
-  
+
   /* iOS-inspired spacing */
   --spacing-safe-top: env(safe-area-inset-top, 0px);
   --spacing-safe-bottom: env(safe-area-inset-bottom, 0px);
   --spacing-safe-left: env(safe-area-inset-left, 0px);
   --spacing-safe-right: env(safe-area-inset-right, 0px);
-  
+
   /* Light Mode Colors */
   --ios-light-surface: rgba(255, 255, 255, 0.98);
   --ios-light-surface-hover: rgba(242, 242, 247, 0.9);
@@ -51,7 +51,7 @@
   --ios-light-text-primary: rgba(28, 28, 30, 0.95);
   --ios-light-text-secondary: rgba(60, 60, 67, 0.8);
   --ios-light-text-tertiary: rgba(60, 60, 67, 0.6);
-  
+
   /* Dark Mode Colors */
   --ios-dark-surface: rgba(28, 28, 30, 0.95);
   --ios-dark-surface-hover: rgba(44, 44, 46, 0.8);
@@ -60,7 +60,7 @@
   --ios-dark-text-primary: rgba(255, 255, 255, 0.95);
   --ios-dark-text-secondary: rgba(235, 235, 245, 0.8);
   --ios-dark-text-tertiary: rgba(235, 235, 245, 0.6);
-  
+
   /* iOS Blue Colors */
   --ios-blue: rgba(0, 122, 255, 1);
   --ios-blue-dark: rgba(10, 132, 255, 1);
@@ -75,14 +75,14 @@
 
 /* High contrast shadow systems */
 .shadow-ios-high {
-  box-shadow: 
+  box-shadow:
     0 24px 48px rgba(0, 0, 0, 0.18),
     0 12px 24px rgba(0, 0, 0, 0.12),
     0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
 .shadow-ios-high-dark {
-  box-shadow: 
+  box-shadow:
     0 24px 48px rgba(0, 0, 0, 0.35),
     0 12px 24px rgba(0, 0, 0, 0.25),
     0 0 0 1px rgba(255, 255, 255, 0.1);
@@ -106,7 +106,7 @@
 
 .dark .search-container:focus-within {
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.35),
-              0 0 0 4px hsl(var(--ring) / 0.2);
+    0 0 0 4px hsl(var(--ring) / 0.2);
 }
 
 /* Dark mode control buttons */
@@ -311,7 +311,7 @@
   will-change: transform;
 }
 
-.fixed-search-container > * {
+.fixed-search-container>* {
   pointer-events: auto;
 }
 
@@ -327,7 +327,7 @@
 
 .search-container:focus-within {
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.18),
-              0 0 0 4px hsl(var(--ring) / 0.1);
+    0 0 0 4px hsl(var(--ring) / 0.1);
   transform: translateY(-2px);
 }
 
@@ -344,7 +344,7 @@
   transform: translateZ(0);
 }
 
-.fixed-controls-container > * {
+.fixed-controls-container>* {
   pointer-events: auto;
 }
 
@@ -384,7 +384,7 @@
   transform: translateZ(0);
 }
 
-.fixed-badge-container > * {
+.fixed-badge-container>* {
   pointer-events: auto;
 }
 
@@ -421,7 +421,8 @@
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.4);
-  z-index: var(--z-panel-backdrop); /* BELOW fixed controls (1000+) */
+  z-index: var(--z-panel-backdrop);
+  /* BELOW fixed controls (1000+) */
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
@@ -432,7 +433,8 @@
 
 .panel-backdrop.visible {
   opacity: 1;
-  pointer-events: auto; /* Only allow clicks when visible */
+  pointer-events: auto;
+  /* Only allow clicks when visible */
 }
 
 /* ============================================
@@ -446,7 +448,8 @@
   left: 0;
   width: min(400px, 90vw);
   height: 100vh;
-  z-index: var(--z-list-panel); /* 1300 - ABOVE backdrop (999) */
+  z-index: var(--z-list-panel);
+  /* 1300 - ABOVE backdrop (999) */
   background: hsl(var(--card));
   backdrop-filter: blur(40px) saturate(180%);
   box-shadow: 4px 0 32px rgba(0, 0, 0, 0.12);
@@ -471,7 +474,8 @@
   right: 0;
   width: min(360px, 85vw);
   height: 100vh;
-  z-index: var(--z-layer-panel); /* 1400 - ABOVE backdrop (999) */
+  z-index: var(--z-layer-panel);
+  /* 1400 - ABOVE backdrop (999) */
   background: hsl(var(--card));
   backdrop-filter: blur(40px) saturate(180%);
   box-shadow: -4px 0 32px rgba(0, 0, 0, 0.12);
@@ -506,7 +510,7 @@
   box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
   transform: translateY(0);
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-              z-index 0s;
+    z-index 0s;
   /* Hardware acceleration */
   will-change: transform;
   contain: layout style paint;
@@ -575,7 +579,8 @@
   margin-top: 8px;
   max-height: 300px;
   overflow-y: auto;
-  z-index: var(--z-fixed-search); /* SAME as search bar - 1000 */
+  z-index: var(--z-fixed-search);
+  /* SAME as search bar - 1000 */
 }
 
 .search-suggestion-item {
@@ -688,24 +693,24 @@
     left: 12px;
     right: 12px;
   }
-  
+
   .fixed-controls-container {
     right: 12px;
   }
-  
+
   .ios-control-btn {
     width: 44px;
     height: 44px;
   }
-  
+
   .office-list-panel {
     width: 100vw;
   }
-  
+
   .layer-control-panel {
     width: 100vw;
   }
-  
+
   .office-bottom-sheet.expanded {
     max-height: 85vh;
   }
@@ -719,15 +724,15 @@
     border-radius: 24px;
     margin-bottom: 20px;
   }
-  
+
   .office-bottom-sheet.peek {
     transform: translateX(-50%) translateY(calc(100% - 80px));
   }
-  
+
   .office-bottom-sheet.expanded {
     transform: translateX(-50%) translateY(0);
   }
-  
+
   .office-bottom-sheet.hidden {
     transform: translateX(-50%) translateY(100%);
   }
@@ -745,6 +750,7 @@
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -756,6 +762,7 @@
 
 /* High contrast mode */
 @media (prefers-contrast: high) {
+
   .search-container,
   .ios-control-btn,
   .route-badge,
@@ -773,7 +780,7 @@
   .ios-map-container {
     background: hsl(var(--background));
   }
-  
+
   .search-container,
   .ios-control-btn,
   .route-badge,
@@ -785,7 +792,7 @@
     border-color: hsl(var(--border));
     color: hsl(var(--foreground));
   }
-  
+
   .bottom-sheet-handle {
     background: hsl(var(--muted-foreground) / 0.4);
   }
@@ -829,6 +836,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -839,6 +847,7 @@
     opacity: 0;
     transform: scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -849,6 +858,7 @@
   from {
     transform: translateY(100%);
   }
+
   to {
     transform: translateY(0);
   }
@@ -920,7 +930,7 @@
   transform: translateZ(0);
 }
 
-.fixed-badge-container > * {
+.fixed-badge-container>* {
   pointer-events: auto;
 }
 
@@ -1132,8 +1142,15 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
 }
 
 /* Price highlight animation */
@@ -1142,9 +1159,17 @@
 }
 
 @keyframes highlight {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Smooth transitions for fare details */
@@ -1219,36 +1244,150 @@
 
 /* Offline Download Progress */
 @keyframes progressShimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
+  0% {
+    background-position: -200% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
 }
 
 .offline-progress-bar {
-  background: linear-gradient(
-    90deg,
-    hsl(var(--primary) / 0.6),
-    hsl(var(--primary)),
-    hsl(var(--primary) / 0.6)
-  );
+  background: linear-gradient(90deg,
+      hsl(var(--primary) / 0.6),
+      hsl(var(--primary)),
+      hsl(var(--primary) / 0.6));
   background-size: 200% 100%;
   animation: progressShimmer 2s linear infinite;
 }
 
 /* Travel difficulty card gradient */
 .travel-card-gradient {
-  background: linear-gradient(
-    135deg,
-    hsl(270 40% 95%) 0%,
-    hsl(230 40% 95%) 100%
-  );
+  background: linear-gradient(135deg,
+      hsl(270 40% 95%) 0%,
+      hsl(230 40% 95%) 100%);
   border-color: hsl(270 30% 80%);
 }
 
 .dark .travel-card-gradient {
-  background: linear-gradient(
-    135deg,
-    hsl(270 40% 15% / 0.4) 0%,
-    hsl(230 40% 15% / 0.4) 100%
-  );
+  background: linear-gradient(135deg,
+      hsl(270 40% 15% / 0.4) 0%,
+      hsl(230 40% 15% / 0.4) 100%);
   border-color: hsl(270 30% 30% / 0.5);
+}
+
+/* ============================================
+   17. ISOCHRONE LAYER STYLES
+   ============================================ */
+
+.isochrone-tooltip {
+  background: hsl(var(--card) / 0.95) !important;
+  backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 8px !important;
+  padding: 6px 12px !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 11px !important;
+  font-weight: 600;
+  color: hsl(var(--foreground)) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+}
+
+.isochrone-tooltip::before {
+  border-top-color: hsl(var(--card) / 0.95) !important;
+}
+
+.dark .isochrone-tooltip {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.walking-effort-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.walking-effort-badge.low {
+  background: rgba(52, 199, 89, 0.15);
+  color: #34C759;
+  border: 1px solid rgba(52, 199, 89, 0.3);
+}
+
+.walking-effort-badge.moderate {
+  background: rgba(255, 149, 0, 0.15);
+  color: #FF9500;
+  border: 1px solid rgba(255, 149, 0, 0.3);
+}
+
+.walking-effort-badge.high {
+  background: rgba(255, 59, 48, 0.15);
+  color: #FF3B30;
+  border: 1px solid rgba(255, 59, 48, 0.3);
+}
+
+.walking-effort-badge.extreme {
+  background: rgba(175, 82, 222, 0.15);
+  color: #AF52DE;
+  border: 1px solid rgba(175, 82, 222, 0.3);
+}
+
+.dark .walking-effort-badge.low {
+  background: rgba(52, 199, 89, 0.2);
+}
+
+.dark .walking-effort-badge.moderate {
+  background: rgba(255, 149, 0, 0.2);
+}
+
+.dark .walking-effort-badge.high {
+  background: rgba(255, 59, 48, 0.2);
+}
+
+.dark .walking-effort-badge.extreme {
+  background: rgba(175, 82, 222, 0.2);
+}
+
+@keyframes isochronePulse {
+
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.isochrone-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: hsl(var(--card) / 0.95);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) - 4px);
+  font-size: 10px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.isochrone-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.isochrone-legend-swatch {
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
 }

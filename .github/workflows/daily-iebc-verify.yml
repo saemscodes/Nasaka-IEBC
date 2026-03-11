@@ -45,7 +45,7 @@ jobs:
           if [ "${{ github.event.inputs.skip_nominatim }}" = "true" ]; then
             QUICK_FLAG="--quick"
           fi
-          python scripts/verify_iebc_data.py $QUICK_FLAG --json-output > verification_output.json 2>verification_log.txt || true
+          python scripts/verify_iebc_data.py $QUICK_FLAG --auto-fix --json-output > verification_output.json 2>verification_log.txt || true
           echo "exit_code=$?" >> $GITHUB_OUTPUT
         continue-on-error: true
 

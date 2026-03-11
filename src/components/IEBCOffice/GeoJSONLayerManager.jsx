@@ -55,6 +55,19 @@ const searchNearbyOffices = async (lat, lng, radius = 5000, onNearbyOfficesFound
   }
 };
 
+const WALKING_EFFORT_CONFIG = {
+  low: { label: 'Easy Walk', color: '#34C759', icon: '🟢', desc: 'Flat terrain, below 200m elevation' },
+  moderate: { label: 'Moderate Walk', color: '#FF9500', icon: '🟡', desc: 'Some hills, 200–800m elevation' },
+  high: { label: 'Challenging Walk', color: '#FF3B30', icon: '🔴', desc: 'Hilly terrain, 800–1500m elevation' },
+  extreme: { label: 'Very Difficult', color: '#AF52DE', icon: '🟣', desc: 'Highland/mountain, above 1500m' }
+};
+
+const ISOCHRONE_STYLES = {
+  15: { color: '#34C759', fillColor: '#34C759', fillOpacity: 0.25, weight: 2, opacity: 0.8, dashArray: null },
+  30: { color: '#FF9500', fillColor: '#FF9500', fillOpacity: 0.15, weight: 1.5, opacity: 0.6, dashArray: '5,5' },
+  45: { color: '#FF3B30', fillColor: '#FF3B30', fillOpacity: 0.08, weight: 1, opacity: 0.4, dashArray: '8,4' }
+};
+
 const GeoJSONLayerManager = ({
   activeLayers = [],
   onOfficeSelect,
@@ -71,6 +84,7 @@ const GeoJSONLayerManager = ({
   const [layerErrors, setLayerErrors] = useState({});
   const geoJsonLayersRef = useRef({});
   const layerCacheRef = useRef(new Map());
+  const isochroneLayersRef = useRef([]);
 
   const liveOfficesGeoJSON = useMemo(() => {
     if (!liveOffices || liveOffices.length === 0) {
@@ -96,6 +110,9 @@ const GeoJSONLayerManager = ({
           constituency_name: office.constituency_name,
           office_location: office.office_location,
           landmark: office.landmark,
+          landmark_normalized: office.landmark_normalized,
+          elevation_meters: office.elevation_meters,
+          walking_effort: office.walking_effort,
           latitude: office.latitude,
           longitude: office.longitude,
           verified: office.verified,
@@ -455,6 +472,58 @@ const GeoJSONLayerManager = ({
     }
   }, [liveOfficesGeoJSON, activeLayers, isModalMap]);
 
+  useEffect(() => {
+    isochroneLayersRef.current.forEach(layer => {
+      try { map.removeLayer(layer); } catch (e) { }
+    });
+    isochroneLayersRef.current = [];
+
+    if (!selectedOffice || isModalMap) return;
+
+    const isochroneFields = [
+      { key: 'isochrone_15min', minutes: 15 },
+      { key: 'isochrone_30min', minutes: 30 },
+      { key: 'isochrone_45min', minutes: 45 }
+    ];
+
+    isochroneFields.forEach(({ key, minutes }) => {
+      const geojson = selectedOffice[key];
+      if (!geojson) return;
+
+      try {
+        const style = ISOCHRONE_STYLES[minutes];
+        const layer = L.geoJSON(
+          { type: 'Feature', geometry: geojson, properties: { minutes } },
+          {
+            style: () => ({
+              color: style.color,
+              fillColor: style.fillColor,
+              fillOpacity: style.fillOpacity,
+              weight: style.weight,
+              opacity: style.opacity,
+              dashArray: style.dashArray
+            }),
+            onEachFeature: (feature, layer) => {
+              layer.bindTooltip(`${minutes} min walking range`, {
+                sticky: true,
+                className: 'isochrone-tooltip',
+                direction: 'center'
+              });
+            }
+          }
+        ).addTo(map);
+        isochroneLayersRef.current.push(layer);
+      } catch (e) { }
+    });
+
+    return () => {
+      isochroneLayersRef.current.forEach(layer => {
+        try { map.removeLayer(layer); } catch (e) { }
+      });
+      isochroneLayersRef.current = [];
+    };
+  }, [selectedOffice, map, isModalMap]);
+
   const createPopupContent = (properties, geometryCoords = null) => {
     const lat = properties.latitude || (geometryCoords ? geometryCoords[1] : null);
     const lng = properties.longitude || (geometryCoords ? geometryCoords[0] : null);
@@ -636,7 +705,15 @@ const GeoJSONLayerManager = ({
             </svg>
             <span>${properties.county} County</span>
           </div>
-          ${properties.landmark ? `
+          ${properties.landmark_normalized ? `
+            <div class="popup-detail">
+              <svg class="icon" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z"/>
+              </svg>
+              <span style="font-weight:600;">📍 ${properties.landmark_normalized}</span>
+              <span style="font-size:9px;opacity:0.5;margin-left:4px;">(verified)</span>
+            </div>
+          ` : properties.landmark ? `
             <div class="popup-detail">
               <svg class="icon" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z"/>
@@ -644,6 +721,23 @@ const GeoJSONLayerManager = ({
               <span>Near ${properties.landmark}</span>
             </div>
           ` : ''}
+          ${(() => {
+        const effort = properties.walking_effort;
+        const elevation = properties.elevation_meters;
+        if (effort && WALKING_EFFORT_CONFIG[effort]) {
+          const cfg = WALKING_EFFORT_CONFIG[effort];
+          return `
+                <div style="display:flex;align-items:center;gap:6px;margin-top:6px;padding:6px 10px;border-radius:8px;background:${cfg.color}15;border:1px solid ${cfg.color}30;">
+                  <span style="font-size:14px;">${cfg.icon}</span>
+                  <div style="flex:1;">
+                    <div style="font-size:11px;font-weight:700;color:${cfg.color};">${cfg.label}</div>
+                    <div style="font-size:9px;opacity:0.7;">${cfg.desc}${elevation ? ` · ${Math.round(elevation)}m` : ''}</div>
+                  </div>
+                </div>
+              `;
+        }
+        return '';
+      })()}
           ${hasValidCoords ?
         `<div class="popup-coords">${lat.toFixed(6)}, ${lng.toFixed(6)}</div>` :
         `<div class="popup-error">

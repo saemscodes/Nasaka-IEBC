@@ -73,13 +73,12 @@ async function generateSitemap() {
 
     const staticPages = [
         { loc: `${SITE_URL}/`, priority: '1.0', changefreq: 'daily' },
-        { loc: `${SITE_URL}/iebc-office`, priority: '1.0', changefreq: 'daily' },
-        { loc: `${SITE_URL}/iebc-office/map`, priority: '0.9', changefreq: 'daily' },
+        { loc: `${SITE_URL}/map`, priority: '0.9', changefreq: 'daily' },
         { loc: `${SITE_URL}/voter-services`, priority: '0.9', changefreq: 'monthly' },
+        { loc: `${SITE_URL}/voter-registration`, priority: '0.9', changefreq: 'monthly' },
         { loc: `${SITE_URL}/boundary-review`, priority: '0.9', changefreq: 'monthly' },
         { loc: `${SITE_URL}/election-resources`, priority: '0.9', changefreq: 'monthly' },
         { loc: `${SITE_URL}/data-api`, priority: '0.8', changefreq: 'monthly' },
-        { loc: `${SITE_URL}/nasaka-iebc`, priority: '0.8', changefreq: 'weekly' },
         { loc: `${SITE_URL}/privacy`, priority: '0.3', changefreq: 'monthly' },
         { loc: `${SITE_URL}/terms`, priority: '0.3', changefreq: 'monthly' },
     ];

@@ -37,6 +37,33 @@ export default async function handler(req: Request): Promise<Response> {
             case 'gemini_ground':
                 url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.VITE_GEMINI_API_KEY}`;
                 break;
+            case 'openrouteservice': {
+                const orsEndpoint = body.endpoint || 'isochrones/foot-walking';
+                url = `https://api.openrouteservice.org/v2/${orsEndpoint}`;
+                const orsKey = process.env.ORS_API_KEY;
+                if (!orsKey) {
+                    return Response.json({ error: 'ORS API key not configured on server' }, { status: 500 });
+                }
+                headers['Authorization'] = orsKey;
+                break;
+            }
+            case 'ipapi': {
+                const ip = body.ip || '';
+                url = `https://ipapi.co/${ip}/json/`;
+                const ipResponse = await fetch(url, {
+                    method: 'GET',
+                    headers: { 'User-Agent': 'IEBC-Nasaka/2.0' },
+                    signal: AbortSignal.timeout(8000)
+                });
+                if (!ipResponse.ok) {
+                    return new Response(await ipResponse.text(), {
+                        status: ipResponse.status,
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                }
+                const ipData = await ipResponse.json();
+                return Response.json(ipData);
+            }
             default:
                 return Response.json({ error: 'Invalid provider' }, { status: 400 });
         }

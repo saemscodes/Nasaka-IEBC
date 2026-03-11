@@ -5,17 +5,27 @@ fix_all_coords.py — Comprehensive IEBC Office Coordinate Corrections
 Fixes ALL misplaced, clustered, and zero-coordinate offices in Supabase.
 Uses verified Google Maps / OpenStreetMap coordinates.
 """
-import requests, json, sys
+import requests, json, sys, os
 from math import radians, cos, sin, sqrt, atan2
 
-URL = 'https://ftswzvqwxdwgkvfbwfpx.supabase.co'
-KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0c3d6dnF3eGR3Z2t2ZmJ3ZnB4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MjM1NDU1MSwiZXhwIjoyMDY3OTMwNTUxfQ.939Uqckn6DsQ7J3-Ts9WiqOXFfiGF9uqmJT7kpgNbvE'
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+_FALLBACK_URL = 'https://ftswzvqwxdwgkvfbwfpx.supabase.co'
+_FALLBACK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0c3d6dnF3eGR3Z2t2ZmJ3ZnB4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MjM1NDU1MSwiZXhwIjoyMDY3OTMwNTUxfQ.939Uqckn6DsQ7J3-Ts9WiqOXFfiGF9uqmJT7kpgNbvE'
+
+URL = os.getenv('SUPABASE_URL', _FALLBACK_URL)
+KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY', _FALLBACK_KEY)
 HEADERS = {
     'apikey': KEY,
     'Authorization': f'Bearer {KEY}',
     'Content-Type': 'application/json',
     'Prefer': 'return=minimal'
 }
+
 
 # ============================================================================
 # VERIFIED CORRECTIONS — All manually checked against Google Maps / OSM

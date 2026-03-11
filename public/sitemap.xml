@@ -12,24 +12,26 @@
     <xhtml:link rel="alternate" hreflang="sw-KE" href="https://nasakaiebc.civiceducationkenya.com/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://nasakaiebc.civiceducationkenya.com/" />
   </url>
+
   <url>
-    <loc>https://nasakaiebc.civiceducationkenya.com/iebc-office</loc>
-    <lastmod>2026-02-20</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="en-KE" href="https://nasakaiebc.civiceducationkenya.com" />
-    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://nasakaiebc.civiceducationkenya.com" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nasakaiebc.civiceducationkenya.com" />
-  </url>
-  <url>
-    <loc>https://nasakaiebc.civiceducationkenya.com/iebc-office/map</loc>
-    <lastmod>2026-02-20</lastmod>
+    <loc>https://nasakaiebc.civiceducationkenya.com/map</loc>
+    <lastmod>2026-03-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="en-KE" href="https://nasakaiebc.civiceducationkenya.com/map" />
     <xhtml:link rel="alternate" hreflang="sw-KE" href="https://nasakaiebc.civiceducationkenya.com/map" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://nasakaiebc.civiceducationkenya.com/map" />
   </url>
+  <url>
+    <loc>https://nasakaiebc.civiceducationkenya.com/voter-registration</loc>
+    <lastmod>2026-03-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en-KE" href="https://nasakaiebc.civiceducationkenya.com/voter-registration" />
+    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://nasakaiebc.civiceducationkenya.com/voter-registration" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nasakaiebc.civiceducationkenya.com/voter-registration" />
+  </url>
+
   <url>
     <loc>https://nasakaiebc.civiceducationkenya.com/voter-services</loc>
     <lastmod>2026-02-20</lastmod>
@@ -66,15 +68,7 @@
     <xhtml:link rel="alternate" hreflang="sw-KE" href="https://nasakaiebc.civiceducationkenya.com/data-api" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://nasakaiebc.civiceducationkenya.com/data-api" />
   </url>
-  <url>
-    <loc>https://nasakaiebc.civiceducationkenya.com/nasaka-iebc</loc>
-    <lastmod>2026-02-20</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en-KE" href="https://nasakaiebc.civiceducationkenya.com/nasaka-iebc" />
-    <xhtml:link rel="alternate" hreflang="sw-KE" href="https://nasakaiebc.civiceducationkenya.com/nasaka-iebc" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nasakaiebc.civiceducationkenya.com/nasaka-iebc" />
-  </url>
+
   <url>
     <loc>https://nasakaiebc.civiceducationkenya.com/privacy</loc>
     <lastmod>2026-02-20</lastmod>
