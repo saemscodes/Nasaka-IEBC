@@ -765,13 +765,22 @@ const IEBCOfficeMap = () => {
               }
             }}
           >
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 ${isOffline ? 'bg-amber-500' : 'bg-green-500'} rounded-full animate-pulse`}></div>
-              <span className="text-sm font-medium">
-                {isOffline
-                  ? t('bottomSheet.offlineMode', 'Offline Mode')
-                  : t('bottomSheet.routesFound', { count: currentRoute.length })}
-              </span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 ${isOffline ? 'bg-amber-500' : 'bg-green-500'} rounded-full animate-pulse`}></div>
+                <span className="text-sm font-medium">
+                  {isOffline
+                    ? t('bottomSheet.offlineMode', 'Offline Mode')
+                    : t('bottomSheet.routesFound', { count: currentRoute.length })}
+                </span>
+              </div>
+              {/* Inline Weather (PREMIUM) */}
+              {travelInsights && !isOffline && travelInsights.weatherDesc && (
+                <div className="flex items-center gap-1 text-[10px] font-bold">
+                  <img src="/context/Button icons/sun-svgrepo-com.svg" className="w-3 h-3" alt="weather" />
+                  <span className="opacity-80">{travelInsights.temperature}°C</span>
+                </div>
+              )}
             </div>
             {isOffline ? (
               <div className="text-muted-foreground text-[10px] mt-1 italic">
@@ -779,28 +788,22 @@ const IEBCOfficeMap = () => {
               </div>
             ) : (
               currentRoute?.[0] && (
-                <div className="text-muted-foreground text-xs mt-1">
-                  {t('bottomSheet.bestRoute', {
-                    distance: (currentRoute[0].summary.totalDistance / 1000).toFixed(1),
-                    time: Math.round(currentRoute[0].summary.totalTime / 60)
-                  })}
+                <div className="flex items-center justify-between mt-1">
+                  <div className="text-muted-foreground text-xs">
+                    {t('bottomSheet.bestRoute', {
+                      distance: (currentRoute[0].summary.totalDistance / 1000).toFixed(1),
+                      time: Math.round(currentRoute[0].summary.totalTime / 60)
+                    })}
+                  </div>
+                  {/* Inline Traffic (PREMIUM) */}
+                  {travelInsights && travelInsights.trafficCondition && (
+                    <div className="flex items-center gap-1 text-[9px] font-bold uppercase">
+                      <img src="/context/Button icons/car-front-view-609-svgrepo-com.svg" className="w-2.5 h-2.5" alt="traffic" />
+                      <span className={travelInsights.trafficColor || 'text-green-400'}>{travelInsights.trafficCondition}</span>
+                    </div>
+                  )}
                 </div>
               )
-            )}
-            {/* Traffic + Weather quick-glance (PREMIUM) */}
-            {travelInsights && !isOffline && (
-              <div className="flex items-center gap-3 mt-1.5 pt-1.5 border-t border-white/10 text-[9px] font-bold uppercase tracking-wider">
-                <div className="flex items-center gap-1">
-                  <img src="/context/Button icons/sun-svgrepo-com.svg" className="w-2.5 h-2.5" alt="weather" />
-                  <span className="text-white opacity-80">{travelInsights.weatherDesc} • {travelInsights.temperature}°C</span>
-                </div>
-                {travelInsights.trafficCondition && (
-                  <div className="flex items-center gap-1">
-                    <img src="/context/Button icons/car-front-view-609-svgrepo-com.svg" className="w-2.5 h-2.5" alt="traffic" />
-                    <span className={travelInsights.trafficColor || 'text-green-400'}>{travelInsights.trafficCondition}</span>
-                  </div>
-                )}
-              </div>
             )}
             {/* Drag handle indicator */}
             <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-1 bg-gray-400 rounded-full opacity-60 transition-opacity duration-200 hover:opacity-80"></div>
