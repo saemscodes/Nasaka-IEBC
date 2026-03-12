@@ -424,6 +424,41 @@ const AppContent = () => {
         <Route path="/register-to-vote" element={<VoterRegistrationPage />} />
         */}
 
+        {/* ✅ ACTIVE SECURE ADMIN ROUTES */}
+        <Route
+          path="/admin/*"
+          element={
+            <AdminRoute>
+              <AdminNexus />
+            </AdminRoute>
+          }
+        />
+
+        {/* ✅ Admin password reset route */}
+        <Route
+          path="/admin/reset-password"
+          element={
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Reset Password</h2>
+                <p className="text-gray-600 mb-6">
+                  Please check your email for the password reset link. If you didn't receive it, contact your administrator.
+                </p>
+                <button
+                  onClick={() => window.location.href = '/admin/contributions'}
+                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                >
+                  Return to Login
+                </button>
+              </div>
+            </div>
+          }
+        />
+
+        {/* ✅ ACTIVE Redirect old admin paths to secure route */}
+        <Route path="/admin" element={<Navigate to="/admin/" replace />} />
+        <Route path="/dashboard" element={<Navigate to="/admin/" replace />} />
+
         {/* ✅ ACTIVE IEBC OFFICE FINDER ROUTES */}
         <Route path="/" element={<IEBCOfficeSplash />} />
         <Route path="/map" element={<IEBCOfficeMap />} />
@@ -479,44 +514,6 @@ const AppContent = () => {
 
         {/* ✅ FLAT ROUTE RESOLVER (Go Ham) */}
         <Route path="/:slug" element={<FlatRouteResolver />} />
-
-        {/* ✅ ACTIVE SECURE ADMIN ROUTES */}
-        <Route
-          path="/admin/*"
-          element={
-            <AdminRoute>
-              <AdminNexus />
-            </AdminRoute>
-          }
-        />
-
-        {/* ✅ Admin password reset route */}
-        <Route
-          path="/admin/reset-password"
-          element={
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-              <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Reset Password</h2>
-                <p className="text-gray-600 mb-6">
-                  Please check your email for the password reset link. If you didn't receive it, contact your administrator.
-                </p>
-                <button
-                  onClick={() => window.location.href = '/admin/contributions'}
-                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                >
-                  Return to Login
-                </button>
-              </div>
-            </div>
-          }
-        />
-
-        {/* ✅ ACTIVE Redirect old admin paths to secure route */}
-        <Route path="/admin" element={<Navigate to="/admin/" replace />} />
-        <Route path="/dashboard" element={<Navigate to="/admin/" replace />} />
-
-        {/* ✅ Root path redirects to IEBC Office splash page */}
-        {/* Already handled by path="/" at the top */}
 
         {/* ✅ Catch-all */}
         <Route path="*" element={<NotFound />} />
