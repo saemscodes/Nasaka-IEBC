@@ -9,6 +9,11 @@ on:
         required: false
         default: false
         type: boolean
+      run_resolver:
+        description: 'Run multi-source coordinate resolver after verification'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -17,6 +22,8 @@ permissions:
 env:
   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+  VITE_GEOKEO_API_KEY: ${{ secrets.VITE_GEOKEO_API_KEY }}
 
 jobs:
   verify-iebc-data:
@@ -65,14 +72,22 @@ jobs:
             echo "total=0" >> $GITHUB_OUTPUT
           fi
 
+      - name: Run multi-source coordinate resolver
+        if: steps.parse.outputs.critical > 0 || github.event.inputs.run_resolver == 'true'
+        run: |
+          echo "🔍 Running multi-source consensus geocoding resolver..."
+          python scripts/resolve_coordinates.py --apply --max-resolve 30 --json-output 2>&1 | tee resolver_log.txt
+
       - name: Upload verification report
         uses: actions/upload-artifact@v4
         with:
           name: iebc-verification-report-${{ github.run_number }}
           path: |
             reports/latest_verification.json
+            reports/latest_resolution.json
             reports/verification_report_*.json
             verification_log.txt
+            resolver_log.txt
           retention-days: 90
 
       - name: Create issue on critical failures
@@ -125,3 +140,4 @@ jobs:
           else
             echo "✅ All checks passed. No critical issues." >> $GITHUB_STEP_SUMMARY
           fi
+

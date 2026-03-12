@@ -48,9 +48,10 @@ const AutomationRunner = () => {
     const terminalRef = useRef(null);
 
     const availableScripts = [
-        { id: 'iebc_verification', name: 'IEBC Data Verification', icon: Database, desc: 'Cluster detection & geocoding audit' },
-        { id: 'coord_correction', name: 'Coordinate Fixer', icon: Zap, desc: 'Automatic alignment from known benchmarks' },
-        { id: 'geocode_sync', name: 'Nominatim Sync', icon: History, desc: 'Refresh OSM data associations' },
+        { id: 'iebc_verification', name: 'IEBC Data Verification', icon: Database, desc: 'Cluster detection, county alignment & audit' },
+        { id: 'coord_correction', name: 'Coordinate Fixer', icon: Zap, desc: 'Auto-apply verified coordinates from benchmarks' },
+        { id: 'geocode_resolve', name: 'Coordinate Resolver', icon: CheckCircle2, desc: 'Multi-source AI geocoding — Nominatim, Geocode.xyz, Geokeo, Gemini consensus' },
+        { id: 'geocode_sync', name: 'Sitemap Regenerator', icon: History, desc: 'Refresh SEO sitemap and canonical links' },
     ];
 
     useEffect(() => {
@@ -106,9 +107,26 @@ const AutomationRunner = () => {
             setActiveTask(task);
             toast.success(`Initialised ${scriptId} pipeline`);
 
-            // 2. Trigger GitHub Action (Mocking for now, will implement actual trigger next)
-            // For now, we simulate the "pending" state. 
-            // In production, this would call a Supabase Edge Function that triggers GitHub
+            // 2. Trigger GitHub Action via Vercel Function
+            const triggerResponse = await fetch('/api/trigger-workflow', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    scriptId,
+                    params: {
+                        quick: scriptId === 'iebc_verification', // Use quick mode for speed if triggered from UI
+                        auto_fix: true,
+                        taskId: task.id
+                    }
+                })
+            });
+
+            if (!triggerResponse.ok) {
+                const triggerData = await triggerResponse.json();
+                throw new Error(triggerData.error || 'Failed to trigger remote runner');
+            }
+
+            toast.success('Remote runner activated. Monitoring logs...');
         } catch (err) {
             toast.error(`Execution failed: ${err.message}`);
             setIsExecuting(false);

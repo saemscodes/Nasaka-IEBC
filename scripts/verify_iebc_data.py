@@ -79,9 +79,22 @@ KENYA_BOUNDS = {
     "lon_min": 33.9, "lon_max": 42.0
 }
 
-# Maximum distance (meters) an office can be from its declared county centroid
-# before being flagged as a county mismatch. 50km is generous for most counties.
-COUNTY_MISMATCH_THRESHOLD_METERS = 50_000
+# Maximum distance (meters) an office can be from its declared county centroid.
+# Per-county adaptive thresholds eliminate false positives for large counties.
+DEFAULT_COUNTY_THRESHOLD_METERS = 50_000
+
+# Large counties in Kenya can span >200km.  These values represent
+# approximately half the county's geographic diameter.
+ADAPTIVE_COUNTY_THRESHOLDS: Dict[str, int] = {
+    "turkana": 150_000, "marsabit": 200_000, "wajir": 150_000,
+    "mandera": 200_000, "garissa": 150_000, "tana river": 120_000,
+    "kitui": 100_000, "kajiado": 100_000, "narok": 100_000,
+    "samburu": 100_000, "laikipia": 80_000, "baringo": 80_000,
+    "west pokot": 80_000, "isiolo": 100_000, "makueni": 80_000,
+    "machakos": 80_000, "kilifi": 80_000, "taita taveta": 80_000,
+    "taita-taveta": 80_000, "meru": 80_000, "nakuru": 80_000,
+    "elgeyo-marakwet": 60_000, "elgeyo marakwet": 60_000,
+}
 
 # Kenya County Centroids — approximate geographic center of each county
 # Used to validate that an office's coordinates are within its declared county.
@@ -339,7 +352,15 @@ def check_county_mismatch(offices: List[Dict]) -> List[Dict]:
 
         dist = haversine(lat, lon, centroid[0], centroid[1])
 
-        if dist > COUNTY_MISMATCH_THRESHOLD_METERS:
+        # Use adaptive threshold for this county
+        county_clean_key = county.replace("-", " ").replace("'", "")
+        threshold = ADAPTIVE_COUNTY_THRESHOLDS.get(
+            county, ADAPTIVE_COUNTY_THRESHOLDS.get(
+                county_clean_key, DEFAULT_COUNTY_THRESHOLD_METERS
+            )
+        )
+
+        if dist > threshold:
             constituency = office.get("constituency") or office.get("constituency_name", "")
             issues.append({
                 "type": "county_mismatch",
