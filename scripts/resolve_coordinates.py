@@ -414,6 +414,7 @@ def enqueue_hitl(office: Dict, consensus: Optional[Dict], issue_type: str, audit
 def main():
     parser = argparse.ArgumentParser(description="Multi-Source IEBC Coordinate Resolver")
     parser.add_argument("--apply", action="store_true", help="Write resolved coords to Supabase")
+    parser.add_argument("--all", action="store_true", help="Resolve ALL offices in the database")
     parser.add_argument("--office-id", type=int, help="Resolve a single office by ID")
     parser.add_argument("--max-resolve", type=int, default=999, help="Max offices to resolve in batch")
     parser.add_argument("--json-output", action="store_true", help="Output JSON summary")
@@ -431,6 +432,15 @@ def main():
             f"{SUPABASE_URL}/rest/v1/iebc_offices?id=eq.{args.office_id}&select=id,constituency_name,county,office_location,latitude,longitude",
             headers=HEADERS,
             timeout=10,
+        )
+        resp.raise_for_status()
+        offices = resp.json()
+    elif getattr(args, 'all', False):
+        log.info("Fetching ALL offices from database...")
+        resp = requests.get(
+            f"{SUPABASE_URL}/rest/v1/iebc_offices?select=id,constituency_name,county,office_location,latitude,longitude&order=id",
+            headers=HEADERS,
+            timeout=20,
         )
         resp.raise_for_status()
         offices = resp.json()
