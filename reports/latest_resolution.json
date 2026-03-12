@@ -1,47 +1,19 @@
 {
-  "timestamp": "2026-03-12T21:55:53.509301+00:00",
+  "timestamp": "2026-03-12T22:49:53.867199+00:00",
   "mode": "APPLY (LIVE)",
   "stats": {
-    "resolved": 16,
-    "auto_applied": 1,
-    "hitl_queued": 10,
-    "no_consensus": 227,
-    "no_validated_candidates": 40,
-    "skipped_accurate": 15,
+    "resolved": 65,
+    "auto_applied": 35,
+    "hitl_queued": 16,
+    "no_consensus": 20,
+    "no_validated_candidates": 192,
+    "skipped_accurate": 30,
     "total": 293
   },
   "results": [
     {
-      "office_id": 23,
-      "action": "no_validated_candidates"
-    },
-    {
-      "office_id": 26,
-      "action": "no_validated_candidates"
-    },
-    {
-      "office_id": 34,
-      "action": "skip_metadata_updated",
-      "displacement_km": 0.0,
-      "confidence": 0.8541530976261824
-    },
-    {
-      "office_id": 36,
-      "action": "no_validated_candidates"
-    },
-    {
       "office_id": 49,
-      "action": "hitl_queue",
-      "proposed_lat": 0.4156163,
-      "proposed_lng": 37.5819443,
-      "confidence": 0.6960290835431449,
-      "queries_used": [
-        "ISIOLO NORTH IEBC office ISIOLO county Kenya",
-        "Isiolo Town, ISIOLO NORTH, ISIOLO County, Kenya",
-        "Isiolo Town near Isiolo County Assembly, ISIOLO County, Kenya",
-        "Isiolo County Assembly, ISIOLO NORTH, ISIOLO County, Kenya",
-        "Isiolo, ISIOLO County, Kenya"
-      ]
+      "action": "no_validated_candidates"
     },
     {
       "office_id": 50,
@@ -125,21 +97,15 @@
     },
     {
       "office_id": 238,
-      "action": "hitl_queue",
-      "proposed_lat": -0.0669665,
-      "proposed_lng": 34.7824289,
-      "confidence": 0.6000336520943007,
-      "queries_used": [
-        "KISUMU EAST IEBC office KISUMU county Kenya",
-        "Mamboleo Show Ground, KISUMU EAST, KISUMU County, Kenya",
-        "Mamboleo Show Ground near Mamboleo Show Ground, KISUMU County, Kenya",
-        "Mamboleo Show Ground, KISUMU EAST, KISUMU County, Kenya",
-        "Mamboleo Show Ground, KISUMU County, Kenya"
-      ]
+      "action": "skip_metadata_updated",
+      "displacement_km": 1.8901907251638455,
+      "confidence": 0.42000000000000004
     },
     {
       "office_id": 241,
-      "action": "no_validated_candidates"
+      "action": "skip_metadata_updated",
+      "displacement_km": 0.0,
+      "confidence": 0.78
     },
     {
       "office_id": 244,
@@ -159,17 +125,7 @@
     },
     {
       "office_id": 271,
-      "action": "hitl_queue",
-      "proposed_lat": -0.5757207,
-      "proposed_lng": 34.9115297,
-      "confidence": 0.3440270006866559,
-      "queries_used": [
-        "WEST MUGIRANGO IEBC office NYAMIRA county Kenya",
-        "Nyamira Town, WEST MUGIRANGO, NYAMIRA County, Kenya",
-        "Nyamira Town near Next to Nyamira Law Courts, NYAMIRA County, Kenya",
-        "Next to Nyamira Law Courts, WEST MUGIRANGO, NYAMIRA County, Kenya",
-        "Nyamira, NYAMIRA County, Kenya"
-      ]
+      "action": "no_validated_candidates"
     },
     {
       "office_id": 272,
@@ -177,11 +133,59 @@
     },
     {
       "office_id": 275,
-      "action": "no_validated_candidates"
+      "action": "hitl_queue",
+      "proposed_lat": -1.30044,
+      "proposed_lng": 36.78082,
+      "confidence": 0.48,
+      "queries_used": [
+        "DAGORETTI NORTH IEBC office NAIROBI county Kenya",
+        "Maliposa Appartments - Ngong Road, DAGORETTI NORTH, NAIROBI County, Kenya",
+        "Maliposa Appartments - Ngong Road Nakumatt Junction, NAIROBI County, Kenya",
+        "Nakumatt Junction, DAGORETTI NORTH, NAIROBI County, Kenya",
+        "Maliposa Appartments - Ngong Road, NAIROBI County, Kenya",
+        "DAGORETTI NORTH Town, NAIROBI County, Kenya"
+      ]
+    },
+    {
+      "office_id": 285,
+      "action": "hitl_queue",
+      "proposed_lat": -1.24997,
+      "proposed_lng": 36.86485,
+      "confidence": 0.38,
+      "queries_used": [
+        "EMBAKASI EAST IEBC office NAIROBI county Kenya",
+        "East Africa School of Aviation, EMBAKASI EAST, NAIROBI County, Kenya",
+        "East Africa School of Aviation near EASA, NAIROBI County, Kenya",
+        "East Africa School of Aviation at EASA, NAIROBI County, Kenya",
+        "EASA, EMBAKASI EAST, NAIROBI County, Kenya",
+        "East Africa School of Aviation, NAIROBI County, Kenya",
+        "EMBAKASI EAST Town, NAIROBI County, Kenya"
+      ]
     },
     {
       "office_id": 452,
-      "action": "no_validated_candidates"
+      "action": "skip_metadata_updated",
+      "displacement_km": 0.0,
+      "confidence": 0.58
+    },
+    {
+      "office_id": 453,
+      "action": "auto_apply",
+      "new_lat": -1.28292,
+      "new_lng": 36.97018,
+      "confidence": 0.84,
+      "sources": [
+        "geocode_xyz_ward_validated"
+      ],
+      "queries_used": [
+        "EMBAKASI EAST IEBC office Nairobi county Kenya",
+        "IEBC Aviation utawala, EMBAKASI EAST, Nairobi County, Kenya",
+        "IEBC Aviation utawala near EASA, Nairobi County, Kenya",
+        "IEBC Aviation utawala at EASA, Nairobi County, Kenya",
+        "EASA, EMBAKASI EAST, Nairobi County, Kenya",
+        "Aviation utawala, Nairobi County, Kenya",
+        "EMBAKASI EAST Town, Nairobi County, Kenya"
+      ]
     },
     {
       "office_id": 1,
@@ -226,16 +230,33 @@
     {
       "office_id": 11,
       "action": "skip_metadata_updated",
-      "displacement_km": 0.31690184565485874,
-      "confidence": 0.7047885479466509
+      "displacement_km": 0.4305368861105265,
+      "confidence": 0.6861971369866627
     },
     {
       "office_id": 12,
-      "action": "no_validated_candidates"
+      "action": "skip_metadata_updated",
+      "displacement_km": 0.0,
+      "confidence": 0.78
     },
     {
       "office_id": 13,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -3.62369,
+      "new_lng": 39.85334,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "KALOLENI IEBC office KILIFI county Kenya",
+        "Adjacent To St.Johns Girls Sec. School, KALOLENI, KILIFI County, Kenya",
+        "Adjacent To St.Johns Girls Sec. School near ACK Church Kaloleni, KILIFI County, Kenya",
+        "Adjacent To St.Johns Girls Sec. School at ACK Church Kaloleni, KILIFI County, Kenya",
+        "ACK Church Kaloleni, KALOLENI, KILIFI County, Kenya",
+        "Adjacent To St.Johns Girls Sec. School, KILIFI County, Kenya",
+        "KALOLENI Town, KILIFI County, Kenya"
+      ]
     },
     {
       "office_id": 14,
@@ -267,11 +288,60 @@
     },
     {
       "office_id": 21,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -2.05596,
+      "new_lng": 41.11168,
+      "confidence": 0.84,
+      "sources": [
+        "geocode_xyz_ward_validated",
+        "geocode_xyz_ward_validated"
+      ],
+      "queries_used": [
+        "LAMU EAST IEBC office LAMU county Kenya",
+        "Batuli Mudh-hir Haji Building - Faza, LAMU EAST, LAMU County, Kenya",
+        "Batuli Mudh-hir Haji Building - Faza Post Office, Faza, LAMU County, Kenya",
+        "Post Office, Faza, LAMU EAST, LAMU County, Kenya",
+        "Batuli Mudh-hir Haji Building - Faza, LAMU County, Kenya",
+        "LAMU EAST Town, LAMU County, Kenya"
+      ]
     },
     {
       "office_id": 22,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -2.23818,
+      "new_lng": 40.84713,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz",
+        "geocode_xyz",
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "LAMU WEST IEBC office LAMU county Kenya",
+        "Ministry of Housing Office Building - Mokowe, LAMU WEST, LAMU County, Kenya",
+        "Ministry of Housing Office Building - Mokowe Public Works Office, LAMU County, Kenya",
+        "Public Works Office, LAMU WEST, LAMU County, Kenya",
+        "Ministry of Housing  Building - Mokowe, LAMU County, Kenya",
+        "LAMU WEST Town, LAMU County, Kenya"
+      ]
+    },
+    {
+      "office_id": 23,
+      "action": "auto_apply",
+      "new_lat": -3.4,
+      "new_lng": 37.6833,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "TAVETA IEBC office TAITA TAVETA county Kenya",
+        "Next to Probation office Taveta, TAVETA, TAITA TAVETA County, Kenya",
+        "Next to Probation office Taveta Probation Office Taveta, TAITA TAVETA County, Kenya",
+        "Probation Office Taveta, TAVETA, TAITA TAVETA County, Kenya",
+        "Next to Probation  Taveta, TAITA TAVETA County, Kenya",
+        "TAVETA Town, TAITA TAVETA County, Kenya"
+      ]
     },
     {
       "office_id": 24,
@@ -280,6 +350,25 @@
     {
       "office_id": 25,
       "action": "no_validated_candidates"
+    },
+    {
+      "office_id": 26,
+      "action": "auto_apply",
+      "new_lat": -3.4,
+      "new_lng": 37.6833,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz",
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "VOI IEBC office TAITA TAVETA county Kenya",
+        "Behind Taita Taveta County Public Service, VOI, TAITA TAVETA County, Kenya",
+        "Behind Taita Taveta County Public Service Voi Remand GK Prison, TAITA TAVETA County, Kenya",
+        "Voi Remand GK Prison, VOI, TAITA TAVETA County, Kenya",
+        "Behind Taita Taveta County Public Service, TAITA TAVETA County, Kenya",
+        "VOI Town, TAITA TAVETA County, Kenya"
+      ]
     },
     {
       "office_id": 27,
@@ -308,12 +397,36 @@
     {
       "office_id": 33,
       "action": "skip_metadata_updated",
-      "displacement_km": 2.3336376555994915,
-      "confidence": 0.26402400045777064
+      "displacement_km": 0.0,
+      "confidence": 0.2925
+    },
+    {
+      "office_id": 34,
+      "action": "skip_metadata_updated",
+      "displacement_km": 0.43553190870946296,
+      "confidence": 0.829435398417455
     },
     {
       "office_id": 35,
       "action": "no_validated_candidates"
+    },
+    {
+      "office_id": 36,
+      "action": "auto_apply",
+      "new_lat": 1.75213,
+      "new_lng": 40.05646,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "WAJIR WEST IEBC office WAJIR county Kenya",
+        "Giriftu, WAJIR WEST, WAJIR County, Kenya",
+        "Giriftu DCC's Office, WAJIR County, Kenya",
+        "DCC's Office, WAJIR WEST, WAJIR County, Kenya",
+        "Giriftu, WAJIR County, Kenya",
+        "WAJIR WEST Town, WAJIR County, Kenya"
+      ]
     },
     {
       "office_id": 37,
@@ -321,7 +434,9 @@
     },
     {
       "office_id": 38,
-      "action": "no_validated_candidates"
+      "action": "skip_metadata_updated",
+      "displacement_km": 0.05335998940912897,
+      "confidence": 0.3211668576006278
     },
     {
       "office_id": 39,
@@ -341,7 +456,9 @@
     },
     {
       "office_id": 43,
-      "action": "no_validated_candidates"
+      "action": "skip_metadata_updated",
+      "displacement_km": 0.527248711580975,
+      "confidence": 0.78
     },
     {
       "office_id": 44,
@@ -429,7 +546,22 @@
     },
     {
       "office_id": 67,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -1.37241,
+      "new_lng": 38.00342,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "MWINGI NORTH IEBC office KITUI county Kenya",
+        "Kyuso Town, MWINGI NORTH, KITUI County, Kenya",
+        "Kyuso Town near Equity Bank, KITUI County, Kenya",
+        "Kyuso Town at Equity Bank, KITUI County, Kenya",
+        "Equity Bank, MWINGI NORTH, KITUI County, Kenya",
+        "Kyuso, KITUI County, Kenya",
+        "MWINGI NORTH Town, KITUI County, Kenya"
+      ]
     },
     {
       "office_id": 68,
@@ -441,54 +573,79 @@
     },
     {
       "office_id": 70,
-      "action": "skip_metadata_updated",
-      "displacement_km": 0.0,
-      "confidence": 0.6880283804074159
+      "action": "auto_apply",
+      "new_lat": -1.3103079000000002,
+      "new_lng": 37.990788949999995,
+      "confidence": 0.7640141902037079,
+      "sources": [
+        "nominatim",
+        "geocode_xyz_ward_validated",
+        "geocode_xyz_ward_validated",
+        "nominatim"
+      ],
+      "queries_used": [
+        "KITUI WEST IEBC office KITUI county Kenya",
+        "Matinyani, KITUI WEST, KITUI County, Kenya",
+        "Matinyani Matinyani DCC Offices, KITUI County, Kenya",
+        "Matinyani DCC Offices, KITUI WEST, KITUI County, Kenya",
+        "Matinyani, KITUI County, Kenya",
+        "KITUI WEST Town, KITUI County, Kenya"
+      ]
     },
     {
       "office_id": 71,
       "action": "hitl_queue",
-      "proposed_lat": -1.4060891,
-      "proposed_lng": 37.845744,
-      "confidence": 0.33200599999999997,
+      "proposed_lat": -1.37241,
+      "proposed_lng": 38.00342,
+      "confidence": 0.38,
       "queries_used": [
         "KITUI RURAL IEBC office KITUI county Kenya",
         "Kwa Vonza Town, KITUI RURAL, KITUI County, Kenya",
         "Kwa Vonza Town near Kitui Rural CDF Building, KITUI County, Kenya",
+        "Kwa Vonza Town at Kitui Rural CDF Building, KITUI County, Kenya",
         "Kitui Rural CDF Building, KITUI RURAL, KITUI County, Kenya",
-        "Kwa Vonza, KITUI County, Kenya"
+        "Kwa Vonza, KITUI County, Kenya",
+        "KITUI RURAL Town, KITUI County, Kenya"
       ]
     },
     {
       "office_id": 72,
-      "action": "no_validated_candidates"
+      "action": "skip_metadata_updated",
+      "displacement_km": 3.9311827352598026,
+      "confidence": 0.78
     },
     {
       "office_id": 73,
-      "action": "hitl_queue",
-      "proposed_lat": -1.45,
-      "proposed_lng": 38.2333,
-      "confidence": 0.6880225008010986,
+      "action": "auto_apply",
+      "new_lat": -1.45,
+      "new_lng": 38.2333,
+      "confidence": 0.7640112504005493,
+      "sources": [
+        "geocode_xyz_ward_validated",
+        "nominatim"
+      ],
       "queries_used": [
         "KITUI EAST IEBC office KITUI county Kenya",
         "Zombe Town, KITUI EAST, KITUI County, Kenya",
-        "Zombe Town near Zombe Police Station, KITUI County, Kenya",
+        "Zombe Town Zombe Police Station, KITUI County, Kenya",
         "Zombe Police Station, KITUI EAST, KITUI County, Kenya",
-        "Zombe, KITUI County, Kenya"
+        "Zombe, KITUI County, Kenya",
+        "KITUI EAST Town, KITUI County, Kenya"
       ]
     },
     {
       "office_id": 74,
       "action": "hitl_queue",
-      "proposed_lat": -2.065031,
-      "proposed_lng": 38.179304,
-      "confidence": 0.688011951934081,
+      "proposed_lat": -2.0650304999999998,
+      "proposed_lng": 38.179302,
+      "confidence": 0.5640059759670405,
       "queries_used": [
         "KITUI SOUTH IEBC office KITUI county Kenya",
         "Ikutha Town, KITUI SOUTH, KITUI County, Kenya",
-        "Ikutha Town near Opposite Registry Office, KITUI County, Kenya",
+        "Ikutha Town Opposite Registry Office, KITUI County, Kenya",
         "Opposite Registry Office, KITUI SOUTH, KITUI County, Kenya",
-        "Ikutha, KITUI County, Kenya"
+        "Ikutha, KITUI County, Kenya",
+        "KITUI SOUTH Town, KITUI County, Kenya"
       ]
     },
     {
@@ -505,11 +662,28 @@
     },
     {
       "office_id": 78,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -1.57344,
+      "new_lng": 37.28159,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "MATUNGULU IEBC office MACHAKOS county Kenya",
+        "Kangundo Junior School Within Tala Town, MATUNGULU, MACHAKOS County, Kenya",
+        "Kangundo Junior School Within Tala Town near Tala Town, MACHAKOS County, Kenya",
+        "Kangundo Junior School Within Tala Town at Tala Town, MACHAKOS County, Kenya",
+        "Tala Town, MATUNGULU, MACHAKOS County, Kenya",
+        "Kangundo Junior School Within Tala, MACHAKOS County, Kenya",
+        "MATUNGULU Town, MACHAKOS County, Kenya"
+      ]
     },
     {
       "office_id": 79,
-      "action": "no_validated_candidates"
+      "action": "skip_metadata_updated",
+      "displacement_km": 4.940956601650515,
+      "confidence": 0.48
     },
     {
       "office_id": 80,
@@ -518,8 +692,8 @@
     {
       "office_id": 81,
       "action": "skip_metadata_updated",
-      "displacement_km": 0.2546867535979769,
-      "confidence": 0.6320305685511558
+      "displacement_km": 0.12012565656185978,
+      "confidence": 0.5855976301867051
     },
     {
       "office_id": 82,
@@ -571,7 +745,9 @@
     },
     {
       "office_id": 94,
-      "action": "no_validated_candidates"
+      "action": "skip_metadata_updated",
+      "displacement_km": 4.139654544252641,
+      "confidence": 0.48
     },
     {
       "office_id": 95,
@@ -591,7 +767,24 @@
     },
     {
       "office_id": 99,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -0.38522000000000006,
+      "new_lng": 37.00113,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz",
+        "geocode_xyz",
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "NYERI TOWN IEBC office NYERI county Kenya",
+        "DCC Offices Grounds, NYERI TOWN, NYERI County, Kenya",
+        "DCC Offices Grounds near Huduma Centre, NYERI County, Kenya",
+        "DCC Offices Grounds at Huduma Centre, NYERI County, Kenya",
+        "Huduma Centre, NYERI TOWN, NYERI County, Kenya",
+        "DCC Offices Grounds, NYERI County, Kenya",
+        "NYERI TOWN Town, NYERI County, Kenya"
+      ]
     },
     {
       "office_id": 100,
@@ -603,17 +796,7 @@
     },
     {
       "office_id": 102,
-      "action": "hitl_queue",
-      "proposed_lat": -0.5555685,
-      "proposed_lng": 37.2404684,
-      "confidence": 0.6960261739528496,
-      "queries_used": [
-        "NDIA IEBC office KIRINYAGA county Kenya",
-        "Baricho Town, NDIA, KIRINYAGA County, Kenya",
-        "Baricho Town near ACK St Philips, Baricho, KIRINYAGA County, Kenya",
-        "ACK St Philips, Baricho, NDIA, KIRINYAGA County, Kenya",
-        "Baricho, KIRINYAGA County, Kenya"
-      ]
+      "action": "no_validated_candidates"
     },
     {
       "office_id": 103,
@@ -637,17 +820,44 @@
     },
     {
       "office_id": 108,
-      "action": "skip_metadata_updated",
-      "displacement_km": 3.4058541462140983,
-      "confidence": 0.3120240004577706
+      "action": "no_validated_candidates"
     },
     {
       "office_id": 109,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -0.95736,
+      "new_lng": 37.11028,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz",
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "KANDARA IEBC office MURANGA county Kenya",
+        "Kandara Town, KANDARA, MURANGA County, Kenya",
+        "Kandara Town 500m from DCC's Office, MURANGA County, Kenya",
+        "500m from DCC's Office, KANDARA, MURANGA County, Kenya",
+        "KANDARA Town, MURANGA County, Kenya"
+      ]
     },
     {
       "office_id": 110,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -0.95736,
+      "new_lng": 37.11028,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz",
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "GATANGA IEBC office MURANGA county Kenya",
+        "Kirwara Town, GATANGA, MURANGA County, Kenya",
+        "Kirwara Town Opposite Kirwara Police Station, MURANGA County, Kenya",
+        "Opposite Kirwara Police Station, GATANGA, MURANGA County, Kenya",
+        "Kirwara, MURANGA County, Kenya",
+        "GATANGA Town, MURANGA County, Kenya"
+      ]
     },
     {
       "office_id": 111,
@@ -659,7 +869,21 @@
     },
     {
       "office_id": 113,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -1.17207,
+      "new_lng": 36.83475,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "JUJA IEBC office KIAMBU county Kenya",
+        "Menja Vision Plaza, JUJA, KIAMBU County, Kenya",
+        "Menja Vision Plaza Behind Aga Khan Hospital, KIAMBU County, Kenya",
+        "Behind Aga Khan Hospital, JUJA, KIAMBU County, Kenya",
+        "Menja Vision Plaza, KIAMBU County, Kenya",
+        "JUJA Town, KIAMBU County, Kenya"
+      ]
     },
     {
       "office_id": 114,
@@ -671,11 +895,27 @@
     },
     {
       "office_id": 116,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -1.17207,
+      "new_lng": 36.83475,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "GITHUNGURI IEBC office KIAMBU county Kenya",
+        "DCC Compound, GITHUNGURI, KIAMBU County, Kenya",
+        "DCC Compound DCC Offices, KIAMBU County, Kenya",
+        "DCC Offices, GITHUNGURI, KIAMBU County, Kenya",
+        "DCC Compound, KIAMBU County, Kenya",
+        "GITHUNGURI Town, KIAMBU County, Kenya"
+      ]
     },
     {
       "office_id": 117,
-      "action": "no_validated_candidates"
+      "action": "skip_metadata_updated",
+      "displacement_km": 0.1292457526334017,
+      "confidence": 0.48
     },
     {
       "office_id": 118,
@@ -699,15 +939,55 @@
     },
     {
       "office_id": 123,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": 3.04795,
+      "new_lng": 35.99747,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "TURKANA NORTH IEBC office TURKANA county Kenya",
+        "DCC's Compound Lokitaung', TURKANA NORTH, TURKANA County, Kenya",
+        "DCC's Compound Lokitaung' DCC's Office, TURKANA County, Kenya",
+        "DCC's Office, TURKANA NORTH, TURKANA County, Kenya",
+        "DCC's Compound Lokitaung', TURKANA County, Kenya",
+        "TURKANA NORTH Town, TURKANA County, Kenya"
+      ]
     },
     {
       "office_id": 124,
-      "action": "no_validated_candidates"
+      "action": "hitl_queue",
+      "proposed_lat": 3.04795,
+      "proposed_lng": 35.99747,
+      "confidence": 0.48,
+      "queries_used": [
+        "TURKANA WEST IEBC office TURKANA county Kenya",
+        "Old DCC's Office Kakuma, TURKANA WEST, TURKANA County, Kenya",
+        "Old DCC's Office Kakuma Refugees Affairs Services Offices, TURKANA County, Kenya",
+        "Refugees Affairs Services Offices, TURKANA WEST, TURKANA County, Kenya",
+        "Old DCC's  Kakuma, TURKANA County, Kenya",
+        "TURKANA WEST Town, TURKANA County, Kenya"
+      ]
     },
     {
       "office_id": 125,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": 3.04795,
+      "new_lng": 35.99747,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "TURKANA CENTRAL IEBC office TURKANA county Kenya",
+        "DCC's Compound Lodwar, TURKANA CENTRAL, TURKANA County, Kenya",
+        "DCC's Compound Lodwar near Huduma Centre, TURKANA County, Kenya",
+        "DCC's Compound Lodwar at Huduma Centre, TURKANA County, Kenya",
+        "Huduma Centre, TURKANA CENTRAL, TURKANA County, Kenya",
+        "DCC's Compound Lodwar, TURKANA County, Kenya",
+        "TURKANA CENTRAL Town, TURKANA County, Kenya"
+      ]
     },
     {
       "office_id": 126,
@@ -715,11 +995,38 @@
     },
     {
       "office_id": 127,
-      "action": "no_validated_candidates"
+      "action": "hitl_queue",
+      "proposed_lat": 3.04795,
+      "proposed_lng": 35.99747,
+      "confidence": 0.48,
+      "queries_used": [
+        "TURKANA SOUTH IEBC office TURKANA county Kenya",
+        "DCC's Compound Lokichar, TURKANA SOUTH, TURKANA County, Kenya",
+        "DCC's Compound Lokichar DCC's Office, TURKANA County, Kenya",
+        "DCC's Office, TURKANA SOUTH, TURKANA County, Kenya",
+        "DCC's Compound Lokichar, TURKANA County, Kenya",
+        "TURKANA SOUTH Town, TURKANA County, Kenya"
+      ]
     },
     {
       "office_id": 128,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": 3.04795,
+      "new_lng": 35.99747,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz",
+        "geocode_xyz",
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "TURKANA EAST IEBC office TURKANA county Kenya",
+        "DCC's Compound Lokori, TURKANA EAST, TURKANA County, Kenya",
+        "DCC's Compound Lokori DCC's Office, TURKANA County, Kenya",
+        "DCC's Office, TURKANA EAST, TURKANA County, Kenya",
+        "DCC's Compound Lokori, TURKANA County, Kenya",
+        "TURKANA EAST Town, TURKANA County, Kenya"
+      ]
     },
     {
       "office_id": 129,
@@ -739,24 +1046,37 @@
     },
     {
       "office_id": 133,
-      "action": "auto_apply",
-      "new_lat": 0.9488495,
-      "new_lng": 36.7583709,
-      "confidence": 0.787750288285794,
-      "sources": [
-        "nominatim"
-      ],
+      "action": "hitl_queue",
+      "proposed_lat": 0.86885,
+      "proposed_lng": 36.80617,
+      "confidence": 0.48,
       "queries_used": [
         "SAMBURU WEST IEBC office SAMBURU county Kenya",
         "Maralal Town, SAMBURU WEST, SAMBURU County, Kenya",
         "Maralal Town near Samburu County Assembly, SAMBURU County, Kenya",
+        "Maralal Town at Samburu County Assembly, SAMBURU County, Kenya",
         "Samburu County Assembly, SAMBURU WEST, SAMBURU County, Kenya",
-        "Maralal, SAMBURU County, Kenya"
+        "Maralal, SAMBURU County, Kenya",
+        "SAMBURU WEST Town, SAMBURU County, Kenya"
       ]
     },
     {
       "office_id": 134,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": 0.86885,
+      "new_lng": 36.80617,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "SAMBURU NORTH IEBC office SAMBURU county Kenya",
+        "Baragoi Town, SAMBURU NORTH, SAMBURU County, Kenya",
+        "Baragoi Town DCC Office, SAMBURU County, Kenya",
+        "DCC Office, SAMBURU NORTH, SAMBURU County, Kenya",
+        "Baragoi, SAMBURU County, Kenya",
+        "SAMBURU NORTH Town, SAMBURU County, Kenya"
+      ]
     },
     {
       "office_id": 136,
@@ -839,9 +1159,10 @@
       "queries_used": [
         "BARINGO CENTRAL IEBC office BARINGO county Kenya",
         "County Commissioners Premises,, BARINGO CENTRAL, BARINGO County, Kenya",
-        "County Commissioners Premises, near County Commissioner's Premises, BARINGO County, Kenya",
+        "County Commissioners Premises, County Commissioner's Premises, BARINGO County, Kenya",
         "County Commissioner's Premises, BARINGO CENTRAL, BARINGO County, Kenya",
-        "County Commissioners Premises,, BARINGO County, Kenya"
+        "County Commissioners Premises,, BARINGO County, Kenya",
+        "BARINGO CENTRAL Town, BARINGO County, Kenya"
       ]
     },
     {
@@ -859,15 +1180,17 @@
     {
       "office_id": 163,
       "action": "hitl_queue",
-      "proposed_lat": 0.0399036,
-      "proposed_lng": 36.3648294,
-      "confidence": 0.6000297354085603,
+      "proposed_lat": 0.03462072,
+      "proposed_lng": 36.36624588,
+      "confidence": 0.6440059470817121,
       "queries_used": [
         "LAIKIPIA WEST IEBC office LAIKIPIA county Kenya",
         "Telkom Building Nyahururu Town, LAIKIPIA WEST, LAIKIPIA County, Kenya",
         "Telkom Building Nyahururu Town near Nyahururu Law Courts, LAIKIPIA County, Kenya",
+        "Telkom Building Nyahururu Town at Nyahururu Law Courts, LAIKIPIA County, Kenya",
         "Nyahururu Law Courts, LAIKIPIA WEST, LAIKIPIA County, Kenya",
-        "Telkom Building Nyahururu, LAIKIPIA County, Kenya"
+        "Telkom Building Nyahururu, LAIKIPIA County, Kenya",
+        "LAIKIPIA WEST Town, LAIKIPIA County, Kenya"
       ]
     },
     {
@@ -932,15 +1255,13 @@
     },
     {
       "office_id": 184,
-      "action": "skip_metadata_updated",
-      "displacement_km": 0.2836917291731528,
-      "confidence": 0.30002784847791253
+      "action": "no_validated_candidates"
     },
     {
       "office_id": 185,
       "action": "skip_metadata_updated",
-      "displacement_km": 0.0,
-      "confidence": 0.6000270006866559
+      "displacement_km": 0.786413228680741,
+      "confidence": 0.78
     },
     {
       "office_id": 188,
@@ -968,19 +1289,67 @@
     },
     {
       "office_id": 194,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -0.76884,
+      "new_lng": 35.33356,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz",
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "SOTIK IEBC office BOMET county Kenya",
+        "Ministry of Agriculture, SOTIK, BOMET County, Kenya",
+        "Ministry of Agriculture Opposite CDF Office, BOMET County, Kenya",
+        "Opposite CDF Office, SOTIK, BOMET County, Kenya",
+        "Ministry of Agriculture, BOMET County, Kenya",
+        "SOTIK Town, BOMET County, Kenya"
+      ]
     },
     {
       "office_id": 195,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -0.76884,
+      "new_lng": 35.33356,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "CHEPALUNGU IEBC office BOMET county Kenya",
+        "Sigor AGC Church, CHEPALUNGU, BOMET County, Kenya",
+        "Sigor AGC Church Junction to Sigor Township, BOMET County, Kenya",
+        "Junction to Sigor Township, CHEPALUNGU, BOMET County, Kenya",
+        "Sigor AGC Church, BOMET County, Kenya",
+        "CHEPALUNGU Town, BOMET County, Kenya"
+      ]
     },
     {
       "office_id": 196,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -0.73155,
+      "new_lng": 35.3159,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz",
+        "geocode_xyz",
+        "geocode_xyz",
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "BOMET EAST IEBC office BOMET county Kenya",
+        "AFC Building, Bomet Town, BOMET EAST, BOMET County, Kenya",
+        "AFC Building, Bomet Town Shell Petrol Station, BOMET County, Kenya",
+        "Shell Petrol Station, BOMET EAST, BOMET County, Kenya",
+        "AFC Building, Bomet, BOMET County, Kenya",
+        "BOMET EAST Town, BOMET County, Kenya"
+      ]
     },
     {
       "office_id": 197,
-      "action": "no_validated_candidates"
+      "action": "skip_metadata_updated",
+      "displacement_km": 0.0,
+      "confidence": 0.78
     },
     {
       "office_id": 198,
@@ -1028,15 +1397,50 @@
     },
     {
       "office_id": 211,
-      "action": "no_validated_candidates"
+      "action": "skip_metadata_updated",
+      "displacement_km": 1.5790371883922507,
+      "confidence": 0.48
     },
     {
       "office_id": 212,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": 0.06642,
+      "new_lng": 34.72083,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz",
+        "geocode_xyz",
+        "geocode_xyz",
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "SABATIA IEBC office VIHIGA county Kenya",
+        "DCC Compound, SABATIA, VIHIGA County, Kenya",
+        "DCC Compound Sabatia Eye Hospital, VIHIGA County, Kenya",
+        "Sabatia Eye Hospital, SABATIA, VIHIGA County, Kenya",
+        "DCC Compound, VIHIGA County, Kenya",
+        "SABATIA Town, VIHIGA County, Kenya"
+      ]
     },
     {
       "office_id": 213,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": 0.07538,
+      "new_lng": 34.71006,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz",
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "HAMISI IEBC office VIHIGA county Kenya",
+        "Hamisi Youth Empowerment Centre, HAMISI, VIHIGA County, Kenya",
+        "Hamisi Youth Empowerment Centre near Hamisi Sub-County Hospital, VIHIGA County, Kenya",
+        "Hamisi Youth Empowerment Centre at Hamisi Sub-County Hospital, VIHIGA County, Kenya",
+        "Hamisi Sub-County Hospital, HAMISI, VIHIGA County, Kenya",
+        "Hamisi Youth Empowerment, VIHIGA County, Kenya",
+        "HAMISI Town, VIHIGA County, Kenya"
+      ]
     },
     {
       "office_id": 214,
@@ -1044,7 +1448,22 @@
     },
     {
       "office_id": 215,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": 0.06642,
+      "new_lng": 34.72083,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "EMUHAYA IEBC office VIHIGA county Kenya",
+        "Esibuye Centre, EMUHAYA, VIHIGA County, Kenya",
+        "Esibuye Centre near Bunyore Medical Hospital, VIHIGA County, Kenya",
+        "Esibuye Centre at Bunyore Medical Hospital, VIHIGA County, Kenya",
+        "Bunyore Medical Hospital, EMUHAYA, VIHIGA County, Kenya",
+        "Esibuye, VIHIGA County, Kenya",
+        "EMUHAYA Town, VIHIGA County, Kenya"
+      ]
     },
     {
       "office_id": 217,
@@ -1120,15 +1539,45 @@
     },
     {
       "office_id": 239,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -0.10465,
+      "new_lng": 34.74751,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "KISUMU WEST IEBC office KISUMU county Kenya",
+        "DCCs office block opposite the new DCCs/Huduma, KISUMU WEST, KISUMU County, Kenya",
+        "DCCs office block opposite the new DCCs/Huduma Huduma Centre & CDF Office, KISUMU County, Kenya",
+        "Huduma Centre & CDF Office, KISUMU WEST, KISUMU County, Kenya",
+        "DCCs  block opposite the new DCCs/Huduma, KISUMU County, Kenya",
+        "KISUMU WEST Town, KISUMU County, Kenya"
+      ]
     },
     {
       "office_id": 240,
-      "action": "no_validated_candidates"
+      "action": "skip_metadata_updated",
+      "displacement_km": 0.9669764729760729,
+      "confidence": 0.54
     },
     {
       "office_id": 242,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -0.1199,
+      "new_lng": 34.75502,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "NYANDO IEBC office KISUMU county Kenya",
+        "Awasi DCC Compound, NYANDO, KISUMU County, Kenya",
+        "Awasi DCC Compound near Awasi DCC Compound, KISUMU County, Kenya",
+        "Awasi DCC Compound at Awasi DCC Compound, KISUMU County, Kenya",
+        "Awasi DCC Compound, KISUMU County, Kenya",
+        "NYANDO Town, KISUMU County, Kenya"
+      ]
     },
     {
       "office_id": 243,
@@ -1136,23 +1585,82 @@
     },
     {
       "office_id": 245,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -0.5521,
+      "new_lng": 34.51116,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "KASIPUL IEBC office HOMA BAY county Kenya",
+        "Within Karachuonyo South DCC Compound at Kosele, KASIPUL, HOMA BAY County, Kenya",
+        "Within Karachuonyo South DCC Compound at Kosele near DCC Compound, HOMA BAY County, Kenya",
+        "Within Karachuonyo South DCC Compound at Kosele at DCC Compound, HOMA BAY County, Kenya",
+        "DCC Compound, KASIPUL, HOMA BAY County, Kenya",
+        "Within Karachuonyo South DCC Compound at Kosele, HOMA BAY County, Kenya",
+        "KASIPUL Town, HOMA BAY County, Kenya"
+      ]
     },
     {
       "office_id": 246,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -0.55254,
+      "new_lng": 34.45231,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "KABONDO KASIPUL IEBC office HOMA BAY county Kenya",
+        "At Kadongo Centre Along Kisii - Kisumu Road, KABONDO KASIPUL, HOMA BAY County, Kenya",
+        "At Kadongo Centre Along Kisii - Kisumu Road near Renish Obunge Building, HOMA BAY County, Kenya",
+        "At Kadongo Centre Along Kisii - Kisumu Road at Renish Obunge Building, HOMA BAY County, Kenya",
+        "Renish Obunge Building, KABONDO KASIPUL, HOMA BAY County, Kenya",
+        "At Kadongo  Along Kisii - Kisumu Road, HOMA BAY County, Kenya",
+        "KABONDO KASIPUL Town, HOMA BAY County, Kenya"
+      ]
     },
     {
       "office_id": 247,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -0.5521,
+      "new_lng": 34.51116,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "KARACHUONYO IEBC office HOMA BAY county Kenya",
+        "Within Rachuonyo North DCC Complex at Kamodi, KARACHUONYO, HOMA BAY County, Kenya",
+        "Within Rachuonyo North DCC Complex at Kamodi near Kendu Bay Road, HOMA BAY County, Kenya",
+        "Within Rachuonyo North DCC Complex at Kamodi at Kendu Bay Road, HOMA BAY County, Kenya",
+        "Kendu Bay Road, KARACHUONYO, HOMA BAY County, Kenya",
+        "Within Rachuonyo North DCC Complex at Kamodi, HOMA BAY County, Kenya",
+        "KARACHUONYO Town, HOMA BAY County, Kenya"
+      ]
     },
     {
       "office_id": 248,
-      "action": "no_validated_candidates"
+      "action": "hitl_queue",
+      "proposed_lat": -0.6137747,
+      "proposed_lng": 34.5100895,
+      "confidence": 0.632027000686656,
+      "queries_used": [
+        "RANGWE IEBC office HOMA BAY county Kenya",
+        "Within New Rangwe DCC's Complex aLong Oyugis -, RANGWE, HOMA BAY County, Kenya",
+        "Within New Rangwe DCC's Complex aLong Oyugis - near Rangwe Dispensary, HOMA BAY County, Kenya",
+        "Within New Rangwe DCC's Complex aLong Oyugis - at Rangwe Dispensary, HOMA BAY County, Kenya",
+        "Rangwe Dispensary, RANGWE, HOMA BAY County, Kenya",
+        "Within New Rangwe DCC's Complex aLong Oyugis -, HOMA BAY County, Kenya",
+        "RANGWE Town, HOMA BAY County, Kenya"
+      ]
     },
     {
       "office_id": 249,
-      "action": "no_validated_candidates"
+      "action": "skip_metadata_updated",
+      "displacement_km": 2.160568277427204,
+      "confidence": 0.7149207435081487
     },
     {
       "office_id": 250,
@@ -1160,7 +1668,21 @@
     },
     {
       "office_id": 251,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -0.5521,
+      "new_lng": 34.51116,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "MBITA IEBC office HOMA BAY county Kenya",
+        "Kizingo, Rashid Sajad road, MBITA, HOMA BAY County, Kenya",
+        "Kizingo, Rashid Sajad road Along Mbita-Rusinga Road, HOMA BAY County, Kenya",
+        "Along Mbita-Rusinga Road, MBITA, HOMA BAY County, Kenya",
+        "Kizingo, Rashid Sajad road, HOMA BAY County, Kenya",
+        "MBITA Town, HOMA BAY County, Kenya"
+      ]
     },
     {
       "office_id": 252,
@@ -1200,7 +1722,19 @@
     },
     {
       "office_id": 261,
-      "action": "no_validated_candidates"
+      "action": "hitl_queue",
+      "proposed_lat": -0.67786,
+      "proposed_lng": 34.70733,
+      "confidence": 0.58,
+      "queries_used": [
+        "BONCHARI IEBC office KISII county Kenya",
+        "Suneka Market, BONCHARI, KISII County, Kenya",
+        "Suneka Market near Itierio Boys High School, KISII County, Kenya",
+        "Suneka Market at Itierio Boys High School, KISII County, Kenya",
+        "Itierio Boys High School, BONCHARI, KISII County, Kenya",
+        "Suneka Market, KISII County, Kenya",
+        "BONCHARI Town, KISII County, Kenya"
+      ]
     },
     {
       "office_id": 262,
@@ -1214,7 +1748,7 @@
       "office_id": 267,
       "action": "skip_metadata_updated",
       "displacement_km": 3.018996752109016,
-      "confidence": 0.8537707848340128
+      "confidence": 0.9137707848340129
     },
     {
       "office_id": 268,
@@ -1228,99 +1762,193 @@
     },
     {
       "office_id": 270,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -0.61973,
+      "new_lng": 34.97418,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz",
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "KITUTU MASABA IEBC office NYAMIRA county Kenya",
+        "Manga DCC Compound, KITUTU MASABA, NYAMIRA County, Kenya",
+        "Manga DCC Compound near Manga Cliff, NYAMIRA County, Kenya",
+        "Manga DCC Compound at Manga Cliff, NYAMIRA County, Kenya",
+        "Manga Cliff, KITUTU MASABA, NYAMIRA County, Kenya",
+        "Manga DCC Compound, NYAMIRA County, Kenya",
+        "KITUTU MASABA Town, NYAMIRA County, Kenya"
+      ]
     },
     {
       "office_id": 273,
-      "action": "no_validated_candidates"
+      "action": "auto_apply",
+      "new_lat": -0.61973,
+      "new_lng": 34.97418,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz",
+        "geocode_xyz"
+      ],
+      "queries_used": [
+        "BORABU IEBC office NYAMIRA county Kenya",
+        "DCC Office Compound in Kijauri Town DCC Offfice, BORABU, NYAMIRA County, Kenya",
+        "DCC Office Compound in Kijauri Town DCC Offfice DCC Office, NYAMIRA County, Kenya",
+        "DCC Office, BORABU, NYAMIRA County, Kenya",
+        "DCC  Compound in Kijauri  DCC Offfice, NYAMIRA County, Kenya",
+        "BORABU Town, NYAMIRA County, Kenya"
+      ]
     },
     {
       "office_id": 274,
       "action": "skip_metadata_updated",
-      "displacement_km": 1.0673155923779691,
-      "confidence": 0.6000435024032958
+      "displacement_km": 0.9912695239518905,
+      "confidence": 0.38
     },
     {
       "office_id": 276,
-      "action": "no_validated_candidates"
+      "action": "hitl_queue",
+      "proposed_lat": -1.29194,
+      "proposed_lng": 36.82109,
+      "confidence": 0.48,
+      "queries_used": [
+        "DAGORETTI SOUTH IEBC office NAIROBI county Kenya",
+        "Maisha Poa Centre, DAGORETTI SOUTH, NAIROBI County, Kenya",
+        "Maisha Poa Centre DCC Office Dagoretti South, NAIROBI County, Kenya",
+        "DCC Office Dagoretti South, DAGORETTI SOUTH, NAIROBI County, Kenya",
+        "Maisha Poa, NAIROBI County, Kenya",
+        "DAGORETTI SOUTH Town, NAIROBI County, Kenya"
+      ]
     },
     {
       "office_id": 277,
-      "action": "hitl_queue",
-      "proposed_lat": -1.3196098,
-      "proposed_lng": 36.822765849999996,
-      "confidence": 0.4320435024032959,
+      "action": "auto_apply",
+      "new_lat": -1.321,
+      "new_lng": 36.79743,
+      "confidence": 0.78,
+      "sources": [
+        "geocode_xyz",
+        "geocode_xyz",
+        "geocode_xyz"
+      ],
       "queries_used": [
         "LANGATA IEBC office NAIROBI county Kenya",
         "Langata Subcounty Headquarters Five Star, LANGATA, NAIROBI County, Kenya",
         "Langata Subcounty Headquarters Five Star near Five Star Road, NAIROBI County, Kenya",
+        "Langata Subcounty Headquarters Five Star at Five Star Road, NAIROBI County, Kenya",
         "Five Star Road, LANGATA, NAIROBI County, Kenya",
-        "Langata Subcounty Headquarters Five Star, NAIROBI County, Kenya"
+        "Langata Subcounty Headquarters Five Star, NAIROBI County, Kenya",
+        "LANGATA Town, NAIROBI County, Kenya"
       ]
     },
     {
       "office_id": 278,
-      "action": "no_validated_candidates"
+      "action": "skip_metadata_updated",
+      "displacement_km": 4.830266596033406,
+      "confidence": 0.78
     },
     {
       "office_id": 279,
-      "action": "no_validated_candidates"
+      "action": "skip_metadata_updated",
+      "displacement_km": 0.0,
+      "confidence": 0.84
     },
     {
       "office_id": 280,
-      "action": "no_validated_candidates"
+      "action": "skip_metadata_updated",
+      "displacement_km": 0.5575221795123635,
+      "confidence": 0.84
     },
     {
       "office_id": 281,
-      "action": "no_validated_candidates"
+      "action": "skip_metadata_updated",
+      "displacement_km": 0.7078502598267349,
+      "confidence": 0.54
     },
     {
       "office_id": 282,
-      "action": "skip_metadata_updated",
-      "displacement_km": 2.265039812914355,
-      "confidence": 0.6800435024032959
+      "action": "hitl_queue",
+      "proposed_lat": -1.29243,
+      "proposed_lng": 36.78664,
+      "confidence": 0.38,
+      "queries_used": [
+        "EMBAKASI SOUTH IEBC office NAIROBI county Kenya",
+        "Villa Franca, EMBAKASI SOUTH, NAIROBI County, Kenya",
+        "Villa Franca near Equity Afya Hospital, NAIROBI County, Kenya",
+        "Villa Franca at Equity Afya Hospital, NAIROBI County, Kenya",
+        "Equity Afya Hospital, EMBAKASI SOUTH, NAIROBI County, Kenya",
+        "Villa Franca, NAIROBI County, Kenya",
+        "EMBAKASI SOUTH Town, NAIROBI County, Kenya"
+      ]
     },
     {
       "office_id": 283,
-      "action": "no_validated_candidates"
+      "action": "hitl_queue",
+      "proposed_lat": -1.29194,
+      "proposed_lng": 36.82109,
+      "confidence": 0.58,
+      "queries_used": [
+        "EMBAKASI NORTH IEBC office NAIROBI county Kenya",
+        "Near DCC Office, EMBAKASI NORTH, NAIROBI County, Kenya",
+        "Near DCC Office DCC Office, NAIROBI County, Kenya",
+        "DCC Office, EMBAKASI NORTH, NAIROBI County, Kenya",
+        "Near DCC, NAIROBI County, Kenya",
+        "EMBAKASI NORTH Town, NAIROBI County, Kenya"
+      ]
     },
     {
       "office_id": 284,
-      "action": "no_validated_candidates"
-    },
-    {
-      "office_id": 285,
-      "action": "no_validated_candidates"
+      "action": "skip_metadata_updated",
+      "displacement_km": 3.2161086879020186,
+      "confidence": 0.48
     },
     {
       "office_id": 286,
-      "action": "no_validated_candidates"
+      "action": "hitl_queue",
+      "proposed_lat": -1.29907,
+      "proposed_lng": 36.76362,
+      "confidence": 0.48,
+      "queries_used": [
+        "EMBAKASI WEST IEBC office NAIROBI county Kenya",
+        "Tena White House, EMBAKASI WEST, NAIROBI County, Kenya",
+        "Tena White House Shell Petrol Station, Manyanja Road, NAIROBI County, Kenya",
+        "Shell Petrol Station, Manyanja Road, EMBAKASI WEST, NAIROBI County, Kenya",
+        "Tena White House, NAIROBI County, Kenya",
+        "EMBAKASI WEST Town, NAIROBI County, Kenya"
+      ]
     },
     {
       "office_id": 287,
-      "action": "no_validated_candidates"
+      "action": "skip_metadata_updated",
+      "displacement_km": 1.6992197899126844,
+      "confidence": 0.84
     },
     {
       "office_id": 288,
       "action": "skip_metadata_updated",
-      "displacement_km": 2.614790749461544,
-      "confidence": 0.6000435024032958
+      "displacement_km": 1.453861775000077,
+      "confidence": 0.84
     },
     {
       "office_id": 289,
-      "action": "skip_metadata_updated",
-      "displacement_km": 0.2024368620470601,
-      "confidence": 0.7122864994627219
+      "action": "hitl_queue",
+      "proposed_lat": -1.21642,
+      "proposed_lng": 36.86834,
+      "confidence": 0.42000000000000004,
+      "queries_used": [
+        "STAREHE IEBC office NAIROBI county Kenya",
+        "Nairobi-Central, STAREHE, NAIROBI County, Kenya",
+        "Nairobi-Central Opposite Technical University of Kenya, NAIROBI County, Kenya",
+        "Opposite Technical University of Kenya, STAREHE, NAIROBI County, Kenya",
+        "Nairobi-Central, NAIROBI County, Kenya",
+        "STAREHE Town, NAIROBI County, Kenya"
+      ]
     },
     {
       "office_id": 290,
       "action": "skip_metadata_updated",
-      "displacement_km": 1.1068019132465217,
-      "confidence": 0.6000435024032958
-    },
-    {
-      "office_id": 453,
-      "action": "no_validated_candidates"
+      "displacement_km": 0.8386807861796222,
+      "confidence": 0.78
     },
     {
       "office_id": 454,

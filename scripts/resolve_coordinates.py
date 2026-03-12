@@ -66,6 +66,29 @@ DISPLACEMENT_THRESHOLD_KM = 5.0
 CLUSTER_DETECTION_KM = 0.5
 NOMINATIM_RATE_LIMIT = 2.0  # Conservative 2s delay to avoid IP blocks
 
+# v9.3: RateLimiter class to enforce mandatory sleeps between API calls
+class RateLimiter:
+    def __init__(self, min_interval_seconds):
+        self.min_interval = min_interval_seconds
+        self.last_call = 0
+    
+    def wait(self):
+        elapsed = time.time() - self.last_call
+        wait_time = self.min_interval - elapsed
+        if wait_time > 0:
+            time.sleep(wait_time)
+        self.last_call = time.time()
+
+RATE_LIMITERS = {
+    "nominatim": RateLimiter(1.1),
+    "gemini":    RateLimiter(4.0),
+    "openai":    RateLimiter(6.0),
+    "arcgis":    RateLimiter(0.5),
+    "geokeo":    RateLimiter(1.0),
+    "geocode_xyz": RateLimiter(1.1),
+    "photon":      RateLimiter(1.1),
+}
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -190,7 +213,8 @@ _county_names: Dict[int, str] = {}
 _constituency_wards: Dict[str, List[str]] = {}  # v9.1: Ward-level precision
 _rev_geo_cache: Dict[Tuple[float, float], Dict[str, str]] = {}  # v9.1: Coordinate cache
 _pdf_extraction_data: List[Dict] = []  # v9.1: PDF fallback data
-_CIRCUIT_BREAKERS: Dict[str, bool] = {}  # v9.1: Host-level circuit breakers
+_CIRCUIT_BREAKERS: Dict[str, Dict] = {}  # v9.3: Stores {"tripped": bool, "last_trip": float}
+CACHE_FILE = Path("data/cache/rev_geo_cache.json")
 
 
 # ── Reliable Requests with Exponential Backoff & Circuit Breaker (v9.1) ───────
@@ -202,9 +226,15 @@ def safe_request(url: str, params: Optional[Dict] = None, method: str = "GET",
     from urllib.parse import urlparse
     host = urlparse(url).netloc
 
-    # Circuit breaker: skip hosts that have been tripped
-    if _CIRCUIT_BREAKERS.get(host):
-        return None
+    # Circuit breaker (v9.3): skip hosts that have been tripped within the last 5 minutes
+    breaker = _CIRCUIT_BREAKERS.get(host)
+    if breaker and breaker.get("tripped"):
+        elapsed = time.time() - breaker.get("last_trip", 0)
+        if elapsed < 300:  # 5-minute cool-off
+            return None
+        else:
+            log.info(f"  🔄 Circuit breaker reset for {host} (cool-off expired)")
+            _CIRCUIT_BREAKERS[host] = {"tripped": False, "last_trip": 0}
 
     delay = initial_delay
     for attempt in range(max_retries + 1):
@@ -219,7 +249,7 @@ def safe_request(url: str, params: Optional[Dict] = None, method: str = "GET",
 
             if resp.status_code == 403:
                 log.error(f"  ⛔ CIRCUIT BREAKER TRIPPED for {host} (403 Forbidden)")
-                _CIRCUIT_BREAKERS[host] = True
+                _CIRCUIT_BREAKERS[host] = {"tripped": True, "last_trip": time.time()}
                 return None
 
             if resp.status_code == 429 or 500 <= resp.status_code < 600:
@@ -231,7 +261,7 @@ def safe_request(url: str, params: Optional[Dict] = None, method: str = "GET",
                     continue
                 else:
                     log.error(f"  ⚠ CIRCUIT BREAKER TRIPPED for {host} after {max_retries} retries")
-                    _CIRCUIT_BREAKERS[host] = True
+                    _CIRCUIT_BREAKERS[host] = {"tripped": True, "last_trip": time.time()}
                     return None
 
             resp.raise_for_status()
@@ -244,14 +274,17 @@ def safe_request(url: str, params: Optional[Dict] = None, method: str = "GET",
                 delay *= 2
             else:
                 log.error(f"  Request failed after {max_retries} attempts for {host}: {e}")
-                _CIRCUIT_BREAKERS[host] = True
+                _CIRCUIT_BREAKERS[host] = {"tripped": True, "last_trip": time.time()}
                 return None
     return None
 
 
 def load_reference_data():
     """Load constituencies→county mapping and county names from Supabase."""
-    global _constituency_county_map, _county_names
+    global _constituency_county_map, _county_names, _rev_geo_cache
+
+    # v9.3: Load persistent reverse geocode cache
+    load_rev_geo_cache()
 
     log.info("Loading reference data from Supabase...")
 
@@ -317,6 +350,36 @@ def load_pdf_extraction_data():
         log.info(f"  Loaded {len(_pdf_extraction_data)} records from PDF extraction CSV")
     except Exception as e:
         log.error(f"  Failed to load PDF CSV: {e}")
+
+
+# v9.3: Persistent Cache Operations
+def load_rev_geo_cache():
+    """Load reverse geocode cache from local JSON file."""
+    global _rev_geo_cache
+    if not CACHE_FILE.exists():
+        return
+    try:
+        CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        with open(CACHE_FILE, "r") as f:
+            data = json.load(f)
+            # Reconstruct tuple keys from string keys
+            _rev_geo_cache = {eval(k): v for k, v in data.items()}
+        log.info(f"  Loaded {len(_rev_geo_cache)} entries from persistent cache")
+    except Exception as e:
+        log.warning(f"  Failed to load cache file: {e}")
+
+def save_rev_geo_cache():
+    """Save current reverse geocode cache to local JSON file."""
+    if not _rev_geo_cache:
+        return
+    try:
+        CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        with open(CACHE_FILE, "w") as f:
+            # Convert tuple keys to string keys for JSON serialization
+            data = {str(k): v for k, v in _rev_geo_cache.items()}
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        log.warning(f"  Failed to save cache file: {e}")
 
 
 def normalize_county(name: str) -> str:
@@ -413,7 +476,7 @@ def fetch_contributions_for_office(office_id: int) -> List[Dict]:
 def reverse_geocode_county(lat: float, lng: float) -> Optional[str]:
     """Reverse-geocode a coordinate via Nominatim to extract the county name."""
     try:
-        time.sleep(NOMINATIM_RATE_LIMIT)
+        RATE_LIMITERS["nominatim"].wait()
         resp = requests.get(
             "https://nominatim.openstreetmap.org/reverse",
             params={"lat": lat, "lon": lng, "format": "json", "addressdetails": 1, "zoom": 6},
@@ -451,7 +514,7 @@ def reverse_geocode_address(lat: float, lng: float) -> Dict[str, str]:
     if cache_key in _rev_geo_cache:
         return _rev_geo_cache[cache_key]
 
-    time.sleep(NOMINATIM_RATE_LIMIT)
+    RATE_LIMITERS["nominatim"].wait()
     try:
         resp = requests.get(
             "https://nominatim.openstreetmap.org/reverse",
@@ -512,7 +575,7 @@ def validate_coords_precision(lat: float, lng: float, expected_county: str,
 def geocode_nominatim(query: str, limit: int = 5) -> List[Dict]:
     """OSM Nominatim — free, 1 req/s, countrycodes=ke. Returns multiple results."""
     try:
-        time.sleep(NOMINATIM_RATE_LIMIT)
+        RATE_LIMITERS["nominatim"].wait()
         resp = requests.get(
             "https://nominatim.openstreetmap.org/search",
             params={"q": query, "countrycodes": "ke", "format": "json", "limit": limit, "addressdetails": 1},
@@ -544,15 +607,14 @@ def geocode_nominatim(query: str, limit: int = 5) -> List[Dict]:
 
 def geocode_geocodexyz(query: str) -> List[Dict]:
     """Geocode.xyz — free, 1 req/s, region=KE."""
-    return []  # v9.1: Temporarily disabled (throttled on free tier)
     try:
-        time.sleep(1.1)
-        resp = requests.get(
+        RATE_LIMITERS["geocode_xyz"].wait()
+        resp = safe_request(
             f"https://geocode.xyz/{requests.utils.quote(query)}",
             params={"json": "1", "region": "KE"},
-            timeout=15,
         )
-        resp.raise_for_status()
+        if not resp:
+            return []
         data = resp.json()
         if not data or "error" in data or not data.get("latt") or not data.get("longt"):
             return []
@@ -573,7 +635,7 @@ def geocode_geokeo(query: str) -> List[Dict]:
     if not GEOKEO_API_KEY:
         return []
     try:
-        time.sleep(0.2)
+        RATE_LIMITERS["geokeo"].wait()
         resp = requests.get(
             "https://geokeo.com/geocode/v1/search.php",
             params={"q": query, "api": GEOKEO_API_KEY},
@@ -607,6 +669,7 @@ def geocode_arcgis(query: str, key_idx: int = 1) -> List[Dict]:
     if not key:
         return []
     try:
+        RATE_LIMITERS["arcgis"].wait()
         resp = safe_request(
             "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates",
             params={"address": query, "f": "pjson", "token": key, "maxLocations": 3,
@@ -639,8 +702,8 @@ def geocode_arcgis(query: str, key_idx: int = 1) -> List[Dict]:
 # v9.1: Photon (Komoot) Geocoder
 def geocode_photon(query: str) -> List[Dict]:
     """Photon (Komoot) — OpenStreetMap-backed, no rate limit, bbox=Kenya."""
-    return []  # v9.1: Temporarily disabled (blocked/circuit broken)
     try:
+        RATE_LIMITERS["photon"].wait()
         resp = safe_request(
             "https://photon.komoot.io/api/",
             params={"q": query, "limit": 3, "bbox": "33.5,-4.7,42.0,5.5"},
@@ -673,7 +736,7 @@ def geocode_gemini(constituency: str, county: str, office_location: str = "", la
     if not GEMINI_API_KEY:
         return []
     try:
-        time.sleep(1.1)
+        RATE_LIMITERS["gemini"].wait()
         context_parts = [f"the {constituency} IEBC constituency office in {county} County, Kenya"]
         if office_location:
             context_parts.append(f"located at or near {office_location}")
@@ -723,6 +786,7 @@ def geocode_openai(query: str) -> List[Dict]:
     if not OPENAI_API_KEY:
         return []
     try:
+        RATE_LIMITERS["openai"].wait()
         prompt = (
             f"What are the GPS coordinates of the IEBC office for: '{query}' in Kenya?\n"
             f"Return ONLY a JSON object: {{\"lat\": <number>, \"lng\": <number>, \"county\": \"<county name>\"}}\n"
@@ -802,7 +866,13 @@ def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) 
     Run all geocoders with multiple queries, then cross-validate each result
     against the expected county. Returns {best_results, all_candidates, queries_used, rejected}.
     """
+    # v9.3: Reduce queries for offices with existing coordinates
+    current_lat = office.get("latitude")
     queries = build_queries(office)
+    if current_lat is not None and len(queries) > 3:
+        log.info(f"  ⚡ Office has coordinates -> reducing queries to 3 stages")
+        queries = queries[:3]
+
     constituency = office.get("constituency_name") or office.get("constituency", "")
     county = office.get("county", "")
     location = office.get("office_location", "")
@@ -851,20 +921,43 @@ def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) 
             r["query_index"] = qi
         all_candidates.extend(ph_results)
 
-        # v9.1: OpenAI — High-precision fallback
-        oa_results = geocode_openai(query)
-        for r in oa_results:
-            r["query_used"] = query
-            r["query_index"] = qi
-        all_candidates.extend(oa_results)
+        # v9.1: OpenAI — High-precision fallback (moved out of loop v9.3)
+        # oa_results = geocode_openai(query)
+        # ...
 
-    # Gemini AI — single call with full context
-    log.info(f"  🔍 Querying Gemini AI...")
-    gem_results = geocode_gemini(constituency, county, location, landmark)
-    for r in gem_results:
-        r["query_used"] = "gemini_structured_prompt"
-        r["query_index"] = -1
-    all_candidates.extend(gem_results)
+    # v9.3 Escalation Check: If Nominatim/ArcGIS/Geokeo find 2+ validated candidates, SKIP AI
+    validated_so_far = []
+    # Temporary validation loop for early candidates
+    for c in all_candidates:
+        if not expected_county:
+            validated_so_far.append(c)
+        else:
+            api_county = normalize_county(c.get("county_from_api", ""))
+            exp_county = normalize_county(expected_county)
+            if api_county and (api_county == exp_county or exp_county in api_county or api_county in exp_county):
+                validated_so_far.append(c)
+
+    if len(validated_so_far) >= 2:
+        log.info(f"  ✨ Short-circuit: found {len(validated_so_far)} validated candidates. Skipping Gemini/OpenAI.")
+    else:
+        # Gemini AI — single call with full context
+        log.info(f"  🔍 Querying Gemini AI...")
+        gem_results = geocode_gemini(constituency, county, location, landmark)
+        for r in gem_results:
+            r["query_used"] = "gemini_structured_prompt"
+            r["query_index"] = -1
+        all_candidates.extend(gem_results)
+
+        # v9.3: OpenAI — Single call per office only if needed
+        if not all_candidates or len(validated_so_far) < 1:
+            log.info(f"  🔍 Querying OpenAI fallback...")
+            # Use most specific query for OpenAI
+            best_q = queries[-1]
+            oa_results = geocode_openai(best_q)
+            for r in oa_results:
+                r["query_used"] = best_q
+                r["query_index"] = -3
+            all_candidates.extend(oa_results)
 
     # v9.1: Stage 7 — PDF Extraction Fallback
     if _pdf_extraction_data:
@@ -1586,6 +1679,9 @@ def main():
                 issue_type = "NULL_COORDS" if (office.get("latitude") is None) else "COUNTY_MISMATCH"
                 enqueue_hitl(office, None, issue_type, None)
             results_log.append({"office_id": office["id"], "action": "no_validated_candidates"})
+
+        # v9.3: Save persistent cache after each office resolution
+        save_rev_geo_cache()
 
     # ── Summary ───────────────────────────────────────────────────────────────
     log.info("")
