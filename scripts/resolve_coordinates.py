@@ -89,6 +89,20 @@ DEFAULT_THRESHOLD_KM = 50
 
 CARDINAL_SUFFIXES = {"north", "south", "east", "west", "central"}
 
+# v9.1: Sub-county to County mapping for Nominatim admin level mismatches
+SUBCOUNTY_TO_COUNTY = {
+    "CHANGAMWE": "MOMBASA",
+    "JOMVU": "MOMBASA",
+    "LIKONI": "MOMBASA",
+    "GUCHA": "KISII",
+    "MASABA SOUTH": "KISII",
+    "MT ELGON": "BUNGOMA",
+    "KIMILILI": "BUNGOMA",
+    "KISAUNI": "MOMBASA",
+    "NYALI": "MOMBASA",
+    "MVITA": "MOMBASA",
+}
+
 # ── Direction-type keywords ───────────────────────────────────────────────────
 
 DIRECTION_KEYWORDS = {
@@ -311,7 +325,8 @@ def normalize_county(name: str) -> str:
     n = n.replace("'", "'").replace("'", "'").replace("`", "'")
     n = n.replace("/", "-").replace("\u2013", "-")  # v9.1: slash/hyphen equivalence
     n = re.sub(r"\s+", " ", n)
-    return n
+    # v9.1: Resolve sub-counties/constituencies to parent counties
+    return SUBCOUNTY_TO_COUNTY.get(n, n)
 
 
 def expected_county_for_constituency(constituency: str) -> Optional[str]:
@@ -401,7 +416,7 @@ def reverse_geocode_county(lat: float, lng: float) -> Optional[str]:
         time.sleep(NOMINATIM_RATE_LIMIT)
         resp = requests.get(
             "https://nominatim.openstreetmap.org/reverse",
-            params={"lat": lat, "lon": lng, "format": "json", "addressdetails": 1, "zoom": 10},
+            params={"lat": lat, "lon": lng, "format": "json", "addressdetails": 1, "zoom": 6},
             headers={"User-Agent": "NasakaIEBC/1.0 (civiceducationkenya.com)"},
             timeout=10,
         )
@@ -440,7 +455,7 @@ def reverse_geocode_address(lat: float, lng: float) -> Dict[str, str]:
     try:
         resp = requests.get(
             "https://nominatim.openstreetmap.org/reverse",
-            params={"lat": lat, "lon": lng, "format": "json", "addressdetails": 1, "zoom": 14},
+            params={"lat": lat, "lon": lng, "format": "json", "addressdetails": 1, "zoom": 6},
             headers={"User-Agent": USER_AGENT},
             timeout=10,
         )

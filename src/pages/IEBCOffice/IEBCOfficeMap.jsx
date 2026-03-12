@@ -346,8 +346,8 @@ const IEBCOfficeMap = () => {
           ...insights,
           trafficCondition: insights.severity === 'low' ? 'Smooth traffic' :
             insights.severity === 'medium' ? 'Moderate traffic' : 'Heavy traffic',
-          trafficColor: insights.severity === 'low' ? 'text-green-400' :
-            insights.severity === 'medium' ? 'text-yellow-400' : 'text-red-400',
+          trafficColor: insights.severity === 'low' ? 'text-green-600 dark:text-green-400' :
+            insights.severity === 'medium' ? 'text-amber-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400',
           trafficIcon: 'car',
           routeDistance: insights.distanceKm,
           routeTime: insights.timeMins
@@ -358,7 +358,7 @@ const IEBCOfficeMap = () => {
         setTravelInsights({
           trafficCondition: trafficInfo?.description || 'Normal traffic',
           trafficIcon: trafficInfo?.icon || 'car',
-          trafficColor: trafficInfo?.color || 'text-green-500',
+          trafficColor: trafficInfo?.color || 'text-green-600 dark:text-green-400',
           routeDistance: (routes[0].summary.totalDistance / 1000).toFixed(1),
           routeTime: Math.round(routes[0].summary.totalTime / 60),
           severity: 'low',
@@ -789,15 +789,15 @@ const IEBCOfficeMap = () => {
             )}
             {/* Traffic + Weather quick-glance (PREMIUM) */}
             {travelInsights && !isOffline && (
-              <div className="flex items-center gap-3 mt-1.5 pt-1.5 border-t border-white/10 text-[9px] font-bold uppercase tracking-wider">
+              <div className="flex items-center gap-3 mt-1.5 pt-1.5 border-t border-gray-200 dark:border-white/10 text-[9px] font-bold uppercase tracking-wider">
                 <div className="flex items-center gap-1">
-                  <img src="/context/Button icons/sun-svgrepo-com.svg" className="w-2.5 h-2.5" alt="weather" />
-                  <span className="text-white opacity-80">{travelInsights.weatherDesc} • {travelInsights.temperature}°C</span>
+                  <img src="/context/Button icons/sun-svgrepo-com.svg" className="w-2.5 h-2.5 dark:invert" alt="weather" />
+                  <span className="text-gray-600 dark:text-white/80">{travelInsights.weatherDesc} • {travelInsights.temperature}°C</span>
                 </div>
                 {travelInsights.trafficCondition && (
                   <div className="flex items-center gap-1">
-                    <img src="/context/Button icons/car-front-view-609-svgrepo-com.svg" className="w-2.5 h-2.5" alt="traffic" />
-                    <span className={travelInsights.trafficColor || 'text-green-400'}>{travelInsights.trafficCondition}</span>
+                    <img src="/context/Button icons/car-front-view-609-svgrepo-com.svg" className="w-2.5 h-2.5 dark:invert" alt="traffic" />
+                    <span className={travelInsights.trafficColor || 'text-green-600 dark:text-green-400'}>{travelInsights.trafficCondition}</span>
                   </div>
                 )}
               </div>
