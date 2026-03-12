@@ -21,6 +21,7 @@ import re
 import sys
 import json
 import time
+import random
 import math
 import logging
 import argparse
@@ -42,6 +43,14 @@ SUPABASE_URL = os.getenv("SUPABASE_URL", "https://ftswzvqwxdwgkvfbwfpx.supabase.
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", os.getenv("SUPABASE_ANON_KEY", ""))
 GEMINI_API_KEY = os.getenv("VITE_GEMINI_API_KEY", "")
 GEOKEO_API_KEY = os.getenv("VITE_GEOKEO_API_KEY", "")
+OPENAI_API_KEY = os.getenv("VITE_OPEN_AI_KEY", "")
+
+# ArcGIS Keys (with rotation support)
+ARCGIS_API_KEY_1 = os.getenv("ARCGIS_API_KEY_PRIMARY", "")
+ARCGIS_API_KEY_2 = os.getenv("ARCGIS_API_KEY_SECONDARY", "")
+
+DOMAIN = os.getenv("DOMAIN", "nasakaiebc.civiceducationkenya.com")
+USER_AGENT = os.getenv("USER_AGENT", f"CEKA-Nasaka/1.0 ({DOMAIN})")
 
 HEADERS = {
     "apikey": SUPABASE_KEY,
@@ -55,7 +64,7 @@ CONSENSUS_RADIUS_KM = 1.0
 AUTO_APPLY_THRESHOLD = 0.7
 DISPLACEMENT_THRESHOLD_KM = 5.0
 CLUSTER_DETECTION_KM = 0.5
-NOMINATIM_RATE_LIMIT = 1.1  # seconds between requests
+NOMINATIM_RATE_LIMIT = 2.0  # Conservative 2s delay to avoid IP blocks
 
 logging.basicConfig(
     level=logging.INFO,
@@ -89,6 +98,12 @@ DIRECTION_KEYWORDS = {
     "at": "at", "in front of": "in front of", "off": "off",
     "on": "on", "inside": "inside", "opp": "opposite",
     "opp.": "opposite",
+    # v9.1 Giga-Ham additions
+    "past": "past", "towards": "towards", "alongside": "alongside",
+    "beyond": "beyond", "before": "before", "after": "after",
+    "around": "around", "by": "by", "nextto": "next to",
+    "adjacent to": "adjacent", "close to": "near",
+    "proximal to": "near", "opposite to": "opposite",
 }
 
 # ── Landmark-type patterns ────────────────────────────────────────────────────
@@ -158,6 +173,66 @@ def is_in_kenya(lat: float, lng: float) -> bool:
 
 _constituency_county_map: Dict[str, str] = {}
 _county_names: Dict[int, str] = {}
+_constituency_wards: Dict[str, List[str]] = {}  # v9.1: Ward-level precision
+_rev_geo_cache: Dict[Tuple[float, float], Dict[str, str]] = {}  # v9.1: Coordinate cache
+_pdf_extraction_data: List[Dict] = []  # v9.1: PDF fallback data
+_CIRCUIT_BREAKERS: Dict[str, bool] = {}  # v9.1: Host-level circuit breakers
+
+
+# ── Reliable Requests with Exponential Backoff & Circuit Breaker (v9.1) ───────
+
+def safe_request(url: str, params: Optional[Dict] = None, method: str = "GET",
+                 json_data: Optional[Dict] = None, headers: Optional[Dict] = None,
+                 max_retries: int = 3, initial_delay: float = 2.0) -> Optional[requests.Response]:
+    """Execute a request with exponential backoff and circuit breaker support."""
+    from urllib.parse import urlparse
+    host = urlparse(url).netloc
+
+    # Circuit breaker: skip hosts that have been tripped
+    if _CIRCUIT_BREAKERS.get(host):
+        return None
+
+    delay = initial_delay
+    for attempt in range(max_retries + 1):
+        try:
+            if method.upper() == "GET":
+                resp = requests.get(url, params=params, headers=headers, timeout=20)
+            else:
+                resp = requests.post(url, json=json_data, headers=headers, timeout=20)
+
+            if resp.status_code == 200:
+                return resp
+
+            if resp.status_code == 403:
+                log.error(f"  ⛔ CIRCUIT BREAKER TRIPPED for {host} (403 Forbidden)")
+                _CIRCUIT_BREAKERS[host] = True
+                return None
+
+            if resp.status_code == 429 or 500 <= resp.status_code < 600:
+                if attempt < max_retries:
+                    sleep_time = delay + random.uniform(0.1, 1.5)
+                    log.warning(f"  Rate limited ({resp.status_code}). Retrying in {sleep_time:.1f}s (Attempt {attempt+1}/{max_retries})...")
+                    time.sleep(sleep_time)
+                    delay *= 2
+                    continue
+                else:
+                    log.error(f"  ⚠ CIRCUIT BREAKER TRIPPED for {host} after {max_retries} retries")
+                    _CIRCUIT_BREAKERS[host] = True
+                    return None
+
+            resp.raise_for_status()
+            return resp
+        except requests.exceptions.RequestException as e:
+            if attempt < max_retries:
+                sleep_time = delay + random.uniform(0.1, 1.5)
+                log.warning(f"  Request error: {e}. Retrying in {sleep_time:.1f}s...")
+                time.sleep(sleep_time)
+                delay *= 2
+            else:
+                log.error(f"  Request failed after {max_retries} attempts for {host}: {e}")
+                _CIRCUIT_BREAKERS[host] = True
+                return None
+    return None
 
 
 def load_reference_data():
@@ -188,11 +263,53 @@ def load_reference_data():
         _constituency_county_map[c["name"].strip().upper()] = county_name.strip().upper()
     log.info(f"  Loaded {len(_constituency_county_map)} constituency→county mappings")
 
+    # v9.1: Load wards for Ward-level precision
+    load_ward_data()
+
+    # v9.1: Load PDF extraction data for Stage 7 fallback
+    load_pdf_extraction_data()
+
+
+def load_ward_data():
+    """v9.1: Load ward data from Supabase for Ward-level precision validation."""
+    global _constituency_wards
+    try:
+        resp = requests.get(
+            f"{SUPABASE_URL}/rest/v1/wards?select=ward_name,constituency",
+            headers=HEADERS, timeout=15,
+        )
+        resp.raise_for_status()
+        wards = resp.json()
+        for w in wards:
+            wname = w["ward_name"].strip().upper()
+            cname = w["constituency"].strip().upper()
+            _constituency_wards.setdefault(cname, []).append(wname)
+        log.info(f"  Loaded {len(wards)} wards for precision validation")
+    except Exception as e:
+        log.warning(f"  Ward data load failed (non-fatal): {e}")
+
+
+def load_pdf_extraction_data():
+    """v9.1: Load high-fidelity PDF extraction data for Stage 7 fallback."""
+    csv_path = Path("data/processed/raw_iebc_offices.csv")
+    if not csv_path.exists():
+        log.info("  No PDF extraction CSV found (Stage 7 fallback disabled)")
+        return
+    try:
+        import csv
+        with open(csv_path, "r", encoding="utf-8") as f:
+            global _pdf_extraction_data
+            _pdf_extraction_data = list(csv.DictReader(f))
+        log.info(f"  Loaded {len(_pdf_extraction_data)} records from PDF extraction CSV")
+    except Exception as e:
+        log.error(f"  Failed to load PDF CSV: {e}")
+
 
 def normalize_county(name: str) -> str:
     """Normalize county name for comparison (uppercase, strip, handle Murang'a etc)."""
     n = name.strip().upper()
     n = n.replace("'", "'").replace("'", "'").replace("`", "'")
+    n = n.replace("/", "-").replace("\u2013", "-")  # v9.1: slash/hyphen equivalence
     n = re.sub(r"\s+", " ", n)
     return n
 
@@ -313,6 +430,68 @@ def validate_coords_against_county(lat: float, lng: float, expected_county: str)
            normalize_county(rev_county) in normalize_county(expected_county)
 
 
+def reverse_geocode_address(lat: float, lng: float) -> Dict[str, str]:
+    """v9.1: Reverse-geocode via Nominatim with caching — returns county + ward."""
+    cache_key = (round(lat, 5), round(lng, 5))
+    if cache_key in _rev_geo_cache:
+        return _rev_geo_cache[cache_key]
+
+    time.sleep(NOMINATIM_RATE_LIMIT)
+    try:
+        resp = requests.get(
+            "https://nominatim.openstreetmap.org/reverse",
+            params={"lat": lat, "lon": lng, "format": "json", "addressdetails": 1, "zoom": 14},
+            headers={"User-Agent": USER_AGENT},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        address = data.get("address", {})
+        county = address.get("county") or address.get("state_district") or address.get("state") or ""
+        county = normalize_county(county)
+        ward = address.get("suburb") or address.get("neighbourhood") or address.get("town") or address.get("village") or ""
+
+        res = {"county": county, "ward": ward}
+        _rev_geo_cache[cache_key] = res
+        return res
+    except Exception as e:
+        log.warning(f"  Reverse geocode address failed: {e}")
+        return {"county": "", "ward": ""}
+
+
+def validate_coords_precision(lat: float, lng: float, expected_county: str,
+                              expected_constituency: str,
+                              provided_address: Optional[Dict] = None) -> Tuple[bool, str]:
+    """v9.1: Strict County check + Ward match boost for precision validation."""
+    if not expected_county:
+        return True, ""
+
+    if provided_address:
+        rev_county_raw = provided_address.get("county") or provided_address.get("state_district") or ""
+        rev_county = normalize_county(rev_county_raw)
+        rev_ward = (provided_address.get("suburb") or
+                    provided_address.get("neighbourhood") or
+                    provided_address.get("town") or "")
+    else:
+        rev = reverse_geocode_address(lat, lng)
+        rev_county, rev_ward = rev["county"], rev["ward"]
+
+    if not rev_county:
+        return False, "could_not_determine_county"
+
+    exp_county = normalize_county(expected_county)
+    if rev_county != exp_county and exp_county not in rev_county and rev_county not in exp_county:
+        return False, f"county_mismatch: got {rev_county}, expected {exp_county}"
+
+    if rev_ward and expected_constituency:
+        valid_wards = _constituency_wards.get(expected_constituency.upper(), [])
+        nw = rev_ward.upper()
+        if any(nw in w or w in nw for w in valid_wards):
+            return True, "ward_match"
+
+    return True, "county_match"
+
+
 # ── Individual Geocoders ──────────────────────────────────────────────────────
 
 def geocode_nominatim(query: str, limit: int = 5) -> List[Dict]:
@@ -350,6 +529,7 @@ def geocode_nominatim(query: str, limit: int = 5) -> List[Dict]:
 
 def geocode_geocodexyz(query: str) -> List[Dict]:
     """Geocode.xyz — free, 1 req/s, region=KE."""
+    return []  # v9.1: Temporarily disabled (throttled on free tier)
     try:
         time.sleep(1.1)
         resp = requests.get(
@@ -405,6 +585,74 @@ def geocode_geokeo(query: str) -> List[Dict]:
         return []
 
 
+# v9.1: ArcGIS Geocoder with key rotation
+def geocode_arcgis(query: str, key_idx: int = 1) -> List[Dict]:
+    """ArcGIS World Geocoding — enterprise-grade, key rotation support."""
+    key = ARCGIS_API_KEY_1 if key_idx == 1 else ARCGIS_API_KEY_2
+    if not key:
+        return []
+    try:
+        resp = safe_request(
+            "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates",
+            params={"address": query, "f": "pjson", "token": key, "maxLocations": 3,
+                    "countryCode": "KEN", "outFields": "Region,City,Neighborhood"},
+        )
+        if not resp:
+            if key_idx == 1 and ARCGIS_API_KEY_2:
+                return geocode_arcgis(query, 2)
+            return []
+        results = []
+        for c in resp.json().get("candidates", []):
+            lat, lng = c["location"]["y"], c["location"]["x"]
+            if not is_in_kenya(lat, lng):
+                continue
+            region = c.get("attributes", {}).get("Region", "")
+            county_clean = re.sub(r"\s*County\s*$", "", region, flags=re.IGNORECASE).strip()
+            results.append({
+                "lat": lat, "lng": lng, "source": f"arcgis_{key_idx}",
+                "confidence": c.get("score", 50) / 100,
+                "display_name": c.get("address", ""),
+                "county_from_api": county_clean,
+                "query_used": query,
+            })
+        return results
+    except Exception as e:
+        log.warning(f"  ArcGIS failed: {e}")
+        return []
+
+
+# v9.1: Photon (Komoot) Geocoder
+def geocode_photon(query: str) -> List[Dict]:
+    """Photon (Komoot) — OpenStreetMap-backed, no rate limit, bbox=Kenya."""
+    return []  # v9.1: Temporarily disabled (blocked/circuit broken)
+    try:
+        resp = safe_request(
+            "https://photon.komoot.io/api/",
+            params={"q": query, "limit": 3, "bbox": "33.5,-4.7,42.0,5.5"},
+        )
+        if not resp:
+            return []
+        results = []
+        for f in resp.json().get("features", []):
+            lat = f["geometry"]["coordinates"][1]
+            lng = f["geometry"]["coordinates"][0]
+            if not is_in_kenya(lat, lng):
+                continue
+            state = f["properties"].get("state", "")
+            county_clean = re.sub(r"\s*County\s*$", "", state, flags=re.IGNORECASE).strip()
+            results.append({
+                "lat": lat, "lng": lng, "source": "photon",
+                "confidence": 0.55,
+                "display_name": f["properties"].get("name", query),
+                "county_from_api": county_clean,
+                "query_used": query,
+            })
+        return results
+    except Exception as e:
+        log.warning(f"  Photon failed: {e}")
+        return []
+
+
 def geocode_gemini(constituency: str, county: str, office_location: str = "", landmark: str = "") -> List[Dict]:
     """Gemini AI — 60 RPM, lowest confidence (0.4) to mitigate hallucination."""
     if not GEMINI_API_KEY:
@@ -423,7 +671,7 @@ def geocode_gemini(constituency: str, county: str, office_location: str = "", la
             f"If uncertain, return: {{\"lat\": null, \"lng\": null, \"county\": null}}"
         )
         resp = requests.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}",
+            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}",
             json={
                 "contents": [{"parts": [{"text": prompt}]}],
                 "generationConfig": {"temperature": 0.0, "maxOutputTokens": 150},
@@ -451,6 +699,49 @@ def geocode_gemini(constituency: str, county: str, office_location: str = "", la
         }]
     except Exception as e:
         log.warning(f"  Gemini failed: {e}")
+        return []
+
+
+# v9.1: OpenAI Geocoder for high-precision validation
+def geocode_openai(query: str) -> List[Dict]:
+    """OpenAI GPT-4o-mini as a high-precision geocoding fallback."""
+    if not OPENAI_API_KEY:
+        return []
+    try:
+        prompt = (
+            f"What are the GPS coordinates of the IEBC office for: '{query}' in Kenya?\n"
+            f"Return ONLY a JSON object: {{\"lat\": <number>, \"lng\": <number>, \"county\": \"<county name>\"}}\n"
+            f"If uncertain, return: {{\"lat\": null, \"lng\": null, \"county\": null}}"
+        )
+        resp = safe_request(
+            "https://api.openai.com/v1/chat/completions",
+            method="POST",
+            headers={"Authorization": f"Bearer {OPENAI_API_KEY}"},
+            json_data={
+                "model": "gpt-4o-mini",
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.0,
+                "response_format": {"type": "json_object"}
+            }
+        )
+        if not resp:
+            return []
+        data = resp.json()
+        content = data["choices"][0]["message"]["content"]
+        parsed = json.loads(content)
+        if parsed.get("lat") is None or parsed.get("lng") is None:
+            return []
+        lat, lng = float(parsed["lat"]), float(parsed["lng"])
+        if not is_in_kenya(lat, lng):
+            return []
+        return [{
+            "lat": lat, "lng": lng, "source": "openai_gpt4", "confidence": 0.7,
+            "display_name": f"{query} (OpenAI)",
+            "county_from_api": parsed.get("county", "") or "",
+            "query_used": query,
+        }]
+    except Exception as e:
+        log.warning(f"  OpenAI geocode failed: {e}")
         return []
 
 
@@ -531,6 +822,27 @@ def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) 
             r["query_index"] = qi
         all_candidates.extend(gk_results)
 
+        # v9.1: ArcGIS — enterprise-grade, key rotation
+        arc_results = geocode_arcgis(query)
+        for r in arc_results:
+            r["query_used"] = query
+            r["query_index"] = qi
+        all_candidates.extend(arc_results)
+
+        # v9.1: Photon (Komoot) — OSM-backed
+        ph_results = geocode_photon(query)
+        for r in ph_results:
+            r["query_used"] = query
+            r["query_index"] = qi
+        all_candidates.extend(ph_results)
+
+        # v9.1: OpenAI — High-precision fallback
+        oa_results = geocode_openai(query)
+        for r in oa_results:
+            r["query_used"] = query
+            r["query_index"] = qi
+        all_candidates.extend(oa_results)
+
     # Gemini AI — single call with full context
     log.info(f"  🔍 Querying Gemini AI...")
     gem_results = geocode_gemini(constituency, county, location, landmark)
@@ -538,6 +850,24 @@ def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) 
         r["query_used"] = "gemini_structured_prompt"
         r["query_index"] = -1
     all_candidates.extend(gem_results)
+
+    # v9.1: Stage 7 — PDF Extraction Fallback
+    if _pdf_extraction_data:
+        pdf_row = next((r for r in _pdf_extraction_data
+                        if r.get("constituency_name", "").strip().upper() == constituency.strip().upper()), None)
+        if pdf_row:
+            pdf_loc = pdf_row.get("office_location", "")
+            pdf_lnd = pdf_row.get("landmark", "")
+            pq = f"{pdf_loc}, {pdf_lnd}, {constituency}, {county} County, Kenya"
+            log.info(f"  \U0001f50d Stage 7 PDF: '{pq}'")
+            queries_used.append(pq)
+            # Re-query top sources with PDF-derived data
+            for geocoder_fn in [geocode_arcgis, geocode_nominatim]:
+                pdf_results = geocoder_fn(pq) if geocoder_fn != geocode_nominatim else geocoder_fn(pq, limit=3)
+                for r in pdf_results:
+                    r["query_used"] = pq
+                    r["query_index"] = 7  # Stage 7
+                all_candidates.extend(pdf_results)
 
     # Check contribution data
     office_id = office.get("id")
@@ -596,8 +926,8 @@ def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) 
                 continue
 
         # Third check: reverse geocode the coordinates (expensive, do sparingly)
-        # Only do this for high-confidence results to save API calls
-        if c["confidence"] >= 0.5:
+        # v9.1: Lower threshold for sources that never return county data (geocode_xyz)
+        if c["confidence"] >= 0.3 or c.get("source") == "geocode_xyz":
             rev_county = reverse_geocode_county(c["lat"], c["lng"])
             if rev_county:
                 rev_norm = normalize_county(rev_county)
@@ -605,6 +935,21 @@ def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) 
                     c["validation_method"] = "reverse_geocode_match"
                     validated.append(c)
                     continue
+
+        # v9.1: Fourth check — Ward-level precision with cached reverse geocode
+        if c["confidence"] >= 0.4:
+            ok, reason = validate_coords_precision(
+                c["lat"], c["lng"], expected_county,
+                office.get("constituency_name") or office.get("constituency", ""),
+                c.get("address_data"),
+            )
+            if ok:
+                c["validation_method"] = f"precision_{reason}"
+                if reason == "ward_match":
+                    c["confidence"] = min(c["confidence"] + 0.15, 1.0)
+                    c["source"] = c["source"] + "_ward_boost"
+                validated.append(c)
+                continue
 
         # Not validated — reject with reason
         c["rejection_reason"] = f"County mismatch: expected '{expected_county}', API returned '{c.get('county_from_api', 'unknown')}'"
@@ -849,7 +1194,30 @@ def apply_resolution(office_id: int, lat: float, lng: float, confidence: float,
         json=payload,
         timeout=10,
     )
-    return resp.status_code in (200, 204)
+    if resp.status_code in (200, 204):
+        return True
+
+    # v9.1: Log the actual error and retry with core-only columns
+    log.warning(f"  DB full-payload update failed ({resp.status_code}): {resp.text[:300]}")
+    core_payload = {
+        "latitude": lat,
+        "longitude": lng,
+        "geocode_confidence": confidence,
+        "geocode_method": "multi_source_crossvalidated",
+        "geocode_status": "resolved",
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    resp2 = requests.patch(
+        f"{SUPABASE_URL}/rest/v1/iebc_offices?id=eq.{office_id}",
+        headers=HEADERS,
+        json=core_payload,
+        timeout=10,
+    )
+    if resp2.status_code in (200, 204):
+        log.info(f"  ✅ Core-only fallback succeeded for office {office_id}")
+        return True
+    log.error(f"  ❌ Core-only fallback also failed ({resp2.status_code}): {resp2.text[:300]}")
+    return False
 
 
 def log_audit(office: Dict, issue_type: str, new_lat: float, new_lng: float,

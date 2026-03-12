@@ -341,8 +341,17 @@ const IEBCOfficeMap = () => {
           [selectedOffice.latitude, selectedOffice.longitude]
         );
 
-        // Merge with existing logic if needed, or just sets the rich insights
-        setTravelInsights(insights);
+        // Merge with existing logic if needed & Map service insights to UI properties
+        setTravelInsights({
+          ...insights,
+          trafficCondition: insights.severity === 'low' ? 'Smooth traffic' :
+            insights.severity === 'medium' ? 'Moderate traffic' : 'Heavy traffic',
+          trafficColor: insights.severity === 'low' ? 'text-green-400' :
+            insights.severity === 'medium' ? 'text-yellow-400' : 'text-red-400',
+          trafficIcon: 'car',
+          routeDistance: insights.distanceKm,
+          routeTime: insights.timeMins
+        });
       } catch (err) {
         console.error('[IEBCOfficeMap] Rich insights failed, falling back to basic:', err);
         const trafficInfo = getTrafficInfo();
