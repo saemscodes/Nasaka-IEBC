@@ -68,16 +68,19 @@ NOMINATIM_RATE_LIMIT = 2.0  # Conservative 2s delay to avoid IP blocks
 
 # v9.3: RateLimiter class to enforce mandatory sleeps between API calls
 class RateLimiter:
-    def __init__(self, min_interval_seconds):
-        self.min_interval = min_interval_seconds
-        self.last_call = 0
-    
-    def wait(self):
-        elapsed = time.time() - self.last_call
+    """Monotonic rate limiter: enforces min interval between calls (v9.4)."""
+    def __init__(self, min_interval_seconds: float):
+        self.min_interval = float(min_interval_seconds)
+        self.last_call = 0.0
+
+    def wait(self) -> None:
+        now = time.monotonic()
+        elapsed = now - self.last_call
         wait_time = self.min_interval - elapsed
         if wait_time > 0:
             time.sleep(wait_time)
-        self.last_call = time.time()
+            now = time.monotonic()
+        self.last_call = now
 
 RATE_LIMITERS = {
     "nominatim": RateLimiter(1.1),
@@ -222,14 +225,14 @@ CACHE_FILE = Path("data/cache/rev_geo_cache.json")
 def safe_request(url: str, params: Optional[Dict] = None, method: str = "GET",
                  json_data: Optional[Dict] = None, headers: Optional[Dict] = None,
                  max_retries: int = 3, initial_delay: float = 2.0) -> Optional[requests.Response]:
-    """Execute a request with exponential backoff and circuit breaker support."""
+    """Execute a request with exponential backoff and circuit breaker support (v9.4: monotonic + normalized)."""
     from urllib.parse import urlparse
-    host = urlparse(url).netloc
+    host = urlparse(url).netloc.lower()
 
     # Circuit breaker (v9.3): skip hosts that have been tripped within the last 5 minutes
     breaker = _CIRCUIT_BREAKERS.get(host)
     if breaker and breaker.get("tripped"):
-        elapsed = time.time() - breaker.get("last_trip", 0)
+        elapsed = time.monotonic() - breaker.get("last_trip", 0)
         if elapsed < 300:  # 5-minute cool-off
             return None
         else:
@@ -249,7 +252,7 @@ def safe_request(url: str, params: Optional[Dict] = None, method: str = "GET",
 
             if resp.status_code == 403:
                 log.error(f"  ⛔ CIRCUIT BREAKER TRIPPED for {host} (403 Forbidden)")
-                _CIRCUIT_BREAKERS[host] = {"tripped": True, "last_trip": time.time()}
+                _CIRCUIT_BREAKERS[host] = {"tripped": True, "last_trip": time.monotonic()}
                 return None
 
             if resp.status_code == 429 or 500 <= resp.status_code < 600:
@@ -261,7 +264,7 @@ def safe_request(url: str, params: Optional[Dict] = None, method: str = "GET",
                     continue
                 else:
                     log.error(f"  ⚠ CIRCUIT BREAKER TRIPPED for {host} after {max_retries} retries")
-                    _CIRCUIT_BREAKERS[host] = {"tripped": True, "last_trip": time.time()}
+                    _CIRCUIT_BREAKERS[host] = {"tripped": True, "last_trip": time.monotonic()}
                     return None
 
             resp.raise_for_status()
@@ -274,7 +277,7 @@ def safe_request(url: str, params: Optional[Dict] = None, method: str = "GET",
                 delay *= 2
             else:
                 log.error(f"  Request failed after {max_retries} attempts for {host}: {e}")
-                _CIRCUIT_BREAKERS[host] = {"tripped": True, "last_trip": time.time()}
+                _CIRCUIT_BREAKERS[host] = {"tripped": True, "last_trip": time.monotonic()}
                 return None
     return None
 
@@ -354,30 +357,43 @@ def load_pdf_extraction_data():
 
 # v9.3: Persistent Cache Operations
 def load_rev_geo_cache():
-    """Load reverse geocode cache from local JSON file."""
+    """Load reverse geocode cache from local JSON file (v9.4: canonical string keys)."""
     global _rev_geo_cache
+    _rev_geo_cache = {}
     if not CACHE_FILE.exists():
         return
     try:
-        CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        with open(CACHE_FILE, "r") as f:
+        with open(CACHE_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
-            # Reconstruct tuple keys from string keys
-            _rev_geo_cache = {eval(k): v for k, v in data.items()}
+        # keys are "lat|lng" string format (v9.4)
+        for k, v in data.items():
+            try:
+                lat_s, lng_s = k.split("|")
+                _rev_geo_cache[(float(lat_s), float(lng_s))] = v
+            except:
+                continue
         log.info(f"  Loaded {len(_rev_geo_cache)} entries from persistent cache")
     except Exception as e:
         log.warning(f"  Failed to load cache file: {e}")
 
+
 def save_rev_geo_cache():
-    """Save current reverse geocode cache to local JSON file."""
+    """Save reverse geocode cache using atomic write (v9.4: tempfile + replace)."""
     if not _rev_geo_cache:
         return
+    import tempfile
     try:
         CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        with open(CACHE_FILE, "w") as f:
-            # Convert tuple keys to string keys for JSON serialization
-            data = {str(k): v for k, v in _rev_geo_cache.items()}
-            json.dump(data, f, indent=2)
+        # Serialize keys as "lat|lng" with 6 decimal precision
+        serializable = {f"{k[0]:.6f}|{k[1]:.6f}": v for k, v in _rev_geo_cache.items()}
+        
+        # Atomic write
+        tmp_fd, tmp_path = tempfile.mkstemp(suffix=".tmp", dir=str(CACHE_FILE.parent))
+        with os.fdopen(tmp_fd, 'w', encoding='utf-8') as f:
+            json.dump(serializable, f, indent=2)
+        
+        # Replace existing file (atomic on Windows/Linux)
+        Path(tmp_path).replace(CACHE_FILE)
     except Exception as e:
         log.warning(f"  Failed to save cache file: {e}")
 
@@ -474,26 +490,14 @@ def fetch_contributions_for_office(office_id: int) -> List[Dict]:
 # ── Reverse Geocoding for County Validation ───────────────────────────────────
 
 def reverse_geocode_county(lat: float, lng: float) -> Optional[str]:
-    """Reverse-geocode a coordinate via Nominatim to extract the county name."""
-    try:
-        RATE_LIMITERS["nominatim"].wait()
-        resp = requests.get(
-            "https://nominatim.openstreetmap.org/reverse",
-            params={"lat": lat, "lon": lng, "format": "json", "addressdetails": 1, "zoom": 6},
-            headers={"User-Agent": "NasakaIEBC/1.0 (civiceducationkenya.com)"},
-            timeout=10,
-        )
-        resp.raise_for_status()
-        data = resp.json()
-        address = data.get("address", {})
-        # Nominatim returns Kenya counties under 'county', 'state', or 'state_district'
-        county = address.get("county") or address.get("state_district") or address.get("state") or ""
-        # Strip " County" suffix if present
-        county = re.sub(r"\s*County\s*$", "", county, flags=re.IGNORECASE).strip()
-        return county if county else None
-    except Exception as e:
-        log.warning(f"  Reverse geocode failed: {e}")
-        return None
+    """Reverse-geocode a coordinate via Nominatim to extract the county name, consult cache first (v9.4)."""
+    cache_key = (round(lat, 6), round(lng, 6))
+    if cache_key in _rev_geo_cache:
+        return _rev_geo_cache[cache_key].get("county")
+
+    # If not in cache, call address version which handles wait+cache
+    res = reverse_geocode_address(lat, lng)
+    return res.get("county")
 
 
 def validate_coords_against_county(lat: float, lng: float, expected_county: str) -> bool:
@@ -509,8 +513,8 @@ def validate_coords_against_county(lat: float, lng: float, expected_county: str)
 
 
 def reverse_geocode_address(lat: float, lng: float) -> Dict[str, str]:
-    """v9.1: Reverse-geocode via Nominatim with caching — returns county + ward."""
-    cache_key = (round(lat, 5), round(lng, 5))
+    """v9.1: Reverse-geocode via Nominatim with caching (rounded keys at 6 decimals, v9.4)."""
+    cache_key = (round(lat, 6), round(lng, 6))
     if cache_key in _rev_geo_cache:
         return _rev_geo_cache[cache_key]
 

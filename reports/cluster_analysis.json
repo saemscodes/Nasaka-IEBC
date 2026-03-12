@@ -1,0 +1,224 @@
+{
+  "timestamp": "2026-03-12T23:16:18.712758+00:00",
+  "total_clusters": 15,
+  "total_case_dupes": 0,
+  "clusters": [
+    {
+      "type": "exact_duplicate",
+      "center_lat": 0.29194,
+      "center_lng": 37.5588,
+      "member_ids": [
+        49,
+        50
+      ],
+      "members": [
+        "ISIOLO NORTH/ISIOLO",
+        "ISIOLO SOUTH/ISIOLO"
+      ],
+      "distance_m": 0.0
+    },
+    {
+      "type": "cross_county_duplicate",
+      "center_lat": 0.554064,
+      "center_lng": 37.903148,
+      "member_ids": [
+        135,
+        149
+      ],
+      "members": [
+        "SAMBURU EAST/SAMBURU",
+        "KEIYO NORTH/ELGEYO-MARAKWET"
+      ],
+      "distance_m": 0.0
+    },
+    {
+      "type": "exact_duplicate",
+      "center_lat": 0.55949,
+      "center_lng": 35.35014,
+      "member_ids": [
+        144,
+        146
+      ],
+      "members": [
+        "AINABKOI/UASIN GISHU",
+        "KESSES/UASIN GISHU"
+      ],
+      "distance_m": 0.0
+    },
+    {
+      "type": "cross_county_duplicate",
+      "center_lat": 0.55486895351352,
+      "center_lng": 37.9035490539296,
+      "member_ids": [
+        147,
+        148
+      ],
+      "members": [
+        "MARAKWET EAST/ELEGEYO-MARAKWET",
+        "MARAKWET WEST/WEST POKOT"
+      ],
+      "distance_m": 195.13401082217234
+    },
+    {
+      "type": "exact_duplicate",
+      "center_lat": 0.16167,
+      "center_lng": 36.33527,
+      "member_ids": [
+        164,
+        165
+      ],
+      "members": [
+        "LAIKIPIA EAST/LAIKIPIA",
+        "LAIKIPIA NORTH/LAIKIPIA"
+      ],
+      "distance_m": 0.0
+    },
+    {
+      "type": "exact_duplicate",
+      "center_lat": -1.48327,
+      "center_lng": 35.30026,
+      "member_ids": [
+        179,
+        182
+      ],
+      "members": [
+        "NAROK NORTH/NAROK",
+        "NAROK WEST/NAROK"
+      ],
+      "distance_m": 0.0
+    },
+    {
+      "type": "proximity_cluster",
+      "center_lat": -1.8524,
+      "center_lng": 36.7762,
+      "member_ids": [
+        183,
+        186,
+        187
+      ],
+      "members": [
+        "KAJIADO NORTH/KAJIADO",
+        "KAJIADO WEST/KAJIADO",
+        "KAJIADO SOUTH/KAJIADO"
+      ],
+      "distance_m": 47.16368888005912
+    },
+    {
+      "type": "exact_duplicate",
+      "center_lat": 0.27173,
+      "center_lng": 34.77254,
+      "member_ids": [
+        200,
+        208
+      ],
+      "members": [
+        "LIKUYANI/KAKAMEGA",
+        "KHWISERO/KAKAMEGA"
+      ],
+      "distance_m": 0.0
+    },
+    {
+      "type": "exact_duplicate",
+      "center_lat": 0.54931,
+      "center_lng": 34.56338,
+      "member_ids": [
+        216,
+        224
+      ],
+      "members": [
+        "MT. ELGON/BUNGOMA",
+        "TONGAREN/BUNGOMA"
+      ],
+      "distance_m": 0.0
+    },
+    {
+      "type": "proximity_cluster",
+      "center_lat": 0.4608,
+      "center_lng": 34.1115,
+      "member_ids": [
+        225,
+        226
+      ],
+      "members": [
+        "TESO NORTH/BUSIA",
+        "TESO SOUTH/BUSIA"
+      ],
+      "distance_m": 15.725082996919152
+    },
+    {
+      "type": "exact_duplicate",
+      "center_lat": -0.1199,
+      "center_lng": 34.75502,
+      "member_ids": [
+        238,
+        241,
+        244
+      ],
+      "members": [
+        "KISUMU EAST/KISUMU",
+        "SEME/KISUMU",
+        "NYAKACH/KISUMU"
+      ],
+      "distance_m": 0.0
+    },
+    {
+      "type": "exact_duplicate",
+      "center_lat": -0.66841,
+      "center_lng": 34.7821,
+      "member_ids": [
+        263,
+        265,
+        266
+      ],
+      "members": [
+        "BOMACHOGE BORABU/KISII",
+        "BOMACHOGE CHACHE/KISII",
+        "NYARIBARI MASABA/KISII"
+      ],
+      "distance_m": 0.0
+    },
+    {
+      "type": "exact_duplicate",
+      "center_lat": -0.61973,
+      "center_lng": 34.97418,
+      "member_ids": [
+        271,
+        272
+      ],
+      "members": [
+        "WEST MUGIRANGO/NYAMIRA",
+        "NORTH MUGIRANGO/NYAMIRA"
+      ],
+      "distance_m": 0.0
+    },
+    {
+      "type": "exact_duplicate",
+      "center_lat": -1.32059,
+      "center_lng": 36.70426,
+      "member_ids": [
+        275,
+        452
+      ],
+      "members": [
+        "DAGORETTI NORTH/NAIROBI",
+        "DAGORETTI NORTH/Nairobi"
+      ],
+      "distance_m": 0.0
+    },
+    {
+      "type": "exact_duplicate",
+      "center_lat": -1.3264,
+      "center_lng": 36.9274,
+      "member_ids": [
+        285,
+        453
+      ],
+      "members": [
+        "EMBAKASI EAST/NAIROBI",
+        "EMBAKASI EAST/Nairobi"
+      ],
+      "distance_m": 0.0
+    }
+  ],
+  "case_duplicates": []
+}
