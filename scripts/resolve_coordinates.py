@@ -1727,12 +1727,23 @@ def main():
     else:
         offices = fetch_flagged_offices()
 
+    # Phase 0: Init AdminTask if provided
+    admin_task = None
+    if args.task_id and HAS_ADMIN_LIB:
+        try:
+            admin_task = AdminTask(args.task_id)
+            admin_task.log(f"Starting Coordinate Resolver (apply={args.apply})", level='step')
+        except Exception as e:
+            log.warning(f"Failed to init AdminTask: {e}")
+
     if not offices:
         log.info("No offices to resolve.")
+        if admin_task: admin_task.complete("No offices required resolution.")
         return
 
     # ── Phase 1: Cluster Detection ────────────────────────────────────────────
     if not args.skip_clusters and not args.office_id:
+        if admin_task: admin_task.log("Phase 1: Detecting geometry clusters...", level='step')
         log.info("")
         log.info("=" * 70)
         log.info("PHASE 1: CLUSTER & DUPLICATE DETECTION")
@@ -1809,8 +1820,17 @@ def main():
             for rej in rejected[:3]:
                 log.info(f"     ❌ {rej['source']}: ({rej['lat']:.5f},{rej['lng']:.5f}) — {rej.get('rejection_reason','')}")
 
-        # Compute consensus from validated results only
-        consensus = compute_consensus(validated)
+    # Phase 2: Candidate Generation
+    if admin_task: admin_task.log(f"Phase 2: Geocoding {len(offices)} offices via multi-source AI...", level='step')
+    log.info("")
+    log.info("=" * 70)
+    log.info("PHASE 2: CANDIDATE GENERATION & MULTI-SOURCE GEOCODING")
+    log.info("=" * 70)
+
+    total_offices = len(offices)
+    for idx, office in enumerate(offices):
+        if admin_task and idx > 0 and idx % 10 == 0:
+            admin_task.log(f"Resolver progress: {idx}/{total_offices} offices analyzed", level='step')
 
         if consensus:
             log.info(f"  ✅ Consensus: ({consensus['lat']:.5f}, {consensus['lng']:.5f}) "
@@ -1940,11 +1960,12 @@ def main():
         # v9.3: Save persistent cache after each office resolution
         save_rev_geo_cache()
 
-    # ── Summary ───────────────────────────────────────────────────────────────
+    # Phase 3: Selection & Update
+    if admin_task: admin_task.log(f"Phase 3: Finalizing {len(results)} resolutions with consensus weighting...", level='step')
     log.info("")
     log.info("=" * 70)
-    log.info("RESOLUTION SUMMARY")
-    log.info(f"  Total offices:              {stats['total']}")
+    log.info("PHASE 3: CONSENSUS VOTING & DATABASE UPDATES")
+    log.info("=" * 70)
     log.info(f"  Resolved:                   {stats['resolved']}")
     log.info(f"  Auto-applied (coord fix):   {stats['auto_applied']}")
     log.info(f"  Skipped (accurate + meta):  {stats['skipped_accurate']}")

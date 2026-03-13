@@ -651,18 +651,14 @@ def main():
         critical_count = sum(1 for i in all_issues if i.get("severity") == "critical")
         warning_count = sum(1 for i in all_issues if i.get("severity") == "warning")
         
-        report = {
-            "verification_timestamp": datetime.now(timezone.utc).isoformat(),
-            "total_offices": len(offices),
-            "total_issues": len(all_issues),
-            "critical_issues": critical_count,
-            "warning_issues": warning_count,
-            "info_issues": sum(1 for i in all_issues if i.get("severity") == "info"),
-            "health_score": max(0, 100 - (critical_count * 10) - (warning_count * 3)),
-            "issues": all_issues,
-        }
+    if task: task.log("Phase 1: Loading office registry...", level='step')
+    if args.json_output:
+        # report already exists from previous scope or logic
+        pass
     else:
+        if task: task.log("Phase 2: Verifying coordinate bounds and county alignment...", level='step')
         report = run_verification(offices, skip_nominatim=args.quick)
+        if task: task.log("Phase 3: Verification complete. Generating summary...", level='step')
 
     logger.info(f"\n{'='*60}")
     logger.info(f"VERIFICATION RESULTS:")

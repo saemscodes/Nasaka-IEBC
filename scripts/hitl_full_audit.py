@@ -60,6 +60,13 @@ try:
 except ImportError:
     pass
 
+# Admin Task Integration
+try:
+    from admin_task_lib import AdminTask
+    HAS_ADMIN_LIB = True
+except ImportError:
+    HAS_ADMIN_LIB = False
+
 try:
     import geopandas as gpd
     from shapely.geometry import Point
@@ -711,7 +718,16 @@ def main():
     cluster_map   = find_clusters(all_offices)
 
     log.info(f"\n  {len(cluster_map)} offices are in coordinate clusters")
+    # Phase 0: Init AdminTask
+    admin_task = None
+    if args.task_id and HAS_ADMIN_LIB:
+        try:
+            admin_task = AdminTask(args.task_id)
+            admin_task.log(f"Starting High-Precision HITL Auditor (apply={args.apply})", level='step')
+        except Exception as e:
+            log.warning(f"Failed to init AdminTask: {e}")
 
+    if admin_task: admin_task.log("Sync Phase 1: Triaging HITL queue...", level='step')
     # ── Stage 1: Triage ───────────────────────────────────────────────────────
     already_resolved, stale_duplicates, needs_repin, no_action = triage_hitl_entries(
         hitl_entries, office_map, cluster_map
@@ -770,6 +786,7 @@ def main():
         })
 
     # ── Stage 2C: Precision re-pin for clusters + genuinely pending ───────────
+    if admin_task: admin_task.log(f"Sync Phase 2: Resolving {len(to_repin)} complex offices...", level='step')
     to_repin = needs_repin[:args.max]
     log.info(f"\n[STAGE 2C] Precision re-pinning {len(to_repin)} offices...")
     repin_applied = 0
@@ -867,7 +884,9 @@ def main():
 
     # ── Final summary ─────────────────────────────────────────────────────────
     log.info("")
+    if admin_task: admin_task.log("Sync Phase 3: Finalizing audit and cleaning queue...", level='step')
     log.info("=" * 70)
+
     log.info("FULL AUDIT SUMMARY")
     log.info("=" * 70)
     log.info(f"  Total HITL entries processed: {len(hitl_entries)}")
@@ -880,6 +899,9 @@ def main():
     log.info(f"  📌 Active queue after run:      ~{max(0, active_remaining)}")
     log.info("=" * 70)
 
+    if admin_task:
+        admin_task.complete(f"Audit Finished. {repin_applied} fixed, {len(already_resolved)} archived.")
+    
     if not args.apply:
         log.info("\nDry run complete — no changes written. Add --apply to commit.")
 

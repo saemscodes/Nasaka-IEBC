@@ -59,7 +59,23 @@ const AutomationRunner = () => {
         fetchTasks();
         const subscription = supabase
             .channel('admin_tasks_changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'admin_tasks' }, () => fetchTasks())
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'admin_tasks' }, (payload) => {
+                fetchTasks();
+                // If the active task status changed to a final state, reset local UI state
+                const newTask = payload.new as any;
+                if (activeTask && newTask && newTask.id === activeTask.id) {
+                    if (['completed', 'failed', 'cancelled'].includes(newTask.status)) {
+                        setIsExecuting(false);
+                        setActiveTask(null);
+
+                        if (newTask.status === 'completed') {
+                            toast.success(`Pipeline Execution Finished Successfully`);
+                        } else if (newTask.status === 'failed') {
+                            toast.error(`Pipeline Execution Failed: Check logs`);
+                        }
+                    }
+                }
+            })
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'admin_task_logs' }, (payload) => {
                 if (activeTask && payload.new.task_id === activeTask.id) {
                     setLogs(prev => [...prev, payload.new]);
