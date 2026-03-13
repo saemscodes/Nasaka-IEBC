@@ -482,6 +482,16 @@ const AppContent = () => {
 
         {/* ✅ ACTIVE SECURE ADMIN ROUTES */}
         <Route
+          path="/admin/contributions/*"
+          element={
+            <AdminErrorBoundary>
+              <AdminRoute>
+                <AdminNexus />
+              </AdminRoute>
+            </AdminErrorBoundary>
+          }
+        />
+        <Route
           path="/admin/*"
           element={
             <AdminErrorBoundary>
