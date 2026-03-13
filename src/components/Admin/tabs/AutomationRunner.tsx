@@ -15,9 +15,97 @@ import {
     Lock,
     ThumbsUp,
     ThumbsDown,
-    Info
+    Info,
+    Archive
 } from 'lucide-react';
 import { toast } from 'sonner';
+
+const SCRIPT_MILESTONES = {
+    iebc_verification: ['Init', 'Registry', 'Alignment', 'Audit', 'Complete'],
+    coord_correction: ['Init', 'Data Fetch', 'Benchmarking', 'Apply', 'Complete'],
+    hitl_full_audit: ['Init', 'Triage', 'Re-Pinning', 'Archive', 'Complete'],
+    geocode_resolve: ['Init', 'Clusters', 'Geocoding', 'Voting', 'Complete'],
+    geocode_sync: ['Init', 'DB Fetch', 'Sitemap Gen', 'Canonical Update', 'Complete'],
+};
+
+const ProgressTrack = ({ scriptId, currentLogs, status }) => {
+    const milestones = SCRIPT_MILESTONES[scriptId] || ['Pending', 'Running', 'Complete'];
+
+    // Determine active index based on logs
+    const determineActiveIndex = () => {
+        if (status === 'completed') return milestones.length - 1;
+        if (status === 'failed' || status === 'cancelled') return -1;
+
+        let activeIdx = 0;
+        const stepLogs = currentLogs.filter(l => l.level === 'step');
+
+        // Match log messages to milestones roughly
+        stepLogs.forEach(log => {
+            const msg = log.message.toLowerCase();
+            milestones.forEach((m, idx) => {
+                if (msg.includes(m.toLowerCase()) || (m === 'Complete' && status === 'completed')) {
+                    if (idx > activeIdx) activeIdx = idx;
+                }
+            });
+        });
+
+        // Special mappings for specific script phrases
+        if (scriptId === 'geocode_resolve') {
+            if (stepLogs.some(l => l.message.includes('Detecting geometry clusters'))) activeIdx = 1;
+            if (stepLogs.some(l => l.message.includes('Generating candidates') || l.message.includes('CROSS-VALIDATED'))) activeIdx = 2;
+            if (stepLogs.some(l => l.message.includes('Consensus voting') || l.message.includes('Finalizing'))) activeIdx = 3;
+        }
+
+        if (scriptId === 'hitl_full_audit') {
+            if (stepLogs.some(l => l.message.includes('Triaging HITL queue'))) activeIdx = 1;
+            if (stepLogs.some(l => l.message.includes('Resolving complex offices'))) activeIdx = 2;
+            if (stepLogs.some(l => l.message.includes('Finalizing audit'))) activeIdx = 3;
+        }
+
+        return activeIdx;
+    };
+
+    const activeIndex = determineActiveIndex();
+
+    return (
+        <div className="px-8 py-6 bg-white/[0.02] border-b border-white/5">
+            <div className="relative flex justify-between items-center max-w-4xl mx-auto">
+                {/* Background Line */}
+                <div className="absolute top-1/2 left-0 w-full h-[2px] bg-white/5 -translate-y-1/2 z-0" />
+
+                {/* Active Progress Line */}
+                <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(activeIndex / (milestones.length - 1)) * 100}%` }}
+                    className="absolute top-1/2 left-0 h-[2px] bg-blue-500 -translate-y-1/2 z-0 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                />
+
+                {milestones.map((m, idx) => {
+                    const isCompleted = idx < activeIndex || status === 'completed';
+                    const isActive = idx === activeIndex && status === 'running';
+                    const isError = status === 'failed' && idx === activeIndex;
+
+                    return (
+                        <div key={m} className="relative z-10 flex flex-col items-center group">
+                            <div className={`w-4 h-4 rounded-full border-2 transition-all duration-500 ${isCompleted ? 'bg-emerald-500 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]' :
+                                isActive ? 'bg-blue-600 border-blue-400' :
+                                    isError ? 'bg-red-500 border-red-500' :
+                                        'bg-[#0a0c10] border-white/10'
+                                }`} />
+                            <span className={`absolute -bottom-6 text-[10px] font-black uppercase tracking-tighter whitespace-nowrap transition-colors duration-500 ${isCompleted ? 'text-emerald-400' :
+                                isActive ? 'text-blue-400 font-black' :
+                                    isError ? 'text-red-400' :
+                                        'text-gray-600'
+                                }`}>
+                                {m}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
 
 const LogEntry = ({ log }) => {
     const getLevelColor = (level) => {
@@ -25,8 +113,9 @@ const LogEntry = ({ log }) => {
             case 'error': return 'text-red-400';
             case 'warn': return 'text-amber-400';
             case 'success': return 'text-emerald-400';
+            case 'info': return 'text-blue-300/60';
             case 'step': return 'text-blue-400 font-bold';
-            default: return 'text-gray-300';
+            default: return 'text-gray-400';
         }
     };
 
@@ -100,9 +189,55 @@ const AutomationRunner = () => {
             .from('admin_tasks')
             .select('*')
             .order('created_at', { ascending: false })
-            .limit(10);
-        setTasks(data || []);
+            .limit(20);
+
+        // Filter out locally archived tasks (stored in params)
+        const activeTasks = (data || []).filter(t => !t.params?.is_archived);
+        setTasks(activeTasks);
         setLoading(false);
+    };
+
+    const archiveTask = async (id) => {
+        try {
+            const taskToArchive = tasks.find(t => t.id === id);
+            if (!taskToArchive) return;
+
+            const updatedParams = { ...taskToArchive.params, is_archived: true };
+            const { error } = await (supabase as any)
+                .from('admin_tasks')
+                .update({ params: updatedParams })
+                .eq('id', id);
+
+            if (error) throw error;
+            toast.success('Task archived');
+            fetchTasks();
+        } catch (err) {
+            toast.error('Failed to archive task');
+        }
+    };
+
+    const clearHistory = async () => {
+        try {
+            const { error } = await (supabase as any)
+                .from('admin_tasks')
+                .update({ params: { is_archived: true } }) // Note: This might not work for bulk JSONB update depending on Supabase version, but we'll try or do it one by one
+                .in('id', tasks.map(t => t.id));
+
+            if (error) {
+                // Fallback: individual updates if bulk JSONB update fails
+                for (const t of tasks) {
+                    await (supabase as any)
+                        .from('admin_tasks')
+                        .update({ params: { ...t.params, is_archived: true } })
+                        .eq('id', t.id);
+                }
+            }
+
+            toast.success('Task history cleared');
+            fetchTasks();
+        } catch (err) {
+            toast.error('Failed to clear history');
+        }
     };
 
     const startTask = async (scriptId) => {
@@ -202,13 +337,27 @@ const AutomationRunner = () => {
 
                 {/* Recent History */}
                 <div className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8">
-                    <h4 className="text-sm font-black uppercase tracking-widest text-gray-500 mb-6 flex items-center space-x-2">
-                        <History size={16} />
-                        <span>Task History</span>
-                    </h4>
+                    <div className="flex justify-between items-center mb-6">
+                        <h4 className="text-sm font-black uppercase tracking-widest text-gray-500 flex items-center space-x-2">
+                            <History size={16} />
+                            <span>Task History</span>
+                        </h4>
+                        {tasks.length > 0 && (
+                            <button
+                                onClick={clearHistory}
+                                className="text-[10px] font-black uppercase text-red-400/60 hover:text-red-400 transition-colors"
+                            >
+                                Clear All
+                            </button>
+                        )}
+                    </div>
                     <div className="space-y-4">
-                        {tasks.map((t) => (
-                            <div key={t.id} className="flex items-center justify-between p-2">
+                        {tasks.length === 0 ? (
+                            <div className="text-center py-4 opacity-30">
+                                <p className="text-xs uppercase font-black tracking-widest">No recent tasks</p>
+                            </div>
+                        ) : tasks.map((t) => (
+                            <div key={t.id} className="group relative flex items-center justify-between p-2 hover:bg-white/[0.02] rounded-xl transition-all">
                                 <div className="flex items-center space-x-3">
                                     <div className={`p-1.5 rounded-lg ${t.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400' :
                                         t.status === 'failed' ? 'bg-red-500/20 text-red-400' :
@@ -219,11 +368,23 @@ const AutomationRunner = () => {
                                                 <Clock size={12} className="animate-pulse" />}
                                     </div>
                                     <div className="overflow-hidden">
-                                        <p className="text-xs font-bold text-gray-300 truncate w-32">{t.task_type}</p>
-                                        <p className="text-[10px] text-gray-600">{new Date(t.created_at).toLocaleDateString()}</p>
+                                        <p className="text-xs font-bold text-gray-300 truncate w-24 group-hover:w-20 transition-all">{t.task_type}</p>
+                                        <p className="text-[10px] text-gray-600 italic">
+                                            {new Date(t.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </p>
                                     </div>
                                 </div>
-                                <span className="text-[10px] font-black uppercase text-gray-500">{t.status}</span>
+
+                                <div className="flex items-center space-x-2">
+                                    <span className="text-[10px] font-black uppercase text-gray-500 group-hover:opacity-0 transition-opacity">{t.status}</span>
+                                    <button
+                                        onClick={() => archiveTask(t.id)}
+                                        className="absolute right-2 opacity-0 group-hover:opacity-100 p-1.5 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-all"
+                                        title="Archive"
+                                    >
+                                        <Archive size={12} />
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -252,6 +413,14 @@ const AutomationRunner = () => {
                             </div>
                         )}
                     </div>
+
+                    {activeTask && (
+                        <ProgressTrack
+                            scriptId={activeTask.task_type}
+                            currentLogs={logs}
+                            status={activeTask.status}
+                        />
+                    )}
 
                     <div
                         ref={terminalRef}

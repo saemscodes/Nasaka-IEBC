@@ -62,18 +62,16 @@ const ModerationPanel = () => {
                     p_admin_id: 'admin_nexus',
                     p_office_data: {}
                 });
-            } else if (action === 'reject') {
-                result = await supabase.rpc('archive_contribution', {
-                    p_contribution_id: id,
-                    p_action_type: 'rejected',
-                    p_actor: 'admin_nexus',
-                    p_review_notes: 'Rejected from Admin Nexus'
-                });
+            } else if (action === 'reject' || action === 'archive') {
+                result = await (supabase as any).from('iebc_office_contributions').update({
+                    status: action === 'reject' ? 'rejected' : 'archived',
+                    updated_at: new Date().toISOString()
+                }).eq('id', id);
             }
 
             if (result.error) throw result.error;
 
-            toast.success(`Contribution ${action === 'verify' ? 'verified' : 'rejected'} successfully`);
+            toast.success(`Entry ${action === 'verify' ? 'verified' : action === 'reject' ? 'rejected' : 'archived'} successfully`);
             fetchContributions();
             setSelectedItem(null);
         } catch (err) {
@@ -106,7 +104,7 @@ const ModerationPanel = () => {
 
                 <div className="flex items-center space-x-3">
                     <div className="flex items-center bg-white/5 border border-white/10 rounded-2xl p-1">
-                        {['pending_review', 'verified', 'rejected', 'all'].map((status) => (
+                        {['pending_review', 'verified', 'rejected', 'archived', 'all'].map((status) => (
                             <button
                                 key={status}
                                 onClick={() => setStatusFilter(status)}
@@ -282,7 +280,11 @@ const ModerationPanel = () => {
                                     >
                                         <XCircle size={18} />
                                     </button>
-                                    <button className="p-3 bg-white/5 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all flex items-center justify-center">
+                                    <button
+                                        onClick={() => handleAction(selectedItem.id, 'archive')}
+                                        disabled={selectedItem.status !== 'pending_review' || isActionLoading === selectedItem.id}
+                                        className="p-3 bg-white/5 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all flex items-center justify-center disabled:opacity-50"
+                                    >
                                         <Archive size={18} />
                                     </button>
                                 </div>

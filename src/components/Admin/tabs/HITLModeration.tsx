@@ -65,6 +65,8 @@ const HITLModeration = () => {
                         longitude: item.proposed_longitude,
                         geocode_verified: true,
                         geocode_status: 'human_verified',
+                        geocode_verified_at: new Date().toISOString(),
+                        multi_source_confidence: item.confidence,
                         updated_at: new Date().toISOString()
                     })
                     .eq('id', item.office_id);
@@ -76,14 +78,14 @@ const HITLModeration = () => {
             const { error: statusError } = await (supabase as any)
                 .from('geocode_hitl_queue')
                 .update({
-                    status: action === 'approve' ? 'resolved' : 'dismissed',
-                    updated_at: new Date().toISOString()
+                    status: action === 'approve' ? 'approved' : 'dismissed',
+                    resolved_at: new Date().toISOString()
                 })
                 .eq('id', id);
 
             if (statusError) throw statusError;
 
-            toast.success(`Proposed change ${action === 'approve' ? 'approved' : 'dismissed'}`);
+            toast.success(`Proposed change ${action === 'approve' ? 'applied to production' : 'dismissed'}`);
             fetchQueue();
             setSelectedItem(null);
         } catch (err) {
@@ -151,7 +153,7 @@ const HITLModeration = () => {
 
                 <div className="flex items-center space-x-3">
                     <div className="flex items-center bg-white/5 border border-white/10 rounded-2xl p-1">
-                        {['pending', 'resolved', 'dismissed'].map((status) => (
+                        {['pending', 'approved', 'dismissed', 'auto_resolved'].map((status) => (
                             <button
                                 key={status}
                                 onClick={() => setStatusFilter(status)}
@@ -193,8 +195,8 @@ const HITLModeration = () => {
                                                 {item.iebc_offices?.constituency_name || 'Office ID: ' + item.office_id}
                                             </h4>
                                             <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest ${item.confidence >= 0.7 ? 'bg-emerald-500/20 text-emerald-400' :
-                                                    item.confidence >= 0.4 ? 'bg-amber-500/20 text-amber-400' :
-                                                        'bg-red-500/20 text-red-400'
+                                                item.confidence >= 0.4 ? 'bg-amber-500/20 text-amber-400' :
+                                                    'bg-red-500/20 text-red-400'
                                                 }`}>
                                                 {Math.round(item.confidence * 100)}% Match
                                             </span>
