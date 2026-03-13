@@ -10,12 +10,9 @@ export default async function handler(req: Request) {
     try {
         const { scriptId, params } = await req.json();
 
-        // Validate request (Add basic auth check here if needed, 
-        // though the AdminNexus already checks auth)
-
         const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-        const REPO_OWNER = "saemscodes"; // Derived from user context
-        const REPO_NAME = "Nasaka-IEBC";  // Derived from user context
+        const REPO_OWNER = "saemscodes";
+        const REPO_NAME = "Nasaka-IEBC";
 
         if (!GITHUB_TOKEN) {
             return new Response(JSON.stringify({ error: 'GITHUB_TOKEN not configured' }), {
@@ -24,8 +21,6 @@ export default async function handler(req: Request) {
             });
         }
 
-        // Trigger GitHub Workflow Dispatch
-        // Map scriptId to workflow filename
         const workflowMap: Record<string, string> = {
             'iebc_verification': 'admin-task-runner.yml',
             'coord_correction': 'admin-task-runner.yml',
@@ -35,6 +30,20 @@ export default async function handler(req: Request) {
         };
 
         const workflowFile = workflowMap[scriptId as string] || 'daily-iebc-verify.yml';
+
+        let inputs: any = {};
+        if (workflowFile === 'admin-task-runner.yml') {
+            inputs = {
+                task_id: params?.taskId || '',
+                task_type: scriptId,
+                shapefile_path: params?.shapefile_path || 'data/constituencies.shp'
+            };
+        } else {
+            inputs = {
+                skip_nominatim: params?.quick === true,
+                run_resolver: scriptId === 'geocode_resolve'
+            };
+        }
 
         const response = await fetch(
             `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${workflowFile}/dispatches`,
@@ -48,13 +57,7 @@ export default async function handler(req: Request) {
                 },
                 body: JSON.stringify({
                     ref: 'main',
-                    inputs: {
-                        task_id: params?.taskId || '',
-                        task_type: scriptId,
-                        skip_nominatim: params?.quick === true ? 'true' : 'false',
-                        run_resolver: scriptId === 'geocode_resolve' ? 'true' : 'false',
-                        shapefile_path: params?.shapefile_path || 'data/constituencies.shp'
-                    }
+                    inputs
                 }),
             }
         );

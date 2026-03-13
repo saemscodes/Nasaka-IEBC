@@ -7,14 +7,9 @@ on:
         description: 'Admin Task ID from Supabase'
         required: true
       task_type:
-        description: 'Type of task to run'
+        description: 'Type of task to run (iebc_verification, coord_correction, hitl_full_audit, geocode_resolve, geocode_sync)'
         required: true
-        type: choice
-        options:
-          - iebc_verification
-          - coord_correction
-          - geocode_sync
-          - hitl_full_audit
+        type: string
       shapefile_path:
         description: 'Path to shapefile (optional, uses environment default if not provided)'
         required: false
