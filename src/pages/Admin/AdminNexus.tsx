@@ -9,6 +9,7 @@ const InsightsOverview = React.lazy(() => import('@/components/Admin/tabs/Insigh
 const ModerationPanel = React.lazy(() => import('@/components/Admin/tabs/ModerationPanel'));
 const AutomationRunner = React.lazy(() => import('@/components/Admin/tabs/AutomationRunner'));
 const DataRegistry = React.lazy(() => import('@/components/Admin/tabs/DataRegistry'));
+const HITLModeration = React.lazy(() => import('@/components/Admin/tabs/HITLModeration'));
 const SystemAnalytics = React.lazy(() => import('@/components/Admin/tabs/SystemAnalytics'));
 const SecurityAudit = React.lazy(() => import('@/components/Admin/tabs/SecurityAudit'));
 
@@ -25,6 +26,7 @@ const AdminNexus = () => {
         switch (activeTab) {
             case 'insights': return <InsightsOverview />;
             case 'moderation': return <ModerationPanel />;
+            case 'hitl': return <HITLModeration />;
             case 'automation': return <AutomationRunner />;
             case 'registry': return <DataRegistry />;
             case 'analytics': return <SystemAnalytics />;

@@ -18,8 +18,8 @@ const SidebarItem = ({ icon: Icon, label, isActive, onClick, isOpen }) => (
         whileTap={{ scale: 0.98 }}
         onClick={onClick}
         className={`w-full flex items-center px-4 py-3 rounded-2xl transition-all duration-300 group relative ${isActive
-                ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20'
-                : 'text-gray-400 hover:text-white'
+            ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20'
+            : 'text-gray-400 hover:text-white'
             }`}
     >
         <div className={`flex items-center justify-center p-2 rounded-xl transition-all duration-300 ${isActive ? 'bg-blue-600/20' : 'bg-transparent'
@@ -58,6 +58,7 @@ const AdminSidebar = ({ activeTab, onTabChange, onLogout, isOpen, toggleSidebar 
     const menuItems = [
         { id: 'insights', label: 'Insights', icon: LayoutDashboard },
         { id: 'moderation', label: 'Moderation', icon: CheckCircle2 },
+        { id: 'hitl', label: 'HITL Review', icon: ShieldCheck },
         { id: 'automation', label: 'Automation', icon: Terminal },
         { id: 'registry', label: 'Registry', icon: Table },
         { id: 'analytics', label: 'Analytics', icon: LineChart },
