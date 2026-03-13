@@ -26,6 +26,7 @@ import math
 import logging
 import argparse
 import requests
+import threading
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple, Any
@@ -64,7 +65,7 @@ CONSENSUS_RADIUS_KM = 1.0
 AUTO_APPLY_THRESHOLD = 0.7
 DISPLACEMENT_THRESHOLD_KM = 5.0
 CLUSTER_DETECTION_KM = 0.5
-NOMINATIM_RATE_LIMIT = 2.0  # Conservative 2s delay to avoid IP blocks
+NOMINATIM_RATE_LIMIT = 1.2  # Safe 1.2s delay to avoid IP blocks (v9.4)
 
 # v9.3: RateLimiter class to enforce mandatory sleeps between API calls
 class RateLimiter:
@@ -72,18 +73,20 @@ class RateLimiter:
     def __init__(self, min_interval_seconds: float):
         self.min_interval = float(min_interval_seconds)
         self.last_call = 0.0
+        self._lock = threading.Lock()
 
     def wait(self) -> None:
-        now = time.monotonic()
-        elapsed = now - self.last_call
-        wait_time = self.min_interval - elapsed
-        if wait_time > 0:
-            time.sleep(wait_time)
+        with self._lock:
             now = time.monotonic()
-        self.last_call = now
+            elapsed = now - self.last_call
+            wait_time = self.min_interval - elapsed
+            if wait_time > 0:
+                time.sleep(wait_time)
+                now = time.monotonic()
+            self.last_call = now
 
 RATE_LIMITERS = {
-    "nominatim": RateLimiter(1.1),
+    "nominatim": RateLimiter(NOMINATIM_RATE_LIMIT),
     "gemini":    RateLimiter(4.0),
     "openai":    RateLimiter(6.0),
     "arcgis":    RateLimiter(0.5),
@@ -369,7 +372,8 @@ def load_rev_geo_cache():
         for k, v in data.items():
             try:
                 lat_s, lng_s = k.split("|")
-                _rev_geo_cache[(float(lat_s), float(lng_s))] = v
+                # Round to 6 decimals to ensure consistent tuple keys (v9.4)
+                _rev_geo_cache[(round(float(lat_s), 6), round(float(lng_s), 6))] = v
             except:
                 continue
         log.info(f"  Loaded {len(_rev_geo_cache)} entries from persistent cache")
