@@ -54,12 +54,12 @@ ARCGIS_API_KEY_1 = os.getenv("ARCGIS_API_KEY_PRIMARY", "")
 ARCGIS_API_KEY_2 = os.getenv("ARCGIS_API_KEY_SECONDARY", "")
 
 # Geocoding alternatives (v9.5)
-LOCATIONIQ_API_KEY = os.getenv("VITE_LOCATIONIQ_API_KEY", os.getenv("LOCATIONIQ_API_KEY", ""))
+LOCATIONIQ_API_KEY = os.getenv("VITE_LOCATION_IQ_API_KEY", os.getenv("VITE_LOCATIONIQ_API_KEY", os.getenv("VITE_LOCATION_IQ", os.getenv("LOCATIONIQ_API_KEY", ""))))
 OPENCAGE_API_KEY = os.getenv("VITE_OPENCAGE_API_KEY", os.getenv("OPENCAGE_API_KEY", ""))
 GEOAPIFY_API_KEY = os.getenv("VITE_GEOAPIFY_API_KEY", os.getenv("GEOAPIFY_API_KEY", ""))
 
 DOMAIN = os.getenv("DOMAIN", "nasakaiebc.civiceducationkenya.com")
-USER_AGENT = os.getenv("USER_AGENT", f"CEKA-Nasaka/1.0 ({DOMAIN})")
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
 
 HEADERS = {
     "apikey": SUPABASE_KEY,
@@ -259,17 +259,21 @@ def safe_request(url: str, params: Optional[Dict] = None, method: str = "GET",
     for attempt in range(max_retries + 1):
         try:
             if method.upper() == "GET":
-                resp = requests.get(url, params=params, headers=headers, timeout=20)
+                resp = requests.get(url, params=params, headers=headers or {"User-Agent": USER_AGENT}, timeout=20)
             else:
-                resp = requests.post(url, json=json_data, headers=headers, timeout=20)
+                resp = requests.post(url, json=json_data, headers=headers or {"User-Agent": USER_AGENT}, timeout=20)
+
+            # Fast Fail on non-retryable status codes (v9.6)
+            if resp.status_code == 404:
+                return None # Not found is not a network failure
+            
+            if resp.status_code in (401, 403):
+                log.error(f"  \u26d4 CIRCUIT BREAKER TRIPPED for {host} ({resp.status_code} Forbidden/Unauthorized)")
+                _CIRCUIT_BREAKERS[host] = {"tripped": True, "last_trip": time.monotonic()}
+                return None
 
             if resp.status_code == 200:
                 return resp
-
-            if resp.status_code == 403:
-                log.error(f"  ⛔ CIRCUIT BREAKER TRIPPED for {host} (403 Forbidden)")
-                _CIRCUIT_BREAKERS[host] = {"tripped": True, "last_trip": time.monotonic()}
-                return None
 
             if resp.status_code == 429 or 500 <= resp.status_code < 600:
                 if attempt < max_retries:
@@ -691,7 +695,7 @@ def geocode_locationiq(query: str) -> List[Dict]:
     try:
         RATE_LIMITERS["locationiq"].wait()
         resp = safe_request(
-            "https://us1.locationiq.com/v1/search.php",
+            "https://us1.locationiq.com/v1/search",
             params={"key": LOCATIONIQ_API_KEY, "q": query, "format": "json", "countrycodes": "ke", "limit": 3},
         )
         if not resp:
@@ -946,7 +950,7 @@ def geocode_groq(query: str) -> List[Dict]:
         RATE_LIMITERS["groq"].wait()
         prompt = (
             f"What are the GPS coordinates of the IEBC office for: '{query}' in Kenya?\n"
-            f"Return ONLY a JSON object: {{\"lat\": <number>, \"lng\": <number>, \"county\": \"<county name>\"}}\n"
+            f"Return ONLY valid JSON: {{\"lat\": 0.0, \"lng\": 0.0, \"county\": \"Name\"}}\n"
         )
         resp = safe_request(
             "https://api.groq.com/openai/v1/chat/completions",
@@ -955,8 +959,7 @@ def geocode_groq(query: str) -> List[Dict]:
             json_data={
                 "model": "llama3-70b-8192",
                 "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.0,
-                "response_format": {"type": "json_object"}
+                "temperature": 0.1
             }
         )
         if not resp:
