@@ -113,61 +113,82 @@ const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    console.log("[AdminLogin] ➔ Attempting sign in for:", email);
+    console.log("[AdminLogin] ➔ STARTING handleSubmit for:", email);
+
+    // Safety timeout for sign-in process
+    const signinTimeout = setTimeout(() => {
+      if (isLoading) {
+        console.warn("[AdminLogin] ⚠️ Sign-in process timed out after 15s");
+        setError("Sign-in process timed out. Please check your connection and try again.");
+        setIsLoading(false);
+      }
+    }, 15000);
 
     try {
-      // Attempt Supabase authentication
-      console.log("[AdminLogin] ➔ Calling signInWithPassword...");
+      // 1. Supabase Auth Call
+      console.log("[AdminLogin] ➔ Step 1: Calling signInWithPassword...");
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password
       });
 
       if (authError) {
-        console.error('[AdminLogin] ❌ Auth error:', authError);
-        setError('Invalid credentials. Please check your email and password.');
+        console.error('[AdminLogin] ❌ Step 1 Error:', authError.message);
+        setError(`Auth Error: ${authError.message}`);
+        clearTimeout(signinTimeout);
+        setIsLoading(false);
         return;
       }
 
-      console.log("[AdminLogin] ✅ Auth successful, user ID:", data.user?.id);
+      const user = data.user;
+      console.log("[AdminLogin] ✅ Step 1 Success: User authenticated", { id: user?.id, email: user?.email });
 
-      if (!data.user) {
-        setError('Authentication failed. No user returned.');
+      if (!user) {
+        console.error('[AdminLogin] ❌ Step 1 Error: No user object returned');
+        setError('Authentication returned no user data.');
+        clearTimeout(signinTimeout);
+        setIsLoading(false);
         return;
       }
 
-      // Check if user is in core_team table and is admin
-      console.log("[AdminLogin] ➔ Checking core_team table for admin privileges...");
+      // 2. Core Team Privilege Check
+      console.log("[AdminLogin] ➔ Step 2: Querying core_team table for admin flags...");
       const { data: coreTeam, error: coreError } = await supabase
         .from('core_team')
-        .select('is_admin')
-        .eq('user_id', data.user.id)
-        .eq('is_admin', true)
+        .select('is_admin, role, is_active')
+        .eq('user_id', user.id)
         .single();
 
       if (coreError) {
-        console.error('[AdminLogin] ❌ core_team check error:', coreError);
-        setError(`Privilege check failed: ${coreError.message}`);
+        console.error('[AdminLogin] ❌ Step 2 Error:', coreError);
+        setError(`Privilege Check Error: ${coreError.message}`);
         await supabase.auth.signOut();
+        clearTimeout(signinTimeout);
+        setIsLoading(false);
         return;
       }
 
-      if (!coreTeam) {
-        console.warn('[AdminLogin] ⚠️ User found but lacks is_admin flag');
-        setError('You do not have admin privileges.');
+      console.log("[AdminLogin] ✅ Step 2 Success: Core team profile found", coreTeam);
+
+      if (!coreTeam || !coreTeam.is_admin || !coreTeam.is_active) {
+        console.warn('[AdminLogin] ⚠️ Step 2 Warning: Insufficient privileges or inactive account');
+        const reason = !coreTeam ? "No profile" : !coreTeam.is_active ? "Account inactive" : "Not an admin";
+        setError(`Access Denied: ${reason}.`);
         await supabase.auth.signOut();
+        clearTimeout(signinTimeout);
+        setIsLoading(false);
         return;
       }
 
-      console.log("[AdminLogin] 🎉 Admin privileges confirmed!");
-      // Successful admin authentication
+      // 3. Finalization
+      console.log("[AdminLogin] 🎉 SUCCESS: All hurdles cleared. Passing control to onLogin(true)");
+      clearTimeout(signinTimeout);
       onLogin(true);
 
     } catch (err) {
-      console.error('[AdminLogin] 💥 Critical crash:', err);
-      setError(`System error: ${err instanceof Error ? err.message : 'Unknown'}`);
-    } finally {
-      console.log("[AdminLogin] ➔ handleSubmit procedure finished");
+      console.error('[AdminLogin] 💥 Step X CRITICAL EXCEPTION:', err);
+      setError(`Critical Error: ${err instanceof Error ? err.message : 'Unknown exception'}`);
+      clearTimeout(signinTimeout);
       setIsLoading(false);
     }
   };
