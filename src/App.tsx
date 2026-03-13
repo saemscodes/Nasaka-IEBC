@@ -325,21 +325,37 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isChecking, setIsChecking] = useState(true);
+  const [checkStep, setCheckStep] = useState<string>("Initializing...");
 
   useEffect(() => {
     const checkAuth = async () => {
+      setCheckStep("Starting auth check...");
       console.log("[AdminRoute] Initializing checkAuth...");
+
+      // Safety timeout
+      const timeout = setTimeout(() => {
+        if (isChecking) {
+          console.warn("[AdminRoute] Auth check timed out after 10s");
+          setCheckStep("Timed out - forcing session end");
+          setIsChecking(false);
+        }
+      }, 10000);
+
       try {
+        setCheckStep("Requesting Supabase session...");
         // Get current session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         console.log("[AdminRoute] Session check:", { session: !!session, error: sessionError });
 
         if (sessionError || !session) {
+          setCheckStep("No active session found.");
           setIsAuthenticated(false);
+          clearTimeout(timeout);
           setIsChecking(false);
           return;
         }
 
+        setCheckStep(`Session found for ${session.user.email}. Checking privileges...`);
         // Check if user is admin via core_team table
         const { data: coreTeam, error: coreError } = await supabase
           .from('core_team')
@@ -349,21 +365,23 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
           .single();
 
         if (coreError || !coreTeam) {
+          setCheckStep("Insufficient privileges. Logging out...");
           console.error('Admin verification failed:', coreError);
           console.log("[AdminRoute] User is NOT an admin");
           setIsAuthenticated(false);
-
-          // Sign out non-admin users
           await supabase.auth.signOut();
         } else {
+          setCheckStep("Privileges verified!");
           console.log("[AdminRoute] User IS an admin");
           setIsAuthenticated(true);
         }
       } catch (err) {
+        setCheckStep(`Error: ${err instanceof Error ? err.message : 'Unknown'}`);
         console.error('Auth check error:', err);
         setIsAuthenticated(false);
       } finally {
         console.log("[AdminRoute] Finishing checkAuth");
+        clearTimeout(timeout);
         setIsChecking(false);
       }
     };
@@ -401,10 +419,19 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   if (isChecking) {
     return (
       <div className="min-h-screen bg-blue-50/50 flex flex-col items-center justify-center gap-4 border-8 border-blue-500/10">
-        <div className="text-center">
+        <div className="text-center px-6">
           <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-bold">Verifying admin privileges...</p>
-          <p className="text-[10px] text-gray-400 mt-2">DEBUG: isChecking=true | Auth={String(isAuthenticated)}</p>
+          <p className="text-gray-600 font-bold mb-1">Verifying admin privileges...</p>
+          <p className="text-sm text-blue-500 font-medium animate-pulse mb-4 italic">"{checkStep}"</p>
+          <div className="text-[10px] text-gray-400 bg-white/50 p-2 rounded border border-blue-100 font-mono">
+            DEBUG: isChecking={String(isChecking)} | Auth={String(isAuthenticated)} | Time={new Date().toLocaleTimeString()}
+          </div>
+          <button
+            onClick={() => setIsChecking(false)}
+            className="mt-6 text-[10px] text-gray-400 underline hover:text-blue-500 transition-colors"
+          >
+            Manual Skip (Emergency Only)
+          </button>
         </div>
       </div>
     );
