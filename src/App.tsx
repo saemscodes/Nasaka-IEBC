@@ -113,20 +113,23 @@ const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    console.log("[AdminLogin] Attempting sign in for:", email);
+    console.log("[AdminLogin] ➔ Attempting sign in for:", email);
 
     try {
       // Attempt Supabase authentication
+      console.log("[AdminLogin] ➔ Calling signInWithPassword...");
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password
       });
 
       if (authError) {
-        console.error('Auth error:', authError);
+        console.error('[AdminLogin] ❌ Auth error:', authError);
         setError('Invalid credentials. Please check your email and password.');
         return;
       }
+
+      console.log("[AdminLogin] ✅ Auth successful, user ID:", data.user?.id);
 
       if (!data.user) {
         setError('Authentication failed. No user returned.');
@@ -134,6 +137,7 @@ const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
       }
 
       // Check if user is in core_team table and is admin
+      console.log("[AdminLogin] ➔ Checking core_team table for admin privileges...");
       const { data: coreTeam, error: coreError } = await supabase
         .from('core_team')
         .select('is_admin')
@@ -141,22 +145,29 @@ const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
         .eq('is_admin', true)
         .single();
 
-      if (coreError || !coreTeam) {
-        console.error('Admin check failed:', coreError);
-        setError('You do not have admin privileges.');
-
-        // Sign out since they're not an admin
+      if (coreError) {
+        console.error('[AdminLogin] ❌ core_team check error:', coreError);
+        setError(`Privilege check failed: ${coreError.message}`);
         await supabase.auth.signOut();
         return;
       }
 
+      if (!coreTeam) {
+        console.warn('[AdminLogin] ⚠️ User found but lacks is_admin flag');
+        setError('You do not have admin privileges.');
+        await supabase.auth.signOut();
+        return;
+      }
+
+      console.log("[AdminLogin] 🎉 Admin privileges confirmed!");
       // Successful admin authentication
       onLogin(true);
 
     } catch (err) {
-      console.error('Admin login error:', err);
-      setError('Authentication failed. Please try again.');
+      console.error('[AdminLogin] 💥 Critical crash:', err);
+      setError(`System error: ${err instanceof Error ? err.message : 'Unknown'}`);
     } finally {
+      console.log("[AdminLogin] ➔ handleSubmit procedure finished");
       setIsLoading(false);
     }
   };
