@@ -19,6 +19,7 @@ Usage:
 import os
 import re
 import sys
+import csv
 import json
 import time
 import random
@@ -45,10 +46,17 @@ SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", os.getenv("SUPABASE_ANON_K
 GEMINI_API_KEY = os.getenv("VITE_GEMINI_API_KEY", "")
 GEOKEO_API_KEY = os.getenv("VITE_GEOKEO_API_KEY", "")
 OPENAI_API_KEY = os.getenv("VITE_OPEN_AI_KEY", "")
+GROQ_API_KEY = os.getenv("VITE_GROQ_API_KEY", "")
+HF_API_TOKEN = os.getenv("VITE_HF_API_TOKEN", "")
 
 # ArcGIS Keys (with rotation support)
 ARCGIS_API_KEY_1 = os.getenv("ARCGIS_API_KEY_PRIMARY", "")
 ARCGIS_API_KEY_2 = os.getenv("ARCGIS_API_KEY_SECONDARY", "")
+
+# Geocoding alternatives (v9.5)
+LOCATIONIQ_API_KEY = os.getenv("VITE_LOCATIONIQ_API_KEY", os.getenv("LOCATIONIQ_API_KEY", ""))
+OPENCAGE_API_KEY = os.getenv("VITE_OPENCAGE_API_KEY", os.getenv("OPENCAGE_API_KEY", ""))
+GEOAPIFY_API_KEY = os.getenv("VITE_GEOAPIFY_API_KEY", os.getenv("GEOAPIFY_API_KEY", ""))
 
 DOMAIN = os.getenv("DOMAIN", "nasakaiebc.civiceducationkenya.com")
 USER_AGENT = os.getenv("USER_AGENT", f"CEKA-Nasaka/1.0 ({DOMAIN})")
@@ -86,13 +94,18 @@ class RateLimiter:
             self.last_call = now
 
 RATE_LIMITERS = {
-    "nominatim": RateLimiter(NOMINATIM_RATE_LIMIT),
-    "gemini":    RateLimiter(4.0),
-    "openai":    RateLimiter(6.0),
-    "arcgis":    RateLimiter(0.5),
-    "geokeo":    RateLimiter(1.0),
+    "nominatim":   RateLimiter(NOMINATIM_RATE_LIMIT),
+    "gemini":      RateLimiter(4.0),
+    "openai":      RateLimiter(6.0),
+    "arcgis":      RateLimiter(0.5),
+    "geokeo":      RateLimiter(1.0),
     "geocode_xyz": RateLimiter(1.1),
     "photon":      RateLimiter(1.1),
+    "locationiq":  RateLimiter(1.1),   # v9.5: 1 req/s
+    "geoapify":    RateLimiter(0.33),  # v9.5: 3 req/s
+    "opencage":    RateLimiter(1.1),   # v9.5: 1 req/s
+    "groq":        RateLimiter(1.0),   # v9.5
+    "hf":          RateLimiter(0.5),   # v9.5
 }
 
 logging.basicConfig(
@@ -639,7 +652,7 @@ def geocode_geocodexyz(query: str) -> List[Dict]:
 
 
 def geocode_geokeo(query: str) -> List[Dict]:
-    """Geokeo — 2500/day, api key in env. Returns multiple results."""
+    """Geokeo — 2500/day, api key in env. Returns multiple results (v9.5 safe parse)."""
     if not GEOKEO_API_KEY:
         return []
     try:
@@ -649,7 +662,8 @@ def geocode_geokeo(query: str) -> List[Dict]:
             params={"q": query, "api": GEOKEO_API_KEY},
             timeout=10,
         )
-        resp.raise_for_status()
+        if resp.status_code != 200 or "application/json" not in resp.headers.get("Content-Type", ""):
+            return []
         data = resp.json()
         if not data or data.get("status") != "200" or not data.get("results"):
             return []
@@ -667,6 +681,98 @@ def geocode_geokeo(query: str) -> List[Dict]:
         return results
     except Exception as e:
         log.warning(f"  Geokeo failed: {e}")
+        return []
+
+
+def geocode_locationiq(query: str) -> List[Dict]:
+    """LocationIQ — 5,000/day free tier. OSM-backed (v9.5)."""
+    if not LOCATIONIQ_API_KEY:
+        return []
+    try:
+        RATE_LIMITERS["locationiq"].wait()
+        resp = safe_request(
+            "https://us1.locationiq.com/v1/search.php",
+            params={"key": LOCATIONIQ_API_KEY, "q": query, "format": "json", "countrycodes": "ke", "limit": 3},
+        )
+        if not resp:
+            return []
+        data = resp.json()
+        results = []
+        for r in data:
+            lat, lng = float(r["lat"]), float(r["lon"])
+            if not is_in_kenya(lat, lng):
+                continue
+            results.append({
+                "lat": lat, "lng": lng, "source": "locationiq",
+                "confidence": min(float(r.get("importance", 0.5)) * 1.5, 1.0),
+                "display_name": r.get("display_name", ""),
+                "county_from_api": "",
+            })
+        return results
+    except Exception as e:
+        log.warning(f"  LocationIQ failed: {e}")
+        return []
+
+
+def geocode_geoapify(query: str) -> List[Dict]:
+    """Geoapify — 3,000/day free tier. 3 req/s (v9.5)."""
+    if not GEOAPIFY_API_KEY:
+        return []
+    try:
+        RATE_LIMITERS["geoapify"].wait()
+        resp = safe_request(
+            "https://api.geoapify.com/v1/geocode/search",
+            params={"text": query, "apiKey": GEOAPIFY_API_KEY, "filter": "countrycode:ke", "limit": 3},
+        )
+        if not resp:
+            return []
+        data = resp.json()
+        results = []
+        for f in data.get("features", []):
+            lat = f["geometry"]["coordinates"][1]
+            lng = f["geometry"]["coordinates"][0]
+            if not is_in_kenya(lat, lng):
+                continue
+            props = f.get("properties", {})
+            results.append({
+                "lat": lat, "lng": lng, "source": "geoapify",
+                "confidence": props.get("rank", {}).get("confidence", 0.5),
+                "display_name": props.get("formatted", ""),
+                "county_from_api": props.get("state", ""),
+            })
+        return results
+    except Exception as e:
+        log.warning(f"  Geoapify failed: {e}")
+        return []
+
+
+def geocode_opencage(query: str) -> List[Dict]:
+    """OpenCage — 2,500/day free tier. Late-stage fallback (v9.5)."""
+    if not OPENCAGE_API_KEY:
+        return []
+    try:
+        RATE_LIMITERS["opencage"].wait()
+        resp = safe_request(
+            "https://api.opencagedata.com/geocode/v1/json",
+            params={"q": query, "key": OPENCAGE_API_KEY, "countrycode": "ke", "limit": 3, "no_annotations": 1},
+        )
+        if not resp:
+            return []
+        data = resp.json()
+        results = []
+        for r in data.get("results", []):
+            lat, lng = r["geometry"]["lat"], r["geometry"]["lng"]
+            if not is_in_kenya(lat, lng):
+                continue
+            results.append({
+                "lat": lat, "lng": lng, "source": "opencage",
+                "confidence": r.get("confidence", 5) / 10,
+                "display_name": r.get("formatted", ""),
+                "county_from_api": r.get("components", {}).get("state", ""),
+            })
+        return results
+    except Exception as e:
+        log.warning(f"  OpenCage failed: {e}")
         return []
 
 
@@ -832,6 +938,73 @@ def geocode_openai(query: str) -> List[Dict]:
         return []
 
 
+def geocode_groq(query: str) -> List[Dict]:
+    """Groq Llama-3-70b/8b — high-speed AI geocoding fallback (v9.5)."""
+    if not GROQ_API_KEY:
+        return []
+    try:
+        RATE_LIMITERS["groq"].wait()
+        prompt = (
+            f"What are the GPS coordinates of the IEBC office for: '{query}' in Kenya?\n"
+            f"Return ONLY a JSON object: {{\"lat\": <number>, \"lng\": <number>, \"county\": \"<county name>\"}}\n"
+        )
+        resp = safe_request(
+            "https://api.groq.com/openai/v1/chat/completions",
+            method="POST",
+            headers={"Authorization": f"Bearer {GROQ_API_KEY}"},
+            json_data={
+                "model": "llama3-70b-8192",
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.0,
+                "response_format": {"type": "json_object"}
+            }
+        )
+        if not resp:
+            return []
+        content = resp.json()["choices"][0]["message"]["content"]
+        parsed = json.loads(content)
+        if not parsed.get("lat") or not parsed.get("lng"):
+            return []
+        return [{
+            "lat": float(parsed["lat"]), "lng": float(parsed["lng"]), "source": "groq_ai",
+            "confidence": 0.65, "display_name": f"{query} (Groq)",
+            "county_from_api": parsed.get("county", "") or ""
+        }]
+    except Exception as e:
+        log.warning(f"  Groq failed: {e}")
+        return []
+
+
+def geocode_huggingface(query: str) -> List[Dict]:
+    """Hugging Face Inference API — LLM geocoding fallback (v9.5)."""
+    if not HF_API_TOKEN:
+        return []
+    try:
+        RATE_LIMITERS["hf"].wait()
+        # Using a general-purpose model for extraction
+        api_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
+        headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
+        prompt = f"Extract GPS coordinates (lat, lng) for {query} in Kenya. Result: [JSON] {{\"lat\": ..., \"lng\": ...}}"
+        resp = requests.post(api_url, headers=headers, json={"inputs": prompt, "parameters": {"max_new_tokens": 100}}, timeout=15)
+        if resp.status_code != 200:
+            return []
+        text = resp.json()[0]["generated_text"]
+        m = re.search(r'\{[^}]+\}', text)
+        if not m:
+            return []
+        parsed = json.loads(m.group(0))
+        if not parsed.get("lat") or not parsed.get("lng"):
+            return []
+        return [{
+            "lat": float(parsed["lat"]), "lng": float(parsed["lng"]), "source": "hf_ai",
+            "confidence": 0.5, "display_name": f"{query} (HF)",
+            "county_from_api": ""
+        }]
+    except Exception as e:
+        log.warning(f"  Hugging Face failed: {e}")
+        return []
+
+
 # ── Multi-Query Strategy ──────────────────────────────────────────────────────
 
 def build_queries(office: Dict) -> List[str]:
@@ -871,8 +1044,8 @@ def build_queries(office: Dict) -> List[str]:
 
 def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) -> Dict:
     """
-    Run all geocoders with multiple queries, then cross-validate each result
-    against the expected county. Returns {best_results, all_candidates, queries_used, rejected}.
+    Run all geocoders (v9.5: including LocationIQ, Geoapify, OpenCage, Groq, HF)
+    with multiple queries, then cross-validate each result against the expected county.
     """
     # v9.3: Reduce queries for offices with existing coordinates
     current_lat = office.get("latitude")
@@ -894,78 +1067,93 @@ def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) 
         log.info(f"  🔍 Query {qi + 1}/{len(queries)}: '{query}'")
         queries_used.append(query)
 
-        # Nominatim — returns multiple
+        # 1. Primary Free Sources (Unlimited/High Quota)
+        # Nominatim
         nom_results = geocode_nominatim(query, limit=5)
-        for r in nom_results:
-            r["query_used"] = query
-            r["query_index"] = qi
-        all_candidates.extend(nom_results)
-
-        # Geocode.xyz
-        xyz_results = geocode_geocodexyz(query)
-        for r in xyz_results:
-            r["query_used"] = query
-            r["query_index"] = qi
-        all_candidates.extend(xyz_results)
-
-        # Geokeo — returns multiple
-        gk_results = geocode_geokeo(query)
-        for r in gk_results:
-            r["query_used"] = query
-            r["query_index"] = qi
-        all_candidates.extend(gk_results)
-
-        # v9.1: ArcGIS — enterprise-grade, key rotation
+        # LocationIQ (v9.5)
+        liq_results = geocode_locationiq(query)
+        # Geoapify (v9.5)
+        gaf_results = geocode_geoapify(query)
+        
+        # 2. Secondary Reliable Sources
+        # ArcGIS
         arc_results = geocode_arcgis(query)
-        for r in arc_results:
+        # Geokeo
+        gko_results = geocode_geokeo(query)
+        # Photon
+        pho_results = geocode_photon(query)
+        # geocode.xyz (fallback)
+        xyz_results = geocode_geocodexyz(query)
+
+        # Combine candidates for this query
+        query_candidates = nom_results + liq_results + gaf_results + arc_results + gko_results + pho_results + xyz_results
+
+        # v9.5 Late-stage fallback for OpenCage (only if no results yet)
+        if not query_candidates:
+            query_candidates += geocode_opencage(query)
+
+        # v9.1 structural compliance: Restore query_index tracking
+        for r in query_candidates:
             r["query_used"] = query
             r["query_index"] = qi
-        all_candidates.extend(arc_results)
 
-        # v9.1: Photon (Komoot) — OSM-backed
-        ph_results = geocode_photon(query)
-        for r in ph_results:
-            r["query_used"] = query
-            r["query_index"] = qi
-        all_candidates.extend(ph_results)
+        # v9.1 structural compliance: Restore manual validation loop
+        for c in query_candidates:
+            if not expected_county:
+                all_candidates.append(c)
+            else:
+                api_county = normalize_county(c.get("county_from_api", ""))
+                exp_county = normalize_county(expected_county)
+                # County check + constituency check (precision v9.1)
+                if api_county and (api_county == exp_county or exp_county in api_county or api_county in exp_county):
+                    all_candidates.append(c)
+                else:
+                    c["rejection_reason"] = f"County mismatch: got {api_county}, expected {exp_county}"
+                    rejected.append(c)
 
-        # v9.1: OpenAI — High-precision fallback (moved out of loop v9.3)
-        # oa_results = geocode_openai(query)
-        # ...
+        # Short-circuit logic: if we found 2+ validated candidates, skip AI to save credits
+        valid_count = len([c for c in all_candidates if not c.get("rejection_reason")])
+        if valid_count >= 2:
+            log.info(f"  ✨ Sufficient validated candidates ({valid_count}) found via standard sources. Skipping AI.")
+            break
 
-    # v9.3 Escalation Check: If Nominatim/ArcGIS/Geokeo find 2+ validated candidates, SKIP AI
-    validated_so_far = []
-    # Temporary validation loop for early candidates
-    for c in all_candidates:
-        if not expected_county:
-            validated_so_far.append(c)
-        else:
-            api_county = normalize_county(c.get("county_from_api", ""))
-            exp_county = normalize_county(expected_county)
-            if api_county and (api_county == exp_county or exp_county in api_county or api_county in exp_county):
-                validated_so_far.append(c)
-
-    if len(validated_so_far) >= 2:
-        log.info(f"  ✨ Short-circuit: found {len(validated_so_far)} validated candidates. Skipping Gemini/OpenAI.")
-    else:
-        # Gemini AI — single call with full context
-        log.info(f"  🔍 Querying Gemini AI...")
+    # AI Escalation Layer (v9.5: Multi-AI Redundancy)
+    valid_count = len([c for c in all_candidates if not c.get("rejection_reason")])
+    if valid_count < 2:
+        log.info(f"  🧠 AI ESCALATION: Only {valid_count} validated candidates. Triggering Intelligence Layer.")
+        # Gemini (Primary AI)
         gem_results = geocode_gemini(constituency, county, location, landmark)
         for r in gem_results:
-            r["query_used"] = "gemini_structured_prompt"
+            r["query_used"] = "gemini_ai_v9_5"
             r["query_index"] = -1
-        all_candidates.extend(gem_results)
+            all_candidates.append(r) # AI is pre-validated by prompt context
 
-        # v9.3: OpenAI — Single call per office only if needed
-        if not all_candidates or len(validated_so_far) < 1:
-            log.info(f"  🔍 Querying OpenAI fallback...")
-            # Use most specific query for OpenAI
-            best_q = queries[-1]
-            oa_results = geocode_openai(best_q)
-            for r in oa_results:
-                r["query_used"] = best_q
+        # Groq (Secondary AI, v9.5)
+        if len([c for c in all_candidates if not c.get("rejection_reason")]) < 2:
+            log.info("  🧠 Triggering Groq (Llama-3)...")
+            grq_results = geocode_groq(queries[0])
+            for r in grq_results:
+                r["query_used"] = "groq_ai_v9_5"
+                r["query_index"] = -2
+                all_candidates.append(r)
+
+        # Hugging Face (Tertiary AI, v9.5)
+        if len([c for c in all_candidates if not c.get("rejection_reason")]) < 2:
+            log.info("  🧠 Triggering Hugging Face...")
+            hf_results = geocode_huggingface(queries[0])
+            for r in hf_results:
+                r["query_used"] = "hf_ai_v9_5"
                 r["query_index"] = -3
-            all_candidates.extend(oa_results)
+                all_candidates.append(r)
+
+        # OpenAI (Premium Fallback)
+        if len([c for c in all_candidates if not c.get("rejection_reason")]) < 2:
+            log.info("  🧠 Triggering OpenAI fallback...")
+            oai_results = geocode_openai(queries[0])
+            for r in oai_results:
+                r["query_used"] = "openai_gpt4_v9_5"
+                r["query_index"] = -4
+                all_candidates.append(r)
 
     # v9.1: Stage 7 — PDF Extraction Fallback
     if _pdf_extraction_data:
@@ -1256,21 +1444,25 @@ def apply_resolution(office_id: int, lat: float, lng: float, confidence: float,
                      direction_meta: Dict, queries_used: List[str],
                      successful_query: str, formatted_addr: str,
                      consensus: Optional[Dict]) -> bool:
-    """Update an office's coordinates and ALL metadata in Supabase."""
+    """Update an office's coordinates and ALL metadata in Supabase (v9.5: integer confidence cast)."""
+    # Fix: Supabase confidence_score is integer (percentage)
+    conf_int = int(float(confidence) * 100)
+    
     payload = {
         "latitude": lat,
         "longitude": lng,
         "geocode_verified": True,
         "geocode_verified_at": datetime.now(timezone.utc).isoformat(),
-        "multi_source_confidence": confidence,
+        "multi_source_confidence": float(confidence), # Keep float if column allows, but cast for confidence_score
         "geocode_method": "multi_source_crossvalidated",
-        "geocode_confidence": confidence,
+        "geocode_confidence": float(confidence),
         "geocode_status": "resolved",
         "geocode_queries": json.dumps(queries_used) if queries_used else None,
         "geocode_query": successful_query or None,
         "successful_geocode_query": successful_query or None,
         "total_queries_tried": len(queries_used),
         "updated_at": datetime.now(timezone.utc).isoformat(),
+        "confidence_score": conf_int # v9.5 fix for integer syntax error
     }
 
     # Direction metadata
@@ -1290,9 +1482,6 @@ def apply_resolution(office_id: int, lat: float, lng: float, confidence: float,
     # Formatted address from best source
     if formatted_addr:
         payload["formatted_address"] = formatted_addr
-
-    # Confidence score
-    payload["confidence_score"] = confidence
 
     # Result type
     if consensus:
@@ -1315,11 +1504,16 @@ def apply_resolution(office_id: int, lat: float, lng: float, confidence: float,
 
     # v9.1: Log the actual error and retry with core-only columns
     log.warning(f"  DB full-payload update failed ({resp.status_code}): {resp.text[:300]}")
+    
+    # Core-only fallback: restore structural compliance (v9.1)
     core_payload = {
         "latitude": lat,
         "longitude": lng,
-        "geocode_confidence": confidence,
+        "geocode_verified": True,
+        "confidence_score": conf_int, # v9.5 fix
+        "multi_source_confidence": float(confidence),
         "geocode_method": "multi_source_crossvalidated",
+        "geocode_confidence": float(confidence),
         "geocode_status": "resolved",
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }
@@ -1648,6 +1842,7 @@ def main():
                 else:
                     log.info(f"  🔒 Would apply (dry run)")
                     stats["auto_applied"] += 1
+                
                 stats["resolved"] += 1
                 results_log.append({
                     "office_id": office["id"], "action": "auto_apply",
