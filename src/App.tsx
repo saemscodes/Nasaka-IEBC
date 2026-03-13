@@ -113,82 +113,42 @@ const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    console.log("[AdminLogin] ➔ STARTING handleSubmit for:", email);
-
-    // Safety timeout for sign-in process
-    const signinTimeout = setTimeout(() => {
-      if (isLoading) {
-        console.warn("[AdminLogin] ⚠️ Sign-in process timed out after 15s");
-        setError("Sign-in process timed out. Please check your connection and try again.");
-        setIsLoading(false);
-      }
-    }, 15000);
 
     try {
-      // 1. Supabase Auth Call
-      console.log("[AdminLogin] ➔ Step 1: Calling signInWithPassword...");
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password
       });
 
       if (authError) {
-        console.error('[AdminLogin] ❌ Step 1 Error:', authError.message);
-        setError(`Auth Error: ${authError.message}`);
-        clearTimeout(signinTimeout);
+        setError(authError.message);
         setIsLoading(false);
         return;
       }
 
-      const user = data.user;
-      console.log("[AdminLogin] ✅ Step 1 Success: User authenticated", { id: user?.id, email: user?.email });
-
-      if (!user) {
-        console.error('[AdminLogin] ❌ Step 1 Error: No user object returned');
-        setError('Authentication returned no user data.');
-        clearTimeout(signinTimeout);
+      if (!data.user) {
+        setError('Authentication failed.');
         setIsLoading(false);
         return;
       }
 
-      // 2. Core Team Privilege Check
-      console.log("[AdminLogin] ➔ Step 2: Querying core_team table for admin flags...");
+      // Verify admin status
       const { data: coreTeam, error: coreError } = await supabase
         .from('core_team')
-        .select('is_admin, role, is_active')
-        .eq('user_id', user.id)
+        .select('is_admin, is_active')
+        .eq('user_id', data.user.id)
         .single();
 
-      if (coreError) {
-        console.error('[AdminLogin] ❌ Step 2 Error:', coreError);
-        setError(`Privilege Check Error: ${coreError.message}`);
+      if (coreError || !coreTeam?.is_admin || !coreTeam?.is_active) {
+        setError('Access Denied: Admin privileges required.');
         await supabase.auth.signOut();
-        clearTimeout(signinTimeout);
         setIsLoading(false);
         return;
       }
 
-      console.log("[AdminLogin] ✅ Step 2 Success: Core team profile found", coreTeam);
-
-      if (!coreTeam || !coreTeam.is_admin || !coreTeam.is_active) {
-        console.warn('[AdminLogin] ⚠️ Step 2 Warning: Insufficient privileges or inactive account');
-        const reason = !coreTeam ? "No profile" : !coreTeam.is_active ? "Account inactive" : "Not an admin";
-        setError(`Access Denied: ${reason}.`);
-        await supabase.auth.signOut();
-        clearTimeout(signinTimeout);
-        setIsLoading(false);
-        return;
-      }
-
-      // 3. Finalization
-      console.log("[AdminLogin] 🎉 SUCCESS: All hurdles cleared. Passing control to onLogin(true)");
-      clearTimeout(signinTimeout);
       onLogin(true);
-
     } catch (err) {
-      console.error('[AdminLogin] 💥 Step X CRITICAL EXCEPTION:', err);
-      setError(`Critical Error: ${err instanceof Error ? err.message : 'Unknown exception'}`);
-      clearTimeout(signinTimeout);
+      setError('An unexpected error occurred.');
       setIsLoading(false);
     }
   };
@@ -354,87 +314,50 @@ const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
 
 // ✅ SECURE Admin Route Protection Component
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [isVerified, setIsVerified] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isChecking, setIsChecking] = useState(true);
-  const [checkStep, setCheckStep] = useState<string>("Initializing...");
 
   useEffect(() => {
     const checkAuth = async () => {
-      setCheckStep("Starting auth check...");
-      console.log("[AdminRoute] Initializing checkAuth...");
-
-      // Safety timeout
-      const timeout = setTimeout(() => {
-        if (isChecking) {
-          console.warn("[AdminRoute] Auth check timed out after 10s");
-          setCheckStep("Timed out - forcing session end");
-          setIsChecking(false);
-        }
-      }, 10000);
-
       try {
-        setCheckStep("Requesting Supabase session...");
-        // Get current session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        console.log("[AdminRoute] Session check:", { session: !!session, error: sessionError });
-
-        if (sessionError || !session) {
-          setCheckStep("No active session found.");
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
           setIsAuthenticated(false);
-          clearTimeout(timeout);
           setIsChecking(false);
           return;
         }
 
-        setCheckStep(`Session found for ${session.user.email}. Checking privileges...`);
-        // Check if user is admin via core_team table
-        const { data: coreTeam, error: coreError } = await supabase
+        const { data: coreTeam } = await supabase
           .from('core_team')
           .select('is_admin')
           .eq('user_id', session.user.id)
           .eq('is_admin', true)
           .single();
 
-        if (coreError || !coreTeam) {
-          setCheckStep("Insufficient privileges. Logging out...");
-          console.error('Admin verification failed:', coreError);
-          console.log("[AdminRoute] User is NOT an admin");
-          setIsAuthenticated(false);
-          await supabase.auth.signOut();
-        } else {
-          setCheckStep("Privileges verified!");
-          console.log("[AdminRoute] User IS an admin");
-          setIsAuthenticated(true);
-        }
+        setIsAuthenticated(!!coreTeam);
       } catch (err) {
-        setCheckStep(`Error: ${err instanceof Error ? err.message : 'Unknown'}`);
-        console.error('Auth check error:', err);
         setIsAuthenticated(false);
       } finally {
-        console.log("[AdminRoute] Finishing checkAuth");
-        clearTimeout(timeout);
         setIsChecking(false);
       }
     };
 
     checkAuth();
 
-    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_OUT') {
           setIsAuthenticated(false);
+          setIsChecking(false);
         } else if (event === 'SIGNED_IN' && session) {
-          // Re-check admin status on sign in
           const { data: coreTeam } = await supabase
             .from('core_team')
             .select('is_admin')
             .eq('user_id', session.user.id)
             .eq('is_admin', true)
             .single();
-
           setIsAuthenticated(!!coreTeam);
+          setIsChecking(false);
         }
       }
     );
@@ -444,33 +367,17 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  const handleLogin = (success: boolean) => {
-    setIsAuthenticated(success);
-  };
-
   if (isChecking) {
     return (
-      <div className="min-h-screen bg-blue-50/50 flex flex-col items-center justify-center gap-4 border-8 border-blue-500/10">
-        <div className="text-center px-6">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-bold mb-1">Verifying admin privileges...</p>
-          <p className="text-sm text-blue-500 font-medium animate-pulse mb-4 italic">"{checkStep}"</p>
-          <div className="text-[10px] text-gray-400 bg-white/50 p-2 rounded border border-blue-100 font-mono">
-            DEBUG: isChecking={String(isChecking)} | Auth={String(isAuthenticated)} | Time={new Date().toLocaleTimeString()}
-          </div>
-          <button
-            onClick={() => setIsChecking(false)}
-            className="mt-6 text-[10px] text-gray-400 underline hover:text-blue-500 transition-colors"
-          >
-            Manual Skip (Emergency Only)
-          </button>
-        </div>
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-gray-600 font-medium">Verifying access...</p>
       </div>
     );
   }
 
   if (!isAuthenticated) {
-    return <AdminLogin onLogin={handleLogin} />;
+    return <AdminLogin onLogin={(success) => setIsAuthenticated(success)} />;
   }
 
   return <>{children}</>;

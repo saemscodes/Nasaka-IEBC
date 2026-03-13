@@ -46,7 +46,7 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ onVerified }) => 
         // Step 3: Tunnel/Environment check
         if (isMounted) setStep(2);
         await new Promise(r => setTimeout(r, 1000));
-        
+
         // Step 4: Finalize
         if (isMounted) setStep(3);
         await new Promise(r => setTimeout(r, 800));
@@ -77,7 +77,7 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ onVerified }) => 
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-900/10 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="relative z-10 w-full max-w-lg"
@@ -86,7 +86,7 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ onVerified }) => 
           {/* Header */}
           <div className="text-center mb-12">
             <motion.div
-              animate={{ 
+              animate={{
                 rotateY: [0, 360],
                 boxShadow: ["0 0 20px rgba(59, 130, 246, 0.2)", "0 0 40px rgba(59, 130, 246, 0.4)", "0 0 20px rgba(59, 130, 246, 0.2)"]
               }}
@@ -103,41 +103,38 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ onVerified }) => 
           <div className="space-y-6 relative">
             {/* Connection Line */}
             <div className="absolute left-[27px] top-4 bottom-4 w-[2px] bg-white/5 z-0"></div>
-            
+
             <AnimatePresence mode="popLayout">
               {steps.map((s, idx) => {
                 const isActive = step === idx;
                 const isCompleted = step > idx;
                 const Icon = s.icon;
-                
+
                 return (
-                  <motion.div 
+                  <motion.div
                     key={s.id}
                     initial={{ opacity: 0, x: -20 }}
-                    animate={{ 
-                      opacity: isActive || isCompleted ? 1 : 0.3, 
+                    animate={{
+                      opacity: isActive || isCompleted ? 1 : 0.3,
                       x: 0,
                       scale: isActive ? 1.02 : 1
                     }}
                     className="flex items-center space-x-4 relative z-10"
                   >
-                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-500 ${
-                      isActive ? 'bg-blue-600/20 border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 
+                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-500 ${isActive ? 'bg-blue-600/20 border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]' :
                       isCompleted ? 'bg-emerald-500/20 border border-emerald-500/30' : 'bg-white/5 border border-white/5'
-                    }`}>
-                      <Icon className={`w-6 h-6 ${
-                        isActive ? 'text-blue-400 animate-pulse' : 
+                      }`}>
+                      <Icon className={`w-6 h-6 ${isActive ? 'text-blue-400 animate-pulse' :
                         isCompleted ? 'text-emerald-400' : 'text-gray-500'
-                      }`} />
+                        }`} />
                     </div>
                     <div>
-                      <h3 className={`text-md font-semibold transition-colors duration-300 ${
-                        isActive ? 'text-blue-400' : isCompleted ? 'text-emerald-400' : 'text-gray-500'
-                      }`}>
+                      <h3 className={`text-md font-semibold transition-colors duration-300 ${isActive ? 'text-blue-400' : isCompleted ? 'text-emerald-400' : 'text-gray-500'
+                        }`}>
                         {s.label}
                       </h3>
                       {isActive && (
-                        <motion.div 
+                        <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: '100%' }}
                           className="h-[2px] bg-blue-500/30 mt-1 rounded-full"
@@ -154,7 +151,7 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ onVerified }) => 
           {/* Footer Status */}
           <div className="mt-12 pt-8 border-t border-white/5 flex flex-col items-center">
             {error ? (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="flex items-center space-x-2 text-red-400 bg-red-400/10 px-4 py-2 rounded-lg border border-red-400/20"
@@ -168,14 +165,14 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ onVerified }) => 
                   {[0, 1, 2].map((i) => (
                     <motion.div
                       key={i}
-                      animate={{ 
+                      animate={{
                         opacity: [0.3, 1, 0.3],
                         scale: [1, 1.2, 1]
                       }}
-                      transition={{ 
-                        duration: 1, 
-                        repeat: Infinity, 
-                        delay: i * 0.2 
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        delay: i * 0.2
                       }}
                       className="w-1.5 h-1.5 bg-blue-500 rounded-full"
                     />
