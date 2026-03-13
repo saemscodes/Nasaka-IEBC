@@ -29,7 +29,11 @@ const AdminNexus = () => {
             case 'registry': return <DataRegistry />;
             case 'analytics': return <SystemAnalytics />;
             case 'security': return <SecurityAudit />;
-            default: return <InsightsOverview />;
+            default: return (
+                <div className="p-12 text-center border-2 border-dashed border-white/10 rounded-3xl">
+                    <p className="text-gray-500">Requested nexus cell <span className="text-blue-400 font-mono">[{activeTab}]</span> is currently offline or unlinked.</p>
+                </div>
+            );
         }
     };
 

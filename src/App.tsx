@@ -53,6 +53,28 @@ const LoadingState = () => (
   </div>
 );
 
+// ✅ Simple Error Boundary for Admin
+class AdminErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: any }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: any) { return { hasError: true, error }; }
+  componentDidCatch(error: any, errorInfo: any) { console.error("[AdminErrorBoundary] caught error:", error, errorInfo); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-8 bg-red-50 border-4 border-red-500 m-4 rounded-xl text-red-900">
+          <h1 className="text-2xl font-bold mb-2">Admin Render Error</h1>
+          <p className="font-mono mb-4">{this.state.error?.message || "Unknown error"}</p>
+          <button onClick={() => window.location.reload()} className="bg-red-600 text-white px-4 py-2 rounded">Reload Page</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // ✅ Enhanced Query Client
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -91,6 +113,7 @@ const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    console.log("[AdminLogin] Attempting sign in for:", email);
 
     try {
       // Attempt Supabase authentication
@@ -305,9 +328,11 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const checkAuth = async () => {
+      console.log("[AdminRoute] Initializing checkAuth...");
       try {
         // Get current session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        console.log("[AdminRoute] Session check:", { session: !!session, error: sessionError });
 
         if (sessionError || !session) {
           setIsAuthenticated(false);
@@ -325,17 +350,20 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 
         if (coreError || !coreTeam) {
           console.error('Admin verification failed:', coreError);
+          console.log("[AdminRoute] User is NOT an admin");
           setIsAuthenticated(false);
 
           // Sign out non-admin users
           await supabase.auth.signOut();
         } else {
+          console.log("[AdminRoute] User IS an admin");
           setIsAuthenticated(true);
         }
       } catch (err) {
         console.error('Auth check error:', err);
         setIsAuthenticated(false);
       } finally {
+        console.log("[AdminRoute] Finishing checkAuth");
         setIsChecking(false);
       }
     };
@@ -372,10 +400,11 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (isChecking) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-blue-50/50 flex flex-col items-center justify-center gap-4 border-8 border-blue-500/10">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Verifying admin privileges...</p>
+          <p className="text-gray-600 font-bold">Verifying admin privileges...</p>
+          <p className="text-[10px] text-gray-400 mt-2">DEBUG: isChecking=true | Auth={String(isAuthenticated)}</p>
         </div>
       </div>
     );
@@ -428,9 +457,11 @@ const AppContent = () => {
         <Route
           path="/admin/*"
           element={
-            <AdminRoute>
-              <AdminNexus />
-            </AdminRoute>
+            <AdminErrorBoundary>
+              <AdminRoute>
+                <AdminNexus />
+              </AdminRoute>
+            </AdminErrorBoundary>
           }
         />
 
