@@ -27,9 +27,11 @@ export default async function handler(req: Request) {
         // Trigger GitHub Workflow Dispatch
         // Map scriptId to workflow filename
         const workflowMap: Record<string, string> = {
-            'iebc_verification': 'daily-iebc-verify.yml',
-            'coord_correction': 'daily-iebc-verify.yml',
-            'geocode_resolve': 'daily-iebc-verify.yml',
+            'iebc_verification': 'admin-task-runner.yml',
+            'coord_correction': 'admin-task-runner.yml',
+            'geocode_resolve': 'admin-task-runner.yml',
+            'hitl_full_audit': 'admin-task-runner.yml',
+            'geocode_sync': 'admin-task-runner.yml',
         };
 
         const workflowFile = workflowMap[scriptId as string] || 'daily-iebc-verify.yml';
@@ -47,8 +49,11 @@ export default async function handler(req: Request) {
                 body: JSON.stringify({
                     ref: 'main',
                     inputs: {
+                        task_id: params?.taskId || '',
+                        task_type: scriptId,
                         skip_nominatim: params?.quick === true ? 'true' : 'false',
                         run_resolver: scriptId === 'geocode_resolve' ? 'true' : 'false',
+                        shapefile_path: params?.shapefile_path || 'data/constituencies.shp'
                     }
                 }),
             }

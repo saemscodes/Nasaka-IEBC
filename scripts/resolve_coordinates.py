@@ -32,6 +32,12 @@ from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple, Any
 
+# Internal Admin Task Library
+try:
+    from admin_task_lib import AdminTask
+except ImportError:
+    AdminTask = None
+
 # Load .env if present
 try:
     from dotenv import load_dotenv
@@ -1680,7 +1686,17 @@ def main():
     parser.add_argument("--max-resolve", type=int, default=999, help="Max offices to resolve in batch")
     parser.add_argument("--json-output", action="store_true", help="Output JSON summary")
     parser.add_argument("--skip-clusters", action="store_true", help="Skip cluster detection phase")
+    parser.add_argument("--task-id", help="Admin Task ID for dashboard reporting")
     args = parser.parse_args()
+
+    # Admin Task Reporting
+    admin_task = None
+    if args.task_id and AdminTask:
+        try:
+            admin_task = AdminTask(args.task_id)
+            admin_task.log(f"Starting Coordinate Resolver (apply={args.apply})", level='step')
+        except Exception as e:
+            print(f"⚠️ Failed to init admin task reporting: {e}")
 
     mode_label = "APPLY (LIVE)" if args.apply else "DRY RUN"
     log.info("=" * 70)

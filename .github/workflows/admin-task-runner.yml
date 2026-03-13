@@ -14,6 +14,11 @@ on:
           - iebc_verification
           - coord_correction
           - geocode_sync
+          - hitl_full_audit
+      shapefile_path:
+        description: 'Path to shapefile (optional, uses environment default if not provided)'
+        required: false
+        default: 'data/constituencies.shp'
 
 jobs:
   execute-task:
@@ -23,6 +28,8 @@ jobs:
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+      VITE_GEOKEO_API_KEY: ${{ secrets.VITE_GEOKEO_API_KEY }}
       ADMIN_TASK_ID: ${{ github.event.inputs.task_id }}
 
     steps:
@@ -35,10 +42,17 @@ jobs:
           python-version: '3.10'
           cache: 'pip'
 
+      - name: Set up Node.js (for sitemap)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install requests python-dotenv
+          # If package.json exists, install node deps
+          if [ -f "package.json" ]; then npm install; fi
 
       - name: Run Script
         run: |
@@ -48,6 +62,15 @@ jobs:
               ;;
             "coord_correction")
               python scripts/fix_all_coords.py --apply --task-id "${{ github.event.inputs.task_id }}"
+              ;;
+            "hitl_full_audit")
+              python scripts/hitl_full_audit.py --shapefile "${{ github.event.inputs.shapefile_path || 'data/constituencies.shp' }}" --apply --task-id "${{ github.event.inputs.task_id }}"
+              ;;
+            "geocode_resolve")
+              python scripts/resolve_coordinates.py --apply --task-id "${{ github.event.inputs.task_id }}"
+              ;;
+            "geocode_sync")
+              node scripts/generate-sitemap.js --task-id "${{ github.event.inputs.task_id }}"
               ;;
             *)
               echo "Unknown task type: ${{ github.event.inputs.task_type }}"

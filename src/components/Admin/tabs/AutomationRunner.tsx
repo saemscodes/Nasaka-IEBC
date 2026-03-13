@@ -50,6 +50,7 @@ const AutomationRunner = () => {
     const availableScripts = [
         { id: 'iebc_verification', name: 'IEBC Data Verification', icon: Database, desc: 'Cluster detection, county alignment & audit' },
         { id: 'coord_correction', name: 'Coordinate Fixer', icon: Zap, desc: 'Auto-apply verified coordinates from benchmarks' },
+        { id: 'hitl_full_audit', name: 'Full HITL & Shapefile Audit', icon: CheckCircle2, desc: 'PIP validation against shapefiles + queue cleanup' },
         { id: 'geocode_resolve', name: 'Coordinate Resolver', icon: CheckCircle2, desc: 'Multi-source AI geocoding — Nominatim, Geocode.xyz, Geokeo, Gemini consensus' },
         { id: 'geocode_sync', name: 'Sitemap Regenerator', icon: History, desc: 'Refresh SEO sitemap and canonical links' },
     ];

@@ -33,7 +33,7 @@ const AdminNexus = () => {
             case 'security': return <SecurityAudit />;
             default: return (
                 <div className="p-12 text-center border-2 border-dashed border-white/10 rounded-3xl">
-                    <p className="text-gray-500">Requested nexus cell <span className="text-blue-400 font-mono">[{activeTab}]</span> is currently offline or unlinked.</p>
+                    <p className="text-gray-500">Requested admin access <span className="text-blue-400 font-mono">[{activeTab}]</span> is currently offline or unlinked.</p>
                 </div>
             );
         }
@@ -64,8 +64,8 @@ const AdminNexus = () => {
 
                     <div className="flex items-center space-x-4">
                         <div className="flex flex-col items-end mr-4">
-                            <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">Admin Nexus</span>
-                            <span className="text-[10px] text-gray-500 font-medium">v1.2.0-ham</span>
+                            <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">Nasaka Admin</span>
+                            <span className="text-[10px] text-gray-500 font-medium">by CEKA</span>
                         </div>
                         <div className="h-10 w-10 rounded-full border border-white/10 p-0.5">
                             <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xs font-bold">
@@ -81,7 +81,7 @@ const AdminNexus = () => {
                         <div className="h-[60vh] flex items-center justify-center">
                             <div className="flex flex-col items-center space-y-4">
                                 <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
-                                <p className="text-sm text-blue-400/60 font-medium uppercase tracking-widest">Initialising Cell...</p>
+                                <p className="text-sm text-blue-400/60 font-medium uppercase tracking-widest">Initialising Admin Access...</p>
                             </div>
                         </div>
                     }>
