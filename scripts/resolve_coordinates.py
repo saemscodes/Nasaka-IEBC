@@ -420,11 +420,19 @@ def save_rev_geo_cache():
 
 
 def normalize_county(name: str) -> str:
-    """Normalize county name for comparison (uppercase, strip, handle Murang'a etc)."""
+    """Normalize county name for comparison (uppercase, strip, handle Murang'a etc). v10: strict."""
     n = name.strip().upper()
-    n = n.replace("'", "'").replace("'", "'").replace("`", "'")
+    n = n.replace("\u2019", "'").replace("\u2018", "'").replace("`", "'")
     n = n.replace("/", "-").replace("\u2013", "-")  # v9.1: slash/hyphen equivalence
+    # v10: Strip trailing " COUNTY" suffix (e.g. "NAIROBI COUNTY" → "NAIROBI")
+    n = re.sub(r"\s+COUNTY\s*$", "", n)
+    # v10: Collapse spaces around hyphens ("THARAKA - NITHI" → "THARAKA-NITHI")
+    n = re.sub(r"\s*-\s*", "-", n)
     n = re.sub(r"\s+", " ", n)
+    # v10: Common spelling variants
+    n = n.replace("ELEGEYO", "ELGEYO")  # ELEGEYO-MARAKWET → ELGEYO-MARAKWET
+    n = n.replace("NAIROBI CITY", "NAIROBI")  # Nairobi City → Nairobi
+    n = n.replace("HOMABAY", "HOMA BAY")  # HomaBay → Homa Bay
     # v9.1: Resolve sub-counties/constituencies to parent counties
     return SUBCOUNTY_TO_COUNTY.get(n, n)
 
@@ -1120,43 +1128,70 @@ def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) 
             log.info(f"  ✨ Sufficient validated candidates ({valid_count}) found via standard sources. Skipping AI.")
             break
 
-    # AI Escalation Layer (v9.5: Multi-AI Redundancy)
+    # AI Escalation Layer (v10: AI results now go through county validation)
     valid_count = len([c for c in all_candidates if not c.get("rejection_reason")])
     if valid_count < 2:
-        log.info(f"  🧠 AI ESCALATION: Only {valid_count} validated candidates. Triggering Intelligence Layer.")
+        log.info(f"  \U0001f9e0 AI ESCALATION: Only {valid_count} validated candidates. Triggering Intelligence Layer.")
+        ai_raw_results: List[Dict] = []
+
         # Gemini (Primary AI)
         gem_results = geocode_gemini(constituency, county, location, landmark)
         for r in gem_results:
-            r["query_used"] = "gemini_ai_v9_5"
+            r["query_used"] = "gemini_ai_v10"
             r["query_index"] = -1
-            all_candidates.append(r) # AI is pre-validated by prompt context
+        ai_raw_results.extend(gem_results)
 
-        # Groq (Secondary AI, v9.5)
-        if len([c for c in all_candidates if not c.get("rejection_reason")]) < 2:
-            log.info("  🧠 Triggering Groq (Llama-3)...")
+        # Groq (Secondary AI)
+        if len(ai_raw_results) < 2:
+            log.info("  \U0001f9e0 Triggering Groq (Llama-3)...")
             grq_results = geocode_groq(queries[0])
             for r in grq_results:
-                r["query_used"] = "groq_ai_v9_5"
+                r["query_used"] = "groq_ai_v10"
                 r["query_index"] = -2
-                all_candidates.append(r)
+            ai_raw_results.extend(grq_results)
 
-        # Hugging Face (Tertiary AI, v9.5)
-        if len([c for c in all_candidates if not c.get("rejection_reason")]) < 2:
-            log.info("  🧠 Triggering Hugging Face...")
+        # Hugging Face (Tertiary AI)
+        if len(ai_raw_results) < 2:
+            log.info("  \U0001f9e0 Triggering Hugging Face...")
             hf_results = geocode_huggingface(queries[0])
             for r in hf_results:
-                r["query_used"] = "hf_ai_v9_5"
+                r["query_used"] = "hf_ai_v10"
                 r["query_index"] = -3
-                all_candidates.append(r)
+            ai_raw_results.extend(hf_results)
 
         # OpenAI (Premium Fallback)
-        if len([c for c in all_candidates if not c.get("rejection_reason")]) < 2:
-            log.info("  🧠 Triggering OpenAI fallback...")
+        if len(ai_raw_results) < 2:
+            log.info("  \U0001f9e0 Triggering OpenAI fallback...")
             oai_results = geocode_openai(queries[0])
             for r in oai_results:
-                r["query_used"] = "openai_gpt4_v9_5"
+                r["query_used"] = "openai_gpt4_v10"
                 r["query_index"] = -4
-                all_candidates.append(r)
+            ai_raw_results.extend(oai_results)
+
+        # v10 FIX: Route AI results through the SAME county validation as standard geocoders
+        for c in ai_raw_results:
+            if not expected_county:
+                all_candidates.append(c)
+            else:
+                api_county = normalize_county(c.get("county_from_api", ""))
+                exp_county = normalize_county(expected_county)
+                if api_county and (api_county == exp_county or exp_county in api_county or api_county in exp_county):
+                    c["validation_method"] = "ai_county_match"
+                    all_candidates.append(c)
+                    log.info(f"    ✓ AI [{c['source']}] county match: {api_county} == {exp_county}")
+                else:
+                    # AI gave no county or wrong county — try reverse geocode validation
+                    rev_county = reverse_geocode_county(c["lat"], c["lng"])
+                    if rev_county:
+                        rev_norm = normalize_county(rev_county)
+                        if rev_norm == exp_county or exp_county in rev_norm or rev_norm in exp_county:
+                            c["validation_method"] = "ai_reverse_geocode_match"
+                            all_candidates.append(c)
+                            log.info(f"    ✓ AI [{c['source']}] reverse-geocode county match: {rev_norm}")
+                            continue
+                    c["rejection_reason"] = f"AI county mismatch: got '{api_county or 'none'}', reverse='{rev_county or 'none'}', expected '{exp_county}'"
+                    rejected.append(c)
+                    log.info(f"    ✗ AI [{c['source']}] REJECTED: {c['rejection_reason']}")
 
     # v9.1: Stage 7 — PDF Extraction Fallback
     if _pdf_extraction_data:

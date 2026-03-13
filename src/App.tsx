@@ -312,43 +312,48 @@ const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
   );
 };
 
+// ✅ Stable global auth state to survive re-mount loops
+let _cachedAdminStatus: { authenticated: boolean; checked: boolean } = { authenticated: false, checked: false };
+
 // ✅ SECURE Admin Route Protection Component
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isChecking, setIsChecking] = useState(true);
+  const [isChecking, setIsChecking] = useState(!_cachedAdminStatus.checked);
+  const [isAuthenticated, setIsAuthenticated] = useState(_cachedAdminStatus.authenticated);
 
   useEffect(() => {
     let isMounted = true;
 
-    const checkAuthStatus = async (user_id: string) => {
-      try {
-        const { data: coreTeam, error } = await supabase
-          .from('core_team')
-          .select('is_admin, is_active')
-          .eq('user_id', user_id)
-          .single();
-
-        if (isMounted) {
-          setIsAuthenticated(!!(coreTeam?.is_admin && coreTeam?.is_active));
-        }
-      } catch (err) {
-        if (isMounted) setIsAuthenticated(false);
-      } finally {
+    const performCheck = async () => {
+      if (_cachedAdminStatus.checked) {
         if (isMounted) setIsChecking(false);
+        return;
       }
-    };
 
-    const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
+
         if (!session) {
+          _cachedAdminStatus = { authenticated: false, checked: true };
           if (isMounted) {
             setIsAuthenticated(false);
             setIsChecking(false);
           }
           return;
         }
-        await checkAuthStatus(session.user.id);
+
+        const { data: coreTeam } = await supabase
+          .from('core_team')
+          .select('is_admin, is_active')
+          .eq('user_id', session.user.id)
+          .single();
+
+        const isValid = !!(coreTeam?.is_admin && coreTeam?.is_active);
+        _cachedAdminStatus = { authenticated: isValid, checked: true };
+
+        if (isMounted) {
+          setIsAuthenticated(isValid);
+          setIsChecking(false);
+        }
       } catch (err) {
         if (isMounted) {
           setIsAuthenticated(false);
@@ -357,20 +362,20 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    initializeAuth();
+    performCheck();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!isMounted) return;
-
-        if (event === 'SIGNED_OUT' || !session) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        _cachedAdminStatus = { authenticated: false, checked: true };
+        if (isMounted) {
           setIsAuthenticated(false);
           setIsChecking(false);
-        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          await checkAuthStatus(session.user.id);
         }
+      } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        _cachedAdminStatus.checked = false;
+        performCheck();
       }
-    );
+    });
 
     return () => {
       isMounted = false;
@@ -379,18 +384,12 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   if (isChecking) {
-    return (
-      <div className="min-h-screen bg-[#050608] flex flex-col items-center justify-center p-4">
-        <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-        <p className="text-blue-400 font-mono text-xs uppercase tracking-widest animate-pulse">
-          Establishing Secure Handshake...
-        </p>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   if (!isAuthenticated) {
     return <AdminLogin onLogin={(success) => {
+      _cachedAdminStatus = { authenticated: success, checked: true };
       setIsAuthenticated(success);
       setIsChecking(false);
     }} />;
