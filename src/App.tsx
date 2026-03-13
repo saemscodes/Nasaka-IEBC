@@ -318,66 +318,82 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          setIsAuthenticated(false);
-          setIsChecking(false);
-          return;
-        }
+    let isMounted = true;
 
-        const { data: coreTeam } = await supabase
+    const checkAuthStatus = async (user_id: string) => {
+      try {
+        const { data: coreTeam, error } = await supabase
           .from('core_team')
-          .select('is_admin')
-          .eq('user_id', session.user.id)
-          .eq('is_admin', true)
+          .select('is_admin, is_active')
+          .eq('user_id', user_id)
           .single();
 
-        setIsAuthenticated(!!coreTeam);
+        if (isMounted) {
+          setIsAuthenticated(!!(coreTeam?.is_admin && coreTeam?.is_active));
+        }
       } catch (err) {
-        setIsAuthenticated(false);
+        if (isMounted) setIsAuthenticated(false);
       } finally {
-        setIsChecking(false);
+        if (isMounted) setIsChecking(false);
       }
     };
 
-    checkAuth();
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          if (isMounted) {
+            setIsAuthenticated(false);
+            setIsChecking(false);
+          }
+          return;
+        }
+        await checkAuthStatus(session.user.id);
+      } catch (err) {
+        if (isMounted) {
+          setIsAuthenticated(false);
+          setIsChecking(false);
+        }
+      }
+    };
+
+    initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === 'SIGNED_OUT') {
+        if (!isMounted) return;
+
+        if (event === 'SIGNED_OUT' || !session) {
           setIsAuthenticated(false);
           setIsChecking(false);
-        } else if (event === 'SIGNED_IN' && session) {
-          const { data: coreTeam } = await supabase
-            .from('core_team')
-            .select('is_admin')
-            .eq('user_id', session.user.id)
-            .eq('is_admin', true)
-            .single();
-          setIsAuthenticated(!!coreTeam);
-          setIsChecking(false);
+        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          await checkAuthStatus(session.user.id);
         }
       }
     );
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, []);
 
   if (isChecking) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
-        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-gray-600 font-medium">Verifying access...</p>
+      <div className="min-h-screen bg-[#050608] flex flex-col items-center justify-center p-4">
+        <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+        <p className="text-blue-400 font-mono text-xs uppercase tracking-widest animate-pulse">
+          Establishing Secure Handshake...
+        </p>
       </div>
     );
   }
 
   if (!isAuthenticated) {
-    return <AdminLogin onLogin={(success) => setIsAuthenticated(success)} />;
+    return <AdminLogin onLogin={(success) => {
+      setIsAuthenticated(success);
+      setIsChecking(false);
+    }} />;
   }
 
   return <>{children}</>;
