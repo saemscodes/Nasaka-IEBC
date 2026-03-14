@@ -1489,89 +1489,93 @@ def apply_resolution(office_id: int, lat: float, lng: float, confidence: float,
                      successful_query: str, formatted_addr: str,
                      consensus: Optional[Dict]) -> bool:
     """Update an office's coordinates and ALL metadata in Supabase (v9.5: integer confidence cast)."""
-    # Fix: Supabase confidence_score is integer (percentage)
-    conf_int = int(float(confidence) * 100)
-    
-    payload = {
-        "latitude": lat,
-        "longitude": lng,
-        "geocode_verified": True,
-        "geocode_verified_at": datetime.now(timezone.utc).isoformat(),
-        "multi_source_confidence": float(confidence), # Keep float if column allows, but cast for confidence_score
-        "geocode_method": "multi_source_crossvalidated",
-        "geocode_confidence": float(confidence),
-        "geocode_status": "resolved",
-        "geocode_queries": json.dumps(queries_used) if queries_used else None,
-        "geocode_query": successful_query or None,
-        "successful_geocode_query": successful_query or None,
-        "total_queries_tried": len(queries_used),
-        "updated_at": datetime.now(timezone.utc).isoformat(),
-        "confidence_score": conf_int # v9.5 fix for integer syntax error
-    }
+    try:
+        # Fix: Supabase confidence_score is integer (percentage)
+        conf_int = int(float(confidence) * 100)
+        
+        payload = {
+            "latitude": lat,
+            "longitude": lng,
+            "geocode_verified": True,
+            "geocode_verified_at": datetime.now(timezone.utc).isoformat(),
+            "multi_source_confidence": float(confidence),
+            "geocode_method": "multi_source_crossvalidated",
+            "geocode_confidence": float(confidence),
+            "geocode_status": "resolved",
+            "geocode_queries": json.dumps(queries_used) if queries_used else None,
+            "geocode_query": successful_query or None,
+            "successful_geocode_query": successful_query or None,
+            "total_queries_tried": len(queries_used),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "confidence_score": conf_int
+        }
 
-    # Direction metadata
-    if direction_meta.get("direction_type"):
-        payload["direction_type"] = direction_meta["direction_type"]
-    if direction_meta.get("direction_landmark"):
-        payload["direction_landmark"] = direction_meta["direction_landmark"]
-    if direction_meta.get("direction_distance") is not None:
-        payload["direction_distance"] = direction_meta["direction_distance"]
-    if direction_meta.get("distance_from_landmark") is not None:
-        payload["distance_from_landmark"] = direction_meta["distance_from_landmark"]
-    if direction_meta.get("landmark_type"):
-        payload["landmark_type"] = direction_meta["landmark_type"]
-    if direction_meta.get("landmark_subtype"):
-        payload["landmark_subtype"] = direction_meta["landmark_subtype"]
+        # Direction metadata
+        if direction_meta.get("direction_type"):
+            payload["direction_type"] = direction_meta["direction_type"]
+        if direction_meta.get("direction_landmark"):
+            payload["direction_landmark"] = direction_meta["direction_landmark"]
+        if direction_meta.get("direction_distance") is not None:
+            payload["direction_distance"] = direction_meta["direction_distance"]
+        if direction_meta.get("distance_from_landmark") is not None:
+            payload["distance_from_landmark"] = direction_meta["distance_from_landmark"]
+        if direction_meta.get("landmark_type"):
+            payload["landmark_type"] = direction_meta["landmark_type"]
+        if direction_meta.get("landmark_subtype"):
+            payload["landmark_subtype"] = direction_meta["landmark_subtype"]
 
-    # Formatted address from best source
-    if formatted_addr:
-        payload["formatted_address"] = formatted_addr
+        # Formatted address from best source
+        if formatted_addr:
+            payload["formatted_address"] = formatted_addr
 
-    # Result type
-    if consensus:
-        sources = consensus.get("sources", [])
-        if "contribution" in sources:
-            payload["result_type"] = "contribution_validated"
-        elif len(sources) >= 3:
-            payload["result_type"] = "multi_source_consensus"
-        else:
-            payload["result_type"] = "cross_validated"
+        # Result type
+        if consensus:
+            sources = consensus.get("sources", [])
+            if "contribution" in sources:
+                payload["result_type"] = "contribution_validated"
+            elif len(sources) >= 3:
+                payload["result_type"] = "multi_source_consensus"
+            else:
+                payload["result_type"] = "cross_validated"
 
-    resp = requests.patch(
-        f"{SUPABASE_URL}/rest/v1/iebc_offices?id=eq.{office_id}",
-        headers=HEADERS,
-        json=payload,
-        timeout=10,
-    )
-    if resp.status_code in (200, 204):
-        return True
+        resp = requests.patch(
+            f"{SUPABASE_URL}/rest/v1/iebc_offices?id=eq.{office_id}",
+            headers=HEADERS,
+            json=payload,
+            timeout=10,
+        )
+        if resp.status_code in (200, 204):
+            return True
 
-    # v9.1: Log the actual error and retry with core-only columns
-    log.warning(f"  DB full-payload update failed ({resp.status_code}): {resp.text[:300]}")
-    
-    # Core-only fallback: restore structural compliance (v9.1)
-    core_payload = {
-        "latitude": lat,
-        "longitude": lng,
-        "geocode_verified": True,
-        "confidence_score": conf_int, # v9.5 fix
-        "multi_source_confidence": float(confidence),
-        "geocode_method": "multi_source_crossvalidated",
-        "geocode_confidence": float(confidence),
-        "geocode_status": "resolved",
-        "updated_at": datetime.now(timezone.utc).isoformat(),
-    }
-    resp2 = requests.patch(
-        f"{SUPABASE_URL}/rest/v1/iebc_offices?id=eq.{office_id}",
-        headers=HEADERS,
-        json=core_payload,
-        timeout=10,
-    )
-    if resp2.status_code in (200, 204):
-        log.info(f"  ✅ Core-only fallback succeeded for office {office_id}")
-        return True
-    log.error(f"  ❌ Core-only fallback also failed ({resp2.status_code}): {resp2.text[:300]}")
-    return False
+        # v9.1: Log the actual error and retry with core-only columns
+        log.warning(f"  DB full-payload update failed ({resp.status_code}): {resp.text[:300]}")
+        
+        # Core-only fallback
+        core_payload = {
+            "latitude": lat,
+            "longitude": lng,
+            "geocode_verified": True,
+            "confidence_score": conf_int,
+            "multi_source_confidence": float(confidence),
+            "geocode_method": "multi_source_crossvalidated",
+            "geocode_confidence": float(confidence),
+            "geocode_status": "resolved",
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        resp2 = requests.patch(
+            f"{SUPABASE_URL}/rest/v1/iebc_offices?id=eq.{office_id}",
+            headers=HEADERS,
+            json=core_payload,
+            timeout=10,
+        )
+        if resp2.status_code in (200, 204):
+            log.info(f"  ✅ Core-only fallback succeeded for office {office_id}")
+            return True
+        log.error(f"  ❌ Core-only fallback also failed ({resp2.status_code}): {resp2.text[:300]}")
+        return False
+    except Exception as e:
+        log.error(f"  ❌ Network error applying resolution for office {office_id}: {e}")
+        return False
 
 
 def log_audit(office: Dict, issue_type: str, new_lat: float, new_lng: float,
@@ -1676,6 +1680,38 @@ def fetch_flagged_offices() -> List[Dict]:
     return offices
 
 
+def fetch_autoresolved_offices() -> List[Dict]:
+    """Fetch offices from HITL queue that were auto_resolved or dismissed."""
+    log.info("Fetching auto_resolved and dismissed offices from HITL queue...")
+    resp = requests.get(
+        f"{SUPABASE_URL}/rest/v1/geocode_hitl_queue?status=in.(auto_resolved,dismissed)&select=office_id&limit=3000",
+        headers=HEADERS,
+        timeout=15,
+    )
+    resp.raise_for_status()
+    items = resp.json()
+    office_ids = set([item["office_id"] for item in items])
+    if not office_ids:
+        log.info("No auto_resolved or dismissed offices found.")
+        return []
+
+    ids_csv = ",".join(str(oid) for oid in office_ids)
+    resp_offices = requests.get(
+        f"{SUPABASE_URL}/rest/v1/iebc_offices?id=in.({ids_csv})"
+        f"&select=id,constituency,constituency_name,constituency_code,county,"
+        f"office_location,latitude,longitude,landmark,landmark_type,landmark_subtype,"
+        f"direction_type,direction_landmark,direction_distance,distance_from_landmark,"
+        f"geocode_queries,geocode_query,geocode_method,geocode_confidence,geocode_status,"
+        f"formatted_address,verified,clean_office_location,notes,source",
+        headers={**HEADERS},
+        timeout=15,
+    )
+    resp_offices.raise_for_status()
+    offices = resp_offices.json()
+    log.info(f"Fetched {len(offices)} auto-resolved/dismissed offices from database")
+    return offices
+
+
 # ── Main Pipeline ─────────────────────────────────────────────────────────────
 
 def main():
@@ -1683,6 +1719,7 @@ def main():
     parser.add_argument("--apply", action="store_true", help="Write resolved coords to Supabase")
     parser.add_argument("--all", action="store_true", help="Resolve ALL offices in the database")
     parser.add_argument("--office-id", type=int, help="Resolve a single office by ID")
+    parser.add_argument("--hitl-autoresolved", action="store_true", help="Resolve offices that were auto_resolved or dismissed in HITL")
     parser.add_argument("--max-resolve", type=int, default=999, help="Max offices to resolve in batch")
     parser.add_argument("--json-output", action="store_true", help="Output JSON summary")
     parser.add_argument("--skip-clusters", action="store_true", help="Skip cluster detection phase")
@@ -1724,6 +1761,8 @@ def main():
     elif args.all:
         log.info("Fetching ALL offices from database...")
         offices = fetch_all_offices()
+    elif args.hitl_autoresolved:
+        offices = fetch_autoresolved_offices()
     else:
         offices = fetch_flagged_offices()
 
@@ -1820,17 +1859,11 @@ def main():
             for rej in rejected[:3]:
                 log.info(f"     ❌ {rej['source']}: ({rej['lat']:.5f},{rej['lng']:.5f}) — {rej.get('rejection_reason','')}")
 
-    # Phase 2: Candidate Generation
-    if admin_task: admin_task.log(f"Phase 2: Geocoding {len(offices)} offices via multi-source AI...", level='step')
-    log.info("")
-    log.info("=" * 70)
-    log.info("PHASE 2: CANDIDATE GENERATION & MULTI-SOURCE GEOCODING")
-    log.info("=" * 70)
+        # Compute consensus from validated candidates
+        consensus = compute_consensus(validated) if validated else None
 
-    total_offices = len(offices)
-    for idx, office in enumerate(offices):
-        if admin_task and idx > 0 and idx % 10 == 0:
-            admin_task.log(f"Resolver progress: {idx}/{total_offices} offices analyzed", level='step')
+        if admin_task and i > 0 and i % 10 == 0:
+            admin_task.log(f"Resolver progress: {i}/{len(offices)} offices analyzed", level='step')
 
         if consensus:
             log.info(f"  ✅ Consensus: ({consensus['lat']:.5f}, {consensus['lng']:.5f}) "
@@ -1961,7 +1994,7 @@ def main():
         save_rev_geo_cache()
 
     # Phase 3: Selection & Update
-    if admin_task: admin_task.log(f"Phase 3: Finalizing {len(results)} resolutions with consensus weighting...", level='step')
+    if admin_task: admin_task.log(f"Phase 3: Finalizing {len(results_log)} resolutions with consensus weighting...", level='step')
     log.info("")
     log.info("=" * 70)
     log.info("PHASE 3: CONSENSUS VOTING & DATABASE UPDATES")

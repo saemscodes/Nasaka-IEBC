@@ -202,11 +202,11 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                             </svg>
                         </div>
                         <div>
-                            <h3 className="font-bold">{t('offline.protectionTitle', 'Trip Protection')}</h3>
-                            <p className="text-[10px] uppercase tracking-wider opacity-50 font-bold">Persistent Storage Mode</p>
+                            <h3 className={`font-bold ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>{t('offline.protectionTitle', 'Trip Protection')}</h3>
+                            <p className={`text-[10px] uppercase tracking-wider font-bold ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>Persistent Storage Mode</p>
                         </div>
                     </div>
-                    <p className="text-sm opacity-70 leading-relaxed">
+                    <p className={`text-sm leading-relaxed ${isDark ? 'text-ios-gray-300' : 'text-ios-gray-600'}`}>
                         {t('offline.sidebarDesc', 'Download map tiles along your route to ensure navigation continues even when you lose internet connection in "dead zones".')}
                     </p>
 
@@ -220,11 +220,11 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-center">
-                                            <p className="text-[10px] font-bold opacity-50 uppercase tracking-tighter">{t('offline.weather', 'Weather')}</p>
-                                            <span className="text-[10px] font-bold text-ios-blue">{travelInsights.temperature}°C</span>
+                                            <p className={`text-[10px] font-bold uppercase tracking-tighter ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>{t('offline.weather', 'Current Weather')}</p>
+                                            <span className="text-[10px] font-bold text-green-500">{travelInsights.temperature}°C</span>
                                         </div>
-                                        <p className="text-sm font-bold truncate leading-tight">{travelInsights.weatherDesc}</p>
-                                        <p className="text-[9px] opacity-60 font-medium">{travelInsights.precipProb}% {t('offline.precipChance', 'Precipitation Chance')}</p>
+                                        <p className={`text-sm font-bold truncate leading-tight ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>{travelInsights.weatherDesc}</p>
+                                        <p className={`text-[9px] font-medium ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>{travelInsights.precipProb}% {t('offline.precipChance', 'Precipitation Chance')}</p>
                                     </div>
                                 </div>
                             )}
@@ -235,10 +235,10 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                                         <IconCar className="w-4 h-4" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-[10px] font-bold opacity-50 uppercase tracking-tighter">{t('offline.traffic', 'Traffic')}</p>
+                                        <p className={`text-[10px] font-bold uppercase tracking-tighter ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>{t('offline.traffic', 'Traffic Conditions')}</p>
                                         <div className="flex items-center justify-between">
-                                            <p className={`text-sm font-bold truncate ${trafficInfo.color || ''}`}>{trafficInfo.description}</p>
-                                            <span className="text-[9px] font-bold opacity-40 uppercase">{t('offline.realTime', 'Live')}</span>
+                                            <p className={`text-sm font-bold truncate ${trafficInfo.color || (isDark ? 'text-white' : 'text-ios-gray-900')}`}>{trafficInfo.description}</p>
+                                            <span className={`text-[9px] font-bold uppercase ${isDark ? 'text-ios-gray-500' : 'text-ios-gray-400'}`}>{t('offline.realTime', 'Live')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -249,10 +249,10 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
 
                 {/* Configuration Section */}
                 <div className="space-y-4">
-                    <h3 className="text-sm font-bold px-1 uppercase tracking-widest opacity-40">{t('offline.config', 'Configuration')}</h3>
+                    <h3 className={`text-sm font-bold px-1 uppercase tracking-widest ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>{t('offline.config', 'Download Settings')}</h3>
 
                     <div className={`rounded-2xl border p-4 ${isDark ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
-                        <p className="text-xs font-bold mb-3 opacity-60">{t('offline.coverage', 'Coverage Area')}</p>
+                        <p className={`text-xs font-bold mb-3 ${isDark ? 'text-ios-gray-300' : 'text-ios-gray-600'}`}>{t('offline.coverage', 'Coverage Area')}</p>
                         <div className="grid grid-cols-2 gap-2">
                             {['minimal', 'extended'].map((mode) => (
                                 <button
@@ -271,22 +271,22 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                                 </button>
                             ))}
                         </div>
-                        <p className="text-[10px] mt-3 opacity-50 italic">
+                        <p className={`text-[10px] mt-3 italic ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>
                             {downloadMode === 'minimal'
-                                ? 'Caches 500m around the route path.'
-                                : 'Caches 1.5km around the route for more context.'}
+                                ? 'Caches 500m around the route path for lightweight offline navigation.'
+                                : 'Caches 1.5km around the route for broader area coverage.'}
                         </p>
                     </div>
 
                     {/* Stats */}
                     <div className={`rounded-2xl border p-4 ${isDark ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
                         <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs font-bold opacity-60 underline decoration-ios-blue/30 underline-offset-4">{t('offline.estSize', 'Estimated Payload')}</span>
-                            <span className="text-xs font-black">{plan?.estimatedSizeMB || 0} MB</span>
+                            <span className={`text-xs font-bold underline decoration-ios-blue/30 underline-offset-4 ${isDark ? 'text-ios-gray-300' : 'text-ios-gray-600'}`}>{t('offline.estSize', 'Estimated Download Size')}</span>
+                            <span className={`text-xs font-black ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>{plan?.estimatedSizeMB || 0} MB</span>
                         </div>
                         <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold opacity-60 underline decoration-ios-blue/30 underline-offset-4">{t('offline.tileCount', 'Tile Count')}</span>
-                            <span className="text-xs font-black">{plan?.tileCount || 0} items</span>
+                            <span className={`text-xs font-bold underline decoration-ios-blue/30 underline-offset-4 ${isDark ? 'text-ios-gray-300' : 'text-ios-gray-600'}`}>{t('offline.tileCount', 'Map Tiles')}</span>
+                            <span className={`text-xs font-black ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>{plan?.tileCount || 0} items</span>
                         </div>
                     </div>
                 </div>
@@ -318,7 +318,7 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                                     <span className={`text-[11px] font-black tracking-widest ${status === 'done' ? 'text-green-500' : 'text-ios-blue'}`}>
                                         {status === 'done' ? 'TRIP SECURED ✓' : 'PROTECTING ROUTE...'}
                                     </span>
-                                    <span className="text-2xl font-black">{progress}%</span>
+                                    <span className={`text-2xl font-black ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>{progress}%</span>
                                 </div>
                                 <div className={`w-full h-4 rounded-full overflow-hidden p-1 ${isDark ? 'bg-black/40' : 'bg-white/40'}`}>
                                     <motion.div
@@ -328,7 +328,7 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                                     />
                                 </div>
                                 {status === 'done' && (
-                                    <p className="text-[10px] mt-4 font-bold text-center opacity-70">
+                                    <p className={`text-[10px] mt-4 font-bold text-center ${isDark ? 'text-ios-gray-300' : 'text-ios-gray-600'}`}>
                                         MAP DATA STORED IN PERSISTENT CACHE
                                     </p>
                                 )}
@@ -340,13 +340,13 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                 {/* Device Info */}
                 {storageUsed && (
                     <div className="pt-4 border-t border-border mt-4">
-                        <div className="flex items-center gap-2 mb-2 opacity-40">
+                        <div className={`flex items-center gap-2 mb-2 ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>
                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                             </svg>
-                            <span className="text-[10px] font-black uppercase tracking-widest">{t('offline.storageStatus', 'Device Storage Status')}</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest">{t('offline.storageStatus', 'Device Storage')}</span>
                         </div>
-                        <p className="text-[10px] font-bold opacity-60 ml-5">{storageUsed.toUpperCase()}</p>
+                        <p className={`text-[10px] font-bold ml-5 ${isDark ? 'text-ios-gray-300' : 'text-ios-gray-600'}`}>{storageUsed.toUpperCase()}</p>
                     </div>
                 )}
 
