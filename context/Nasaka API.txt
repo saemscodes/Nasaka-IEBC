@@ -1,0 +1,1483 @@
+
+
+Geocoding API Description Auth HTTPS CORS IP Geolocation Geolocate website visitors from their IPs apiKey Yes Yes Actinia Grass GIS Actinia is an open source REST API for geographical data that uses GRASS GIS apiKey Yes Unknown administrative-divisons-db Get all administrative divisions of a cou
+
+pasted
+
+[Transportation
+API    Description    Auth    HTTPS    CORS
+ADS-B Exchange    Access real-time and historical data of any and all airborne aircraft    No    Yes    Unknown
+airportsapi    Get name and website-URL for airports by ICAO code    No    Yes    Unknown
+AIS Hub    Real-time data of any marine and inland vessel equipped with AIS tracking system    apiKey    No    Unknown
+Amadeus for Developers    Travel Search - Limited usage    OAuth    Yes    Unknown
+apilayer aviationstack    Real-time Flight Status & Global Aviation Data API    OAuth    Yes    Unknown
+AviationAPI    FAA Aeronautical Charts and Publications, Airport Information, and Airport Weather    No    Yes    No
+AZ511    Access traffic data from the ADOT API    apiKey    Yes    Unknown
+Bay Area Rapid Transit    Stations and predicted arrivals for BART    apiKey    No    Unknown
+BC Ferries    Sailing times and capacities for BC Ferries    No    Yes    Yes
+BIC-Boxtech    Container technical detail for the global container fleet    OAuth    Yes    Unknown
+BlaBlaCar    Search car sharing trips    apiKey    Yes    Unknown
+Boston MBTA Transit    Stations and predicted arrivals for MBTA    apiKey    Yes    Unknown
+Community Transit    Transitland API    No    Yes    Unknown
+Compare Flight Prices    API for comparing flight prices across platforms    apiKey    Yes    Unknown
+CTS    CTS Realtime API    apiKey    Yes    Yes
+Grab    Track deliveries, ride fares, payments and loyalty points    OAuth    Yes    Unknown
+GraphHopper    A-to-B routing with turn-by-turn instructions    apiKey    Yes    Unknown
+Icelandic APIs    Open APIs that deliver services in or regarding Iceland    No    Yes    Unknown
+Impala Hotel Bookings    Hotel content, rates and room bookings    apiKey    Yes    No
+Izi    Audio guide for travellers    apiKey    Yes    Unknown
+Land Transport Authority DataMall, Singapore    Singapore transport information    apiKey    No    Unknown
+Metro Lisboa    Delays in subway lines    No    No    No
+Navitia    The open API for building cool stuff with transport data    apiKey    Yes    Unknown
+Open Charge Map    Global public registry of electric vehicle charging locations    apiKey    Yes    Yes
+OpenSky Network    Free real-time ADS-B aviation data    No    Yes    Unknown
+Railway Transport for France    SNCF public API    apiKey    Yes    Unknown
+REFUGE Restrooms    Provides safe restroom access for transgender, intersex and gender nonconforming individuals    No    Yes    Unknown
+Sabre for Developers    Travel Search - Limited usage    apiKey    Yes    Unknown
+Schiphol Airport    Schiphol    apiKey    Yes    Unknown
+Tankerkoenig    German realtime gas/diesel prices    apiKey    Yes    Yes
+TransitLand    Transit Aggregation    No    Yes    Unknown
+Transport for Atlanta, US    Marta    No    No    Unknown
+Transport for Auckland, New Zealand    Auckland Transport    No    Yes    Unknown
+Transport for Belgium    The iRail API is a third-party API for Belgian public transport by train    No    Yes    Yes
+Transport for Berlin, Germany    Third-party VBB API    No    Yes    Unknown
+Transport for Bordeaux, France    Bordeaux Métropole public transport and more (France)    apiKey    Yes    Unknown
+Transport for Budapest, Hungary    Budapest public transport API    No    Yes    Unknown
+Transport for Chicago, US    Chicago Transit Authority (CTA)    apiKey    No    Unknown
+Transport for Czech Republic    Czech transport API    No    Yes    Unknown
+Transport for Denver, US    RTD    No    No    Unknown
+Transport for Finland    Finnish transport API    No    Yes    Unknown
+Transport for Germany    Deutsche Bahn (DB) API    apiKey    No    Unknown
+Transport for Grenoble, France    Grenoble public transport    No    No    No
+Transport for Hessen, Germany    RMV API (Public Transport in Hessen)    No    Yes    Unknown
+Transport for Honolulu, US    Honolulu Transportation Information    apiKey    No    Unknown
+Transport for Lisbon, Portugal    Data about buses routes, parking and traffic    apiKey    Yes    Unknown
+Transport for London, England    TfL API    apiKey    Yes    Unknown
+Transport for Los Angeles, US    Data about positions of Metro vehicles in real time and travel their routes    No    Yes    Unknown
+Transport for Manchester, England    TfGM transport network data    apiKey    Yes    No
+Transport for Norway    Transport APIs and dataset for Norway    No    Yes    Unknown
+Transport for Ottawa, Canada    OC Transpo API    apiKey    Yes    Unknown
+Transport for Paris, France    RATP Open Data API    No    No    Unknown
+Transport for Philadelphia, US    SEPTA APIs    No    No    Unknown
+Transport for Sao Paulo, Brazil    SPTrans    OAuth    No    Unknown
+Transport for Spain    Public trains of Spain    No    Yes    Unknown
+Transport for Sweden    Public Transport consumer    OAuth    Yes    Unknown
+Transport for Switzerland    Official Swiss Public Transport Open Data    apiKey    Yes    Unknown
+Transport for Switzerland    Swiss public transport API    No    Yes    Unknown
+Transport for The Netherlands    NS, only trains    apiKey    No    Unknown
+Transport for The Netherlands    OVAPI, country-wide public transport    No    Yes    Unknown
+Transport for Toronto, Canada    TTC    No    Yes    Unknown
+Transport for UK    Transport API and dataset for UK    apiKey    Yes    Unknown
+Transport for United States    NextBus API    No    No    Unknown
+Transport for Vancouver, Canada    TransLink    OAuth    Yes    Unknown
+Transport for Washington, US    Washington Metro transport API    OAuth    Yes    Unknown
+transport.rest    Community maintained, developer-friendly public transport API    No    Yes    Yes
+Tripadvisor    Rating content for a hotel, restaurant, attraction or destination    apiKey    Yes    Unknown
+Uber    Uber ride requests and price estimation    OAuth    Yes    Yes
+Velib metropolis, Paris, France    Velib Open Data API    No    Yes    No] [attached] what about these can be helpful to Nasaka IEBC for the Kenyan context?
+
+Show more
+Mar 12
+
+Evaluated transportation APIs for Kenya voter registration center accessibility tool
+Evaluated transportation APIs for Kenya voter registration center accessibility tool
+Here's what's actually relevant to the Kenyan context for Nasaka IEBC:
+
+Geocoding — High Value
+
+Nominatim — Free, no auth, HTTPS, CORS Yes. OpenStreetMap-based worldwide geocoding including Kenya. Best fit for forward/reverse geocoding of IEBC centers by name or coordinates. Zero cost.
+OpenCage — Uses open data (OSM-backed), CORS Yes. Stronger for structured address parsing where Nominatim returns ambiguous results in rural Kenya.
+Geokeo — No auth, CORS Yes, 2,500 free daily requests. Good lightweight fallback for geocoding center names/localities.
+ipapi.co — Free, no auth, CORS Yes. Auto-detects user county/region from IP — useful as a soft location fallback when GPS is denied or unavailable on mobile.
+GeoJS — Free, no auth, CORS Yes. Same IP geolocation use case, with ChatOps integration potential for alerts.
+REST Countries — Could feed basic Kenya administrative boundary data (counties).
+Transport — Relevant
+
+GraphHopper — A-to-B routing with turn-by-turn, apiKey. Works globally including Kenya road networks (OSM-based). Most viable for "get directions to this IEBC center" functionality.
+openrouteservice.org — Directions + isochrones + geocoding in one API. The isochrone feature (reachability zones) could map which centers are within X minutes of a user — high value for accessibility context.
+What to skip entirely: All the "Transport for [specific city]" APIs — they're all closed municipal systems for European/North American transit networks. Zero applicability.
+
+Priority stack for Nasaka: Nominatim for geocoding → openrouteservice for routing + isochrones → ipapi.co for IP-based county fallback.
+
+Is this accurate: [Based on the latest priority stack and feedback, here is the "Kenyan-optimized" approach for scaling Nasaka IEBC from 290 constituency offices to 40,000+ polling stations.
+🏆 The Priority Stack
+ServiceRoleKey Benefit for KenyaNominatimPrimary GeocoderFree, OSM-backed. Best for reverse-geocoding coordinates into locally recognizable village/market names.openrouteserviceRouting + IsochronesIsochrones (Reachability Zones): Maps "How many people are within a 30-min walk of this station?"ipapi.coIP Location FallbackSoft fallback for county-level centering when GPS is unavailable (Safaricom/Airtel ISP data).
+📍 Location & Geocoding "Golden" Features
+1. Hybrid Location Tracking (User Innovation)
+* The Relay: Use GPS for the initial high-accuracy relay.
+* The Persistence: Use historical GPS data combined with ISP/IP routing to maintain a "More Accurate Persistent Marker". This reduces battery drain and maintains location context even when the user moves indoors or GPRS signals weaken.
+2. Address Normalization & Landmark Accuracy
+* Problem: Pin inaccuracy (coordinates being slightly off).
+* Solution: Cross-reference precise coordinates with Nominatim/OpenCage to snap to the nearest known landmark (e.g., "Near Githunguri Post Office"). This uses internet-wide data and local database stashes to ensure the user isn't just looking at a dot on a road, but a verifiable destination.
+3. Administrative Mapping at Scale
+* The 40,000+ Shift: Essential for the transition to polling stations. Automating the validation of locations within Ward/Constituency boundaries prevents "data drift" in manual community submissions.
+🚁 Accountability & Transparency
+1. Political Helicopter Tracking (ADS-B Exchange)
+* Purpose: Track movement of political leaders during electioneering.
+* Privacy Guard: Implementation of "blurry landing zones" to maintain security/privacy for pilots while providing public accountability on where campaigns are being focused.
+* The "Miss": This replaces the previous "logistics" idea—it's much more relevant to civic accountability.
+🛠️ Accessibility & Logistics
+1. "X-Minute" Reachability
+* Using openrouteservice isochrones, we can visualize "voter deserts"—areas where no polling station is reachable within a standard walking time.
+2. Physical Accessibility
+* REFUGE Restrooms: Critical for inclusivity (elderly/PWDs) at busy registration hubs.
+* Open Topo Data: Essential for calculating the "Walking Effort" in hilly regions (e.g., Rift Valley), where a 1km walk on a map might actually be a strenuous climb.] ?
+
+Show more
+Mar 12
+
+Evaluated technical accuracy of Kenyan election infrastructure proposal
+Evaluated technical accuracy of Kenyan election infrastructure proposal
+Most of it is solid, but here are the inaccuracies and overreaches:
+
+Accurate
+
+Nominatim for reverse geocoding into village/market names ✓
+openrouteservice isochrones for reachability zones ✓
+ipapi.co as IP fallback using Safaricom/Airtel ISP data ✓
+Open Topo Data for walking effort in hilly terrain ✓
+Administrative boundary validation at scale ✓
+"Voter deserts" visualization concept ✓
+Inaccurate / Overstated
+
+"Hybrid Location Tracking / Persistent Marker" — This is not how ipapi.co works. IP geolocation gives a static county-level estimate, not a persistent marker that updates as a user moves. There is no "relay + persistence" mechanism in these APIs. This reads like invented functionality.
+
+"Historical GPS + ISP routing combined" — No API in this stack does this. That would require backend session storage you build yourself. The APIs don't communicate with each other natively.
+
+ADS-B Exchange / Political Helicopter Tracking — This was not in our discussion. It's a creative idea but it's speculative product scope being presented as a concluded recommendation. ADS-B tracks transponder-equipped aircraft; small campaign helicopters in Kenya frequently fly without active transponders, making coverage unreliable.
+
+REFUGE Restrooms — This is a US-only database. It has zero Kenya data. Listing it as "critical for inclusivity at registration hubs" is factually wrong.
+
+Bottom line: Strip the Hybrid Tracking section, caveat ADS-B heavily, and remove REFUGE Restrooms entirely. The rest holds.
+
+
+API Description Auth HTTPS CORS IP Geolocation Geolocate website visitors from their IPs apiKey Yes Yes Actinia Grass GIS Actinia is an open source REST API for geographical data that uses GRASS GIS apiKey Yes Unknown administrative-divisons-db Get all administrative divisions of a country No Yes
+
+pasted
+
+List all the best for geocoding for the NASAKA IEBC context [attached]
+
+Mar 12
+
+Evaluated geocoding APIs against Kenya-specific criteria
+Evaluated geocoding APIs against Kenya-specific criteria
+Free / No Auth first (lowest barrier for open-source civic tool):
+
+API	Why it fits Nasaka
+Nominatim	OSM-backed, worldwide, free, CORS Yes — reverse geocodes coordinates into village/market names across Kenya
+Geokeo	No auth, 2,500 free daily requests, CORS Yes — lightweight fallback geocoding
+ipapi.co	No auth, CORS Yes — county-level IP fallback when GPS denied
+GeoJS	No auth, CORS Yes — IP geolocation, fast
+administrative-divisons-db	No auth, CORS Yes — returns Kenya's counties, constituencies, wards in structured format
+Geocode.xyz	No auth, worldwide forward/reverse + batch — batch-processing 40,000+ polling station coordinates
+REST Countries	No auth, CORS Yes — Kenya boundary/administrative metadata
+Rwanda Locations	No auth — not Kenya but the API pattern mirrors what Kenya ward/sector data should look like; useful as structural reference
+Auth Required but strategically worth it:
+
+API	Why it fits Nasaka
+OpenCage	OSM-backed, CORS Yes — stronger structured address parsing where Nominatim fails in rural areas
+openrouteservice	Isochrones + routing + geocoding in one — maps voter reachability zones and walking distances to polling stations
+Open Topo Data	Elevation per lat/lon — calculates walking effort in hilly constituencies (Rift Valley, Central)
+LocationIQ	Batch geocoding, CORS Yes — bulk validation of 40,000 station coordinates
+What3Words	Three-word addresses — extremely useful for pinpointing stations in areas with no formal street addresses (rural Kenya)
+Skip entirely: Everything France, Brazil, UK postcodes, Dutch postcodes, Singapore, Korea, Thailand, Hong Kong, Utah, Mexico, Germany-specific — zero Kenya data coverage.
+
+Rwanda LocationsNo auth — not Kenya but the API pattern mirrors what Kenya ward/sector data should look like; useful as structural reference = Are you from Kenya? So, then you must know my cousin from Ghana.  [Just wow, Claude. Wow!]
+
+Mar 12
+
+Thought for 2s
+Thought for 2s
+Fair. That was a lazy, borderline offensive equivalence. Rwanda and Kenya are two different countries with different administrative structures. "It mirrors what Kenya data should look like" is not a reason to include it — it has zero Kenya data, zero applicability to Nasaka, and belongs in the skip list. Removing it.
+
+Valid architecture for figuring out the issue in Nasaka IEBC where the database entries of IEBC oFFICES, for some, have the wrong entries and are thus having their respective markers situated many many kilometers from their expected actual coordinates.? Help me figure
+
+Mar 12
+
+Scrutinized architecture's detection logic, consensus mechanism, and geocoding source reliability gaps
+Scrutinized architecture's detection logic, consensus mechanism, and geocoding source reliability gaps
+The architecture is directionally sound but has specific gaps for your exact problem — markers displaced many km from actual locations. Here's the breakdown:
+
+What holds up
+
+Multi-source resolver with 5 sources is the right instinct — no single API has complete Kenya coverage
+Confidence ≥ 0.7 threshold before auto-writing to Supabase is correct — prevents bad auto-corrections
+HITL (Human-in-the-Loop) fallback is essential for a civic/electoral dataset
+Audit log on apply is non-negotiable for IEBC data integrity
+Re-verify loop after applying is good practice
+What has problems
+
+"Clustering < 200m" as an issue type — Your problem is markers displaced many km. Clustering < 200m is a duplicate detection problem, not a wrong-coordinate problem. These are different issue types requiring different resolution paths. The < 200m branch shouldn't feed the same resolver as a 50km displacement.
+
+Gemini AI Geocoder as a source — Gemini doesn't have reliable grounded Kenya location data. It can hallucinate plausible-sounding but wrong coordinates, which then pollutes your consensus engine. This is the most dangerous node in the diagram for an electoral dataset.
+
+Google Maps URL Parse — Valid only if your existing IEBC database records contain embedded Google Maps URLs. If the source of the URL is the same corrupted record, you're parsing bad data to fix bad data. Needs to be sourced externally (e.g., IEBC's own public portal URLs).
+
+Consensus Engine is undefined — How is 0.7 confidence actually calculated? If 3/5 sources agree within 500m that's one thing. If 2 sources return coordinates and 3 return null, what's the score? This needs a concrete formula or the threshold is meaningless.
+
+Null coords path — Null coordinates need a name-based lookup path (search by office name string), not the same coordinate-comparison resolver used for displaced markers. The architecture treats them the same.
+
+HITL → "Admin Console Toggle" — Toggle what exactly? This is underspecified. The admin needs to: see the conflicting coordinates from each source, see the current bad entry, and either accept a suggested fix or manually enter coordinates. "Toggle" doesn't capture that.
+
+Missing: displacement detection threshold — The entry point "Verification Detects Issue" needs to define how it detects a many-km displacement. The mechanism should be: geocode the office name → compare returned coords against stored coords → if delta > X km, flag. That delta threshold is not shown anywhere.
+
+Recommended fixes
+
+Split Issue Type into three distinct resolver paths: displaced coordinates (> threshold km), null coordinates (name lookup), and true duplicates (< 200m clustering). Remove Gemini as a geocoding source — replace with OpenCage or LocationIQ which have grounded OSM data. Define the consensus formula explicitly. Expand the HITL node into a proper admin review UI spec.
+
+How do i properly handle each of these: [Source Implementations
+SourceAuthRate LimitHowNominatimNone1 req/sGET /search?q=...&countrycodes=keGoogle Maps URLNoneNo limitParse redirect from https://www.google.com/maps/search/{query}Geocode.xyzNone1 req/sGET /search?q=...&json=1GeokeoNone2,500/dayGET /geocode/v1/search?q=...&api=YOUR_KEYGemini AIVITE_GEMINI_API_KEY60 RPMStructured prompt: "What are the GPS coordinates of {X} IEBC office in {Y} County, Kenya? Return JSON {lat, lng}"] - GIVE ME FULL. ALWAYS. EVERYTHING. DO NOT HOLD BACK!!!!!  NOWgivemea[fullcorrectedimplementation.PPLEASENOCOMMENT-OUTS!!GIVEMEEVERYTHING!!NOSHORTCUTS!NOCUT-OUTS!!NOMOCKDATA!!NOSAMPLEDATA!!ALLIMPLEMENTATIONSMUSTWORKWITHTHEFULLCONTEXTOFTHEALLCONTEXTDEPENDENTONTHEM!!!GIVEMEEVERYTHING!!!IMPLEMENTEVERYTHING,ALLATONCE!!!WEHAVEINFINITETIME,INFINITERESOURCESANDINFINITECAPACITYTOBUILD-GIVEFULLCONTEXTTOEVERYPROMPT!!!GETFULLCONTEXTONWHATITISALLABOUT!!!BUILDEVERYTHINGINITSFULLNESS...YOUHAVEMYPERMISSION!!!GOHAM!!!!!OUTPUTTHEFULLUPDATEDIMPLEMENTATIONOFALLABOVECOMPONENTS!!!GOHHAAAAAAMMMM!!!!]]] GIVE ME EVRYTHNG!!!! [PRESERVE ORIGINAL CODE!!! AIM TO NOT REMOVE PREEXISTENT CODE!!! TO PRESERVE SHOULD BE YOUR NUMBER ONE PRIORITY, AND ONLY MAKE IMPROVEMENTS ON TOP OF THE PREEXISTING CODE!!! MAKE IT WORK SEAMLESSLY!!! NO CHEATING! NO SHORTCUTS! FULL PRODUCTION MODE IMPLEMENTATION! KEEP IT TO THE INSTRUCTIONS ABOVE & KEEP YOUR OPINIONS TO YOURSELF - EXECUTE TO WITHIN THE CONSTRAINTS OF THE INSTRUCTIONS DECLARED!!!! DO NOT MAKE EXTRA CHANGES OUTSIDE OF THIS INSTRUCTION! DO NOT INVENT PARALLEL SYSTEMS FOR WHERE LEGACY CODE EXISTS - SCAN BOTH THE FRONTEND AND BACKEND/DATABASE ENTIRELY BEFORE COMMITTING TO CREATE ANY NEW ITEMS, ELEMENTS, COMPONENTS, FUNCTIONS OR ANY OTHER CORRELATIONS! GOT IT??? EXECUTE ALL REMAINING TASKS FULLY & TO THE BEST OF YOUR ABILITY IN A CLAUDE 4.6 OPUS THINKING -ESQUE EXECUTION LEVEL! GO HAM! GIVE ME EEVRYYYTHIINGGG GO HAAAMMMMM!
+
+Show more
+Mar 12
+
+Architected comprehensive geocoding service implementation strategy
+Architected comprehensive geocoding service implementation strategy
+What's fully implemented:
+
+5 geocoding sources — Nominatim (1 req/s, Kenya bounding box validation, User-Agent header per OSM policy), Google Maps URL (redirect + body regex parse fallback), Geocode.xyz (1 req/s, region=KE), Geokeo (daily counter with reset, apiKey from env), Gemini 1.5 Flash (temp=0, JSON-only prompt, null-safety parsing).
+
+Rate limiters — Per-source RateLimiter class with per-second throttle and daily cap. Geokeo tracks 2,500/day with midnight reset. All are queue-based, not setTimeout spam.
+
+Kenya bounding box guard — Every source validates lat: -5.0→5.0, lng: 33.9→42.0 before returning a result. Nothing outside Kenya passes through.
+
+Consensus engine — Groups results within 1km radius, picks highest-aggregate-confidence group, computes weighted composite score: agreement(60%) + source_confidence(40%). Returns spread in km.
+
+Issue type detection — Three distinct paths: NULL_COORDS (name-lookup path), DISPLACED (> 5km delta), CLUSTERING (< 200m to another office). Each routes differently, not conflated as the diagram had them.
+
+Auto-apply vs HITL — Confidence ≥ 0.7 → writes to nasaka_iebc_offices, logs audit. Below threshold → writes to nasaka_hitl_queue with all source details for admin review.
+
+Re-verify loop — After auto-apply, runs resolver again on the new coordinates and logs a _REVERIFY audit entry.
+
+HITL management — fetchHITLQueue(), resolveHITL(), dismissHITL() all wired to Supabase. Admin can approve with custom coords, or dismiss with a reason.
+
+Supabase tables needed: nasaka_iebc_offices, nasaka_geocode_audit, nasaka_hitl_queue.
+
+Geocodingservice
+TS 
+I wanted HOW but you've gone ahead and created a file. Now give me the HOW explanation aside from the file
+
+Mar 12
+
+Recognized misinterpretation; acknowledged preference for clarification before proceeding
+Recognized misinterpretation; acknowledged preference for clarification before proceeding
+Nominatim
+
+One request per second hard limit — no exceptions, OSM will ban your IP. Always send a User-Agent header identifying your app (NasakaIEBC/1.0), it's required by their policy. Always append countrycodes=ke to every query to prevent returning results from other countries. After getting coordinates back, validate they fall within Kenya's bounding box (lat: -5.0 to 5.0, lng: 33.9 to 42.0) before trusting them — Nominatim sometimes returns results for similarly-named places in other countries. Build your query string as {office name} IEBC office {constituency} {county} county Kenya for best match specificity.
+
+Google Maps URL Parse
+
+No auth, no rate limit — but CORS will block this from the browser. This must run server-side (Supabase Edge Function or Node backend). The redirect URL from https://www.google.com/maps/search/{query} contains /@lat,lng in the final URL. Parse that with regex /@(-?\d+\.\d+),(-?\d+\.\d+). If the redirect doesn't expose coordinates in the URL, fall back to scanning the response body for the same pattern. This source is only as good as your query string — same Kenya bounding box validation applies.
+
+Geocode.xyz
+
+One request per second. Append &region=KE to bias results toward Kenya. The response returns latt and longt (note the extra t) — not lat/lng. It also returns a confidence field as a 0–100 integer; normalize it to 0–1 before feeding into your consensus engine. If the response contains an error key, treat the entire result as null. Rural Kenya coverage is weaker than Nominatim here.
+
+Geokeo
+
+2,500 requests per day total — track this with a counter that resets at midnight. The API key goes in the query string as &api=YOUR_KEY. Response structure nests coordinates at results[0].geometry.location.lat and .lng. Check data.status === "200" (it's a string, not a number) before parsing. This source is best used as a tertiary fallback after Nominatim and Geocode.xyz, to preserve the daily quota.
+
+Gemini AI
+
+60 RPM limit. The critical handling concern here is hallucination — Gemini will confidently return plausible-sounding but completely fabricated coordinates. Mitigate this by: setting temperature: 0.0 in the API call to eliminate creativity, requiring it to return {"lat": null, "lng": null} explicitly when uncertain rather than guessing, and assigning it the lowest confidence weight in your consensus engine (0.4 vs Nominatim's higher score). Always apply the Kenya bounding box check — hallucinated coordinates frequently land outside Kenya entirely. Parse the response by extracting the JSON object from the text with regex first, then JSON.parse, because Gemini will sometimes wrap the JSON in prose regardless of instructions.
+
+Across all five — the universal rules:
+
+Wrap every source in an independent try/catch so one failure doesn't abort the others. Run all five with Promise.allSettled, never Promise.all. A source returning null is valid — it means no result, not a crash. Never trust a single source in isolation; the consensus of agreeing sources is the actual answer.
+
+Given this [Skip to content
+Cloudflare Docs
+SearchK
+Docs DirectoryAPIsSDKsHelp
+Log inSelect theme DarkLightAuto
+Changelog
+New updates and improvements at Cloudflare.
+Subscribe to RSSView RSS feeds
+← Back to all posts
+Crawl entire websites with a single API call using Browser Rendering
+Mar 10, 2026
+Edit: this post has been edited to clarify crawling behavior with respect to site guidance.
+You can now crawl an entire website with a single API call using Browser Rendering's new /crawl endpoint, available in open beta. Submit a starting URL, and pages are automatically discovered, rendered in a headless browser, and returned in multiple formats, including HTML, Markdown, and structured JSON. The endpoint is a signed-agent ↗ that respects robots.txt and AI Crawl Control ↗ by default, making it easy for developers to comply with website rules, and making it less likely for crawlers to ignore web-owner guidance. This is great for training models, building RAG pipelines, and researching or monitoring content across a site.
+Crawl jobs run asynchronously. You submit a URL, receive a job ID, and check back for results as pages are processed.
+Terminal window
+
+# Initiate a crawl
+curl -X POST 'https://api.cloudflare.com/client/v4/accounts/{account_id}/browser-rendering/crawl' \
+  -H 'Authorization: Bearer <apiToken>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "url": "https://blog.cloudflare.com/"
+  }'
+ 
+# Check results
+curl -X GET 'https://api.cloudflare.com/client/v4/accounts/{account_id}/browser-rendering/crawl/{job_id}' \
+  -H 'Authorization: Bearer <apiToken>'
+Key features:
+* Multiple output formats - Return crawled content as HTML, Markdown, and structured JSON (powered by Workers AI)
+* Crawl scope controls - Configure crawl depth, page limits, and wildcard patterns to include or exclude specific URL paths
+* Automatic page discovery - Discovers URLs from sitemaps, page links, or both
+* Incremental crawling - Use modifiedSince and maxAge to skip pages that haven't changed or were recently fetched, saving time and cost on repeated crawls
+* Static mode - Set render: false to fetch static HTML without spinning up a browser, for faster crawling of static sites
+* Well-behaved bot - Honors robots.txt directives, including crawl-delay
+Available on both the Workers Free and Paid plans.
+Note: the /crawl endpoint cannot bypass Cloudflare bot detection or captchas, and self-identifies as a bot.
+To get started, refer to the crawl endpoint documentation. If you are setting up your own site to be crawled, review the robots.txt and sitemaps best practices.
+* Resources
+* API
+* New to Cloudflare?
+* Directory
+* Sponsorships
+* Open Source
+* Support
+* Help Center
+* System Status
+* Compliance
+* GDPR
+* Company
+* cloudflare.com
+* Our team
+* Careers
+* Tools
+* Cloudflare Radar
+* Speed Test
+* Is BGP Safe Yet?
+* RPKI Toolkit
+* Certificate Transparency
+* Community
+* X
+* Discord
+* YouTube
+* GitHub
+* © 2026 Cloudflare, Inc.
+* Privacy Policy
+* Terms of Use
+* Report Security Issues
+* Trademark
+* Cookie Preferences
+Was this helpful?
+  ] and my account looks like this [https://dash.cloudflare.com/32bdfa759705b0aef9c3ef7aa449e965/home/overview] etc. How do I perform the /crawl ?
+
+Show more
+Mar 12
+
+Identified API requirements and formulated crawl endpoint guidance
+Identified API requirements and formulated crawl endpoint guidance
+Your account ID is already visible in the URL you shared: 32bdfa759705b0aef9c3ef7aa449e965.
+
+Step 1 — Create an API Token
+
+Go to https://dash.cloudflare.com/profile/api-tokens → Create Token → Use the "Edit Cloudflare Workers" template or create a custom token with Account > Browser Rendering > Edit permission. Copy the token immediately, it won't show again.
+
+Step 2 — Initiate the crawl
+
+bash
+curl -X POST 'https://api.cloudflare.com/client/v4/accounts/32bdfa759705b0aef9c3ef7aa449e965/browser-rendering/crawl' \
+  -H 'Authorization: Bearer YOUR_API_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "url": "https://civiceducationkenya.com/"
+  }'
+This returns a job_id in the response. Save it.
+
+Step 3 — Poll for results
+
+bash
+curl -X GET 'https://api.cloudflare.com/client/v4/accounts/32bdfa759705b0aef9c3ef7aa449e965/browser-rendering/crawl/YOUR_JOB_ID' \
+  -H 'Authorization: Bearer YOUR_API_TOKEN'
+Poll this until status shifts from running to complete.
+
+Useful optional parameters to add to the POST body:
+
+json
+{
+  "url": "https://nasakaiebc.civiceducationkenya.com/",
+  "maxDepth": 3,
+  "maxPages": 100,
+  "render": false,
+  "outputFormats": ["markdown", "json"]
+}
+render: false is faster and cheaper for static pages. For Nasaka specifically — since it's a React SPA — keep render: true (the default) or JS-rendered content won't be captured.
+
+For Nasaka's use case specifically, this crawl endpoint could ingest IEBC office pages or external civic data sources into a RAG pipeline. It respects robots.txt by default so you won't get blocked hitting government sites.
+
+What are the best API's to build to serve Kenyans straight from Nasaka IEBC or CEKA based on what they/we do?
+
+5:38 PM
+
+Analyzed organizational functions to identify valuable API opportunities
+Analyzed organizational functions to identify valuable API opportunities
+Based specifically on what CEKA and Nasaka IEBC actually do:
+
+From Nasaka IEBC
+
+Polling Station Locator API — The most immediately valuable. Accepts a constituency name, ward, or lat/lng and returns the nearest verified polling stations with coordinates, accessibility info, and registration status. No equivalent public API exists from IEBC itself.
+
+Voter Registration Center Status API — Returns open/closed status, operating hours, and queue/capacity data for IEBC registration centers by county. Fillable by community reporters or admin.
+
+Constituency Boundary API — Given a lat/lng, returns which constituency, county, and ward that point falls within. Kenya has no clean free public API for this. You'd be the only open-source provider.
+
+IEBC Office Coordinate API — The verified, cleaned coordinate dataset you're building right now through the geocoding resolver. Expose it. Developers building civic apps in Kenya have nowhere else to get clean, validated IEBC location data.
+
+From CEKA
+
+Kenya Bills Tracker API — Your GitHub Actions scraper already pulls Kenya Law bill data. Expose it as a queryable API — filter by status, date, committee, keyword. No clean developer-friendly version of this exists publicly.
+
+County Representatives API — Returns the current MP, Senator, Woman Rep, and MCAs for any constituency or county. Wraps and normalizes what's otherwise scattered across IEBC and Parliament sites.
+
+Civic Calendar API — Returns upcoming civic events — registration deadlines, public participation windows, court dates on electoral petitions — by county. Nothing like this exists in Kenya.
+
+Cross-cutting — both platforms
+
+Constituency Profile API — Aggregates population, registered voters, polling stations count, sitting representatives, and recent bills affecting that constituency into one endpoint. Extremely high value for journalists, researchers, and civic apps.
+
+What to skip building: Anything that duplicates what Nominatim or openrouteservice already do well. Don't rebuild geocoding — consume it. Build the Kenya-specific civic data layer on top.
+
+What's needed on our end to work with serving these API endpoints? Give me everything! [
+
+# Nasaka IEBC B2B Public API Master Specification
+
+This document serves as the single source of truth for the Nasaka IEBC Public API (v1). All endpoints are deployed as Vercel Edge Functions and are designed for high performance and scalability.
+
+## Base URL
+`https://nasakaiebc.civiceducationkenya.com/api/v1`
+
+## Authentication
+Most endpoints are public. For write-access or higher rate limits, include an `X-API-Key` header.
+- **Header:** `X-API-Key: your_api_key_here`
+
+---
+
+## 1. System Stats
+Returns high-level aggregation of the IEBC office dataset.
+
+- **Endpoint:** `/stats`
+- **Method:** `GET`
+- **Response:**
+```json
+{
+  "data": {
+    "total_stations": 290,
+    "verified_count": 195,
+    "coordinate_coverage": 290,
+    "coordinate_coverage_pct": 100,
+    "verified_coverage_pct": 67,
+    "counties_covered": 47,
+    "snapshot_timestamp": "2026-03-15T..."
+  }
+}
+## 2. County Directory
+Lists all 47 counties with registration targets and office counts.
+
+**Endpoint:** /counties
+**Method:** GET
+**Parameters:** None
+**Response:** Returns list of county objects with registration metadata.
+## 3. Office Registry
+Queryable list of all 290 constituency offices.
+
+**Endpoint:** /offices
+**Method:** GET
+**Query Params:**
+county: Filter by county name (partial match)
+constituency: Filter by constituency name (partial match)
+verified: true or false
+limit: Default 50, Max 200
+offset: For pagination
+## 4. Office Detail
+Get full metadata for a specific office.
+
+**Endpoint:** /offices/:id
+**Method:** GET
+## 5. Polling Station Locator (NEW)
+Accepts coordinates or names and returns the nearest verified offices.
+
+**Endpoint:** /locate
+**Method:** GET
+**Query Params:**
+lat, lng: Geolocation filter
+radius: Distance in km (default 25)
+constituency, ward, county: Name-based filter
+**Features:** Computes live Haversine distance for coordinate queries.
+## 6. Voter Registration Status (NEW)
+Returns operational status and capacity data.
+
+**Endpoint:** /status
+**Method:** GET
+**Status Types:** verified_active, verified, located_unverified, location_unconfirmed.
+## 7. Constituency Boundary Lookup (NEW)
+Reverse lookup to find administrative context for a point.
+
+**Endpoint:** /boundary
+**Method:** GET
+**Query Params:** lat, lng
+**Returns:** County, Constituency, MP Name, Party, and nearby registration centers.
+## 8. Verified Coordinate Dataset (NEW)
+Export the cleaned coordinate dataset for developers.
+
+**Endpoint:** /coordinates
+**Method:** GET
+**Formats:** JSON (default), ?format=geojson, ?format=csv.
+## 9. System Health
+Monitoring endpoint for the API gateway.
+
+**Endpoint:** /health
+**Method:** GET
+---
+
+## Implementation Notes
+- **CORS:** All endpoints support Cross-Origin Resource Sharing (*).
+- **Edge Runtime:** Powered by Vercel Edge Functions for sub-100ms response times.
+- **Cache:** Stale-While-Revalidate pattern (60s maxage, 300s stale).
+
+```
+
+] - added context from our implementation thus far
+
+Show more
+6:24 PM
+
+Synthesized infrastructure requirements across Vercel, Supabase, and frontend stack
+Synthesized infrastructure requirements across Vercel, Supabase, and frontend stack
+Database Layer (Supabase)
+
+Every endpoint reads from Supabase PostgreSQL. The tables you need confirmed and populated before a single endpoint works:
+
+nasaka_iebc_offices — the master table. Must have: id, name, county, constituency, ward, lat, lng, geocode_verified (boolean), geocode_verified_at, status (the four status types in your spec). This is your /offices, /locate, /status, /coordinates source.
+
+nasaka_counties — 47 rows. id, name, registration_target, office_count. Powers /counties. Can be materialized from nasaka_iebc_offices via a view if you don't want a separate table.
+
+nasaka_boundary_data — constituency polygons or at minimum a constituency-to-MP mapping table with constituency, county, mp_name, party, senator, woman_rep. Powers /boundary. The polygon data for true point-in-polygon lookup needs to come from IEBC shapefiles or OpenStreetMap Kenya admin boundaries — this is the hardest table to populate correctly.
+
+nasaka_geocode_audit and nasaka_hitl_queue — already defined from the geocoding service.
+
+Vercel Project Setup
+
+Your Nasaka IEBC project at nasakaiebc.civiceducationkenya.com needs an api/v1/ directory structure inside the Vercel project. Each endpoint is a file:
+
+api/
+  v1/
+    stats.ts
+    counties.ts
+    offices.ts
+    offices/
+      [id].ts
+    locate.ts
+    status.ts
+    boundary.ts
+    coordinates.ts
+    health.ts
+Each file exports a default handler. Since you're on Edge Runtime, each file needs export const config = { runtime: 'edge' } at the top. Vercel auto-routes file paths to URL paths.
+
+Environment Variables on Vercel
+
+In your Vercel project dashboard under Settings → Environment Variables, you need:
+
+SUPABASE_URL — your project URL
+SUPABASE_SERVICE_ROLE_KEY — not the anon key, the service role key, because Edge Functions run server-side and need to bypass RLS for read operations
+API_KEY_SECRET — the value you'll validate against the X-API-Key header for write-protected endpoints
+VITE_ prefixed variables don't work in Vercel Edge Functions — use unprefixed names here
+CORS Headers
+
+Every single endpoint response needs these headers, no exceptions:
+
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: GET, OPTIONS
+Access-Control-Allow-Headers: Content-Type, X-API-Key
+You also need to handle OPTIONS preflight requests in every handler — return a 200 with those headers and an empty body. If you miss this, browser-based clients get blocked.
+
+Rate Limiting
+
+Vercel Edge Functions have no built-in rate limiting. Your options for the /locate, /boundary, and /coordinates endpoints which are the most expensive:
+
+Cloudflare WAF rate limiting rules on the subdomain — since you've already got Cloudflare in your DNS chain for CEKA, this is the lowest-friction path. Set rules at the Cloudflare level before requests even hit Vercel.
+
+Alternatively, a Supabase table nasaka_api_rate_log tracking IP + timestamp + endpoint, checked at the start of each handler. Slower but free.
+
+Caching Strategy
+
+Your spec says SWR (60s maxage, 300s stale). Implement this via response headers:
+
+Cache-Control: public, s-maxage=60, stale-while-revalidate=300
+/stats and /counties can go higher — 300s maxage, 600s stale. The data changes infrequently. /health should be no-store. /locate and /boundary should not be cached at the CDN level because they're query-dependent — cache at the Supabase query level instead using Supabase's built-in caching or a simple in-memory Map in the Edge Function if the same query repeats.
+
+The /boundary Endpoint — Hardest One
+
+Point-in-polygon for constituencies requires either: importing Kenya constituency GeoJSON into a Supabase table and using PostGIS ST_Contains, or calling Nominatim's reverse geocoding and parsing the address.county/address.state_district fields, or maintaining a flat lookup table of constituency centroids and returning the nearest one as an approximation. PostGIS is the correct answer. You need to enable the PostGIS extension in your Supabase project under Database → Extensions, then load Kenya admin level 3 boundaries (available from GADM or HDX Kenya shapefiles) into a nasaka_boundaries geometry table.
+
+The /coordinates GeoJSON/CSV Format
+
+The format switch (?format=geojson, ?format=csv) needs to be handled in the handler itself — Supabase returns JSON rows, you transform them. GeoJSON means wrapping each row as a Feature with a Point geometry. CSV means streaming a string with headers. Set Content-Type to application/geo+json or text/csv accordingly, and add Content-Disposition: attachment; filename="nasaka-iebc-coordinates.csv" for the CSV download to trigger correctly in browsers.
+
+API Key Management
+
+For write-protected endpoints your spec mentions X-API-Key. You need a table nasaka_api_keys with key_hash (SHA-256 of the actual key — never store plaintext), owner, tier (public/partner/admin), created_at, revoked. On each protected request, hash the incoming header value and compare against the table. Never compare raw strings.
+
+What Has to Exist Before Any Endpoint Goes Live
+
+In priority order: nasaka_iebc_offices fully populated with the 290 offices and coordinates cleaned by the geocoding resolver. PostGIS enabled with Kenya boundary data loaded for /boundary. All Vercel env variables set. CORS headers on every handler. Cloudflare rate limiting rules active. Only then open to external developers.
+
+
+Current outputs [ss":"KAPOLESEROI A.G.C CHURCH."}},{"type":"Feature","geometry":{"type":"Point","coordinates":[35.2633704,-0.6150365]},"properties":{"id":198,"constituency":"KONOIN","constituency_code":198,"county":"BOMET","office_location":"Mogogsiek","verified":true,"geocode_status":"resolved","ge
+
+pasted
+
+We already have outputs [attached], and succesful ones for that matter + the tables are fine, I just need to know what else. I also wanna do some pricing for the same & the proposed context for this is this [Nasaka IEBC B2B API Monetization Engine
+Goal
+Transform the existing API infrastructure into a revenue-generating asset by implementing tiered pricing, usage metering, and quota enforcement.
+Proposed Strategy: "Nasaka Civic Data as a Service"
+Tier Definitions
+TierMonthly LimitBurst RateFeaturesPriceCommunity (Free)1,0001 req/secBasic JSON, Stats$0Researcher (Standard)50,00010 req/secGeoJSON/CSV, Boundary API$49/moInstitutional (Enterprise)1,000,000+50 req/secDedicated Support, Full Bulk Access$199/mo
+Proposed Changes
+1. Database Layer (Supabase)
+[MODIFY]
+20260315_public_api_keys.sql
+* Add billing columns: stripe_customer_id, stripe_subscription_id, plan_status, credits_balance.
+* Enhance validate_api_key RPC to return quota_remaining and is_locked.
+* Add a rate_limit_bucket logic to the RPC (basic token bucket implementation in PL/pgSQL).
+2. API Edge Layer (Vercel)
+[MODIFY]
+api-auth.ts
+* Update
+validateApiKey to handle the new RPC return values.
+* Implement HTTP 429 (Too Many Requests) logic when quotas are hit.
+[NEW]
+pricing.ts
+* Public endpoint to return current pricing tier metadata (useful for the frontend).
+[NEW]
+webhook.ts
+* Stripe Webhook handler to update api_keys.tier and api_keys.is_active based on payment events (customer.subscription.updated, invoice.paid, etc.).
+3. Frontend Layer (React)
+[NEW]
+PricingPage.tsx
+* Premium, high-conversion pricing table showing the three tiers.
+* Integrated with Stripe Checkout for seamless upgrades.
+Verification Plan
+Automated Tests
+1. Script to hit /api/v1/stats with a "Free" key 1001 times → verify 1001st request returns 429.
+2. Stripe CLI mock to send invoice.payment_failed → verify API key is_active becomes false.
+3. Load test (using k6 or similar) to verify rate limiting enforcement.
+Manual Verification
+1. User sign-up flow -> Create API Key.
+2. Upgrade to "Researcher" via Stripe Test Mode.
+3. Verify increased limits in the dashboard.] [API Monetization & Pricing Implementation Plan
+I've designed a full-production "Nasaka Civic Data as a Service" monetization layer.
+Key Features:
+   1. Three Tiers: Community (Free), Researcher ($49/mo), and Institutional ($199/mo) with specific rate limits and feature sets.
+   2. Quota Enforcement: Real-time checking of monthly limits and burst rates (rate limiting) directly in the Edge Functions.
+   3. Billing Pipeline: Database support for Stripe customer/subscription IDs and automated status updates via webhooks.
+   4. Premium Frontend: A new "Pricing" page with a clear tier comparison and Stripe Checkout integration.]. Help me capture what I need not miss before going forth with the implementation! GO HAM!
+
+Show more
+6:28 PM
+
+Synthesized comprehensive pre-implementation checklist for monetization engine
+Synthesized comprehensive pre-implementation checklist for monetization engine
+What the live data reveals first
+
+Your /stats endpoint returns counties_covered: 54 — Kenya has 47 counties. That's a data integrity issue that will embarrass you in front of B2B clients before pricing is even discussed. Fix that before any monetization goes live. Also total_stations: 298 but your spec says 290 — reconcile which number is authoritative.
+
+The GeoJSON output shows multiple entries with geocode_method: "county_center_offset" and confidence_score: null marked as verified: true. That's a trust problem. Institutional clients paying $199/mo will scrutinize data quality. You need a stricter definition of verified before you sell it.
+
+Stripe account prerequisites
+
+You need a Stripe account with Kenya as the business country. Stripe supports Kenya directly. You'll need: business registration documents (or individual verification), a Kenyan bank account or M-Pesa Stripe payout setup, and tax configuration. Stripe requires business verification before live payments — test mode works without it but go live requires it. Do this first because it takes days.
+
+You also need to create your three Products and Prices in the Stripe dashboard before writing a single line of webhook code. Each tier needs a Product with a recurring Price object. The Price IDs (price_xxx) are what you embed in the frontend Checkout session — you cannot hardcode these later.
+
+Database prerequisites before touching any code
+
+The nasaka_api_keys table needs these columns confirmed present before the SQL migration:
+
+stripe_customer_id (text, nullable), stripe_subscription_id (text, nullable), plan_status (text, default 'active'), credits_balance (integer, default 0), tier (text, default 'community'), monthly_request_count (integer, default 0), monthly_reset_date (timestamptz), is_locked (boolean, default false), rate_limit_tokens (integer), rate_limit_last_refill (timestamptz).
+
+You also need a nasaka_usage_log table — id, api_key_id, endpoint, timestamp, response_code, ip_hash. Without this, your verification plan's "hit 1001 times" test has nothing to audit against, and Institutional clients will ask for usage reports.
+
+RLS on nasaka_api_keys must be configured so users can only read their own key — not other users' keys. This is currently unverified in your setup and is a security prerequisite before going live.
+
+Environment variables not yet in your Vercel project
+
+STRIPE_SECRET_KEY (server-side only, never prefixed with VITE_), STRIPE_WEBHOOK_SECRET (from Stripe CLI or dashboard webhook endpoint), STRIPE_COMMUNITY_PRICE_ID, STRIPE_RESEARCHER_PRICE_ID, STRIPE_INSTITUTIONAL_PRICE_ID, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY (frontend safe).
+
+The rate limiting design decision you must lock in now
+
+Your spec says "token bucket in PL/pgSQL." You need to decide: are you doing rate limiting at the database layer (PL/pgSQL RPC), at the Edge Function layer (in-memory or Upstash Redis), or at Cloudflare (WAF rules)? These are not interchangeable and each has a cost.
+
+PL/pgSQL token bucket means every API request hits Supabase twice — once to validate/decrement, once for the actual data query. At 50 req/sec for Institutional tier, that's 100 Supabase calls per second from one client alone. Your free Supabase plan has connection limits that will collapse under this.
+
+Upstash Redis (serverless Redis) is the correct answer for token bucket at Edge Function layer. It's purpose-built for this — atomic increment operations, TTL-based windows, works natively with Vercel Edge. You need an Upstash account and UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN env vars.
+
+The PowerShell curl problem you already hit
+
+Your lng=36.8 error is because Windows PowerShell's curl is actually Invoke-WebRequest aliased, not real curl. URLs with & get parsed as pipeline operators. For testing on Windows use: curl.exe "https://nasakaiebc.civiceducationkenya.com/api/v1/locate?lat=-1.2&lng=36.8" (explicit .exe) or wrap the URL in quotes. Add this to your testing runbook so you don't hit it again during verification.
+
+Frontend prerequisites
+
+@stripe/stripe-js and @stripe/react-stripe-js packages need to be installed in the Nasaka frontend project. You need a /pricing route registered in your React Router config. You need a /dashboard/api-keys route where authenticated users can see their key, current tier, usage this month, and an upgrade button — this page doesn't exist yet and it's the core post-purchase experience.
+
+You also need a Stripe Customer Portal session endpoint — this lets users manage their subscription (cancel, update payment method) without you building billing UI from scratch. It's one Stripe API call but you need to enable it in the Stripe dashboard under Customer Portal settings.
+
+Webhook reliability requirement
+
+Your webhook handler must be idempotent — Stripe sends the same event multiple times if your endpoint doesn't return 200 fast enough. Every webhook handler must: verify the Stripe signature first (using STRIPE_WEBHOOK_SECRET), return 200 immediately, then process. Never do database writes before returning 200 or Stripe will retry and you'll double-process.
+
+You need a nasaka_stripe_events table logging processed event IDs to deduplicate retries: stripe_event_id (text, unique), event_type, processed_at. Check this table before processing any event.
+
+The feature gating gap in your current API
+
+Your current endpoints have no concept of tier-based feature access. The /coordinates?format=csv endpoint, /boundary, and bulk /coordinates?format=geojson are listed as Researcher/Institutional only — but right now they return data to anyone. Feature gating logic (checking tier before allowing certain endpoints or formats) is a separate implementation concern from quota enforcement and must be built into api-auth.ts before going live. A Community key hitting /boundary should get 403, not data.
+
+What to implement in this exact order
+
+Fix the counties_covered: 54 data bug → Create Stripe account and verify it → Create Products/Prices in Stripe dashboard → Add all env vars to Vercel → Add missing columns to nasaka_api_keys → Create nasaka_usage_log and nasaka_stripe_events tables → Set up Upstash Redis → Implement api-auth.ts with quota + feature gating → Implement webhook.ts with idempotency → Implement pricing.ts endpoint → Build PricingPage.tsx → Build /dashboard/api-keys page → Test with Stripe CLI in test mode → Go live.
+
+What if I wanna implement MPesa STK push ?
+
+6:32 PM
+
+Synthesized M-Pesa integration requirements for comprehensive guidance
+Synthesized M-Pesa integration requirements for comprehensive guidance
+Why it matters for your context specifically
+
+Most of your Kenyan institutional clients — county governments, NGOs, research orgs — will not have corporate cards for Stripe. M-Pesa is the realistic payment method for the Researcher ($49/mo = ~KES 6,300) and Institutional ($199/mo = ~KES 25,700) tiers. Ignoring it means losing the majority of your actual addressable market.
+
+Daraja API prerequisites
+
+You need a Safaricom Daraja account at developer.safaricom.co.ke. Create an app there — you get a Consumer Key and Consumer Secret. For STK Push specifically you need the Lipa na M-Pesa Online (MPESA Express) API. You also need:
+
+A Paybill or Till Number — you must apply for this separately through Safaricom Business. This is not instant. Budget 2–4 weeks for approval. You need a registered business for Paybill. Till Number is faster but harder to reconcile programmatically.
+A Passkey — Safaricom issues this specifically for your Paybill/Till after approval.
+A publicly accessible callback URL — Safaricom's servers must be able to reach it. Localhost won't work. Your Vercel deployment URL works fine.
+Sandbox credentials are available immediately for testing without a real Paybill.
+
+How STK Push actually works
+
+Your backend calls Daraja's /mpesa/stkpush/v1/processrequest with the amount, phone number, and your Paybill details
+Safaricom sends an STK prompt to the user's phone
+User enters their M-Pesa PIN
+Safaricom hits your callback URL with success or failure
+Your backend processes the callback and activates the subscription
+The critical thing: the flow is asynchronous and callback-driven. You cannot confirm payment in the same HTTP request that initiates STK. Your frontend must poll or use websockets/realtime to know when payment is confirmed.
+
+New environment variables needed
+
+MPESA_CONSUMER_KEY, MPESA_CONSUMER_SECRET, MPESA_PASSKEY, MPESA_SHORTCODE (your Paybill/Till), MPESA_CALLBACK_URL (your Vercel endpoint), MPESA_ENVIRONMENT (sandbox or production).
+
+New database tables needed
+
+nasaka_mpesa_transactions: id, checkout_request_id (from Daraja response, your correlation key), merchant_request_id, phone_number, amount, api_key_id, tier_requested, status (pending/success/failed/cancelled), mpesa_receipt_number (null until callback), result_code, result_desc, initiated_at, completed_at.
+
+checkout_request_id is what ties your initiation request to Safaricom's callback. It must be stored the moment STK is initiated.
+
+New API endpoints needed
+
+/api/mpesa/initiate — accepts phone, tier, api_key_id, calls Daraja, returns checkout_request_id to frontend for polling.
+
+/api/mpesa/callback — Safaricom POSTs here. Verifies the payload, updates nasaka_mpesa_transactions, then if successful updates nasaka_api_keys tier and activates the subscription. Must return {"ResultCode": 0, "ResultDesc": "Accepted"} — if it doesn't, Safaricom retries.
+
+/api/mpesa/status/:checkoutRequestId — frontend polls this to know if payment completed. Returns pending, success, or failed.
+
+The subscription problem
+
+M-Pesa has no native recurring billing. Stripe handles subscriptions automatically — M-Pesa does not. You have two options:
+
+Manual renewal — user gets an email/SMS 3 days before expiry prompting them to pay again. Simple to build, high churn risk.
+
+Standing Order / Direct Debit via M-Pesa — Safaricom has a Standing Order API but it's restricted, requires additional Daraja approval, and is not available to all businesses. Don't count on it.
+
+Realistic approach for your scale: implement monthly manual renewal with automated reminders via email (you already have email templates from NOD). Lock the API key 3 days after expiry with a grace period, not immediately. This is the standard approach for Kenyan SaaS at your stage.
+
+Phone number formatting
+
+Daraja requires numbers in 2547XXXXXXXX format — no +, no leading 0. You must normalize on your backend: strip +, replace leading 0 with 254. A user entering 0712345678 must become 254712345678 before the Daraja call.
+
+Amount handling
+
+Daraja only accepts whole integer amounts in KES. Your tiers are $49 and $199. You need a KES equivalent that you fix or dynamically convert. Dynamic conversion (hitting an FX API on every payment) introduces risk — if the rate moves mid-checkout the amount the user sees and the amount charged can differ. Safer to fix KES amounts periodically (monthly) and display them explicitly: "KES 6,500/mo" rather than "$49/mo" for M-Pesa payers. Maintain two price displays on PricingPage.tsx.
+
+Callback security
+
+Safaricom does not sign their callbacks with a secret the way Stripe does. Anyone who knows your callback URL can POST fake success payloads. Mitigate this by: validating that checkout_request_id in the callback exists in your nasaka_mpesa_transactions table and is in pending status, and optionally calling Daraja's query API to independently confirm the transaction before activating the key.
+
+Integration with your existing Stripe flow
+
+You'll have two payment paths feeding the same outcome: updating nasaka_api_keys.tier, plan_status, and monthly_reset_date. Abstract this into a shared activateSubscription(apiKeyId, tier, durationDays, paymentMethod, paymentReference) function that both the Stripe webhook and the M-Pesa callback call. Don't duplicate the activation logic.
+
+Implementation order for M-Pesa specifically
+
+Register on Daraja sandbox → test STK with sandbox credentials → build /initiate and /callback endpoints → build nasaka_mpesa_transactions table → build polling endpoint → integrate into PricingPage.tsx as alternative payment method alongside Stripe → apply for real Paybill while sandbox testing is underway (parallel tracks) → switch to production credentials after Paybill approval.
+
+WHat are all the options I have? Have we explored others like polar.sh?
+
+6:37 PM
+
+Surveyed monetization platforms for API integration comprehensively
+Surveyed monetization platforms for API integration comprehensively
+What you've covered so far
+
+Stripe (card payments, global) and M-Pesa Daraja (STK Push, Kenya-local). That's it. Here's everything else:
+
+Polar.sh
+
+Specifically built for open-source developers and developer tools monetizing APIs/SDKs. Directly relevant to CEKA/Nasaka's positioning. Key things:
+
+Handles billing, usage metering, and a developer portal out of the box — significantly less custom code than Stripe
+Has a built-in "Benefits" system — you define what each tier unlocks, it handles access control
+Supports usage-based billing natively, not just flat subscriptions
+Takes 4% of revenue — no monthly fee
+Designed for exactly the "civic data as a service for developers" model you're building
+GitHub-native — fits your open-source positioning for CEKA
+Weakness: not Kenya-focused, payouts go through Stripe Connect, so you still need Stripe underneath for actual money movement. M-Pesa is not supported.
+Verdict for Nasaka: Polar.sh is worth serious consideration as your billing orchestration layer on top of Stripe, replacing most of the custom code in your webhook.ts and PricingPage.tsx. It doesn't replace M-Pesa.
+
+Lemon Squeezy
+
+Merchant of Record model — they handle VAT, tax compliance, and invoicing globally. You get paid a net amount. Relevant if you anticipate international researchers or NGOs paying.
+
+Much simpler than Stripe for international compliance
+Has webhooks similar to Stripe
+No usage-based billing natively — flat subscriptions only
+No M-Pesa
+5% + $0.50 per transaction
+Good fit for the Researcher tier ($49) targeting international academics
+Paddle
+
+Also Merchant of Record, similar to Lemon Squeezy but more enterprise-focused.
+
+Better for Institutional tier ($199) with invoice/PO support
+Has a proper API for programmatic subscription management
+Stronger compliance story for NGOs that need formal receipts
+No M-Pesa
+More complex to integrate than Lemon Squeezy
+Paystack
+
+Nigerian fintech, but fully operational in Kenya. Critical differentiator from Stripe:
+
+Supports M-Pesa natively as a payment channel — no Daraja integration needed on your end
+Also supports cards, bank transfer, USSD
+Kenyan shilling (KES) is a first-class currency
+Recurring billing supported
+Dashboard and reporting designed for African markets
+Webhook pattern is nearly identical to Stripe
+Takes 1.5% + KES 30 per transaction (capped at KES 2,500 for local, uncapped for international)
+This is probably the single most relevant option you haven't considered. It handles both card and M-Pesa through one integration, eliminating the need to build separate Daraja logic entirely.
+Flutterwave
+
+Pan-African payments, also operational in Kenya.
+
+Supports M-Pesa, cards, bank transfer, mobile money across Africa
+Has a recurring billing product ("Payment Plans")
+More complex API than Paystack
+Better if you ever expand Nasaka-equivalent tools to Uganda, Tanzania, or Nigeria
+Higher fees than Paystack for local transactions
+Less developer-friendly documentation
+IntaSend
+
+Kenyan-founded, Nairobi-based payments company.
+
+M-Pesa STK Push, M-Pesa B2B, card payments
+Built specifically for Kenyan developers
+Has a subscription/recurring billing API
+Stripe-like webhook model
+Much smaller company — reliability risk at scale
+Competitive fees for local transactions
+Worth watching but not production-first choice today
+PesaLink / Bank Transfer
+
+Kenya Bankers Association's instant bank transfer system.
+
+Relevant only for Institutional tier clients who need to pay via bank transfer with formal invoices
+Not an API-driven self-serve flow — manual reconciliation
+Government and large NGO clients often require this
+You'd handle it as "Contact us" rather than automated checkout
+Ko-fi / GitHub Sponsors / Open Collective
+
+You already have Ko-fi for CEKA. These are donation/voluntary support models — not appropriate for B2B API monetization where you need quota enforcement tied to payment. Don't conflate your civic donation fundraising with your API revenue stream.
+
+Usage-based billing platforms (Orb, Lago, OpenMeter)
+
+These sit between your API and your payment processor — they meter usage, calculate bills, and push charges to Stripe/Paystack. Relevant at scale when usage patterns vary wildly between clients.
+
+Lago is open-source and self-hostable — fits CEKA's ethos
+Orb is enterprise SaaS, overkill at your stage
+OpenMeter is usage metering only, needs a payment processor alongside it
+Not needed now. File for when you hit consistent Institutional-tier customers with variable usage.
+
+The actual decision matrix for your situation
+
+Scenario	Recommendation
+Minimize custom code, developer-facing positioning	Polar.sh + Stripe
+Kenya-first, M-Pesa + card in one integration	Paystack
+International NGOs + tax compliance	Lemon Squeezy or Paddle
+Full control, already built Stripe	Stripe + Daraja (what you've been planning)
+Pan-African expansion future	Flutterwave
+The combination that makes most sense for Nasaka specifically: Paystack as your primary processor (handles M-Pesa and cards natively in KES, Kenyan company, lower fees) with Polar.sh considered as a developer portal layer if you want the open-source community positioning. That eliminates the entire custom Daraja integration you were about to build.
+
+I do actually have Paystack live! So, how do i go about setting up for it?
+
+6:45 PM
+
+Identified user's existing setup and prepared clarifying questions
+Identified user's existing setup and prepared clarifying questions
+A few things I need to know to give you precise setup guidance:
+
+Q: What do you already have configured on your Paystack dashboard? (Select all that apply)
+A: Nothing yet beyond live keys
+
+Q: Where is your Nasaka IEBC frontend — same Vercel project as the API or separate?
+A: Same Vercel project
+
+Q: Which tiers do you want Paystack to handle? (Select all that apply)
+A: Not sure... i'm even supposed to customize those prices to better fit the context medium of what we've done and who we're serving. GOT IT?
+
+6:50 PM
+
+Reconsidered pricing strategy for Kenyan civic tech context
+Reconsidered pricing strategy for Kenyan civic tech context
+Good catch — pricing before plumbing. Here's the reality check first:
+
+Who is actually buying this
+
+Before any numbers, the real buyer segments for Nasaka IEBC API data are:
+
+Local Kenyan buyers — NGOs, CSOs, county government ICT departments, local media houses (Nation, Standard, Citizen), civic tech developers. These operate in KES. Budget cycles are grant-driven. $49/mo recurring is a hard sell without a procurement process. They need KES pricing, M-Pesa payment, and ideally annual invoicing.
+
+International buyers — Academic researchers (universities), international NGOs (Aga Khan, Oxfam Kenya offices), development agencies (USAID, UN-Habitat Nairobi), election monitoring orgs. These have USD budgets, pay by card, and need formal invoices with VAT. They will pay more without flinching.
+
+Civic tech builders — Individual developers building Kenya-focused apps. Mostly low/no budget. The free tier serves them. Some will upgrade if the data quality justifies it.
+
+Problems with the original tier pricing
+
+$49/mo for a Kenyan NGO researcher is ~KES 6,300 — that's a meaningful budget line that requires approval. The value proposition (IEBC office coordinates + boundary data) doesn't yet justify that for a local buyer unless you've expanded to polling stations.
+
+$199/mo for Institutional is actually underpriced for international development orgs — USAID contractors pay $500–2,000/mo for comparable civic datasets in other markets without blinking.
+
+The 1,000 request Community limit is too low for a developer evaluating your API — they'll hit it during testing and churn before converting.
+
+Proposed re-tiered pricing for your actual context
+
+Tier	Target	Monthly (KES)	Monthly (USD)	Requests	Rate
+Community	Civic devs, students	Free	Free	5,000	2 req/s
+Mwananchi	Local NGOs, journalists, county govts	KES 2,500	~$19	100,000	10 req/s
+Taifa	Research institutions, media houses, international NGOs	KES 8,000	~$62	500,000	30 req/s
+Serikali	Development agencies, election observers, enterprise	Custom / KES 25,000+	~$195+	Unlimited	100 req/s
+Why this works better:
+
+KES 2,500 is psychologically accessible for local buyers — it's within petty cash approval range at most NGOs
+"Mwananchi" and "Taifa" naming aligns with your civic brand voice — not generic SaaS tier names
+Serikali (government/enterprise) tier has a "Contact us" path for custom invoicing, PO-based payment, and annual contracts — this is how you actually close the $199+ deals
+Free tier at 5,000 requests gives developers room to actually evaluate before hitting a wall
+USD pricing kept for international buyers, KES for local — Paystack handles both natively
+What this means for Paystack setup
+
+With this structure confirmed, here's exactly what you create in Paystack dashboard from scratch:
+
+Plans to create (Paystack → Products → Plans):
+
+nasaka_mwananchi_monthly — KES 2,500, monthly interval
+nasaka_mwananchi_annual — KES 25,000, annual interval (2 months free)
+nasaka_taifa_monthly — KES 8,000, monthly interval
+nasaka_taifa_annual — KES 80,000, annual interval (2 months free)
+Serikali has no Plan — it's a manual invoice flow
+Annual options matter because NGOs with grant budgets prefer single annual payments over recurring monthly.
+
+Environment variables to add to Vercel immediately:
+
+PAYSTACK_SECRET_KEY=sk_live_xxx
+PAYSTACK_PUBLIC_KEY=pk_live_xxx
+PAYSTACK_WEBHOOK_SECRET=your_webhook_hash
+PAYSTACK_MWANANCHI_MONTHLY_PLAN_CODE=PLN_xxx
+PAYSTACK_MWANANCHI_ANNUAL_PLAN_CODE=PLN_xxx
+PAYSTACK_TAIFA_MONTHLY_PLAN_CODE=PLN_xxx
+PAYSTACK_TAIFA_ANNUAL_PLAN_CODE=PLN_xxx
+Plan codes are assigned by Paystack when you create the Plans — copy them after creation.
+
+New database columns needed on nasaka_api_keys
+
+sql
+alter table nasaka_api_keys
+  add column paystack_customer_code text,
+  add column paystack_subscription_code text,
+  add column paystack_plan_code text,
+  add column tier text not null default 'community',
+  add column tier_currency text default 'KES',
+  add column billing_interval text default 'monthly',
+  add column plan_status text default 'active',
+  add column current_period_start timestamptz,
+  add column current_period_end timestamptz,
+  add column monthly_request_count integer default 0,
+  add column monthly_reset_date timestamptz default date_trunc('month', now()) + interval '1 month',
+  add column is_locked boolean default false;
+New table needed:
+
+sql
+create table nasaka_paystack_events (
+  id uuid primary key default gen_random_uuid(),
+  paystack_event_id text unique,
+  event_type text,
+  api_key_id uuid references nasaka_api_keys(id),
+  raw_payload jsonb,
+  processed_at timestamptz default now()
+);
+New API endpoints needed
+
+/api/payments/initiate — creates a Paystack transaction/subscription, returns an authorization_url to redirect the user to Paystack Checkout.
+
+/api/payments/verify — called after Paystack redirects back with a reference, verifies payment server-side.
+
+/api/payments/webhook — Paystack POSTs subscription events here. Events you must handle: subscription.create, subscription.disable, invoice.payment_failed, invoice.update, charge.success.
+
+/api/payments/pricing — public endpoint returning current tier metadata in both KES and USD for the frontend.
+
+Paystack webhook security
+
+Unlike Stripe's header signature, Paystack uses a simpler model: they send an x-paystack-signature header which is a HMAC SHA512 hash of the raw request body using your secret key. Verify it like this on every webhook:
+
+typescript
+import crypto from 'crypto';
+
+const hash = crypto
+  .createHmac('sha512', process.env.PAYSTACK_SECRET_KEY!)
+  .update(rawBody)
+  .digest('hex');
+
+if (hash !== req.headers['x-paystack-signature']) {
+  return new Response('Unauthorized', { status: 401 });
+}
+You must use the raw request body — not JSON.parsed. In Vercel Edge Functions, read it as await req.text() before parsing.
+
+The M-Pesa path through Paystack
+
+When a user on the pricing page selects M-Pesa as payment method, the Paystack Popup/Redirect handles the channel selection — you don't need to build separate M-Pesa UI. Paystack's checkout natively presents M-Pesa as an option for KES transactions. The STK push is triggered by Paystack, not your backend. Your callback just receives a charge.success event like any other payment.
+
+Implementation order from zero
+
+Create Plans in Paystack dashboard → copy Plan codes to Vercel env vars → run the SQL migration → build /api/payments/initiate → build /api/payments/verify → build /api/payments/webhook with idempotency → build /api/payments/pricing → wire PricingPage.tsx to initiate endpoint → test full flow in Paystack test mode → register webhook URL in Paystack dashboard → go live.
+
+
+
+
+
+
+
+
+Claim offer
+
+Nasaka API.txt
+Document
+Given (attached doc) as context, what is the best pricing criterion for Nasaka to realistically maximize wittifully on their product, capture a wide net of Kenyans but also get a proper hold on the corporates and institutions seeking this data? 
+
+
+Thought for 20s
+Recommendation — best pricing criterion (concise)
+Short answer: price Nasaka on a hybrid criterion that combines metered usage (requests/month) + feature gating (bulk exports, boundary/GeoJSON, historical snapshots) + customer segment & SLA (individual/dev, local NGOs/media, researchers, enterprise/government). Use Kenya-local currency tiers (KES) with Paystack M-Pesa support for local buyers, annual discounts, and a “contact us / custom” enterprise lane for institutional contracts and procurement. Balance generous free/dev access (to capture a wide net) with gated, clearly higher-value endpoints for paying tiers (to capture corporates/institutions).
+
+Concrete tiered proposal (operational, ready to implement)
+Community (Free)
+
+Monthly price: KES 0
+
+Requests: 5,000 / month, burst 2 req/s
+
+Access: basic JSON endpoints, /stats, limited /offices results, developer key, community support.
+
+Purpose: on-ramp devs, students, journalists.
+
+Mwananchi (Local paid)
+
+Monthly price: KES 2,500 (~small local NGO petty-cash)
+
+Requests: 100,000 / month, burst 10 req/s
+
+Access: GeoJSON, CSV exports (limited size), /boundary read, email support.
+
+Payment: Paystack (includes M-PESA channel) for KES payments; monthly & annual options.
+
+Taifa (Research / Media / INGO)
+
+Monthly price: KES 8,000 (or USD option ~$60)
+
+Requests: 500,000 / month, burst 30 req/s
+
+Access: full GeoJSON/CSV bulk export, boundary API, versioned snapshots, priority email + 72h SLA.
+
+Annual discount: 2 months free if billed annually.
+
+Serikali (Enterprise / Government / Observers)
+
+Price: Custom / KES 25,000+ (negotiated; invoice/PO/annual preferred)
+
+Requests: Unlimited or custom quota, burst 100+ req/s
+
+Access: dedicated exports, SFTP/secure data transfer, SLA (uptime/latency), legal contract, on-boarding, dedicated support and audit logs.
+
+Add-ons & extras (metering rules)
+
+Bulk export / GeoJSON download over X MB: credit charge or per-export fee (e.g., credits = 1 credit per 1,000 rows; sell packs).
+
+Overage: per-1,000-requests over quota (small KES fee) or throttle to read-only with invoice.
+
+Education / nonprofit discount: 50% off Mwananchi/Taifa on application.
+
+Pilot/PoC for corporates: 30–60 day low-cost pilot (discounted Mwananchi tier) to prove value before moving to Taifa/Serikali.
+
+Why this criterion (rationale)
+Metered usage aligns price with actual load/cost and is easy to enforce (token bucket / Upstash Redis). It captures both many-light users and few-heavy institutional users.
+
+Feature gating (exports, boundary queries, bulk/GeoJSON) creates clear product differentiation the market will pay for — corporates value bulk and SLA more than single-point lookups.
+
+Customer-segment pricing (local KES + M-PESA via Paystack, and USD options for internationals) removes friction for Kenyan buyers while preserving higher USD pricing for international NGOs/researchers. Evidence: Paystack supports M-PESA and KES collection which simplifies local payments. 
+
+Margins & fees to plan for: Paystack charges for local channels (including M-PESA) — account for ~1.5% on M-PESA receipts (card fees higher). Build these into net pricing and invoice flows. 
+
+Payment processor choice note: Do primary billing via Stripe only if you require global USD card flows and can legally operate with Stripe; otherwise use Paystack (local M-PESA + cards). Market checks show Paystack is the practical Kenya-first choice for M-PESA and KES settlement. 
+
+Operational rules (enforcement & UX)
+Quota + burst enforcement: token bucket at Edge (Upstash Redis recommended) for speed; check monthly counters in nasaka_usage_log for billing. (PL/pgSQL is possible but will stress Supabase at high throughput.)
+
+Feature gating: deny /coordinates?format=csv and /boundary to Community tier (403). Return quota_remaining with each response header for transparency.
+
+Metering model: count meaningful requests (e.g., heavy bulk exports count proportionally more). Consider weighting endpoints (locate = 1, boundary = 10, CSV export per MB = X credits).
+
+Enterprise onboarding: require contract, PO/invoice, and manual activation; offer SFTP/secure dump and SLA.
+
+Trial & conversion: free tier → 14–30 day Mwananchi trial with auto-opt-in email reminders; surface usage dashboards in /dashboard/api-keys.
+
+Billing & taxes: support Paystack for KES/M-PESA, Stripe/Paystack for USD; issue formal invoices for NGOs and enterprises.
+
+Pricing mechanics to maximize revenue while growing reach (recommended levers)
+Generous free tier (5k/month) to onboard devs and journalists — increases adoption and organic integration in Kenyan apps.
+
+Low-cost local paid tier (KES 2,500) to convert NGOs and media with minimal procurement friction.
+
+Higher mid-tier (KES 8,000) aimed at institutes and international researchers who value exports and SLA.
+
+Enterprise custom for corporates with procurement cycles — price by value (annual contract, white-label, dedicated export).
+
+Annual billing with discount to increase ARPU and reduce churn.
+
+Overage + credit packs to monetize spiky usage without surprise drops.
+
+Nonprofit / research discounts verified by manual approval to protect goodwill but reduce abuse.
+
+Sales motion for corporates & institutions
+Offer a PoC pilot: 30–60 days with sample bulk dataset and single PoC endpoint (discounted Taifa). Use pilot to measure ROI and then upsell to enterprise contract.
+
+Provide formal data license & SLA docs, sample invoices, and a fast “procurement pack” (SOW + value metrics) for county governments, election observers, and NGOs.
+
+Provide annual licensing/invoicing option (preferred by institutional buyers).
+
+Quick margin & price sanity checks you must do before going live
+Calculate cost-per-1k requests (cloud compute, Supabase reads, caching, Redis rate-limit calls, support time).
+
+Add Paystack fees (1.5% M-PESA; card fees higher) to price floor. 
+
+Set target gross margin (recommended 60–75% for SaaS datasets at this stage) and adjust KES prices accordingly.
+
+Run a small pilot with 5–10 local NGOs at Mwananchi price to validate willingness to pay before scaling.
+
+Quick checklist to launch this pricing (actionable)
+Create Paystack plans (KES tiers) and populate Vercel env vars. 
+
+Add tier, plan_status, monthly_request_count, monthly_reset_date columns to nasaka_api_keys.
+
+Implement Upstash Redis token bucket + nasaka_usage_log.
+
+Implement feature gating in api-auth.ts (boundary, CSV, bulk).
+
+Build PricingPage + Paystack checkout + /dashboard/api-keys.
+
+Add annual discounted plans and nonprofit verification flow.
+
+Pilot with 5 local NGOs and 3 media houses for 60 days; collect feedback and adjust.
+
+References (key sources)
+Paystack M-PESA payment channel & docs. 
+
+Paystack transactions pricing (Kenya channels / fees). 
+
+Market note: Stripe availability in Kenya is limited—Paystack is the practical Kenya-first option. 
+
+Example vendor pricing for geocoding/data APIs (Mapbox/HERE) — use as benchmark for per-1k request comparisons. 
+
+
+
+
+
+
+
+This is deep enough context now. Here's the full strategic picture:
+
+---
+
+**The fundamental tension you must resolve first**
+
+Nasaka IEBC sits at a difficult intersection: it's civic infrastructure (which creates an expectation of free access) built on real labor that costs money to maintain. Your pricing strategy must neutralize the "but civic data should be free" objection before a single buyer raises it. The answer is: **the raw data is free and always will be — you're selling reliability, structure, uptime, and developer convenience.** That reframe is what makes charging defensible. Bake it into every pricing page headline.
+
+---
+
+**What you're actually selling — and it's not what you think**
+
+Most API businesses sell access. You're selling something rarer in Kenya: **trust in electoral data.** Your geocoding resolver, confidence scores, HITL review, and audit logs mean your coordinates are more reliable than anything IEBC itself publishes publicly. That's your actual value proposition for the premium tiers. The Institutional buyer isn't paying for 500,000 requests — they're paying for data they can cite in a report, submit to a donor, or display in a court-admissible map. Price accordingly.
+
+---
+
+**Competitive landscape and where you sit**
+
+| Competitor | What they charge | Gap you fill |
+|---|---|---|
+| IEBC official data | Free but unusable (PDFs, no API, no coordinates) | Clean, structured, developer-ready |
+| Mapbox/HERE geocoding | $0.50–$5 per 1,000 requests | Kenya-specific electoral context |
+| Google Maps Platform | $2–$7 per 1,000 requests | No boundary/constituency layer |
+| OpenAfrica datasets | Free but stale, no SLA | Live, maintained, verified |
+| Kenya Open Data portal | Free, rarely updated, no API | Real-time, queryable |
+
+You have no direct competitor. The closest thing is building it yourself — which is what your buyers would otherwise have to do. Price against that build cost, not against other APIs.
+
+---
+
+**Pricing model options beyond flat subscription**
+
+**Flat subscription (what you have now)** — Predictable revenue, simple to understand, but undercharges heavy users and overcharges light ones. Works for your current scale.
+
+**Usage-based (pure metered)** — Charge per 1,000 requests, no monthly minimum. Lower conversion friction, higher revenue ceiling from power users. Risk: unpredictable revenue month to month. AWS/Stripe model.
+
+**Hybrid: subscription floor + overage** — Monthly flat fee covers X requests, overage charged per 1,000 beyond that. Best of both worlds. This is what you should build for Mwananchi and Taifa.
+
+**Credit packs** — Pre-purchased request blocks with no expiry. One-time purchase, no subscription friction. Best for NGOs with grant funds that can't commit to monthly recurring. Sell packs of 50,000 / 200,000 / 500,000 requests. Buyers spend the grant budget now, use credits over the year.
+
+**Data licensing** — Annual flat fee for a complete dataset dump (all 290+ offices as GeoJSON/CSV, updated quarterly). No API call counting. Ideal for academic researchers who need a frozen dataset for a study, not live queries. KES 15,000–40,000 annually depending on use.
+
+**White-label licensing** — Organizations embedding Nasaka data in their own products (a county government building their own voter information portal, a media house building an election tracker). Higher price, contract-based, includes logo removal rights and custom branding. This is a separate product from API access. Price at KES 80,000–200,000/year.
+
+---
+
+**The full pricing architecture — revised and complete**
+
+**Tier 1: Community (Free forever)**
+- 5,000 requests/month, 2 req/s
+- JSON only, `/stats`, `/offices`, `/locate` endpoints
+- No `/boundary`, no GeoJSON/CSV export, no `/coordinates` bulk
+- API key creation requires email verification only
+- Purpose: developer adoption, press, civic goodwill
+- Conversion goal: 14-day trial of Mwananchi auto-triggered at 3,000 requests used
+
+**Tier 2: Mwananchi — KES 2,500/month or KES 25,000/year**
+- 100,000 requests/month, 10 req/s
+- Adds: GeoJSON export, CSV export, `/boundary` reverse lookup
+- Overage: KES 150 per additional 10,000 requests
+- M-Pesa STK + card via Paystack
+- Target: local NGOs, journalists, county ICT staff, civic app developers
+- Annual saves 2 months — prominently displayed as "KES 25,000/year (save KES 5,000)"
+
+**Tier 3: Taifa — KES 8,000/month or KES 80,000/year**
+- 500,000 requests/month, 30 req/s
+- Adds: versioned snapshots, priority email support (72h SLA), `/coordinates` full bulk export, weighted endpoint credits, usage dashboard
+- Overage: KES 100 per additional 10,000 requests (cheaper per unit than Mwananchi, incentivizes upgrade)
+- USD option: $62/month (displayed for international buyers)
+- Target: research institutions, media houses, international NGOs, election monitoring orgs
+- Annual saves 2 months
+
+**Tier 4: Serikali — Custom, from KES 25,000/month**
+- Unlimited or negotiated quota, 100+ req/s
+- Adds: dedicated data dumps via SFTP/secure URL, uptime SLA contract, legal data license agreement, on-boarding call, named account contact, custom boundary layers on request, audit log exports
+- Invoice/PO/annual contract only — no self-serve checkout
+- "Contact us" path with a response SLA of 48h
+- Target: county governments, IEBC itself (licensing their own data back cleaner), development agencies (USAID, UN agencies), election observer orgs (Carter Center, EU EOM)
+
+**Credit Packs (standalone, no subscription required)**
+- 50,000 credits — KES 3,500
+- 200,000 credits — KES 10,000 (KES 50/10k, cheaper than Mwananchi overage)
+- 500,000 credits — KES 20,000
+- Credits never expire. Endpoint weights: standard lookup = 1 credit, `/boundary` = 5 credits, bulk CSV export per 1,000 rows = 3 credits
+- Target: grant-funded orgs with lump-sum budgets, one-time research projects, pilot evaluations
+
+**Data License (annual, no API)**
+- Complete verified dataset snapshot (all offices, coordinates, confidence scores, formatted addresses) in GeoJSON + CSV
+- Updated quarterly, delivered by download link
+- Academic/research use: KES 15,000/year
+- Commercial use: KES 40,000/year
+- Includes citation format for academic papers
+- Target: university researchers, think tanks, policy institutes
+
+**White-label License**
+- Rights to embed Nasaka data in a third-party product without attribution
+- Includes custom branding removal, dedicated data pipeline, integration support
+- KES 80,000–200,000/year depending on product reach
+- Contract required, legal review, custom SLA
+- Target: civic tech companies, media houses building election products, county government portals
+
+**Nonprofit/Academic discount: 50% off Mwananchi and Taifa**
+- Applied manually on request — requires proof (registration cert, institutional email, donor/grant documentation)
+- Prevents abuse while maintaining goodwill
+- Creates a separate `nasaka_discount_applications` table for review
+
+---
+
+**Pricing psychology plays you should use**
+
+**Anchor high, justify down.** Lead with Serikali ("from KES 25,000/month") even though most buyers won't take it. It makes Taifa at KES 8,000 feel reasonable.
+
+**Annual billing as default.** Display annual prices first on the pricing page with monthly as the secondary option. "KES 80,000/year" reads differently than "KES 8,000/month × 12." The former feels like a single decision; the latter feels like 12 recurring ones.
+
+**Show the build cost comparison.** On the pricing page, a small callout: "Building this dataset yourself costs 3–6 months of engineering time and KES 500,000+ in data collection. Nasaka gives you production-ready access from day one." This is not marketing — it's true, and it's the strongest conversion argument for institutional buyers.
+
+**Feature name gating over request count gating.** Most buyers don't understand what 100,000 requests means. They do understand "CSV export" and "boundary lookup." Lead with features, list request limits as secondary detail. Your pricing table headers should say "What you get" not "How many requests."
+
+**The $0 tier must feel expensive to leave.** At 5,000 requests/month, a developer building any real integration will hit the ceiling. Make the free tier generous enough to evaluate but tight enough to force the upgrade conversation naturally.
+
+---
+
+**Revenue modeling — realistic projections**
+
+Kenya civic tech market is small but concentrated. Realistic Year 1 targets:
+
+| Tier | Target accounts | Monthly ARR |
+|---|---|---|
+| Mwananchi (monthly) | 15 orgs | KES 37,500 |
+| Mwananchi (annual) | 5 orgs | KES 10,417/mo equivalent |
+| Taifa (monthly) | 4 orgs | KES 32,000 |
+| Taifa (annual) | 2 orgs | KES 13,333/mo equivalent |
+| Credit packs | 20 purchases/year | KES 8,333/mo equivalent |
+| Serikali | 1 contract | KES 25,000 |
+| **Total** | | **~KES 126,583/month (~$980/mo)** |
+
+This is conservative. One USAID contractor or UN-Habitat engagement at Taifa/Serikali level doubles it. One county government ICT contract triples it. The upside is in the Serikali tier — invest disproportionate sales effort there.
+
+---
+
+**The election cycle opportunity**
+
+Kenya's general elections are every 5 years (next 2027). By-elections happen continuously. Registration drives happen 18–24 months before general elections. Your revenue will spike 300–500% in the 12 months before August 2027. Plan for it:
+
+- Introduce an **Election Monitoring Package** in early 2027 — time-limited 90-day access at Taifa pricing, marketed specifically at observer orgs, media, and political risk consultancies
+- Pre-sell annual Taifa contracts in late 2026 before demand spikes — lock in buyers before they realize they need you
+- Build a waitlist for Serikali tier now — election observers book contractors 12–18 months in advance
+
+---
+
+**The grant revenue angle most people miss**
+
+Your buyers often have grant budgets, not operational budgets. Grant-funded orgs cannot easily commit to monthly recurring payments but can spend a lump sum on "data infrastructure." Your Credit Packs and Data License products are designed exactly for this — they're one-time purchases that a grants officer can approve as a line item rather than a subscription that requires procurement approval every year.
+
+Additionally: **you yourself should apply for civic tech grants to subsidize the free tier.** Mozilla Foundation, Knight Foundation, USAID DRG (Democracy, Rights, Governance) programs, and the African Development Bank all fund exactly this type of infrastructure. The grant covers your hosting/maintenance costs, which means your free tier costs you nothing out of pocket and your paid tiers are pure margin.
+
+---
+
+**Three pricing strategies you should test, in order**
+
+**Strategy A (launch):** Flat subscription only — Community, Mwananchi, Taifa. Simple to build, simple to explain. Run for 3 months, collect usage data.
+
+**Strategy B (month 4):** Add Credit Packs. Watch whether NGOs with lump-sum budgets convert on packs faster than subscriptions. If pack conversion rate > subscription rate among NGO segment, it's telling you the market prefers non-recurring.
+
+**Strategy C (month 7):** Introduce hybrid overage on Mwananchi/Taifa. Review whether heavy users are consistently hitting their caps — if yes, overage adds revenue without losing them. If no, the caps are too generous and you leave money on the table on Serikali.
+
+---
+
+**One thing nobody in your position does that you should**
+
+Publish your pricing publicly and transparently, including your cost structure reasoning. A short page explaining: "Here's what it costs us to run this infrastructure per month. Here's why we charge what we charge. Here's how revenue supports free access for civic developers." This is not weakness — it's credibility. Donors fund you more readily. NGOs trust you more readily. Journalists quote you rather than question you. It aligns with CEKA's civic brand voice in a way that opaque SaaS pricing never would. 
+
+Honest answer by layer:
+
+---
+
+**Vercel Edge Functions**
+
+This layer is fine. Edge Functions scale horizontally and automatically — Vercel spins up new instances per request globally. 1,000 concurrent requests is nothing to Vercel. 1,000,000 requests/month at even distribution (~0.4 req/s average) is trivial. The burst scenarios are what matter: 100 req/s sustained from a single Institutional client is still well within Vercel's capacity. This layer is not your bottleneck.
+
+---
+
+**Supabase — this is your actual bottleneck**
+
+Your free Supabase plan has:
+- **60 simultaneous database connections** — this is the hard ceiling
+- **500MB database size**
+- **2GB bandwidth/month**
+- **Shared compute** — CPU and RAM are shared with other free-tier projects
+
+Every API request that hits your endpoints makes at least one Supabase query. At Community tier (2 req/s) that's fine. At Taifa (30 req/s) that's 30 simultaneous Supabase connections per second from one client — you'll saturate the connection pool fast and start seeing `connection timeout` errors.
+
+Supabase Pro plan ($25/month) gives you:
+- **Direct connection: up to 200 connections**
+- **Supavisor connection pooling: up to 10,000 connections** (this is what you actually need)
+- **8GB database size**
+- **50GB bandwidth**
+- **Dedicated compute option**
+
+Connection pooling via Supavisor is the critical feature. It proxies hundreds of application connections through a smaller pool of actual database connections. Without it, your architecture collapses at Taifa-tier traffic.
+
+**Verdict:** On the free plan, you cannot reliably serve even one Mwananchi client at full burst. You need Supabase Pro before any paid tier goes live. That's $25/month — build it into your cost model.
+
+---
+
+**Upstash Redis — rate limiting layer**
+
+Not yet implemented but proposed. When implemented, Upstash's free tier gives you:
+- 10,000 commands/day
+- 256MB storage
+
+At 30 req/s for one Taifa client, each request hitting Redis for token bucket check = 30 Redis commands/second = 2,592,000 commands/day. You blow past the free tier in one hour of sustained use.
+
+Upstash Pay-as-you-go: $0.20 per 100,000 commands. At Taifa sustained traffic that's ~$5–15/month per heavy client. Manageable. But you must be on paid Upstash before Taifa tier opens.
+
+---
+
+**Cloudflare — fine as-is**
+
+Cloudflare's free plan handles unlimited requests at the WAF/CDN layer. Rate limiting rules at Cloudflare level (before requests even hit Vercel) are available on the free plan up to a point. For anything serious, Cloudflare Pro ($20/month) gives you more sophisticated rate limiting rules. Not urgent but worth planning.
+
+---
+
+**Caching — your most important lever**
+
+Your most-requested endpoints — `/stats`, `/counties`, `/offices` — return data that changes infrequently. Right now every request hits Supabase fresh. With proper `Cache-Control` headers:
+
+```
+Cache-Control: public, s-maxage=60, stale-while-revalidate=300
+```
+
+Vercel's Edge Network caches these responses at the CDN level. A cached `/offices` response costs zero Supabase connections. If 90% of your traffic hits cached endpoints, your actual Supabase load drops by 90%. This single change takes you from "collapses at 30 req/s" to "handles 300 req/s" without touching your database.
+
+`/locate` and `/boundary` are query-dependent and harder to cache at CDN level — but you can cache common queries in Upstash Redis with a 60-second TTL. Nairobi-area coordinate lookups will repeat constantly.
+
+---
+
+**The honest capacity numbers with your current free-tier setup**
+
+| Traffic level | Current architecture | Can it handle it? |
+|---|---|---|
+| 1,000 req/month | Free Supabase, no Redis, basic caching | Yes, comfortably |
+| 100,000 req/month (~3 req/s avg) | Free Supabase, no Redis | Marginal — will see occasional timeouts under burst |
+| 1,000,000 req/month (~0.4 req/s avg but with bursts) | Free Supabase, no Redis | No — connection pool exhaustion under any burst |
+
+---
+
+**The honest capacity numbers with upgraded setup**
+
+| Traffic level | Supabase Pro + Upstash paid + Caching | Can it handle it? |
+|---|---|---|
+| 1,000 req/month | Yes | Trivially |
+| 100,000 req/month | Yes | Comfortably |
+| 1,000,000 req/month | Yes | With proper caching, yes |
+| 10,000,000 req/month | Needs Supabase compute upgrade + read replicas | Possible but requires architecture work |
+
+---
+
+**What you need to do before opening paid tiers**
+
+Upgrade Supabase to Pro and switch your connection string to use Supavisor pooling (Supabase gives you a separate pooler connection string — use that one in your Vercel env vars, not the direct connection). Add `Cache-Control` headers to `/stats`, `/counties`, `/offices`, `/coordinates`. Implement Upstash Redis on the paid tier. That three-change sequence takes you from "breaks under one Taifa client" to "handles your full pricing tier stack."
+
+---
+
+**The cost math for running paid tiers sustainably**
+
+| Infrastructure | Cost/month |
+|---|---|
+| Supabase Pro | $25 |
+| Upstash Pay-as-you-go | ~$5–20 depending on traffic |
+| Vercel Pro (if needed) | $20 |
+| Cloudflare Pro (optional) | $20 |
+| **Total infrastructure floor** | **~$50–85/month** |
+
+Your first Mwananchi client at KES 2,500 (~$19) doesn't cover infrastructure. Your first Taifa client at KES 8,000 (~$62) barely covers it. You need 3–5 paying clients before the infrastructure pays for itself. This is normal for API businesses — plan for it, don't be surprised by it.
+

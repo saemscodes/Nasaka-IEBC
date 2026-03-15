@@ -132,8 +132,25 @@
       "source": "/api/v1/(.*)",
       "headers": [
         {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, X-API-Key, x-paystack-signature"
+        }
+      ]
+    },
+    {
+      "source": "/api/v1/billing/(.*)",
+      "headers": [
+        {
           "key": "Cache-Control",
-          "value": "s-maxage=60, stale-while-revalidate=300"
+          "value": "no-store, no-cache"
         },
         {
           "key": "Access-Control-Allow-Origin",
@@ -145,7 +162,28 @@
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, X-API-Key"
+          "value": "Content-Type, X-API-Key, x-paystack-signature"
+        }
+      ]
+    },
+    {
+      "source": "/api/v1/enterprise/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "POST, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type"
         }
       ]
     },
