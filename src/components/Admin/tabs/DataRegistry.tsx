@@ -9,7 +9,10 @@ import {
     ChevronLeft,
     ChevronRight,
     Filter,
-    ArrowUpDown
+    ArrowUpDown,
+    X,
+    Save,
+    AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -21,6 +24,10 @@ const DataRegistry = () => {
     const [pageSize] = useState(25);
     const [totalCount, setTotalCount] = useState(0);
     const [sortConfig, setSortConfig] = useState({ key: 'constituency', direction: 'asc' });
+    const [editingOffice, setEditingOffice] = useState(null);
+    const [editForm, setEditForm] = useState<Record<string, any>>({});
+    const [deleteConfirm, setDeleteConfirm] = useState(null);
+    const [saving, setSaving] = useState(false);
 
     const fetchOffices = async () => {
         setLoading(true);
@@ -75,6 +82,87 @@ const DataRegistry = () => {
         document.body.appendChild(link);
         link.click();
         toast.success('Registry export generated');
+    };
+
+    const openEdit = (office) => {
+        setEditingOffice(office);
+        setEditForm({
+            county: office.county || '',
+            constituency: office.constituency || '',
+            office_location: office.office_location || '',
+            latitude: office.latitude ?? '',
+            longitude: office.longitude ?? '',
+            verified: office.verified || false
+        });
+    };
+
+    const handleSaveEdit = async () => {
+        if (!editingOffice) return;
+        setSaving(true);
+        try {
+            const payload = {
+                county: editForm.county,
+                constituency: editForm.constituency,
+                office_location: editForm.office_location,
+                latitude: editForm.latitude !== '' ? parseFloat(editForm.latitude) : null,
+                longitude: editForm.longitude !== '' ? parseFloat(editForm.longitude) : null,
+                verified: editForm.verified,
+                updated_at: new Date().toISOString()
+            };
+
+            const { error } = await supabase
+                .from('iebc_offices')
+                .update(payload)
+                .eq('id', editingOffice.id);
+
+            if (error) throw error;
+
+            // Log to security audit
+            await supabase.from('security_audit_log').insert({
+                action_type: 'ADMIN_EDIT',
+                table_name: 'iebc_offices',
+                record_id: editingOffice.id.toString(),
+                details: `Admin edited office ${editingOffice.id}: ${editingOffice.office_location}`,
+                user_id: 'admin_nexus'
+            }).then(() => { });
+
+            toast.success(`Office "${editForm.office_location}" updated`);
+            setEditingOffice(null);
+            fetchOffices();
+        } catch (err) {
+            toast.error(`Update failed: ${err.message}`);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDelete = async (office) => {
+        setSaving(true);
+        try {
+            // Log before deleting
+            await supabase.from('security_audit_log').insert({
+                action_type: 'ADMIN_DELETE',
+                table_name: 'iebc_offices',
+                record_id: office.id.toString(),
+                details: `Admin deleted office ${office.id}: ${office.office_location} (${office.county}, ${office.constituency})`,
+                user_id: 'admin_nexus'
+            }).then(() => { });
+
+            const { error } = await supabase
+                .from('iebc_offices')
+                .delete()
+                .eq('id', office.id);
+
+            if (error) throw error;
+
+            toast.success(`Office "${office.office_location}" deleted`);
+            setDeleteConfirm(null);
+            fetchOffices();
+        } catch (err) {
+            toast.error(`Delete failed: ${err.message}`);
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
@@ -152,8 +240,8 @@ const DataRegistry = () => {
                                     </td>
                                     <td className="px-6 py-5 text-right">
                                         <div className="flex items-center justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button className="p-2 text-gray-400 hover:text-blue-400 transition-colors"><Edit3 size={16} /></button>
-                                            <button className="p-2 text-gray-400 hover:text-red-400 transition-colors"><Trash2 size={16} /></button>
+                                            <button onClick={() => openEdit(off)} className="p-2 text-gray-400 hover:text-blue-400 transition-colors"><Edit3 size={16} /></button>
+                                            <button onClick={() => setDeleteConfirm(off)} className="p-2 text-gray-400 hover:text-red-400 transition-colors"><Trash2 size={16} /></button>
                                         </div>
                                     </td>
                                 </tr>
@@ -204,6 +292,132 @@ const DataRegistry = () => {
                     </p>
                 </div>
             </div>
+
+            {/* EDIT MODAL */}
+            {editingOffice && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+                    <div className="bg-[#0d1117] border border-white/10 rounded-[2rem] p-8 w-full max-w-lg shadow-2xl space-y-6">
+                        <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                            <h3 className="text-lg font-bold text-white">Edit Office #{editingOffice.id}</h3>
+                            <button onClick={() => setEditingOffice(null)} className="text-gray-500 hover:text-white transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-[10px] font-black uppercase text-gray-500 tracking-widest mb-2">County</label>
+                                <input
+                                    value={editForm.county}
+                                    onChange={(e) => setEditForm({ ...editForm, county: e.target.value })}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black uppercase text-gray-500 tracking-widest mb-2">Constituency</label>
+                                <input
+                                    value={editForm.constituency}
+                                    onChange={(e) => setEditForm({ ...editForm, constituency: e.target.value })}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black uppercase text-gray-500 tracking-widest mb-2">Office Location</label>
+                                <input
+                                    value={editForm.office_location}
+                                    onChange={(e) => setEditForm({ ...editForm, office_location: e.target.value })}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50"
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase text-gray-500 tracking-widest mb-2">Latitude</label>
+                                    <input
+                                        type="number"
+                                        step="any"
+                                        value={editForm.latitude}
+                                        onChange={(e) => setEditForm({ ...editForm, latitude: e.target.value })}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white font-mono outline-none focus:ring-2 focus:ring-blue-500/50"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase text-gray-500 tracking-widest mb-2">Longitude</label>
+                                    <input
+                                        type="number"
+                                        step="any"
+                                        value={editForm.longitude}
+                                        onChange={(e) => setEditForm({ ...editForm, longitude: e.target.value })}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white font-mono outline-none focus:ring-2 focus:ring-blue-500/50"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                                <button
+                                    onClick={() => setEditForm({ ...editForm, verified: !editForm.verified })}
+                                    className={`w-10 h-6 rounded-full transition-all ${editForm.verified ? 'bg-emerald-500' : 'bg-white/10'}`}
+                                >
+                                    <div className={`w-4 h-4 bg-white rounded-full transition-all mx-1 ${editForm.verified ? 'translate-x-4' : ''}`} />
+                                </button>
+                                <span className="text-sm text-gray-400">Verified</span>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 pt-4 border-t border-white/5">
+                            <button
+                                onClick={handleSaveEdit}
+                                disabled={saving}
+                                className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold py-3 rounded-2xl transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center space-x-2"
+                            >
+                                {saving ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : <><Save size={18} /><span>Save Changes</span></>}
+                            </button>
+                            <button
+                                onClick={() => setEditingOffice(null)}
+                                className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* DELETE CONFIRMATION */}
+            {deleteConfirm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+                    <div className="bg-[#0d1117] border border-red-500/20 rounded-[2rem] p-8 w-full max-w-md shadow-2xl space-y-6">
+                        <div className="flex items-center space-x-4">
+                            <div className="p-3 bg-red-500/20 rounded-2xl text-red-400">
+                                <AlertTriangle size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-white">Confirm Deletion</h3>
+                                <p className="text-sm text-gray-400">This action is irreversible</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-4 space-y-2">
+                            <p className="text-sm text-white font-medium">{deleteConfirm.office_location}</p>
+                            <p className="text-xs text-gray-500">{deleteConfirm.county} • {deleteConfirm.constituency} • ID: {deleteConfirm.id}</p>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => handleDelete(deleteConfirm)}
+                                disabled={saving}
+                                className="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-bold py-3 rounded-2xl transition-all flex items-center justify-center space-x-2"
+                            >
+                                {saving ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : <><Trash2 size={18} /><span>Delete Permanently</span></>}
+                            </button>
+                            <button
+                                onClick={() => setDeleteConfirm(null)}
+                                className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -8,8 +8,23 @@ import {
     ExternalLink,
     ShieldAlert,
     Search,
-    Lock
+    Lock,
+    Info,
+    HelpCircle
 } from 'lucide-react';
+
+const ACTION_DEFINITIONS = {
+    'VERIFY': { label: 'Verification', desc: 'A contribution or office was verified as accurate by an admin' },
+    'REJECT': { label: 'Rejection', desc: 'A contribution was rejected by an admin as inaccurate or duplicate' },
+    'DELETE': { label: 'Deletion', desc: 'A record was permanently removed from the database' },
+    'ADMIN_EDIT': { label: 'Admin Edit', desc: 'An admin manually edited an office record' },
+    'ADMIN_DELETE': { label: 'Admin Delete', desc: 'An admin permanently deleted an office record' },
+    'PROMOTE': { label: 'Promotion', desc: 'A contribution was promoted to an official IEBC office entry' },
+    'INSERT': { label: 'Creation', desc: 'A new record was created in the system' },
+    'UPDATE': { label: 'Update', desc: 'An existing record was modified' },
+    'LOGIN': { label: 'Login', desc: 'A user logged into the admin panel' },
+    'ARCHIVE': { label: 'Archive', desc: 'A record was moved to the archive' },
+};
 
 const AuditEvent = ({ event }) => {
     const getActionColor = (action) => {
@@ -17,6 +32,10 @@ const AuditEvent = ({ event }) => {
         if (action.includes('VERIFY') || action.includes('PROMOTE')) return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
         return 'text-blue-400 bg-blue-400/10 border-blue-400/20';
     };
+
+    const actionKey = (event.action_type || event.action || '').toUpperCase();
+    const actionDef = Object.entries(ACTION_DEFINITIONS).find(([k]) => actionKey.includes(k));
+    const severity = actionKey.includes('DELETE') || actionKey.includes('REJECT') ? 'High' : actionKey.includes('VERIFY') || actionKey.includes('PROMOTE') ? 'Medium' : 'Normal';
 
     return (
         <div className="flex items-start space-x-6 p-6 bg-white/[0.02] border border-white/5 rounded-3xl hover:bg-white/[0.04] transition-all group">
@@ -46,18 +65,24 @@ const AuditEvent = ({ event }) => {
                 </p>
 
                 <div className="flex items-center space-x-4 pt-2">
-                    <div className="flex items-center space-x-1.5 text-[10px] text-gray-600 font-mono">
+                    <div className="flex items-center space-x-1.5 text-[10px] text-gray-600 font-mono" title="Unique event identifier for audit traceability">
                         <Fingerprint size={10} />
                         <span>ID: {event.id.toString().slice(0, 8)}</span>
                     </div>
-                    <div className="flex items-center space-x-1.5 text-[10px] text-gray-600 font-mono">
+                    <div className="flex items-center space-x-1.5 text-[10px] text-gray-600 font-mono" title={`Severity: ${severity} — ${actionDef ? actionDef[1].desc : 'Uncategorized action'}`}>
                         <Shield size={10} />
-                        <span>Sec: {event.action_type ? 'High' : 'Normal'}</span>
+                        <span>Sev: {severity}</span>
                     </div>
+                    {event.record_id && (
+                        <div className="flex items-center space-x-1.5 text-[10px] text-gray-600 font-mono" title="The database record this action affected">
+                            <Info size={10} />
+                            <span>Rec: {event.record_id}</span>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            <button className="flex-shrink-0 text-gray-600 hover:text-white transition-colors">
+            <button className="flex-shrink-0 text-gray-600 hover:text-white transition-colors" title="View raw event data">
                 <ExternalLink size={18} />
             </button>
         </div>
@@ -68,6 +93,7 @@ const SecurityAudit = () => {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [showLegend, setShowLegend] = useState(false);
 
     useEffect(() => {
         const fetchLogs = async () => {
@@ -88,6 +114,17 @@ const SecurityAudit = () => {
         fetchLogs();
     }, []);
 
+    const filteredLogs = search
+        ? logs.filter(log => {
+            const s = search.toLowerCase();
+            const action = (log.action_type || log.action || '').toLowerCase();
+            const userId = (log.user_id || '').toLowerCase();
+            const details = typeof log.details === 'string' ? log.details.toLowerCase() : JSON.stringify(log.details || '').toLowerCase();
+            const table = (log.table_name || '').toLowerCase();
+            return action.includes(s) || userId.includes(s) || details.includes(s) || table.includes(s);
+        })
+        : logs;
+
     return (
         <div className="space-y-6">
             {/* Search Header */}
@@ -97,16 +134,76 @@ const SecurityAudit = () => {
                     <input
                         type="text"
                         placeholder="Search audit trail by actor, action, or record..."
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-gray-400"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
                     />
                 </div>
                 <div className="flex items-center space-x-3">
+                    <button
+                        onClick={() => setShowLegend(!showLegend)}
+                        className="flex items-center space-x-2 px-4 py-2 bg-blue-500/10 text-blue-400 rounded-xl border border-blue-500/20 text-xs font-bold uppercase tracking-widest"
+                    >
+                        <HelpCircle size={14} />
+                        <span>Field Guide</span>
+                    </button>
                     <button className="flex items-center space-x-2 px-4 py-2 bg-red-500/10 text-red-400 rounded-xl border border-red-500/20 text-xs font-bold uppercase tracking-widest">
                         <ShieldAlert size={14} />
                         <span>Export Encrypted Log</span>
                     </button>
                 </div>
             </div>
+
+            {/* Legend / Field Guide */}
+            {showLegend && (
+                <div className="bg-white/[0.03] border border-white/10 rounded-[2rem] p-6 space-y-4">
+                    <h4 className="text-sm font-bold text-white uppercase tracking-widest">Audit Field Definitions</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-3">
+                            <h5 className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Action Types</h5>
+                            {Object.entries(ACTION_DEFINITIONS).map(([key, def]) => (
+                                <div key={key} className="flex items-start space-x-3">
+                                    <span className="text-[10px] font-mono text-gray-500 w-24 flex-shrink-0">{key}</span>
+                                    <span className="text-xs text-gray-400">{def.desc}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="space-y-3">
+                            <h5 className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Column Meanings</h5>
+                            <div className="space-y-3">
+                                <div className="flex items-start space-x-3">
+                                    <Fingerprint size={12} className="text-gray-500 mt-0.5 flex-shrink-0" />
+                                    <div>
+                                        <span className="text-xs font-bold text-gray-300">ID</span>
+                                        <p className="text-xs text-gray-500">Unique event fingerprint. First 8 chars of the full UUID for readability.</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start space-x-3">
+                                    <Shield size={12} className="text-gray-500 mt-0.5 flex-shrink-0" />
+                                    <div>
+                                        <span className="text-xs font-bold text-gray-300">Severity (Sev)</span>
+                                        <p className="text-xs text-gray-500">High = destructive actions (delete/reject). Medium = state changes (verify/promote). Normal = reads and updates.</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start space-x-3">
+                                    <User size={12} className="text-gray-500 mt-0.5 flex-shrink-0" />
+                                    <div>
+                                        <span className="text-xs font-bold text-gray-300">Actor</span>
+                                        <p className="text-xs text-gray-500">The user ID (truncated) of the person or system process that triggered this action. "System" = automated pipeline.</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start space-x-3">
+                                    <Info size={12} className="text-gray-500 mt-0.5 flex-shrink-0" />
+                                    <div>
+                                        <span className="text-xs font-bold text-gray-300">Record (Rec)</span>
+                                        <p className="text-xs text-gray-500">The database row ID that was affected by this action.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Warning Banner */}
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-[2rem] p-6 flex items-start space-x-4 mb-8">
@@ -127,9 +224,13 @@ const SecurityAudit = () => {
                     Array(6).fill(0).map((_, i) => (
                         <div key={i} className="h-24 bg-white/5 rounded-3xl animate-pulse border border-white/5" />
                     ))
-                ) : logs.map((log) => (
+                ) : filteredLogs.length > 0 ? filteredLogs.map((log) => (
                     <AuditEvent key={`${log.id}-${log.created_at}`} event={log} />
-                ))}
+                )) : (
+                    <div className="text-center py-12 text-gray-500 text-sm">
+                        No audit events match your search "{search}"
+                    </div>
+                )}
             </div>
         </div>
     );

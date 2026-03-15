@@ -1,6 +1,11 @@
 export const config = { runtime: 'edge' };
 
-import { supabase } from "@/integrations/supabase/client";
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "",
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || ""
+);
 
 export interface SignatureSessionRequest {
   cspProvider: string;

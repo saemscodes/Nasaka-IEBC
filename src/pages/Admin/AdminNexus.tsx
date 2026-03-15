@@ -24,7 +24,7 @@ const AdminNexus = () => {
 
     const renderActiveTab = () => {
         switch (activeTab) {
-            case 'insights': return <InsightsOverview />;
+            case 'insights': return <InsightsOverview onTabChange={setActiveTab} />;
             case 'moderation': return <ModerationPanel />;
             case 'hitl': return <HITLModeration />;
             case 'automation': return <AutomationRunner />;

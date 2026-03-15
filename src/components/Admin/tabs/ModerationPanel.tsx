@@ -12,18 +12,54 @@ import {
     Maximize2,
     ExternalLink,
     ChevronDown,
+    ChevronUp,
     Info,
-    Clock
+    Clock,
+    Smartphone,
+    Camera,
+    Navigation,
+    Layers
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+const contributionIcon = new L.Icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
+
+const existingOfficeIcon = new L.Icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
+
+const FitBounds = ({ lat, lng }: { lat: number; lng: number }) => {
+    const map = useMap();
+    useEffect(() => {
+        map.setView([lat, lng], 15);
+    }, [lat, lng, map]);
+    return null;
+};
 
 const ModerationPanel = () => {
-    const [contributions, setContributions] = useState([]);
+    const [contributions, setContributions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('pending_review');
-    const [selectedItem, setSelectedItem] = useState(null);
-    const [isActionLoading, setIsActionLoading] = useState(null);
+    const [selectedItem, setSelectedItem] = useState<any>(null);
+    const [isActionLoading, setIsActionLoading] = useState<number | null>(null);
+    const [existingOffice, setExistingOffice] = useState<any>(null);
+    const [detailsExpanded, setDetailsExpanded] = useState(false);
 
     const fetchContributions = useCallback(async () => {
         setLoading(true);
@@ -52,7 +88,20 @@ const ModerationPanel = () => {
         fetchContributions();
     }, [fetchContributions]);
 
-    const handleAction = async (id, action) => {
+    useEffect(() => {
+        if (selectedItem?.original_office_id) {
+            supabase
+                .from('iebc_offices')
+                .select('id,constituency_name,county,office_location,latitude,longitude')
+                .eq('id', selectedItem.original_office_id)
+                .single()
+                .then(({ data }) => setExistingOffice(data || null));
+        } else {
+            setExistingOffice(null);
+        }
+    }, [selectedItem]);
+
+    const handleAction = async (id: number, action: string) => {
         setIsActionLoading(id);
         try {
             let result;
@@ -74,7 +123,7 @@ const ModerationPanel = () => {
             toast.success(`Entry ${action === 'verify' ? 'verified' : action === 'reject' ? 'rejected' : 'archived'} successfully`);
             fetchContributions();
             setSelectedItem(null);
-        } catch (err) {
+        } catch (err: any) {
             toast.error(`Action failed: ${err.message}`);
         } finally {
             setIsActionLoading(null);
@@ -86,6 +135,12 @@ const ModerationPanel = () => {
         item.submitted_county?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.submitted_constituency?.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    const parseJsonField = (field: any) => {
+        if (!field) return null;
+        if (typeof field === 'object') return field;
+        try { return JSON.parse(field); } catch { return null; }
+    };
 
     return (
         <div className="space-y-6">
@@ -176,7 +231,7 @@ const ModerationPanel = () => {
                                     <div className="flex items-center space-x-4 text-xs text-gray-500 font-medium">
                                         <div className="flex items-center space-x-1">
                                             <MapIcon size={12} />
-                                            <span>{item.submitted_latitude.toFixed(4)}, {item.submitted_longitude.toFixed(4)}</span>
+                                            <span>{item.submitted_latitude?.toFixed(4)}, {item.submitted_longitude?.toFixed(4)}</span>
                                         </div>
                                         <div className="flex items-center space-x-1">
                                             <Clock size={12} />
@@ -221,13 +276,48 @@ const ModerationPanel = () => {
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: 20 }}
-                                className="bg-white/[0.04] border border-white/10 rounded-[2.5rem] p-8 space-y-6 sticky top-0"
+                                className="bg-white/[0.04] border border-white/10 rounded-[2.5rem] p-8 space-y-6 sticky top-0 max-h-[calc(100vh-180px)] overflow-y-auto custom-scrollbar"
                             >
                                 <div className="flex border-b border-white/5 pb-6 justify-between items-center">
                                     <h3 className="text-xl font-bold text-white">Entry Details</h3>
                                     <button onClick={() => setSelectedItem(null)} className="text-gray-500 hover:text-white transition-colors">
                                         <Maximize2 size={18} />
                                     </button>
+                                </div>
+
+                                {/* MAP VIEW */}
+                                <div className="w-full h-[220px] rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+                                    <MapContainer
+                                        center={[selectedItem.submitted_latitude, selectedItem.submitted_longitude]}
+                                        zoom={15}
+                                        style={{ height: '100%', width: '100%' }}
+                                        scrollWheelZoom={false}
+                                        zoomControl={false}
+                                    >
+                                        <TileLayer
+                                            attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+                                            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                                        />
+                                        <FitBounds lat={selectedItem.submitted_latitude} lng={selectedItem.submitted_longitude} />
+                                        <Marker position={[selectedItem.submitted_latitude, selectedItem.submitted_longitude]} icon={contributionIcon}>
+                                            <Popup>
+                                                <strong>Contributed Pin</strong><br />
+                                                {selectedItem.submitted_office_location}
+                                            </Popup>
+                                        </Marker>
+                                        {existingOffice && existingOffice.latitude && (
+                                            <Marker position={[existingOffice.latitude, existingOffice.longitude]} icon={existingOfficeIcon}>
+                                                <Popup>
+                                                    <strong>Existing IEBC Office</strong><br />
+                                                    {existingOffice.office_location}
+                                                </Popup>
+                                            </Marker>
+                                        )}
+                                    </MapContainer>
+                                </div>
+                                <div className="flex items-center space-x-4 text-[10px] text-gray-500 font-mono">
+                                    <div className="flex items-center space-x-1"><div className="w-2 h-2 rounded-full bg-blue-500" /><span>Contributed</span></div>
+                                    {existingOffice && <div className="flex items-center space-x-1"><div className="w-2 h-2 rounded-full bg-emerald-500" /><span>Existing Office</span></div>}
                                 </div>
 
                                 {selectedItem.image_public_url && (
@@ -249,11 +339,11 @@ const ModerationPanel = () => {
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
                                             <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest mb-1">Accuracy</p>
-                                            <p className="text-lg font-bold text-white">±{Math.round(selectedItem.submitted_accuracy_meters)}m</p>
+                                            <p className="text-lg font-bold text-white">±{Math.round(selectedItem.submitted_accuracy_meters || 0)}m</p>
                                         </div>
                                         <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
                                             <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest mb-1">Confidence</p>
-                                            <p className="text-lg font-bold text-blue-400">{selectedItem.confidence_score}%</p>
+                                            <p className="text-lg font-bold text-blue-400">{selectedItem.confidence_score || 0}%</p>
                                         </div>
                                     </div>
 
@@ -263,6 +353,128 @@ const ModerationPanel = () => {
                                             <p className="text-sm text-gray-300 leading-relaxed">{selectedItem.submitted_landmark}</p>
                                         </div>
                                     )}
+                                </div>
+
+                                {/* EXPANDABLE SUBMISSION DETAILS */}
+                                <div className="border border-white/5 rounded-2xl overflow-hidden">
+                                    <button
+                                        onClick={() => setDetailsExpanded(!detailsExpanded)}
+                                        className="w-full flex items-center justify-between p-4 bg-white/[0.03] hover:bg-white/[0.05] transition-all"
+                                    >
+                                        <div className="flex items-center space-x-2 text-sm font-bold text-gray-300">
+                                            <Layers size={14} />
+                                            <span>Submission Details</span>
+                                        </div>
+                                        {detailsExpanded ? <ChevronUp size={16} className="text-gray-500" /> : <ChevronDown size={16} className="text-gray-500" />}
+                                    </button>
+                                    <AnimatePresence>
+                                        {detailsExpanded && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                className="overflow-hidden"
+                                            >
+                                                <div className="p-4 space-y-3 text-xs">
+                                                    <div className="flex items-start space-x-2">
+                                                        <Navigation size={12} className="text-gray-500 mt-0.5 flex-shrink-0" />
+                                                        <div>
+                                                            <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Coordinates</p>
+                                                            <p className="text-gray-300 font-mono">{selectedItem.submitted_latitude?.toFixed(6)}, {selectedItem.submitted_longitude?.toFixed(6)}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    {selectedItem.submission_source && (
+                                                        <div className="flex items-start space-x-2">
+                                                            <Info size={12} className="text-gray-500 mt-0.5 flex-shrink-0" />
+                                                            <div>
+                                                                <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Submission Source</p>
+                                                                <p className="text-gray-300">{selectedItem.submission_source}</p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {selectedItem.submission_method && (
+                                                        <div className="flex items-start space-x-2">
+                                                            <Info size={12} className="text-gray-500 mt-0.5 flex-shrink-0" />
+                                                            <div>
+                                                                <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Capture Method</p>
+                                                                <p className="text-gray-300">{selectedItem.submission_method}</p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {(() => {
+                                                        const dm = parseJsonField(selectedItem.device_metadata);
+                                                        if (!dm) return null;
+                                                        return (
+                                                            <div className="flex items-start space-x-2">
+                                                                <Smartphone size={12} className="text-gray-500 mt-0.5 flex-shrink-0" />
+                                                                <div>
+                                                                    <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Device Info</p>
+                                                                    <p className="text-gray-300">{dm.platform || 'Unknown'} • {dm.language || ''}</p>
+                                                                    {dm.screen_resolution && <p className="text-gray-500">{dm.screen_resolution}</p>}
+                                                                    {dm.capture_source && <p className="text-gray-500">Source: {dm.capture_source}</p>}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })()}
+
+                                                    {(() => {
+                                                        const exif = parseJsonField(selectedItem.exif_metadata);
+                                                        if (!exif) return null;
+                                                        return (
+                                                            <div className="flex items-start space-x-2">
+                                                                <Camera size={12} className="text-gray-500 mt-0.5 flex-shrink-0" />
+                                                                <div>
+                                                                    <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Image Metadata</p>
+                                                                    {exif.file_name && <p className="text-gray-300">{exif.file_name}</p>}
+                                                                    {exif.file_type && <p className="text-gray-500">{exif.file_type} • {exif.file_size ? `${(exif.file_size / 1024).toFixed(1)}KB` : ''}</p>}
+                                                                    <p className="text-gray-500">EXIF: {exif.has_exif ? 'Present' : 'Not detected'}</p>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })()}
+
+                                                    {(() => {
+                                                        const rgr = parseJsonField(selectedItem.reverse_geocode_result);
+                                                        if (!rgr) return null;
+                                                        return (
+                                                            <div className="flex items-start space-x-2">
+                                                                <MapIcon size={12} className="text-gray-500 mt-0.5 flex-shrink-0" />
+                                                                <div>
+                                                                    <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Reverse Geocode</p>
+                                                                    {rgr.display_name && <p className="text-gray-300 leading-relaxed">{rgr.display_name}</p>}
+                                                                    {rgr.county && <p className="text-gray-500">County: {rgr.county}</p>}
+                                                                    {rgr.road && <p className="text-gray-500">Road: {rgr.road}</p>}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })()}
+
+                                                    {selectedItem.nearby_landmarks && Array.isArray(selectedItem.nearby_landmarks) && selectedItem.nearby_landmarks.length > 0 && (
+                                                        <div className="flex items-start space-x-2">
+                                                            <Layers size={12} className="text-gray-500 mt-0.5 flex-shrink-0" />
+                                                            <div>
+                                                                <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Nearby Landmarks</p>
+                                                                {selectedItem.nearby_landmarks.map((lm: any, i: number) => (
+                                                                    <p key={i} className="text-gray-300">{typeof lm === 'string' ? lm : lm.name || JSON.stringify(lm)}</p>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    <div className="flex items-start space-x-2">
+                                                        <Clock size={12} className="text-gray-500 mt-0.5 flex-shrink-0" />
+                                                        <div>
+                                                            <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Submitted</p>
+                                                            <p className="text-gray-300">{new Date(selectedItem.created_at).toLocaleString()}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
 
                                 <div className="flex gap-3 pt-6 border-t border-white/5">
