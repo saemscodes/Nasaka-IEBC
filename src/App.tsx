@@ -31,7 +31,11 @@ const DataAPI = React.lazy(() => import('./pages/SEO/DataAPI'));
 const VoterRegistration = React.lazy(() => import('./pages/SEO/VoterRegistration'));
 const Pricing = React.lazy(() => import('./pages/Pricing'));
 const ApiKeysDashboard = React.lazy(() => import('./pages/Dashboard/ApiKeys'));
+const Auth = React.lazy(() => import('./pages/Auth'));
+const AuthCallback = React.lazy(() => import('./pages/AuthCallback'));
+const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
 import FlatRouteResolver from './components/IEBCOffice/FlatRouteResolver';
+import { AuthProvider } from './hooks/useAuth';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
@@ -504,6 +508,11 @@ const AppContent = () => {
         <Route path="/pricing" element={<React.Suspense fallback={<LoadingState />}><Pricing /></React.Suspense>} />
         <Route path="/dashboard/api-keys" element={<React.Suspense fallback={<LoadingState />}><ApiKeysDashboard /></React.Suspense>} />
 
+        {/* ✅ DEDICATED AUTH ROUTES */}
+        <Route path="/auth" element={<React.Suspense fallback={<LoadingState />}><Auth /></React.Suspense>} />
+        <Route path="/auth/callback" element={<React.Suspense fallback={<LoadingState />}><AuthCallback /></React.Suspense>} />
+        <Route path="/auth/reset-password" element={<React.Suspense fallback={<LoadingState />}><ResetPassword /></React.Suspense>} />
+
         {/* ✅ LEGAL PAGES (Nasaka Blue Edition as Primary) */}
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
@@ -577,7 +586,9 @@ const App = () => {
               <Toaster />
               <Sonner position="top-right" expand={false} richColors closeButton />
               <PWARegistration />
-              <AppContent />
+              <AuthProvider>
+                <AppContent />
+              </AuthProvider>
               <Analytics />
               <SpeedInsights />
               <PWAInstallBanner />

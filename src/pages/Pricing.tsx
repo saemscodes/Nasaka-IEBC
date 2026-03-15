@@ -26,7 +26,10 @@ import {
 } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { SEOHead, generateBreadcrumbSchema } from '@/components/SEO/SEOHead';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { AuthModal } from '@/components/Auth/AuthModal';
+import { toast } from 'sonner';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface TierData {
@@ -165,8 +168,8 @@ const EnterpriseForm = ({ isDark }: { isDark: boolean }) => {
     }
 
     const inputClass = `w-full px-4 py-3 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/30 ${isDark
-            ? 'bg-ios-gray-900 border-ios-gray-700 text-white placeholder-ios-gray-500'
-            : 'bg-ios-gray-50 border-ios-gray-200 text-ios-gray-900 placeholder-ios-gray-400'
+        ? 'bg-ios-gray-900 border-ios-gray-700 text-white placeholder-ios-gray-500'
+        : 'bg-ios-gray-50 border-ios-gray-200 text-ios-gray-900 placeholder-ios-gray-400'
         }`;
 
     return (
@@ -302,12 +305,14 @@ const TierCard = ({
     tier,
     isAnnual,
     isDark,
-    index
+    index,
+    onSelect
 }: {
     tier: TierData;
     isAnnual: boolean;
     isDark: boolean;
     index: number;
+    onSelect: (productKey: string, tierName: string) => void;
 }) => {
     const colors = TIER_COLORS[tier.id] || TIER_COLORS.jamii;
     const icon = TIER_ICONS[tier.id];
@@ -334,8 +339,8 @@ const TierCard = ({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 + 0.2 }}
             className={`relative flex flex-col p-8 rounded-[2.5rem] border transition-all hover:scale-[1.02] ${tier.highlighted
-                    ? `border-2 ${colors.border} shadow-xl ${isDark ? 'bg-ios-gray-800' : 'bg-white'}`
-                    : `${isDark ? 'bg-ios-gray-800 border-ios-gray-700' : 'bg-white border-ios-gray-100 shadow-sm'}`
+                ? `border-2 ${colors.border} shadow-xl ${isDark ? 'bg-ios-gray-800' : 'bg-white'}`
+                : `${isDark ? 'bg-ios-gray-800 border-ios-gray-700' : 'bg-white border-ios-gray-100 shadow-sm'}`
                 }`}
         >
             {tier.highlighted && (
@@ -400,21 +405,19 @@ const TierCard = ({
                 >
                     {tier.cta}
                 </a>
-            ) : tier.billing === 'free' ? (
-                <Link
-                    to="/dashboard/api-keys"
-                    className={`w-full py-4 rounded-2xl font-bold text-center transition-all hover:shadow-lg active:scale-[0.98] ${isDark ? 'bg-ios-gray-700 text-white hover:bg-ios-gray-600' : 'bg-ios-gray-100 text-ios-gray-900 hover:bg-ios-gray-200'
+            ) : (
+                <button
+                    onClick={() => {
+                        const productKey = tier.billing === 'free' ? 'jamii' : `${tier.id}_${isAnnual ? 'annual' : 'monthly'}`;
+                        onSelect(productKey, tier.name);
+                    }}
+                    className={`w-full py-4 rounded-2xl font-bold text-center transition-all hover:shadow-lg active:scale-[0.98] ${tier.billing === 'free'
+                        ? (isDark ? 'bg-ios-gray-700 text-white hover:bg-ios-gray-600' : 'bg-ios-gray-100 text-ios-gray-900 hover:bg-ios-gray-200')
+                        : `bg-gradient-to-r ${colors.accent} text-white`
                         }`}
                 >
                     {tier.cta}
-                </Link>
-            ) : (
-                <Link
-                    to="/dashboard/api-keys"
-                    className={`w-full py-4 rounded-2xl font-bold text-center transition-all hover:shadow-lg active:scale-[0.98] bg-gradient-to-r ${colors.accent} text-white`}
-                >
-                    {tier.cta}
-                </Link>
+                </button>
             )}
 
             {tier.overage_kes_per_10k && (
@@ -430,10 +433,69 @@ const TierCard = ({
 const Pricing = () => {
     const { theme } = useTheme();
     const isDark = theme === 'dark';
+    const navigate = useNavigate();
+    const { user, isAuthenticated } = useAuth();
+
     const [isAnnual, setIsAnnual] = useState(true);
     const [pricing, setPricing] = useState<PricingData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [pendingPurchase, setPendingPurchase] = useState<{ productKey: string; tierName: string } | null>(null);
+    const [isRedirecting, setIsRedirecting] = useState(false);
+
+    const handlePurchase = async (productKey: string, tierName: string) => {
+        if (!isAuthenticated) {
+            setPendingPurchase({ productKey, tierName });
+            setIsAuthModalOpen(true);
+            return;
+        }
+
+        if (productKey === 'jamii') {
+            navigate('/dashboard/api-keys');
+            return;
+        }
+
+        setIsRedirecting(true);
+        const loadingToast = toast.loading(`Initializing purchase for ${tierName}...`);
+
+        try {
+            const response = await fetch('/api/v1/billing/initialize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    product_key: productKey,
+                    email: user?.email,
+                    callback_url: `${window.location.origin}/dashboard/api-keys?purchased=${productKey}`
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to initialize payment');
+            }
+
+            if (result.data?.authorization_url) {
+                toast.success('Redirecting to Paystack...', { id: loadingToast });
+                window.location.href = result.data.authorization_url;
+            } else {
+                throw new Error('No authorization URL received');
+            }
+        } catch (err: any) {
+            console.error('Purchase error:', err);
+            toast.error(err.message || 'Payment initialization failed', { id: loadingToast });
+            setIsRedirecting(false);
+        }
+    };
+
+    const onAuthSuccess = () => {
+        if (pendingPurchase) {
+            handlePurchase(pendingPurchase.productKey, pendingPurchase.tierName);
+            setPendingPurchase(null);
+        }
+    };
 
     useEffect(() => {
         const fetchPricing = async () => {
@@ -517,8 +579,8 @@ const Pricing = () => {
                         <button
                             onClick={() => setIsAnnual(false)}
                             className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${!isAnnual
-                                    ? 'bg-white text-ios-gray-900 shadow-sm dark:bg-ios-gray-700 dark:text-white'
-                                    : 'text-muted-foreground hover:text-foreground'
+                                ? 'bg-white text-ios-gray-900 shadow-sm dark:bg-ios-gray-700 dark:text-white'
+                                : 'text-muted-foreground hover:text-foreground'
                                 }`}
                         >
                             Monthly
@@ -526,8 +588,8 @@ const Pricing = () => {
                         <button
                             onClick={() => setIsAnnual(true)}
                             className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${isAnnual
-                                    ? 'bg-white text-ios-gray-900 shadow-sm dark:bg-ios-gray-700 dark:text-white'
-                                    : 'text-muted-foreground hover:text-foreground'
+                                ? 'bg-white text-ios-gray-900 shadow-sm dark:bg-ios-gray-700 dark:text-white'
+                                : 'text-muted-foreground hover:text-foreground'
                                 }`}
                         >
                             Annual
@@ -541,7 +603,14 @@ const Pricing = () => {
                 {/* ── Tier Cards ── */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-20">
                     {pricing.tiers.map((tier, i) => (
-                        <TierCard key={tier.id} tier={tier} isAnnual={isAnnual} isDark={isDark} index={i} />
+                        <TierCard
+                            key={tier.id}
+                            tier={tier}
+                            isAnnual={isAnnual}
+                            isDark={isDark}
+                            index={i}
+                            onSelect={handlePurchase}
+                        />
                     ))}
                 </div>
 
@@ -580,12 +649,12 @@ const Pricing = () => {
                                 <p className="text-xs text-muted-foreground mb-6">
                                     KES {(pack.price_kes / pack.credits * 1000).toFixed(0)} per 1,000 requests
                                 </p>
-                                <Link
-                                    to="/dashboard/api-keys"
+                                <button
+                                    onClick={() => handlePurchase(pack.product_key, `${pack.credits.toLocaleString()} Credits`)}
                                     className="w-full py-3 rounded-xl font-bold text-sm block text-center bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:shadow-lg active:scale-[0.98] transition-all"
                                 >
                                     Buy Credits
-                                </Link>
+                                </button>
                             </motion.div>
                         ))}
                     </div>
@@ -632,12 +701,12 @@ const Pricing = () => {
                                 <h3 className="text-xl font-bold mb-1">{lic.name}</h3>
                                 <p className="text-3xl font-black mb-1">KES {lic.price_kes.toLocaleString()}</p>
                                 <p className="text-xs text-muted-foreground mb-6">per {lic.period}</p>
-                                <Link
-                                    to="/dashboard/api-keys"
+                                <button
+                                    onClick={() => handlePurchase(lic.product_key, lic.name)}
                                     className="w-full py-3 rounded-xl font-bold text-sm block text-center bg-gradient-to-r from-purple-500 to-pink-600 text-white hover:shadow-lg active:scale-[0.98] transition-all"
                                 >
                                     Get License
-                                </Link>
+                                </button>
                             </motion.div>
                         ))}
                     </div>
@@ -659,13 +728,19 @@ const Pricing = () => {
                             <p className="text-muted-foreground mb-1">{pricing.discounts.nonprofit_academic}</p>
                             <p className="text-sm text-muted-foreground">{pricing.discounts.requirement}</p>
                         </div>
-                        <Link
-                            to="/dashboard/api-keys"
+                        <button
+                            onClick={() => {
+                                if (!isAuthenticated) {
+                                    setIsAuthModalOpen(true);
+                                } else {
+                                    navigate('/dashboard/api-keys');
+                                }
+                            }}
                             className="px-8 py-4 rounded-2xl font-bold bg-emerald-500 text-white hover:bg-emerald-600 hover:shadow-lg active:scale-[0.98] transition-all shrink-0 flex items-center gap-2"
                         >
                             Apply Now
                             <ArrowRight className="w-5 h-5" />
-                        </Link>
+                        </button>
                     </div>
                 </motion.section>
 
@@ -702,6 +777,22 @@ const Pricing = () => {
                     </Link>
                 </div>
             </div>
+
+            <AuthModal
+                isOpen={isAuthModalOpen}
+                onClose={() => setIsAuthModalOpen(false)}
+                onSuccess={onAuthSuccess}
+            />
+
+            {isRedirecting && (
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[100] flex items-center justify-center">
+                    <div className="text-center">
+                        <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto mb-4" />
+                        <p className="text-xl font-black">Connecting to Secure Payment Gateway…</p>
+                        <p className="text-muted-foreground">Please do not close this window.</p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
