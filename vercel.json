@@ -119,6 +119,22 @@
   ],
   "rewrites": [
     {
+      "source": "/api/v1/billing/initialize",
+      "destination": "/api/v1/billing/paystack/initialize"
+    },
+    {
+      "source": "/api/v1/billing/verify",
+      "destination": "/api/v1/billing/paystack/verify"
+    },
+    {
+      "source": "/api/v1/billing/webhook",
+      "destination": "/api/v1/billing/paystack/webhook"
+    },
+    {
+      "source": "/api/v1/enterprise/enquire",
+      "destination": "/api/v1/enterprise/enquire"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
@@ -204,6 +220,12 @@
           "value": "application/javascript"
         }
       ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/v1/billing/cron/renewal-check",
+      "schedule": "0 3 * * *"
     }
   ]
 }

@@ -29,6 +29,8 @@ const BoundaryReview = React.lazy(() => import('./pages/SEO/BoundaryReview'));
 const ElectionResources = React.lazy(() => import('./pages/SEO/ElectionResources'));
 const DataAPI = React.lazy(() => import('./pages/SEO/DataAPI'));
 const VoterRegistration = React.lazy(() => import('./pages/SEO/VoterRegistration'));
+const Pricing = React.lazy(() => import('./pages/Pricing'));
+const ApiKeysDashboard = React.lazy(() => import('./pages/Dashboard/ApiKeys'));
 import FlatRouteResolver from './components/IEBCOffice/FlatRouteResolver';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
@@ -497,6 +499,10 @@ const AppContent = () => {
         <Route path="/election-resources" element={<React.Suspense fallback={<LoadingState />}><ElectionResources /></React.Suspense>} />
         <Route path="/data-api" element={<React.Suspense fallback={<LoadingState />}><DataAPI /></React.Suspense>} />
         <Route path="/voter-registration" element={<React.Suspense fallback={<LoadingState />}><VoterRegistration /></React.Suspense>} />
+
+        {/* ✅ B2B BILLING & DASHBOARD ROUTES */}
+        <Route path="/pricing" element={<React.Suspense fallback={<LoadingState />}><Pricing /></React.Suspense>} />
+        <Route path="/dashboard/api-keys" element={<React.Suspense fallback={<LoadingState />}><ApiKeysDashboard /></React.Suspense>} />
 
         {/* ✅ LEGAL PAGES (Nasaka Blue Edition as Primary) */}
         <Route path="/privacy" element={<Privacy />} />

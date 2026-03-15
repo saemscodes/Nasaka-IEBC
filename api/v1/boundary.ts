@@ -49,8 +49,9 @@ export default async function handler(req: Request): Promise<Response> {
 
     try {
         // Fetch all constituency reference points
+        // NOTE: constituencies table uses county_id (FK to counties.id)
         const constResp = await fetch(
-            `${SUPABASE_URL}/rest/v1/constituencies?select=name,county,latitude,longitude,member_of_parliament,party,women_rep&latitude=not.is.null&longitude=not.is.null`,
+            `${SUPABASE_URL}/rest/v1/constituencies?select=name,latitude,longitude,member_of_parliament,party,women_rep,counties(name)&latitude=not.is.null&longitude=not.is.null`,
             {
                 headers: {
                     'apikey': SUPABASE_KEY,
@@ -68,7 +69,11 @@ export default async function handler(req: Request): Promise<Response> {
             });
         }
 
-        const constituencies: any[] = await constResp.json();
+        const constituenciesRaw: any[] = await constResp.json();
+        const constituencies = constituenciesRaw.map(c => ({
+            ...c,
+            county: c.counties?.name || 'Unknown'
+        }));
 
         // Find nearest constituency by Haversine distance
         let nearest: any = null;
@@ -109,6 +114,7 @@ export default async function handler(req: Request): Promise<Response> {
                     ...o,
                     distance_km: Math.round(haversineKm(lat, lng, o.latitude, o.longitude) * 100) / 100
                 }))
+                .filter(o => o.distance_km < 50) // Filter to reasonable radius
                 .sort((a, b) => a.distance_km - b.distance_km)
                 .slice(0, 5);
         }
