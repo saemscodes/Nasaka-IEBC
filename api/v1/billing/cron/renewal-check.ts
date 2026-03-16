@@ -44,15 +44,17 @@ export default async function handler(req: Request): Promise<Response> {
 
     // Verify cron secret or service role for manual triggers
     const authHeader = req.headers.get('authorization');
-    const cronSecret = req.headers.get('x-vercel-cron-secret');
+    const cronSecretHeader = req.headers.get('x-vercel-cron-secret');
+    const actualCronSecret = process.env.CRON_SECRET;
 
-    // Allow Vercel cron (has CRON_SECRET) or service role auth
-    if (!cronSecret && authHeader !== `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`) {
-        // Also allow if called from Vercel's internal cron system (no auth needed for same-project crons)
-        const userAgent = req.headers.get('user-agent') || '';
-        if (!userAgent.includes('vercel-cron')) {
-            return Response.json({ error: 'Unauthorized' }, { status: 401, headers });
-        }
+    // Strict validation:
+    // 1. If it's a Vercel Cron call, the secret MUST match process.env.CRON_SECRET
+    // 2. Otherwise, allow it if it has the Supabase Service Role key (manual dev trigger)
+    const isVercelCron = actualCronSecret && cronSecretHeader === actualCronSecret;
+    const isServiceRole = SUPABASE_SERVICE_ROLE_KEY && authHeader === `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`;
+
+    if (!isVercelCron && !isServiceRole) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401, headers });
     }
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {

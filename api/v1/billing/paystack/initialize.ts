@@ -59,6 +59,44 @@ export default async function handler(req: Request): Promise<Response> {
 
     const { email, product_key, api_key_id, callback_url } = body;
 
+    // ---- Session Verification ----
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+        return Response.json({ error: 'Authentication required' }, { status: 401, headers });
+    }
+
+    const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+    const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+    const SUPABASE_SR_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    // 1. Verify user session via JWT
+    const userResp = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+        headers: {
+            'apikey': SUPABASE_KEY!,
+            'Authorization': authHeader
+        }
+    });
+
+    if (!userResp.ok) {
+        return Response.json({ error: 'Invalid session' }, { status: 401, headers });
+    }
+    const userData = await userResp.json();
+    const userId = userData.id;
+
+    // 2. If api_key_id provided, verify ownership
+    if (api_key_id) {
+        const keyVerifyResp = await fetch(`${SUPABASE_URL}/rest/v1/api_keys?id=eq.${api_key_id}&user_id=eq.${userId}&select=id`, {
+            headers: {
+                'apikey': SUPABASE_SR_KEY!,
+                'Authorization': `Bearer ${SUPABASE_SR_KEY}`
+            }
+        });
+        const keyData = await keyVerifyResp.json();
+        if (!keyData || keyData.length === 0) {
+            return Response.json({ error: 'Invalid API key ownership' }, { status: 403, headers });
+        }
+    }
+
     if (!email || !product_key) {
         return Response.json({
             error: 'Missing required fields: email, product_key',

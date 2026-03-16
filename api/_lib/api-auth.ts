@@ -8,10 +8,9 @@ export const TIER_LIMITS: Record<string, { monthly: number; burst: number }> = {
     mwananchi: { monthly: 100000, burst: 10 },
     taifa: { monthly: 500000, burst: 30 },
     serikali: { monthly: 10000000, burst: 100 },
-    // Legacy tier names — map to new tiers
-    free: { monthly: 5000, burst: 2 },
-    standard: { monthly: 100000, burst: 10 },
-    enterprise: { monthly: 500000, burst: 30 }
+    enterprise: { monthly: 500000, burst: 30 },
+    // Global Public (Guest) tier — strictly for keyless requests
+    public: { monthly: 0, burst: 1 } // 1 request per second max for anonymous
 };
 
 // Endpoints restricted from Jamii tier
@@ -28,7 +27,7 @@ async function checkBurstRate(keyId: string, tier: string): Promise<{ allowed: b
         return { allowed: true };
     }
 
-    const limit = TIER_LIMITS[tier]?.burst || 2;
+    const limit = TIER_LIMITS[tier]?.burst || 1;
     const windowKey = `nasaka:burst:${keyId}`;
     const windowSeconds = 1;
 
@@ -94,9 +93,34 @@ function checkFeatureAccess(tier: string, req: Request): { allowed: boolean; mes
 }
 
 // ---- Main Validation Function ----
-export async function validateApiKey(req: Request) {
+export async function validateApiKey(req: Request, options: { required?: boolean } = { required: true }) {
     const apiKey = req.headers.get('X-API-Key');
-    if (!apiKey) return { valid: false as const, error: 'API key required. Get one at https://nasakaiebc.civiceducationkenya.com/pricing', status: 401 };
+    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'guest';
+    const isPublic = !apiKey;
+
+    if (isPublic && options.required) {
+        return { valid: false as const, error: 'API key required. Get one at https://nasakaiebc.civiceducationkenya.com/pricing', status: 401 };
+    }
+
+    if (isPublic) {
+        // Apply strict IP-based rate limiting for guest access
+        const burstCheck = await checkBurstRate(ip.split(',')[0].trim(), 'public');
+        if (!burstCheck.allowed) {
+            return {
+                valid: false as const,
+                error: 'Global rate limit exceeded. Provide an X-API-Key for higher quotas.',
+                retryAfter: burstCheck.retryAfter,
+                status: 429
+            };
+        }
+        return {
+            valid: true as const,
+            keyId: 'public_guest',
+            tier: 'public',
+            remaining: 0,
+            creditsBalance: 0
+        };
+    }
 
     // SHA-256 hash of the raw key
     const encoder = new TextEncoder();

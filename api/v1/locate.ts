@@ -1,25 +1,29 @@
 export const config = { runtime: 'edge' };
 
+import { validateApiKey, logApiUsage, errorResponse, corsHeaders } from '../_lib/api-auth';
+
 export default async function handler(req: Request): Promise<Response> {
+    const startTime = Date.now();
+
     if (req.method === 'OPTIONS') {
-        return new Response(null, {
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, OPTIONS',
-                'Access-Control-Allow-Headers': 'X-API-Key, Content-Type'
-            }
-        });
+        return new Response(null, { headers: corsHeaders() });
     }
 
     if (req.method !== 'GET') {
-        return Response.json({ error: 'Method not allowed' }, { status: 405 });
+        return errorResponse('Method not allowed', 405);
+    }
+
+    // Security & Rate Limiting (Public allowed but limited)
+    const auth = await validateApiKey(req, { required: false });
+    if (!auth.valid) {
+        return errorResponse(auth.error, auth.status, { retryAfter: auth.retryAfter });
     }
 
     const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-    const SUPABASE_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!SUPABASE_URL || !SUPABASE_KEY) {
-        return Response.json({ error: 'Server misconfiguration' }, { status: 500 });
+        return errorResponse('Server misconfiguration', 500);
     }
 
     const url = new URL(req.url);
@@ -134,6 +138,8 @@ export default async function handler(req: Request): Promise<Response> {
             offices = offices.slice(0, limit);
         }
 
+        logApiUsage(auth.keyId, '/api/v1/locate', 'GET', 200, startTime, req);
+
         return Response.json({
             data: offices,
             query: {
@@ -146,16 +152,13 @@ export default async function handler(req: Request): Promise<Response> {
             total: offices.length
         }, {
             headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Content-Type': 'application/json',
+                ...corsHeaders(),
                 'Cache-Control': 's-maxage=60, stale-while-revalidate=300'
             }
         });
     } catch (err: any) {
-        return Response.json({ error: err.message || 'Internal server error' }, {
-            status: 500,
-            headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' }
-        });
+        logApiUsage(auth.keyId, '/api/v1/locate', 'GET', 500, startTime, req);
+        return errorResponse(err.message || 'Internal server error', 500);
     }
 }
 
