@@ -1,4 +1,4 @@
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 // Nasaka IEBC — M-Pesa Renewal Reminder Cron
 // Runs daily via Vercel Cron. Finds keys expiring within 5 days

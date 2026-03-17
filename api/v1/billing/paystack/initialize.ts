@@ -1,4 +1,4 @@
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 // Nasaka IEBC — Paystack Payment Initialization
 // Handles subscription plans AND one-time charges (credit packs, data licenses).

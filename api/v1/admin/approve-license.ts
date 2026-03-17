@@ -2,7 +2,7 @@ import { put } from '@vercel/blob';
 import { errorResponse, corsHeaders } from '../../_lib/api-auth';
 import { createLogger } from '../../_lib/logger';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req: Request): Promise<Response> {
     const logger = createLogger(req);

@@ -3,7 +3,7 @@
 // Proxy for Hugging Face, Groq, and Gemini APIs to solve CORS and 403 errors
 // Using Vercel Edge Function approach
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req: Request): Promise<Response> {
     // ─── Only allow POST ────────────────────────────────────────────────────────

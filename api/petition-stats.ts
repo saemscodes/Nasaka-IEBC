@@ -1,4 +1,4 @@
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 export interface PetitionStats {
   totalSignatures: number;

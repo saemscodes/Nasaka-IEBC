@@ -1,4 +1,4 @@
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 // Nasaka IEBC — Paystack Webhook Handler
 // Processes: subscription.create, charge.success, subscription.disable,

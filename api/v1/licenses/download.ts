@@ -1,6 +1,6 @@
 import { validateApiKey, errorResponse, corsHeaders } from '../../_lib/api-auth';
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 /**
  * Nasaka IEBC — Secure License Data Download

@@ -1,4 +1,4 @@
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 // Nasaka IEBC — Paystack Transaction Verification
 // Called by frontend after Paystack redirect to confirm payment server-side.

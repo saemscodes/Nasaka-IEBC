@@ -1,4 +1,4 @@
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 // Nasaka IEBC — Enterprise (Serikali) Lead Enquiry
 // Public endpoint for enterprise clients to submit interest.

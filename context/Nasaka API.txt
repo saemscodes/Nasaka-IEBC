@@ -566,7 +566,7 @@ api/
     boundary.ts
     coordinates.ts
     health.ts
-Each file exports a default handler. Since you're on Edge Runtime, each file needs export const config = { runtime: 'edge' } at the top. Vercel auto-routes file paths to URL paths.
+Each file exports a default handler. Since you're on Edge Runtime, each file needs export const config = { runtime: 'nodejs' } at the top. Vercel auto-routes file paths to URL paths.
 
 Environment Variables on Vercel
 

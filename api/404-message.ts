@@ -140,7 +140,6 @@ export const handle404 = (
         } else if (isFrequent) {
             bucket = 'investigative';
         } else if (hasQuery) {
-            bucket = 'apologetic';
         } else if (externalReferrer) {
             bucket = 'playful';
         }

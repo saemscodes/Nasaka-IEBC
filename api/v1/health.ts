@@ -1,4 +1,4 @@
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req: Request): Promise<Response> {
     const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;

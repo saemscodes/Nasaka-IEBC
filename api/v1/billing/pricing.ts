@@ -1,4 +1,4 @@
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 // Nasaka IEBC — Public Pricing Endpoint
 // Returns all tiers, prices, features, and Paystack plan codes dynamically.

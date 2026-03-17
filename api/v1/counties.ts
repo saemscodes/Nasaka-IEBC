@@ -1,4 +1,4 @@
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 import { validateApiKey, errorResponse, corsHeaders } from '../_lib/api-auth';
 import { createLogger } from '../_lib/logger';
