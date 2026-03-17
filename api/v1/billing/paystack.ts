@@ -1,5 +1,5 @@
 
-import { validateApiKey, errorResponse, corsHeaders } from '../_lib/api-auth';
+import { validateApiKey, errorResponse, corsHeaders } from '../../../src/api-lib/api-auth';
 
 export const config = { runtime: 'nodejs' };
 

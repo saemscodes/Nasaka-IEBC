@@ -1,7 +1,7 @@
 export const config = { runtime: 'nodejs' };
 
-import { validateApiKey, errorResponse, corsHeaders } from '../_lib/api-auth';
-import { createLogger } from '../_lib/logger';
+import { validateApiKey, errorResponse, corsHeaders } from '../../src/api-lib/api-auth';
+import { createLogger } from '../../src/api-lib/logger';
 
 export default async function handler(req: Request): Promise<Response> {
     const logger = createLogger(req);
