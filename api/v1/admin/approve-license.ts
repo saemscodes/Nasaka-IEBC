@@ -1,14 +1,15 @@
 import { put } from '@vercel/blob';
 import { errorResponse, corsHeaders } from '../../_lib/api-auth';
+import { createLogger } from '../../_lib/logger';
 
 export const config = { runtime: 'edge' };
 
 export default async function handler(req: Request): Promise<Response> {
-    const startTime = Date.now();
+    const logger = createLogger(req);
     const headers = corsHeaders();
 
     if (req.method === 'OPTIONS') {
-        return new NextResponse(null, { status: 200, headers });
+        return new Response(null, { status: 200, headers });
     }
 
     if (req.method !== 'POST') {
@@ -20,6 +21,7 @@ export default async function handler(req: Request): Promise<Response> {
     const providedSecret = req.headers.get('x-admin-secret');
 
     if (!adminSecret || providedSecret !== adminSecret) {
+        logger.error(401, 'Unauthorized admin access attempt');
         return errorResponse('Unauthorized: Invalid admin secret', 401);
     }
 
@@ -39,6 +41,7 @@ export default async function handler(req: Request): Promise<Response> {
     const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!SUPABASE_URL || !SUPABASE_KEY) {
+        logger.error(500, 'Server misconfiguration (Supabase)');
         return errorResponse('Server misconfiguration', 500);
     }
 
@@ -75,7 +78,8 @@ export default async function handler(req: Request): Promise<Response> {
             metadata: {
                 generated_at: new Date().toISOString(),
                 license_id: application.id,
-                institution: application.institution
+                institution: application.institution,
+                license_type: application.license_type
             },
             features: offices.map((o: any) => ({
                 type: 'Feature',
@@ -142,6 +146,8 @@ export default async function handler(req: Request): Promise<Response> {
             throw new Error('Failed to update application status in database');
         }
 
+        logger.success(200, 'admin', 'BYPASS', { application_id, institution: application.institution });
+
         return Response.json({
             success: true,
             message: 'License approved and data package generated.',
@@ -150,7 +156,7 @@ export default async function handler(req: Request): Promise<Response> {
         }, { headers });
 
     } catch (err: any) {
-        console.error('Approval Error:', err);
+        logger.error(500, err.message);
         return errorResponse(err.message || 'Error processing approval', 500);
     }
 }

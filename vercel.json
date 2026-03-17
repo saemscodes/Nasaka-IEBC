@@ -1,4 +1,6 @@
 {
+  "cleanUrls": true,
+  "trailingSlash": false,
   "redirects": [
     {
       "source": "/(.*)",
@@ -13,66 +15,6 @@
     },
     {
       "source": "/IEBC.office",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/iebc",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/iebc-",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/iebc-%E2%80%A6",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/iebce-office",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/iebcoffice",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/iebc-app",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/iebc-offfice",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/iebc-offices",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/iebc/office",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/iebc_office",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/%20iebc-office",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/IEBC-OFFICE",
       "destination": "/",
       "permanent": true
     },
@@ -131,8 +73,8 @@
       "destination": "/api/v1/billing/paystack/webhook"
     },
     {
-      "source": "/api/v1/enterprise/enquire",
-      "destination": "/api/v1/enterprise/enquire"
+      "source": "/api/v1/auth/ceka/callback",
+      "destination": "/api/v1/auth/ceka/callback"
     },
     {
       "source": "/api/(.*)",
@@ -144,6 +86,31 @@
     }
   ],
   "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(self)"
+        }
+      ]
+    },
     {
       "source": "/api/v1/(.*)",
       "headers": [
@@ -157,67 +124,20 @@
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, X-API-Key, x-paystack-signature"
+          "value": "Content-Type, X-API-Key, Authorization"
+        },
+        {
+          "key": "Timing-Allow-Origin",
+          "value": "*"
         }
       ]
     },
     {
-      "source": "/api/v1/billing/(.*)",
+      "source": "/static/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "no-store, no-cache"
-        },
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, X-API-Key, x-paystack-signature"
-        }
-      ]
-    },
-    {
-      "source": "/api/v1/enterprise/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, no-cache"
-        },
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "POST, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)\\.css",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "text/css"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)\\.js",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/javascript"
+          "value": "public, max-age=31536000, immutable"
         }
       ]
     }
@@ -226,6 +146,10 @@
     {
       "path": "/api/v1/billing/cron/renewal-check",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/v1/cron/regenerate-datasets",
+      "schedule": "0 2 * * *"
     }
   ]
 }

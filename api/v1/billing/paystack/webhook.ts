@@ -236,6 +236,38 @@ export default async function handler(req: Request): Promise<Response> {
             })
         });
 
+        // ---- Keystone: Cache Tier in Redis for Edge Enforcement ----
+        // If we updated a key, we MUST update the Redis cache so Middleware sees it instantly.
+        if (apiKeyId && ['subscription.create', 'charge.success', 'invoice.update'].includes(eventType)) {
+            try {
+                // Fetch the full context from Supabase to ensure Redis is 100% accurate
+                const finalResp = await fetch(
+                    `${SUPABASE_URL}/rest/v1/api_keys?id=eq.${apiKeyId}&select=tier,key_hash,is_locked,plan_status`,
+                    { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' } }
+                );
+                if (finalResp.ok) {
+                    const finalData = await finalResp.json();
+                    if (finalData.length > 0) {
+                        const { tier, key_hash, is_locked, plan_status } = finalData[0];
+                        const { Redis } = await import('@upstash/redis');
+                        const redis = Redis.fromEnv();
+
+                        // Cache the tier mapping for 35 days (covering monthly renewal cycles)
+                        await redis.set(`tier:${key_hash}`, {
+                            tier,
+                            locked: is_locked,
+                            status: plan_status,
+                            updated_at: new Date().toISOString()
+                        }, { ex: 60 * 60 * 24 * 35 });
+
+                        console.log(`[Webhook] Cached tier ${tier} for key ${apiKeyId} in Redis`);
+                    }
+                }
+            } catch (redisErr: any) {
+                console.error('[Redis Cache Error]', redisErr.message);
+            }
+        }
+
     } catch (err: any) {
         // Log error but still return 200 to prevent Paystack retries
         console.error('[Paystack Webhook Error]', err.message);

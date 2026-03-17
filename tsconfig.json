@@ -41,7 +41,8 @@
     "src/**/*.jsx",
     "src/**/*.js",
     "src/**/*.d.ts",
-    "api/**/*.ts"
+    "api/**/*.ts",
+    "middleware.ts"
   ],
   "exclude": [
     "node_modules",

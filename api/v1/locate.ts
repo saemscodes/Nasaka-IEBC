@@ -1,8 +1,10 @@
 export const config = { runtime: 'edge' };
 
-import { validateApiKey, logApiUsage, errorResponse, corsHeaders } from '../_lib/api-auth';
+import { validateApiKey, errorResponse, corsHeaders, logApiUsage } from '../_lib/api-auth';
+import { createLogger } from '../_lib/logger';
 
 export default async function handler(req: Request): Promise<Response> {
+    const logger = createLogger(req);
     const startTime = Date.now();
 
     if (req.method === 'OPTIONS') {
@@ -13,9 +15,10 @@ export default async function handler(req: Request): Promise<Response> {
         return errorResponse('Method not allowed', 405);
     }
 
-    // Security & Rate Limiting (Public allowed but limited)
+    // Security & Rate Limiting
     const auth = await validateApiKey(req, { required: false });
     if (!auth.valid) {
+        logger.error(auth.status, auth.error || 'Auth failed');
         return errorResponse(auth.error, auth.status, { retryAfter: auth.retryAfter });
     }
 
@@ -23,6 +26,7 @@ export default async function handler(req: Request): Promise<Response> {
     const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!SUPABASE_URL || !SUPABASE_KEY) {
+        logger.error(500, 'Server misconfiguration');
         return errorResponse('Server misconfiguration', 500);
     }
 
@@ -30,27 +34,22 @@ export default async function handler(req: Request): Promise<Response> {
     const lat = parseFloat(url.searchParams.get('lat') || '');
     const lng = parseFloat(url.searchParams.get('lng') || '');
     const constituency = url.searchParams.get('constituency');
-    const ward = url.searchParams.get('ward');
     const county = url.searchParams.get('county');
     const radiusKm = Math.min(parseFloat(url.searchParams.get('radius') || '25'), 100);
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '10'), 50);
 
-    // Must have either lat/lng OR constituency/ward/county
     const hasCoords = !isNaN(lat) && !isNaN(lng);
-    const hasFilter = !!(constituency || ward || county);
+    const hasFilter = !!(constituency || county);
 
     if (!hasCoords && !hasFilter) {
         return Response.json({
-            error: 'Provide either lat/lng coordinates or constituency/ward/county name',
+            error: 'Provide either lat/lng coordinates or constituency/county name',
             usage: {
                 by_location: '/api/v1/locate?lat=-1.286&lng=36.817&radius=25&limit=10',
                 by_constituency: '/api/v1/locate?constituency=Westlands',
                 by_county: '/api/v1/locate?county=Nairobi'
             }
-        }, {
-            status: 400,
-            headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' }
-        });
+        }, { status: 400, headers: corsHeaders() });
     }
 
     // Canonical 47 Kenyan counties — normalize variants
@@ -88,35 +87,28 @@ export default async function handler(req: Request): Promise<Response> {
     }
 
     try {
-        // ---- Vercel Data Cache Integration ----
-        const hasRadius = url.searchParams.get('radius');
-        const hasLimit = url.searchParams.get('limit');
-
-        // Round coordinates to 3 decimal places (~110m precision) to increase cache hits
+        // ---- 1. Vercel Data Cache (KV) Integration ----
         const cacheLat = hasCoords ? lat.toFixed(3) : 'null';
         const cacheLng = hasCoords ? lng.toFixed(3) : 'null';
         const cacheKey = `locate:${cacheLat}:${cacheLng}:${constituency || 'any'}:${county || 'any'}:${radiusKm}:${limit}`;
 
-        let cachedResponse = null;
+        let cached = null;
         try {
             const { kv } = await import('@vercel/kv');
-            cachedResponse = await kv.get(cacheKey);
+            cached = await kv.get(cacheKey);
         } catch (e) {
-            console.error('KV Cache Error:', e);
+            console.error('[KV Cache] Error:', e);
         }
 
-        if (cachedResponse) {
-            logApiUsage(auth.keyId, '/api/v1/locate', 'GET', 200, startTime, req);
-            return new Response(JSON.stringify(cachedResponse), {
-                headers: {
-                    ...corsHeaders(),
-                    'X-Vercel-Cache': 'HIT',
-                    'Cache-Control': 's-maxage=60, stale-while-revalidate=300'
-                }
+        if (cached) {
+            logger.success(200, auth.tier, 'HIT');
+            return Response.json(cached, {
+                headers: { ...corsHeaders(), 'X-Vercel-Cache': 'HIT' }
             });
         }
 
-        let queryUrl = `${SUPABASE_URL}/rest/v1/iebc_offices?select=id,constituency,county,office_location,latitude,longitude,verified,formatted_address,landmark,confidence_score,geocode_status&latitude=not.is.null&longitude=not.is.null&order=county.asc,constituency.asc&limit=${limit}`;
+        // ---- 2. Supabase Query ----
+        let queryUrl = `${SUPABASE_URL}/rest/v1/iebc_offices?select=id,constituency,county,office_location,latitude,longitude,verified,formatted_address,landmark&latitude=not.is.null&longitude=not.is.null&limit=200`;
 
         if (constituency) queryUrl += `&constituency=ilike.*${encodeURIComponent(constituency)}*`;
         if (county) {
@@ -132,62 +124,52 @@ export default async function handler(req: Request): Promise<Response> {
             }
         });
 
+        // Resilience: Fallback to Blob if Supabase fails
         if (!resp.ok) {
-            const errText = await resp.text();
-            return Response.json({ error: `Database error: ${errText}` }, {
-                status: 502,
-                headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' }
-            });
+            logger.error(resp.status, 'Supabase fetch failed, trying Blob fallback');
+            const fbResp = await fetch(`https://nasaka-iebc.public.blob.vercel-storage.com/datasets/offices-latest.json`);
+            if (fbResp.ok) {
+                let offices = await fbResp.json();
+                if (hasCoords) {
+                    offices = offices.map((o: any) => ({ ...o, distance_km: Math.round(haversineKm(lat, lng, o.latitude, o.longitude) * 100) / 100 }))
+                        .filter((o: any) => o.distance_km <= radiusKm)
+                        .sort((a: any, b: any) => a.distance_km - b.distance_km)
+                        .slice(0, limit);
+                }
+                const responseData = { data: offices, meta: { source: 'blob_fallback' } };
+                logger.success(200, auth.tier, 'BYPASS');
+                return Response.json(responseData, { headers: corsHeaders() });
+            }
+            return errorResponse('Database connection failed', 502);
         }
 
         let offices: any[] = await resp.json();
 
-        // Final normalization pass on results
-        offices = offices.map(o => ({
-            ...o,
-            county: normalizeCounty(o.county)
-        }));
-
-
-        // If lat/lng provided, compute distances and sort by nearest
+        // Sorting and filtering
         if (hasCoords) {
-            offices = offices.map(o => {
-                const distKm = haversineKm(lat, lng, o.latitude, o.longitude);
-                return { ...o, distance_km: Math.round(distKm * 100) / 100 };
-            });
-
-            // Filter by radius
-            offices = offices.filter(o => o.distance_km <= radiusKm);
-
-            // Sort by distance
-            offices.sort((a, b) => a.distance_km - b.distance_km);
-
-            // Limit
+            offices = offices.map(o => ({
+                ...o,
+                distance_km: Math.round(haversineKm(lat, lng, o.latitude, o.longitude) * 100) / 100
+            })).filter(o => o.distance_km <= radiusKm)
+                .sort((a, b) => a.distance_km - b.distance_km)
+                .slice(0, limit);
+        } else {
             offices = offices.slice(0, limit);
         }
 
         const responseData = {
             data: offices,
-            query: {
-                lat: hasCoords ? lat : undefined,
-                lng: hasCoords ? lng : undefined,
-                constituency: constituency || undefined,
-                county: county || undefined,
-                radius_km: hasCoords ? radiusKm : undefined
-            },
+            query: { lat: hasCoords ? lat : undefined, lng: hasCoords ? lng : undefined, radius_km: hasCoords ? radiusKm : undefined },
             total: offices.length
         };
 
-        // Cache the result for 60 seconds
+        // Cache the result for 5 minutes
         try {
             const { kv } = await import('@vercel/kv');
-            await kv.set(cacheKey, responseData, { ex: 60 });
-        } catch (e) {
-            console.error('KV Store Error:', e);
-        }
+            await kv.set(cacheKey, responseData, { ex: 300 });
+        } catch (e) { }
 
-        logApiUsage(auth.keyId, '/api/v1/locate', 'GET', 200, startTime, req);
-
+        logger.success(200, auth.tier, 'MISS');
         return Response.json(responseData, {
             headers: {
                 ...corsHeaders(),
@@ -195,9 +177,10 @@ export default async function handler(req: Request): Promise<Response> {
                 'Cache-Control': 's-maxage=60, stale-while-revalidate=300'
             }
         });
+
     } catch (err: any) {
-        logApiUsage(auth.keyId, '/api/v1/locate', 'GET', 500, startTime, req);
-        return errorResponse(err.message || 'Internal server error', 500);
+        logger.error(500, err.message);
+        return errorResponse(err.message, 500);
     }
 }
 
@@ -205,8 +188,7 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
         Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
         Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));

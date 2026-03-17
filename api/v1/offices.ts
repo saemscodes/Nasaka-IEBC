@@ -1,8 +1,10 @@
 export const config = { runtime: 'edge' };
 
-import { validateApiKey, logApiUsage, errorResponse, corsHeaders } from '../_lib/api-auth';
+import { validateApiKey, errorResponse, corsHeaders, logApiUsage } from '../_lib/api-auth';
+import { createLogger } from '../_lib/logger';
 
 export default async function handler(req: Request): Promise<Response> {
+    const logger = createLogger(req);
     const startTime = Date.now();
 
     if (req.method === 'OPTIONS') {
@@ -16,6 +18,7 @@ export default async function handler(req: Request): Promise<Response> {
     // Security & Rate Limiting (Public allowed but limited)
     const auth = await validateApiKey(req, { required: false });
     if (!auth.valid) {
+        logger.error(auth.status, auth.error || 'Auth failed');
         return errorResponse(auth.error, auth.status, { retryAfter: auth.retryAfter });
     }
 
@@ -23,6 +26,7 @@ export default async function handler(req: Request): Promise<Response> {
     const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!SUPABASE_URL || !SUPABASE_KEY) {
+        logger.error(500, 'Server misconfiguration');
         return errorResponse('Server misconfiguration', 500);
     }
 
@@ -33,41 +37,46 @@ export default async function handler(req: Request): Promise<Response> {
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '50'), 200);
     const offset = parseInt(url.searchParams.get('offset') || '0');
 
+    // ---- 1. REQUEST COST WEIGHTING ----
+    let weight = 1;
+    if (limit > 100) weight += 1;
+    if (!county && !constituency) weight += 1; // Heavy full-database scan
+
+    // Canonical 47 Kenyan counties — normalize variants
+    const COUNTY_NORMALIZE: Record<string, string> = {
+        'MOMBASA': 'MOMBASA', 'KWALE': 'KWALE', 'KILIFI': 'KILIFI',
+        'TANA RIVER': 'TANA RIVER', 'TANARIVER': 'TANA RIVER', 'TANA-RIVER': 'TANA RIVER',
+        'LAMU': 'LAMU', 'TAITA TAVETA': 'TAITA TAVETA', 'TAITA-TAVETA': 'TAITA TAVETA', 'TAITA/TAVETA': 'TAITA TAVETA',
+        'GARISSA': 'GARISSA', 'WAJIR': 'WAJIR', 'MANDERA': 'MANDERA',
+        'MARSABIT': 'MARSABIT', 'ISIOLO': 'ISIOLO', 'MERU': 'MERU',
+        'THARAKA NITHI': 'THARAKA-NITHI', 'THARAKA-NITHI': 'THARAKA-NITHI', 'THARAKA NITHI ': 'THARAKA-NITHI',
+        'THARAKA - NITHI': 'THARAKA-NITHI', 'THARAKA / NITHI': 'THARAKA-NITHI',
+        'EMBU': 'EMBU', 'KITUI': 'KITUI', 'MACHAKOS': 'MACHAKOS', 'MAKUENI': 'MAKUENI',
+        'NYANDARUA': 'NYANDARUA', 'NYERI': 'NYERI', 'KIRINYAGA': 'KIRINYAGA',
+        'MURANG\'A': 'MURANG\'A', 'MURANGA': 'MURANG\'A', 'MURANG A': 'MURANG\'A',
+        'KIAMBU': 'KIAMBU', 'TURKANA': 'TURKANA',
+        'WEST POKOT': 'WEST POKOT', 'WESTPOKOT': 'WEST POKOT', 'WEST-POKOT': 'WEST POKOT',
+        'SAMBURU': 'SAMBURU',
+        'TRANS NZOIA': 'TRANS-NZOIA', 'TRANS-NZOIA': 'TRANS-NZOIA', 'TRANSNZOIA': 'TRANS-NZOIA',
+        'UASIN GISHU': 'UASIN GISHU', 'UASINGISHU': 'UASIN GISHU', 'UASIN-GISHU': 'UASIN GISHU',
+        'ELGEYO MARAKWET': 'ELGEYO-MARAKWET', 'ELGEYO-MARAKWET': 'ELGEYO-MARAKWET', 'ELGEYO/MARAKWET': 'ELGEYO-MARAKWET', 'KEIYO-MARAKWET': 'ELGEYO-MARAKWET',
+        'ELEGEYO-MARAKWET': 'ELGEYO-MARAKWET',
+        'NANDI': 'NANDI', 'BARINGO': 'BARINGO', 'LAIKIPIA': 'LAIKIPIA', 'NAKURU': 'NAKURU',
+        'NAROK': 'NAROK', 'KAJIADO': 'KAJIADO', 'KERICHO': 'KERICHO', 'BOMET': 'BOMET',
+        'KAKAMEGA': 'KAKAMEGA', 'VIHIGA': 'VIHIGA', 'BUNGOMA': 'BUNGOMA', 'BUSIA': 'BUSIA',
+        'SIAYA': 'SIAYA', 'KISUMU': 'KISUMU',
+        'HOMA BAY': 'HOMA BAY', 'HOMABAY': 'HOMA BAY', 'HOMA-BAY': 'HOMA BAY',
+        'MIGORI': 'MIGORI', 'KISII': 'KISII', 'NYAMIRA': 'NYAMIRA',
+        'NAIROBI': 'NAIROBI', 'NAIROBI CITY': 'NAIROBI'
+    };
+
+    function normalizeCounty(c: string | null): string | null {
+        if (!c) return null;
+        const upper = c.trim().toUpperCase();
+        return COUNTY_NORMALIZE[upper] || upper;
+    }
+
     try {
-        // Canonical 47 Kenyan counties — normalize variants
-        const COUNTY_NORMALIZE: Record<string, string> = {
-            'MOMBASA': 'MOMBASA', 'KWALE': 'KWALE', 'KILIFI': 'KILIFI',
-            'TANA RIVER': 'TANA RIVER', 'TANARIVER': 'TANA RIVER', 'TANA-RIVER': 'TANA RIVER',
-            'LAMU': 'LAMU', 'TAITA TAVETA': 'TAITA TAVETA', 'TAITA-TAVETA': 'TAITA TAVETA', 'TAITA/TAVETA': 'TAITA TAVETA',
-            'GARISSA': 'GARISSA', 'WAJIR': 'WAJIR', 'MANDERA': 'MANDERA',
-            'MARSABIT': 'MARSABIT', 'ISIOLO': 'ISIOLO', 'MERU': 'MERU',
-            'THARAKA NITHI': 'THARAKA-NITHI', 'THARAKA-NITHI': 'THARAKA-NITHI', 'THARAKA NITHI ': 'THARAKA-NITHI',
-            'THARAKA - NITHI': 'THARAKA-NITHI', 'THARAKA / NITHI': 'THARAKA-NITHI',
-            'EMBU': 'EMBU', 'KITUI': 'KITUI', 'MACHAKOS': 'MACHAKOS', 'MAKUENI': 'MAKUENI',
-            'NYANDARUA': 'NYANDARUA', 'NYERI': 'NYERI', 'KIRINYAGA': 'KIRINYAGA',
-            'MURANG\'A': 'MURANG\'A', 'MURANGA': 'MURANG\'A', 'MURANG A': 'MURANG\'A',
-            'KIAMBU': 'KIAMBU', 'TURKANA': 'TURKANA',
-            'WEST POKOT': 'WEST POKOT', 'WESTPOKOT': 'WEST POKOT', 'WEST-POKOT': 'WEST POKOT',
-            'SAMBURU': 'SAMBURU',
-            'TRANS NZOIA': 'TRANS-NZOIA', 'TRANS-NZOIA': 'TRANS-NZOIA', 'TRANSNZOIA': 'TRANS-NZOIA',
-            'UASIN GISHU': 'UASIN GISHU', 'UASINGISHU': 'UASIN GISHU', 'UASIN-GISHU': 'UASIN GISHU',
-            'ELGEYO MARAKWET': 'ELGEYO-MARAKWET', 'ELGEYO-MARAKWET': 'ELGEYO-MARAKWET', 'ELGEYO/MARAKWET': 'ELGEYO-MARAKWET', 'KEIYO-MARAKWET': 'ELGEYO-MARAKWET',
-            'ELEGEYO-MARAKWET': 'ELGEYO-MARAKWET',
-            'NANDI': 'NANDI', 'BARINGO': 'BARINGO', 'LAIKIPIA': 'LAIKIPIA', 'NAKURU': 'NAKURU',
-            'NAROK': 'NAROK', 'KAJIADO': 'KAJIADO', 'KERICHO': 'KERICHO', 'BOMET': 'BOMET',
-            'KAKAMEGA': 'KAKAMEGA', 'VIHIGA': 'VIHIGA', 'BUNGOMA': 'BUNGOMA', 'BUSIA': 'BUSIA',
-            'SIAYA': 'SIAYA', 'KISUMU': 'KISUMU',
-            'HOMA BAY': 'HOMA BAY', 'HOMABAY': 'HOMA BAY', 'HOMA-BAY': 'HOMA BAY',
-            'MIGORI': 'MIGORI', 'KISII': 'KISII', 'NYAMIRA': 'NYAMIRA',
-            'NAIROBI': 'NAIROBI', 'NAIROBI CITY': 'NAIROBI'
-        };
-
-        function normalizeCounty(c: string | null): string | null {
-            if (!c) return null;
-            const upper = c.trim().toUpperCase();
-            return COUNTY_NORMALIZE[upper] || upper;
-        }
-
         let queryUrl = `${SUPABASE_URL}/rest/v1/iebc_offices?select=id,constituency,county,office_location,latitude,longitude,verified,formatted_address,landmark,geocode_status,confidence_score&order=county.asc,constituency.asc&limit=${limit}&offset=${offset}`;
 
         if (county) {
@@ -88,35 +97,49 @@ export default async function handler(req: Request): Promise<Response> {
         });
 
         if (!resp.ok) {
-            const errText = await resp.text();
-            return Response.json({ error: `Database error: ${errText}` }, {
-                status: 502,
-                headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' }
-            });
+            // Blob fallback... (omitted for brevity in this snippet, but preserved in full)
+            const BLOB_FALLBACK_URL = `https://nasaka-iebc.public.blob.vercel-storage.com/datasets/offices-latest.json`;
+            const fbResp = await fetch(BLOB_FALLBACK_URL);
+            if (fbResp.ok) {
+                const fbData = await fbResp.json();
+                logger.success(200, auth.tier, 'BYPASS');
+                return Response.json({ data: fbData.slice(offset, offset + limit), meta: { source: 'static_fallback' } }, { headers: corsHeaders() });
+            }
+            return errorResponse('Database connection failed', 502);
         }
 
         let offices: any[] = await resp.json();
 
-        // Final normalization pass on results
-        offices = offices.map(o => ({
-            ...o,
-            county: normalizeCounty(o.county)
-        }));
+        // ---- 2. TIER-BASED RESPONSE SHAPING ----
+        const isLowTier = auth.tier === 'jamii' || auth.tier === 'public' || auth.tier === 'free';
+
+        offices = offices.map(o => {
+            const normalized = {
+                ...o,
+                county: normalizeCounty(o.county)
+            };
+
+            // Remove premium fields for low-tier users
+            if (isLowTier) {
+                delete (normalized as any).confidence_score;
+                delete (normalized as any).landmark;
+                delete (normalized as any).geocode_status;
+            }
+
+            return normalized;
+        });
 
         const contentRange = resp.headers.get('content-range');
         const total = contentRange ? parseInt(contentRange.split('/')[1]) : offices.length;
 
-
-        logApiUsage(auth.keyId, '/api/v1/offices', 'GET', 200, startTime, req);
+        // Log usage with weight
+        logApiUsage(auth.keyId, '/api/v1/offices', 'GET', 200, startTime, req, weight);
+        logger.success(200, auth.tier, 'MISS', { weight });
 
         return Response.json({
             data: offices,
-            pagination: {
-                total,
-                limit,
-                offset,
-                has_more: offset + limit < total
-            }
+            pagination: { total, limit, offset, has_more: offset + limit < total },
+            meta: { tier: auth.tier, shaped: isLowTier }
         }, {
             headers: {
                 ...corsHeaders(),
@@ -124,7 +147,7 @@ export default async function handler(req: Request): Promise<Response> {
             }
         });
     } catch (err: any) {
-        logApiUsage(auth.keyId, '/api/v1/offices', 'GET', 500, startTime, req);
-        return errorResponse(err.message || 'Internal server error', 500);
+        logger.error(500, err.message);
+        return errorResponse(err.message, 500);
     }
 }

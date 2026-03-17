@@ -568,6 +568,63 @@ const ApiKeys = () => {
                     )}
                 </motion.section>
 
+                {/* ── Data Exports (Licenses) ── */}
+                <motion.section
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.25 }}
+                    className="mb-10"
+                >
+                    <h2 className="text-2xl font-black mb-6">Data Exports</h2>
+                    <div className={`p-8 rounded-[2.5rem] border ${isDark ? 'bg-ios-gray-800 border-ios-gray-700' : 'bg-white border-ios-gray-100 shadow-sm'}`}>
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+                                <Database className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold">Verified Datasets</h3>
+                                <p className="text-sm text-muted-foreground">Download full GeoJSON/CSV datasets for your approved licenses.</p>
+                            </div>
+                        </div>
+
+                        {apiKeys.some(k => k.tier === 'taifa' || k.tier === 'serikali') ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <button
+                                    onClick={() => window.open('/api/v1/licenses/download?format=geojson', '_blank')}
+                                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all hover:scale-[1.02] ${isDark ? 'bg-ios-gray-900 border-ios-gray-700' : 'bg-ios-gray-50 border-ios-gray-200'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500"><Check className="w-4 h-4" /></div>
+                                        <div className="text-left">
+                                            <p className="font-bold text-sm">Full GeoJSON Packet</p>
+                                            <p className="text-[10px] text-muted-foreground">Nightly build • Verified</p>
+                                        </div>
+                                    </div>
+                                    <ArrowUpRight className="w-4 h-4 text-muted-foreground" />
+                                </button>
+                                <button
+                                    onClick={() => window.open('/api/v1/licenses/download?format=csv', '_blank')}
+                                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all hover:scale-[1.02] ${isDark ? 'bg-ios-gray-900 border-ios-gray-700' : 'bg-ios-gray-50 border-ios-gray-200'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500"><Check className="w-4 h-4" /></div>
+                                        <div className="text-left">
+                                            <p className="font-bold text-sm">Full CSV Dataset</p>
+                                            <p className="text-[10px] text-muted-foreground">Optimized for Excel/GIS</p>
+                                        </div>
+                                    </div>
+                                    <ArrowUpRight className="w-4 h-4 text-muted-foreground" />
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-3 p-4 rounded-2xl bg-ios-gray-100 dark:bg-ios-gray-900/50 text-muted-foreground italic text-sm">
+                                <AlertCircle className="w-4 h-4" />
+                                <p>No active Data Licenses found. <Link to="/pricing" className="text-blue-500 not-italic font-bold hover:underline">View licenses →</Link></p>
+                            </div>
+                        )}
+                    </div>
+                </motion.section>
+
                 {/* ── Payment History ── */}
                 <motion.section
                     initial={{ opacity: 0, y: 20 }}

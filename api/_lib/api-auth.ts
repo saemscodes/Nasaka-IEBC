@@ -236,6 +236,23 @@ export async function validateApiKey(req: Request, options: { required?: boolean
     // Steps 9 & 10 are handled by the RPC (increment already happened)
     // Usage logging is fire-and-forget at the caller level
 
+    // ---- Keystone: Populate Redis Cache for Edge Middleware ----
+    // Do not await — fire and forget
+    const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
+    const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+    if (UPSTASH_URL && UPSTASH_TOKEN) {
+        fetch(`${UPSTASH_URL}/set/tier:${hashHex}`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${UPSTASH_TOKEN}` },
+            body: JSON.stringify({
+                tier: k.tier,
+                locked: k.is_locked,
+                status: k.plan_status,
+                updated_at: new Date().toISOString()
+            })
+        }).catch(() => { });
+    }
+
     return {
         valid: true as const,
         keyId: k.id as string,
@@ -246,7 +263,7 @@ export async function validateApiKey(req: Request, options: { required?: boolean
 }
 
 // ---- Usage Logging (fire-and-forget) ----
-export async function logApiUsage(keyId: string, endpoint: string, method: string, status: number, startTime: number, req: Request) {
+export async function logApiUsage(keyId: string, endpoint: string, method: string, status: number, startTime: number, req: Request, weightOverride?: number) {
     const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
     const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!SUPABASE_URL || !SUPABASE_KEY) return;
@@ -262,10 +279,12 @@ export async function logApiUsage(keyId: string, endpoint: string, method: strin
     const ipHash = ipHashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
 
     // Determine request weight
-    let requestWeight = 1;
-    const url = new URL(req.url);
-    if (url.pathname.includes('/boundary')) requestWeight = 5;
-    if (url.searchParams.get('format') === 'csv') requestWeight = 3;
+    let requestWeight = weightOverride || 1;
+    if (!weightOverride) {
+        const url = new URL(req.url);
+        if (url.pathname.includes('/boundary')) requestWeight = 5;
+        if (url.searchParams.get('format') === 'csv') requestWeight = 3;
+    }
 
     // Fire-and-forget — do not await
     fetch(`${SUPABASE_URL}/rest/v1/nasaka_usage_log`, {
