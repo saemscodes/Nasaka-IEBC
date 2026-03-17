@@ -132,7 +132,7 @@ export const handle404 = (
 
         const hasQuery = !!search;
         const isFrequent = count > 10;
-        const externalReferrer = referrer && !referrer.includes(window.location.hostname);
+        const externalReferrer = referrer && !referrer.includes('nasakaiebc.civiceducationkenya.com');
 
         let bucket: keyof typeof VARIANTS = 'playful';
         if (looksLikeTypo) {
@@ -164,7 +164,7 @@ export const handle404 = (
     }
 };
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req: Request) {
     const url = new URL(req.url);
