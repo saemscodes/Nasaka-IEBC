@@ -8,7 +8,7 @@ export default async function handler(req: Request): Promise<Response> {
     const startTime = Date.now();
 
     if (req.method === 'OPTIONS') {
-        return new Response(null, { headers: corsHeaders() });
+        return new Response(null, { status: 200, headers: corsHeaders() });
     }
 
     if (req.method !== 'GET') {
@@ -24,6 +24,8 @@ export default async function handler(req: Request): Promise<Response> {
 
     const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
     const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
+    const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
     if (!SUPABASE_URL || !SUPABASE_KEY) {
         logger.error(500, 'Server misconfiguration');
@@ -42,42 +44,36 @@ export default async function handler(req: Request): Promise<Response> {
     const hasFilter = !!(constituency || county);
 
     if (!hasCoords && !hasFilter) {
-        return Response.json({
+        return new Response(JSON.stringify({
             error: 'Provide either lat/lng coordinates or constituency/county name',
             usage: {
                 by_location: '/api/v1/locate?lat=-1.286&lng=36.817&radius=25&limit=10',
                 by_constituency: '/api/v1/locate?constituency=Westlands',
                 by_county: '/api/v1/locate?county=Nairobi'
             }
-        }, { status: 400, headers: corsHeaders() });
+        }), {
+            status: 400,
+            headers: { ...corsHeaders(), 'Content-Type': 'application/json' }
+        });
     }
 
-    // Canonical 47 Kenyan counties — normalize variants
+    // Canonical 47 Kenyan counties
     const COUNTY_NORMALIZE: Record<string, string> = {
         'MOMBASA': 'MOMBASA', 'KWALE': 'KWALE', 'KILIFI': 'KILIFI',
         'TANA RIVER': 'TANA RIVER', 'TANARIVER': 'TANA RIVER', 'TANA-RIVER': 'TANA RIVER',
         'LAMU': 'LAMU', 'TAITA TAVETA': 'TAITA TAVETA', 'TAITA-TAVETA': 'TAITA TAVETA', 'TAITA/TAVETA': 'TAITA TAVETA',
         'GARISSA': 'GARISSA', 'WAJIR': 'WAJIR', 'MANDERA': 'MANDERA',
         'MARSABIT': 'MARSABIT', 'ISIOLO': 'ISIOLO', 'MERU': 'MERU',
-        'THARAKA NITHI': 'THARAKA-NITHI', 'THARAKA-NITHI': 'THARAKA-NITHI', 'THARAKA NITHI ': 'THARAKA-NITHI',
-        'THARAKA - NITHI': 'THARAKA-NITHI', 'THARAKA / NITHI': 'THARAKA-NITHI',
-        'EMBU': 'EMBU', 'KITUI': 'KITUI', 'MACHAKOS': 'MACHAKOS', 'MAKUENI': 'MAKUENI',
+        'THARAKA NITHI': 'THARAKA-NITHI', 'EMBU': 'EMBU', 'KITUI': 'KITUI', 'MACHAKOS': 'MACHAKOS', 'MAKUENI': 'MAKUENI',
         'NYANDARUA': 'NYANDARUA', 'NYERI': 'NYERI', 'KIRINYAGA': 'KIRINYAGA',
-        'MURANG\'A': 'MURANG\'A', 'MURANGA': 'MURANG\'A', 'MURANG A': 'MURANG\'A',
-        'KIAMBU': 'KIAMBU', 'TURKANA': 'TURKANA',
-        'WEST POKOT': 'WEST POKOT', 'WESTPOKOT': 'WEST POKOT', 'WEST-POKOT': 'WEST POKOT',
-        'SAMBURU': 'SAMBURU',
-        'TRANS NZOIA': 'TRANS-NZOIA', 'TRANS-NZOIA': 'TRANS-NZOIA', 'TRANSNZOIA': 'TRANS-NZOIA',
-        'UASIN GISHU': 'UASIN GISHU', 'UASINGISHU': 'UASIN GISHU', 'UASIN-GISHU': 'UASIN GISHU',
-        'ELGEYO MARAKWET': 'ELGEYO-MARAKWET', 'ELGEYO-MARAKWET': 'ELGEYO-MARAKWET', 'ELGEYO/MARAKWET': 'ELGEYO-MARAKWET', 'KEIYO-MARAKWET': 'ELGEYO-MARAKWET',
-        'ELEGEYO-MARAKWET': 'ELGEYO-MARAKWET',
-        'NANDI': 'NANDI', 'BARINGO': 'BARINGO', 'LAIKIPIA': 'LAIKIPIA', 'NAKURU': 'NAKURU',
+        'MURANG\'A': 'MURANG\'A', 'KIAMBU': 'KIAMBU', 'TURKANA': 'TURKANA',
+        'WEST POKOT': 'WEST POKOT', 'SAMBURU': 'SAMBURU',
+        'TRANS NZOIA': 'TRANS-NZOIA', 'UASIN GISHU': 'UASIN GISHU',
+        'ELGEYO MARAKWET': 'ELGEYO-MARAKWET', 'NANDI': 'NANDI', 'BARINGO': 'BARINGO', 'LAIKIPIA': 'LAIKIPIA', 'NAKURU': 'NAKURU',
         'NAROK': 'NAROK', 'KAJIADO': 'KAJIADO', 'KERICHO': 'KERICHO', 'BOMET': 'BOMET',
         'KAKAMEGA': 'KAKAMEGA', 'VIHIGA': 'VIHIGA', 'BUNGOMA': 'BUNGOMA', 'BUSIA': 'BUSIA',
-        'SIAYA': 'SIAYA', 'KISUMU': 'KISUMU',
-        'HOMA BAY': 'HOMA BAY', 'HOMABAY': 'HOMA BAY', 'HOMA-BAY': 'HOMA BAY',
-        'MIGORI': 'MIGORI', 'KISII': 'KISII', 'NYAMIRA': 'NYAMIRA',
-        'NAIROBI': 'NAIROBI', 'NAIROBI CITY': 'NAIROBI'
+        'SIAYA': 'SIAYA', 'KISUMU': 'KISUMU', 'HOMA BAY': 'HOMA BAY', 'MIGORI': 'MIGORI', 'KISII': 'KISII', 'NYAMIRA': 'NYAMIRA',
+        'NAIROBI': 'NAIROBI'
     };
 
     function normalizeCounty(c: string | null): string | null {
@@ -86,27 +82,31 @@ export default async function handler(req: Request): Promise<Response> {
         return COUNTY_NORMALIZE[upper] || upper;
     }
 
-    try {
-        // ---- 1. Vercel Data Cache (KV) Integration ----
-        const cacheLat = hasCoords ? lat.toFixed(3) : 'null';
-        const cacheLng = hasCoords ? lng.toFixed(3) : 'null';
-        const cacheKey = `locate:${cacheLat}:${cacheLng}:${constituency || 'any'}:${county || 'any'}:${radiusKm}:${limit}`;
+    // ---- 1. Check Upstash Redis Cache ----
+    const cacheLat = hasCoords ? lat.toFixed(3) : 'null';
+    const cacheLng = hasCoords ? lng.toFixed(3) : 'null';
+    const cacheKey = `nasaka:locate:${cacheLat}:${cacheLng}:${constituency || 'any'}:${county || 'any'}:${radiusKm}:${limit}`;
 
-        let cached = null;
+    if (UPSTASH_URL && UPSTASH_TOKEN) {
         try {
-            const { kv } = await import('@vercel/kv');
-            cached = await kv.get(cacheKey);
-        } catch (e) {
-            console.error('[KV Cache] Error:', e);
-        }
-
-        if (cached) {
-            logger.success(200, auth.tier, 'HIT');
-            return Response.json(cached, {
-                headers: { ...corsHeaders(), 'X-Vercel-Cache': 'HIT' }
+            const cacheResp = await fetch(`${UPSTASH_URL}/get/${cacheKey}`, {
+                headers: { 'Authorization': `Bearer ${UPSTASH_TOKEN}` }
             });
+            if (cacheResp.ok) {
+                const { result } = await cacheResp.json();
+                if (result) {
+                    logger.success(200, auth.tier, 'HIT');
+                    return new Response(result, {
+                        headers: { ...corsHeaders(), 'Content-Type': 'application/json', 'X-Vercel-Cache': 'HIT' }
+                    });
+                }
+            }
+        } catch (e) {
+            console.error('[Cache Error]:', e);
         }
+    }
 
+    try {
         // ---- 2. Supabase Query ----
         let queryUrl = `${SUPABASE_URL}/rest/v1/iebc_offices?select=id,constituency,county,office_location,latitude,longitude,verified,formatted_address,landmark&latitude=not.is.null&longitude=not.is.null&limit=200`;
 
@@ -124,9 +124,9 @@ export default async function handler(req: Request): Promise<Response> {
             }
         });
 
-        // Resilience: Fallback to Blob if Supabase fails
+        // 📝 Fallback to Blob if Supabase fails
         if (!resp.ok) {
-            logger.error(resp.status, 'Supabase fetch failed, trying Blob fallback');
+            logger.error(resp.status, 'Supabase fail, trying Blob fallback');
             const fbResp = await fetch(`https://nasaka-iebc.public.blob.vercel-storage.com/datasets/offices-latest.json`);
             if (fbResp.ok) {
                 let offices = await fbResp.json();
@@ -138,14 +138,16 @@ export default async function handler(req: Request): Promise<Response> {
                 }
                 const responseData = { data: offices, meta: { source: 'blob_fallback' } };
                 logger.success(200, auth.tier, 'BYPASS');
-                return Response.json(responseData, { headers: corsHeaders() });
+                return new Response(JSON.stringify(responseData), {
+                    headers: { ...corsHeaders(), 'Content-Type': 'application/json' }
+                });
             }
             return errorResponse('Database connection failed', 502);
         }
 
         let offices: any[] = await resp.json();
 
-        // Sorting and filtering
+        // Spatial filtering
         if (hasCoords) {
             offices = offices.map(o => ({
                 ...o,
@@ -163,16 +165,25 @@ export default async function handler(req: Request): Promise<Response> {
             total: offices.length
         };
 
-        // Cache the result for 5 minutes
-        try {
-            const { kv } = await import('@vercel/kv');
-            await kv.set(cacheKey, responseData, { ex: 300 });
-        } catch (e) { }
+        // Cache the result in Upstash (5 minutes)
+        if (UPSTASH_URL && UPSTASH_TOKEN) {
+            fetch(`${UPSTASH_URL}/set/${cacheKey}`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${UPSTASH_TOKEN}` },
+                body: JSON.stringify(JSON.stringify(responseData))
+            }).then(() => {
+                fetch(`${UPSTASH_URL}/expire/${cacheKey}/300`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${UPSTASH_TOKEN}` }
+                });
+            }).catch(() => { });
+        }
 
         logger.success(200, auth.tier, 'MISS');
-        return Response.json(responseData, {
+        return new Response(JSON.stringify(responseData), {
             headers: {
                 ...corsHeaders(),
+                'Content-Type': 'application/json',
                 'X-Vercel-Cache': 'MISS',
                 'Cache-Control': 's-maxage=60, stale-while-revalidate=300'
             }

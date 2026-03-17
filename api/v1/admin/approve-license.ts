@@ -148,12 +148,16 @@ export default async function handler(req: Request): Promise<Response> {
 
         logger.success(200, 'admin', 'BYPASS', { application_id, institution: application.institution });
 
-        return Response.json({
+        // Conservative Response for Edge Compatibility
+        return new Response(JSON.stringify({
             success: true,
             message: 'License approved and data package generated.',
             urls: { geojson: geojsonUrl, csv: csvUrl },
             expires_at: expiresAt.toISOString()
-        }, { headers });
+        }), {
+            status: 200,
+            headers: { ...headers, 'Content-Type': 'application/json' }
+        });
 
     } catch (err: any) {
         logger.error(500, err.message);
