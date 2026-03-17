@@ -88,6 +88,34 @@ export default async function handler(req: Request): Promise<Response> {
     }
 
     try {
+        // ---- Vercel Data Cache Integration ----
+        const hasRadius = url.searchParams.get('radius');
+        const hasLimit = url.searchParams.get('limit');
+
+        // Round coordinates to 3 decimal places (~110m precision) to increase cache hits
+        const cacheLat = hasCoords ? lat.toFixed(3) : 'null';
+        const cacheLng = hasCoords ? lng.toFixed(3) : 'null';
+        const cacheKey = `locate:${cacheLat}:${cacheLng}:${constituency || 'any'}:${county || 'any'}:${radiusKm}:${limit}`;
+
+        let cachedResponse = null;
+        try {
+            const { kv } = await import('@vercel/kv');
+            cachedResponse = await kv.get(cacheKey);
+        } catch (e) {
+            console.error('KV Cache Error:', e);
+        }
+
+        if (cachedResponse) {
+            logApiUsage(auth.keyId, '/api/v1/locate', 'GET', 200, startTime, req);
+            return new Response(JSON.stringify(cachedResponse), {
+                headers: {
+                    ...corsHeaders(),
+                    'X-Vercel-Cache': 'HIT',
+                    'Cache-Control': 's-maxage=60, stale-while-revalidate=300'
+                }
+            });
+        }
+
         let queryUrl = `${SUPABASE_URL}/rest/v1/iebc_offices?select=id,constituency,county,office_location,latitude,longitude,verified,formatted_address,landmark,confidence_score,geocode_status&latitude=not.is.null&longitude=not.is.null&order=county.asc,constituency.asc&limit=${limit}`;
 
         if (constituency) queryUrl += `&constituency=ilike.*${encodeURIComponent(constituency)}*`;
@@ -138,9 +166,7 @@ export default async function handler(req: Request): Promise<Response> {
             offices = offices.slice(0, limit);
         }
 
-        logApiUsage(auth.keyId, '/api/v1/locate', 'GET', 200, startTime, req);
-
-        return Response.json({
+        const responseData = {
             data: offices,
             query: {
                 lat: hasCoords ? lat : undefined,
@@ -150,9 +176,22 @@ export default async function handler(req: Request): Promise<Response> {
                 radius_km: hasCoords ? radiusKm : undefined
             },
             total: offices.length
-        }, {
+        };
+
+        // Cache the result for 60 seconds
+        try {
+            const { kv } = await import('@vercel/kv');
+            await kv.set(cacheKey, responseData, { ex: 60 });
+        } catch (e) {
+            console.error('KV Store Error:', e);
+        }
+
+        logApiUsage(auth.keyId, '/api/v1/locate', 'GET', 200, startTime, req);
+
+        return Response.json(responseData, {
             headers: {
                 ...corsHeaders(),
+                'X-Vercel-Cache': 'MISS',
                 'Cache-Control': 's-maxage=60, stale-while-revalidate=300'
             }
         });
