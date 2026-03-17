@@ -61,20 +61,56 @@
   ],
   "rewrites": [
     {
+      "source": "/api/v1/billing/paystack/:action",
+      "destination": "/api/v1/billing/paystack?action=:action"
+    },
+    {
+      "source": "/api/v1/billing/pricing",
+      "destination": "/api/v1/billing/paystack?action=pricing"
+    },
+    {
       "source": "/api/v1/billing/initialize",
-      "destination": "/api/v1/billing/paystack/initialize"
+      "destination": "/api/v1/billing/paystack?action=initialize"
     },
     {
       "source": "/api/v1/billing/verify",
-      "destination": "/api/v1/billing/paystack/verify"
+      "destination": "/api/v1/billing/paystack?action=verify"
     },
     {
       "source": "/api/v1/billing/webhook",
-      "destination": "/api/v1/billing/paystack/webhook"
+      "destination": "/api/v1/billing/paystack?action=webhook"
     },
     {
       "source": "/api/v1/auth/ceka/callback",
-      "destination": "/api/v1/auth/ceka/callback"
+      "destination": "/api/services?service=callback"
+    },
+    {
+      "source": "/api/ai-proxy",
+      "destination": "/api/services?service=ai-proxy"
+    },
+    {
+      "source": "/api/create-signature-session",
+      "destination": "/api/services?service=signature-session"
+    },
+    {
+      "source": "/api/petition-stats",
+      "destination": "/api/services?service=petition-stats"
+    },
+    {
+      "source": "/api/trigger-workflow",
+      "destination": "/api/services?service=workflow"
+    },
+    {
+      "source": "/api/verify-voter",
+      "destination": "/api/services?service=verify-voter"
+    },
+    {
+      "source": "/api/v1/enterprise/enquire",
+      "destination": "/api/services?service=enquire"
+    },
+    {
+      "source": "/api/v1/licenses/download",
+      "destination": "/api/services?service=download"
     },
     {
       "source": "/api/(.*)",
@@ -142,14 +178,5 @@
       ]
     }
   ],
-  "crons": [
-    {
-      "path": "/api/v1/billing/cron/renewal-check",
-      "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/v1/cron/regenerate-datasets",
-      "schedule": "0 2 * * *"
-    }
-  ]
+  "crons": []
 }
