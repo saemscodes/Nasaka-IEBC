@@ -276,8 +276,6 @@
             position: relative;
         }
 
-
-
         .top-progress-cta {
             font-size: 12px;
             font-weight: 700;
@@ -321,11 +319,14 @@
             opacity: 0.06;
             z-index: 0;
             overflow: hidden;
+            filter: hue-rotate(40deg);
         }
 
-        .topo-bg svg {
+        .topo-bg img {
             width: 100%;
             height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         /* ── MAIN WRAPPER ── */
@@ -607,8 +608,6 @@
             position: relative;
             transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
-
 
         @keyframes shimmer {
 
@@ -898,25 +897,9 @@
         <a class="top-progress-cta" href="#support">Help us recover</a>
     </div>
 
-    <!-- TOPO WATERMARK (inline SVG, zero external request) -->
+    <!-- TOPO WATERMARK (user's own SVG) -->
     <div class="topo-bg">
-        <svg viewBox="0 0 800 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-            <g fill="none" stroke="#1E6BFF" stroke-width="1.2">
-                <ellipse cx="400" cy="450" rx="380" ry="320" />
-                <ellipse cx="400" cy="450" rx="330" ry="270" />
-                <ellipse cx="400" cy="450" rx="280" ry="220" />
-                <ellipse cx="400" cy="450" rx="230" ry="170" />
-                <ellipse cx="400" cy="450" rx="180" ry="130" />
-                <ellipse cx="400" cy="450" rx="130" ry="90" />
-                <ellipse cx="400" cy="450" rx="80" ry="55" />
-                <ellipse cx="200" cy="200" rx="180" ry="130" />
-                <ellipse cx="200" cy="200" rx="140" ry="95" />
-                <ellipse cx="200" cy="200" rx="100" ry="65" />
-                <ellipse cx="600" cy="700" rx="160" ry="110" />
-                <ellipse cx="600" cy="700" rx="120" ry="80" />
-                <ellipse cx="600" cy="700" rx="80" ry="50" />
-            </g>
-        </svg>
+        <img src="/topo-bg.svg" alt="" aria-hidden="true" />
     </div>
 
     <!-- PAGE CONTENT -->
@@ -925,7 +908,8 @@
         <div class="site-label">Civic Education Kenya · Nasaka IEBC Status</div>
 
         <h1 class="hero-headline">
-            Mli<span class="highlight">weka mawe</span><br> sana.
+            We hit the <span class="highlight">ceiling.</span><br>
+            We're coming back.
         </h1>
 
         <p class="hero-sub">
@@ -937,7 +921,7 @@
         <!-- METRICS -->
         <div class="metrics">
             <div class="metric-box">
-                <div class="metric-number">1.55M</div>
+                <div class="metric-number">1.67M</div>
                 <div class="metric-label">Requests this month</div>
             </div>
             <div class="metric-box">
@@ -998,8 +982,7 @@
                 <div>
                     <div class="alt-title">Use the Africa Uncensored CVR Map</div>
                     <div class="alt-desc">The Africa Uncensored CVR Map is available as a fair alternative. We cannot
-                        ascertain
-                        the accuracy of the data but it is a good starting point.</div>
+                        ascertain the accuracy of the data but it is a good starting point.</div>
                 </div>
                 <div class="alt-arrow">→</div>
             </a>
@@ -1020,8 +1003,7 @@
                 <div>
                     <div class="alt-title">Official IEBC Website</div>
                     <div class="alt-desc">For official registration, accurate office data, voter verification and IEBC
-                        contacts, go
-                        direct to the source.</div>
+                        contacts, go direct to the source.</div>
                 </div>
                 <div class="alt-arrow">→</div>
             </a>
@@ -1031,14 +1013,10 @@
         <div class="section-title">What happened</div>
         <p class="section-body">
             Nasaka IEBC registered over 1.5 million requests this March - 1.4m of which happened in 48 hours. Our
-            infrastructure
-            was not built to handle that kind of overnight growth. We had already started an upgrade when things tipped
-            over.
-            Thus, needing us to either forfeit the site for the next 30 days or to push the upgrade through. That is the
-            honest
-            story. The code side is sorted. What we need now is the budget to push the upgrade through and get the site
-            back up
-            before the 30th - when the CVR push begins.
+            infrastructure was not built to handle that kind of overnight growth. We had already started an upgrade when
+            things tipped over. Thus, needing us to either forfeit the site for the next 30 days or to push the upgrade
+            through. That is the honest story. The code side is sorted. What we need now is the budget to push the
+            upgrade through and get the site back up before the 30th - when the CVR push begins.
         </p>
 
         <!-- TIMELINE -->
