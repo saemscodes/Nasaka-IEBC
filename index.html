@@ -6,9 +6,133 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
         content="Nasaka IEBC is temporarily offline. Find out how to still access IEBC office data and support the mission.">
-    <title>Nasaka IEBC · We'll Be Right Back</title>
-    <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%231E6BFF'/%3E%3Ccircle cx='16' cy='13' r='6' fill='none' stroke='white' stroke-width='2.2'/%3E%3Cpath d='M10 28 Q16 18 22 28' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='13' r='2' fill='white'/%3E%3C/svg%3E">
+    <title>Nasaka IEBC — We'll Be Right Back</title>
+    <meta name="theme-color" content="#0b63c6" />
+    <meta name="msapplication-TileColor" content="#0b63c6" />
+    <link rel="icon" href="/favicon-nasaka.ico" />
+    <link rel="apple-touch-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="/nasaka.svg" fetchpriority="low" />
+    <script>
+        (function () {
+            try {
+                const params = new URLSearchParams(location.search);
+                const platform = params.get('platform');
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+                const pickIcons = (platform, prefersDark) => {
+                    if (platform === 'tiktok') {
+                        return {
+                            favicon: '/nasaka-logo-round-blacknblue.png',
+                            appleTouch: '/nasaka-logo-round-blacknblue.png',
+                            ogImage: '/nasaka-logo-blue.png',
+                            themeColor: '#0b63c6'
+                        };
+                    }
+
+                    if (platform === 'reddit') {
+                        return {
+                            favicon: '/nasaka-logo-round-bnw.png',
+                            appleTouch: '/nasaka-logo-round-bnw.png',
+                            ogImage: '/nasaka-logo-bnw.png',
+                            themeColor: '#1c1c1c'
+                        };
+                    }
+
+                    if (prefersDark) {
+                        return {
+                            favicon: '/nasaka-logo-white.png',
+                            appleTouch: '/nasaka-logo-round-black.png',
+                            ogImage: '/nasaka-logo-black.png',
+                            themeColor: '#111827'
+                        };
+                    }
+
+                    return {
+                        favicon: '/nasaka-logo-blue.png',
+                        appleTouch: '/nasaka-logo-round-blacknblue.png',
+                        ogImage: '/nasaka-logo-white.png',
+                        themeColor: '#0b63c6'
+                    };
+                };
+
+                const icons = pickIcons(platform, prefersDark);
+
+                const updateLink = (rel, href, type) => {
+                    let el = document.querySelector(`link[rel="${rel}"]`);
+                    if (!el) {
+                        el = document.createElement('link');
+                        el.rel = rel;
+                        if (type) el.type = type;
+                        document.head.appendChild(el);
+                    }
+                    el.href = href;
+                };
+
+                updateLink('icon', icons.favicon);
+                updateLink('icon', '/nasaka.svg', 'image/svg+xml');
+                updateLink('apple-touch-icon', icons.appleTouch);
+
+                const metaTheme = document.querySelector('meta[name="theme-color"]');
+                if (metaTheme) metaTheme.content = icons.themeColor;
+                const msTileColor = document.querySelector('meta[name="msapplication-TileColor"]');
+                if (msTileColor) msTileColor.content = icons.themeColor;
+
+                const setMeta = (name, content, property = false) => {
+                    let selector = property ? `meta[property="${name}"]` : `meta[name="${name}"]`;
+                    let m = document.querySelector(selector);
+                    if (!m) {
+                        m = document.createElement('meta');
+                        if (property) m.setAttribute('property', name);
+                        else m.setAttribute('name', name);
+                        document.head.appendChild(m);
+                    }
+                    m.content = content;
+                };
+
+                setMeta('twitter:image', icons.ogImage);
+
+                const ogImages = document.querySelectorAll('meta[property="og:image"]');
+                ogImages.forEach(meta => {
+                    meta.content = icons.ogImage;
+                });
+
+                const updateSvgColor = () => {
+                    const svgLink = document.querySelector('link[rel="icon"][type="image/svg+xml"]');
+                    if (svgLink) {
+                        fetch(svgLink.href)
+                            .then(response => response.text())
+                            .then(svgText => {
+                                const tempDiv = document.createElement('div');
+                                tempDiv.innerHTML = svgText;
+                                const svgElement = tempDiv.querySelector('svg');
+
+                                if (svgElement) {
+                                    const paths = svgElement.querySelectorAll('path');
+                                    paths.forEach(path => {
+                                        if (prefersDark) {
+                                            path.setAttribute('fill', '#ffffff');
+                                        } else {
+                                            path.setAttribute('fill', '#0b63c6');
+                                        }
+                                    });
+
+                                    const modifiedSvg = new XMLSerializer().serializeToString(svgElement);
+                                    const blob = new Blob([modifiedSvg], { type: 'image/svg+xml' });
+                                    const url = URL.createObjectURL(blob);
+                                    svgLink.href = url;
+                                }
+                            })
+                            .catch(error => console.error('Error updating SVG color:', error));
+                    }
+                };
+
+                updateSvgColor();
+
+            } catch (e) {
+                console.error('Icon selection error:', e);
+            }
+        })();
+    </script>
     <style>
         :root {
             --blue: #1E6BFF;
@@ -680,16 +804,21 @@
         }
 
         .footer-logo {
-            width: 28px;
-            height: 28px;
-            background: var(--blue);
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
+            overflow: hidden;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #fff;
-            font-size: 13px;
-            font-weight: 900;
+        }
+
+        .footer-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
         }
 
         .footer-name {
@@ -796,14 +925,13 @@
         <div class="site-label">Civic Education Kenya · Nasaka IEBC Status</div>
 
         <h1 class="hero-headline">
-            We hit the<br>
-            <span class="highlight">ceiling.</span><br>
-            We're coming back.
+            Mli<span class="highlight">weka mawe</span><br> sana.
         </h1>
 
         <p class="hero-sub">
             Since October 1st 2025, Nasaka IEBC has helped hundreds of thousands of Kenyans find their nearest IEBC
-            office. This March, the demand grew faster than our budget could handle. We are being open about it.
+            office. This March, the demand grew faster than we could build our updates. Here's how we are being open
+            about it.
         </p>
 
         <!-- METRICS -->
@@ -829,7 +957,7 @@
             <div class="status-row">
                 <div>
                     <div class="status-name">nasakaiebc.civiceducationkenya.com</div>
-                    <div class="status-desc">Main web app, map and office finder</div>
+                    <div class="status-desc">Main website & app, map & complementary services</div>
                 </div>
                 <span class="badge badge-down">● Down</span>
             </div>
@@ -837,7 +965,7 @@
             <div class="status-row">
                 <div>
                     <div class="status-name">Android App</div>
-                    <div class="status-desc">Available to download, map access down</div>
+                    <div class="status-desc">Available to download, full website functionality</div>
                 </div>
                 <span class="badge badge-down">● Down</span>
             </div>
@@ -845,7 +973,7 @@
             <div class="status-row">
                 <div>
                     <div class="status-name">Office Data</div>
-                    <div class="status-desc">Available, slower · manual searches from our end</div>
+                    <div class="status-desc">Still available, slower — manual searches from our end</div>
                 </div>
                 <span class="badge badge-degraded">● Slower</span>
             </div>
@@ -853,7 +981,7 @@
             <div class="status-row">
                 <div>
                     <div class="status-name">API Endpoints</div>
-                    <div class="status-desc">Developer access throttled</div>
+                    <div class="status-desc">Developer access to office data</div>
                 </div>
                 <span class="badge badge-down">● Down</span>
             </div>
@@ -865,12 +993,13 @@
             upgrade.</p>
 
         <div class="alt-list">
-            <a class="alt-item" href="https://linktr.ee/civiceducationke" target="_blank" rel="noopener">
+            <a class="alt-item" href="https://cvr.africauncensored.online/" target="_blank" rel="noopener">
                 <div class="alt-icon">📱</div>
                 <div>
-                    <div class="alt-title">Download the Android App</div>
-                    <div class="alt-desc">The app is available for download. Data access is currently limited but reach
-                        out to us on Instagram or X and we will manually pull what you need from our end.</div>
+                    <div class="alt-title">Use the Africa Uncensored CVR Map</div>
+                    <div class="alt-desc">The Africa Uncensored CVR Map is available as a fair alternative. We cannot
+                        ascertain
+                        the accuracy of the data but it is a good starting point.</div>
                 </div>
                 <div class="alt-arrow">→</div>
             </a>
@@ -890,7 +1019,8 @@
                 <div class="alt-icon">🏛️</div>
                 <div>
                     <div class="alt-title">Official IEBC Website</div>
-                    <div class="alt-desc">For official registration deadlines, voter verification, and IEBC contacts, go
+                    <div class="alt-desc">For official registration, accurate office data, voter verification and IEBC
+                        contacts, go
                         direct to the source.</div>
                 </div>
                 <div class="alt-arrow">→</div>
@@ -900,10 +1030,15 @@
         <!-- WHAT HAPPENED -->
         <div class="section-title">What happened</div>
         <p class="section-body">
-            Nasaka IEBC registered over 1.5 million visits this March. Our infrastructure was not built to handle that
-            kind of overnight growth. We had already started an upgrade when things tipped over. The mission outgrew the
-            budget. That is the honest story. The code side is sorted. What we need now is the budget to push the
-            upgrade through and get the site back up before the 30th.
+            Nasaka IEBC registered over 1.5 million requests this March - 1.4m of which happened in 48 hours. Our
+            infrastructure
+            was not built to handle that kind of overnight growth. We had already started an upgrade when things tipped
+            over.
+            Thus, needing us to either forfeit the site for the next 30 days or to push the upgrade through. That is the
+            honest
+            story. The code side is sorted. What we need now is the budget to push the upgrade through and get the site
+            back up
+            before the 30th - when the CVR push begins.
         </p>
 
         <!-- TIMELINE -->
@@ -915,7 +1050,7 @@
                     <div class="tl-line"></div>
                 </div>
                 <div class="tl-content">
-                    <div class="tl-date">March 1 to 18, 2026</div>
+                    <div class="tl-date">March 10th to 18th, 2026</div>
                     <div class="tl-title">Infrastructure upgrades built</div>
                     <div class="tl-desc">Geocoding pipeline, HITL admin tools, and API consolidation all completed in
                         the codebase. The tech is ready to deploy.</div>
@@ -952,7 +1087,7 @@
             <h2>Help us get back online</h2>
             <p>Nasaka IEBC is free to use because people who believe in civic transparency choose to support it. The
                 code is done. We need the budget to deploy it. Every shilling goes straight into the infrastructure that
-                serves Kenyans.</p>
+                serves Kenyans. We account for this amount in our monthly newsletter drops.</p>
 
             <!-- FUNDING PROGRESS VISUALIZER -->
             <div class="progress-section">
@@ -995,7 +1130,9 @@
         <!-- FOOTER -->
         <div class="footer">
             <div class="footer-brand">
-                <div class="footer-logo">N</div>
+                <div class="footer-logo">
+                    <img src="/nasaka-logo-round-blacknblue.png" alt="Nasaka IEBC by Civic Education Kenya" />
+                </div>
                 <div class="footer-name">NASAKA <span>by Civic Education Kenya</span></div>
             </div>
             <div class="footer-tags">#ChukuaKura · #TukoKadi</div>
