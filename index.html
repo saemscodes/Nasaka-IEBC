@@ -134,6 +134,14 @@
         })();
     </script>
     <style>
+        /* Anti-flash: apply dark class before styles paint */
+    </style>
+    <script>
+        if (localStorage.getItem('nasaka-theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    <style>
         :root {
             --blue: #1E6BFF;
             --blue-dark: #1452CC;
@@ -245,6 +253,7 @@
             position: sticky;
             top: 57px;
             z-index: 99;
+            width: 100%;
         }
 
         .top-progress-label {
@@ -871,6 +880,232 @@
                 font-size: 20px;
             }
         }
+
+        /* ── DARK MODE VARIABLES ── */
+        html.dark {
+            --bg: #0D1117;
+            --bg-white: #161B22;
+            --text: #E6EDF3;
+            --text-muted: #8B949E;
+            --text-light: #6E7681;
+            --green: #3FB950;
+            --red: #F85149;
+            --amber: #D29922;
+        }
+
+        /* ── DARK MODE TRANSITIONS ── */
+        body,
+        .banner,
+        .top-progress,
+        .status-card,
+        .metric-box,
+        .alt-item,
+        .footer,
+        .tl-line,
+        .site-label::after {
+            transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* ── DARK MODE OVERRIDES ── */
+        html.dark body {
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        html.dark .top-progress {
+            background: var(--bg-white);
+            border-bottom-color: rgba(48, 54, 61, 0.8);
+        }
+
+        html.dark .top-progress-track {
+            background: rgba(30, 107, 255, 0.2);
+        }
+
+        html.dark .top-progress-label {
+            color: var(--text-muted);
+        }
+
+        html.dark .status-card {
+            background: var(--bg-white);
+            border-color: rgba(48, 54, 61, 0.8);
+        }
+
+        html.dark .status-row {
+            border-bottom-color: rgba(48, 54, 61, 0.6);
+        }
+
+        html.dark .status-name {
+            color: var(--text);
+        }
+
+        html.dark .status-desc {
+            color: var(--text-light);
+        }
+
+        html.dark .status-card-title {
+            color: var(--text-light);
+        }
+
+        html.dark .badge-down {
+            background: rgba(248, 81, 73, 0.15);
+            color: #F85149;
+        }
+
+        html.dark .badge-degraded {
+            background: rgba(210, 153, 34, 0.15);
+            color: #D29922;
+        }
+
+        html.dark .badge-up {
+            background: rgba(63, 185, 80, 0.15);
+            color: #3FB950;
+        }
+
+        html.dark .metric-box {
+            background: var(--bg-white);
+            border-color: rgba(48, 54, 61, 0.8);
+        }
+
+        html.dark .metric-label {
+            color: var(--text-light);
+        }
+
+        html.dark .section-title {
+            color: var(--text);
+        }
+
+        html.dark .section-body {
+            color: var(--text-muted);
+        }
+
+        html.dark .alt-item {
+            background: var(--bg-white);
+            border-color: rgba(48, 54, 61, 0.8);
+            color: var(--text);
+        }
+
+        html.dark .alt-item:hover {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(30, 107, 255, 0.15);
+        }
+
+        html.dark .alt-title {
+            color: var(--text);
+        }
+
+        html.dark .alt-desc {
+            color: var(--text-light);
+        }
+
+        html.dark .hero-sub {
+            color: var(--text-muted);
+        }
+
+        html.dark .site-label::after {
+            background: rgba(48, 54, 61, 0.8);
+        }
+
+        html.dark .tl-line {
+            background: rgba(48, 54, 61, 0.8);
+        }
+
+        html.dark .tl-date {
+            color: var(--text-light);
+        }
+
+        html.dark .tl-title {
+            color: var(--text);
+        }
+
+        html.dark .tl-desc {
+            color: var(--text-muted);
+        }
+
+        html.dark .footer {
+            border-top-color: rgba(48, 54, 61, 0.8);
+        }
+
+        html.dark .footer-name {
+            color: var(--text);
+        }
+
+        html.dark .footer-name span {
+            color: var(--text-light);
+        }
+
+        html.dark .banner-cta {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        html.dark .banner-cta:hover {
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        html.dark .donate-link:hover {
+            background: #D9E8FF;
+        }
+
+        /* ── DARK MODE TOGGLE BUTTON ── */
+        .theme-toggle {
+            position: fixed;
+            bottom: 28px;
+            right: 24px;
+            z-index: 200;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--blue);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(30, 107, 255, 0.4);
+            transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            outline: none;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 24px rgba(30, 107, 255, 0.55);
+        }
+
+        .theme-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .theme-toggle svg {
+            width: 20px;
+            height: 20px;
+            fill: #fff;
+            transition: opacity 0.2s ease, transform 0.3s ease;
+        }
+
+        .theme-toggle .icon-sun {
+            display: block;
+        }
+
+        .theme-toggle .icon-moon {
+            display: none;
+        }
+
+        html.dark .theme-toggle .icon-sun {
+            display: none;
+        }
+
+        html.dark .theme-toggle .icon-moon {
+            display: block;
+        }
+
+        html.dark .theme-toggle {
+            background: #1E2D3D;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        html.dark .theme-toggle:hover {
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.65);
+        }
     </style>
 </head>
 
@@ -885,7 +1120,7 @@
                 you can help us get back up.
             </div>
         </div>
-        <a class="banner-cta" href="#support">Chip in/a>
+        <a class="banner-cta" href="#support">Chip in</a>
     </div>
 
     <!-- TOP MINI PROGRESS BAR -->
@@ -1117,6 +1352,54 @@
         </div>
 
     </div>
+    <!-- DARK MODE TOGGLE -->
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+        <!-- Sun icon (shown in light mode) -->
+        <svg class="icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2a7 7 0 1 1 0-14 7 7 0 0 1 0 14zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm12.021 12.021l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.929 20.485l-1.414-1.414 2.121-2.121 1.414 1.414-2.121 2.121zm12.021-12.021l-1.414-1.414 2.121-2.121 1.414 1.414-2.121 2.121z" />
+        </svg>
+        <!-- Moon icon (shown in dark mode) -->
+        <svg class="icon-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" />
+        </svg>
+    </button>
+
+    <script>
+        (function () {
+            const html = document.documentElement;
+            const btn = document.getElementById('themeToggle');
+            const topoBg = document.querySelector('.topo-bg');
+            const footerLogo = document.querySelector('.footer-logo img');
+            const metaTheme = document.querySelector('meta[name="theme-color"]');
+
+            const applyDark = (dark) => {
+                if (dark) {
+                    html.classList.add('dark');
+                    if (topoBg) topoBg.style.filter = 'hue-rotate(40deg) brightness(1.8)';
+                    if (footerLogo) footerLogo.src = '/nasaka-logo-round-black.png';
+                    if (metaTheme) metaTheme.content = '#0D1117';
+                } else {
+                    html.classList.remove('dark');
+                    if (topoBg) topoBg.style.filter = 'hue-rotate(40deg)';
+                    if (footerLogo) footerLogo.src = '/nasaka-logo-round-blacknblue.png';
+                    if (metaTheme) metaTheme.content = '#0b63c6';
+                }
+            };
+
+            const saved = localStorage.getItem('nasaka-theme');
+            const isDark = saved === 'dark';
+            applyDark(isDark);
+
+            btn.addEventListener('click', () => {
+                const nowDark = html.classList.contains('dark');
+                localStorage.setItem('nasaka-theme', nowDark ? 'light' : 'dark');
+                applyDark(!nowDark);
+            });
+        })();
+    </script>
+
 </body>
 
 </html>
