@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+
+<head>
+  <meta charset="UTF-8" />
+  <base href="/" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta name="google-site-verification" content="55rXmquW8yPhWUSlhSVQpdNCm-8pUgWwD2ut3c_caPc" />
+  <meta name="google-site-verification" content="A70nesKF2QtumHjAVimDXVq-0uy7pppGq385ZlWMWcw" />
+
+  <!-- Primary Meta Tags (Nasaka IEBC) -->
+  <title>Nasaka IEBC — Find IEBC Offices near You</title>
+  <meta name="description"
+    content="Find IEBC offices in all 47 counties and 290 constituencies. Nasaka IEBC helps Kenyans locate, verify and engage with IEBC service points. Interactive maps, directions, ride-hailing services support, verification and civic reporting for trustworthy electoral access.\ Learn how to register to vote, check status, transfer registration at your nearest IEBC office." />
+  <meta name="keywords"
+    content="IEBC office, voter registration Kenya, where to register to vote, IEBC office near me, nearest IEBC office, IEBC constituency office, get registered Kenya, how to register as a voter, check voter registration, IEBC voter verification, transfer voter registration, IEBC contacts, IEBC office hours, IEBC office Nairobi, IEBC office Mombasa, IEBC office Kisumu, IEBC office Nakuru, IEBC office Eldoret, IEBC office Westlands, IEBC office Kasarani, IEBC office Embakasi, voter registration center, where to find IEBC office, visit IEBC constituency office" />
+  <meta name="author" content="Civic Education Kenya (CEKA)" />
+  <link rel="canonical" href="https://nasakaiebc.civiceducationkenya.com" />
+
+  <!-- Theme color for browser UI -->
+  <meta name="theme-color" content="#0b63c6" />
+  <meta name="msapplication-TileColor" content="#0b63c6" />
+
+  <!-- Open Graph / Facebook (multiple images — social platforms will typically pick one) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Nasaka IEBC" />
+  <meta property="og:url" content="https://nasakaiebc.civiceducationkenya.com/" />
+  <meta property="og:title" content="Nasaka IEBC — Find an IEBC Office near you" />
+  <meta property="og:description"
+    content="Interactive finder for IEBC registration and service points — maps, directions, verification & crowdsourced reporting to improve voter access." />
+
+  <!-- OG images (variants) -->
+  <meta property="og:image" content="https://nasakaiebc.civiceducationkenya.com/1.webp" />
+  <meta property="og:image:secure_url" content="https://nasakaiebc.civiceducationkenya.com/1.webp" />
+  <meta property="og:image:type" content="image/webp" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Nasaka IEBC — Find an IEBC Office Near You" />
+
+  <meta property="og:image" content="https://nasakaiebc.civiceducationkenya.com/nasaka-logo-white.png" />
+  <meta property="og:image:alt" content="Nasaka IEBC — white background, blue text" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <meta property="og:image" content="https://nasakaiebc.civiceducationkenya.com/nasaka-logo-black.png" />
+  <meta property="og:image:alt" content="Nasaka IEBC — black background, white text" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <meta property="og:image" content="https://nasakaiebc.civiceducationkenya.com/nasaka-logo-blue.png" />
+  <meta property="og:image:alt" content="Nasaka IEBC — blue background, white text" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <meta property="og:image" content="https://nasakaiebc.civiceducationkenya.com/nasaka-logo-bnw.png" />
+  <meta property="og:image:alt" content="Nasaka IEBC — black & white" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@CivicEdKenya" />
+  <meta name="twitter:creator" content="@CivicEdKenya" />
+  <meta name="twitter:title" content="Nasaka IEBC — Find IEBC Offices near you" />
+  <meta name="twitter:description"
+    content="Find IEBC registration points and official offices across Kenya. Map-based finder with verification and reporting features." />
+  <meta name="twitter:image" content="https://nasakaiebc.civiceducationkenya.com/1.webp" />
+  <meta name="twitter:image:alt" content="Nasaka IEBC — Find an IEBC Office Near You" />
+
+  <!-- Reddit & TikTok -->
+  <meta name="twitter:app:name:iphone" content="Nasaka IEBC" />
+
+  <!-- Favicon & Apple / PWA - Default to blue logo -->
+  <link rel="icon" href="/favicon-nasaka.ico" />
+  <link rel="apple-touch-icon" href="/favicon.ico" />
+
+  <!-- SVG Favicon for modern browsers -->
+  <link rel="icon" type="image/svg+xml" href="/favicon-nasaka.ico" fetchpriority="low" />
+
+  <!-- MASSIVE STRUCTURED DATA FOR ALL SEARCH TERMS - UPDATED WITH ALL FAQS -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "name": "Nasaka IEBC - Find an IEBC Office near You",
+          "url": "https://nasakaiebc.civiceducationkenya.com",
+          "description": "Find IEBC constituency offices for voter registration in all 47 counties and 290 constituencies in Kenya. Interactive map with locations, addresses, and registration information.",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://nasakaiebc.civiceducationkenya.com/map",
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "name": "Nasaka IEBC - Find an IEBC Office near You",
+          "url": "https://nasakaiebc.civiceducationkenya.com",
+          "description": "Complete directory of IEBC constituency offices across Kenya. Find voter registration centers, addresses, opening hours, and registration procedures for all 47 counties and 290 constituencies.",
+          "mainEntity": {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Where can I find an IEBC office near me?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Use our interactive IEBC office finder #NasakaIEBC to locate constituency offices across all 47 Kenyan counties and 290 constituencies. Search by your current location, county name, or constituency to find the nearest IEBC office for voter registration services. We provide complete addresses and contact information for all IEBC offices in Kenya including Nairobi, Mombasa, Kisumu, Nakuru, Eldoret, and all other counties."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How do I register to vote at IEBC office?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Visit any IEBC constituency office with your original National ID or valid passport. Registration is free and takes 10-15 minutes. You must be 18 years or older and a Kenyan citizen. The registration officer will capture your biometric details and provide an acknowledgment slip. Find your nearest IEBC office using our interactive map covering all 290 constituencies."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What documents do I need for voter registration at IEBC office?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Bring your original National ID card or a valid Kenyan passport. Photocopies are not accepted. The registration process includes biometric capture at the IEBC office. You will need to fill out an Application for Registration form (Form A). Our platform helps you find the nearest IEBC office in your constituency."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Where is the nearest IEBC office to my location?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Use our interactive mapped tool #NasakaIEBC with location detection to find the closest IEBC constituency office. We provide addresses, contact information, and directions for all IEBC offices across Kenya. Search by county, constituency, or use your current location to find IEBC office near me. We cover all 47 counties including Nairobi, Mombasa, Kisumu, Nakuru, Kiambu, Kakamega, Machakos, Bungoma, Kilifi, Uasin Gishu, and all other counties."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I transfer my voter registration to another constituency?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes, you can transfer your voter registration during continuous voter registration periods. Visit your new constituency IEBC office with your National ID, and staff will assist you with the transfer process. Use our tool #NasakaIEBC to find IEBC offices in all 290 constituencies for registration transfers."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How do I check my voter registration status?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "You can verify your voter registration status through the official IEBC voter verification portal or visit any IEBC constituency office for assistance. Our platform provides access to IEBC offices in all constituencies where you can verify your registration status."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What are IEBC office opening hours?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "IEBC constituency offices are typically open Monday to Friday from 8:00 AM to 5:00 PM. Specific hours may vary by location. Our interactive map shows IEBC offices in all 290 constituencies but visit the official IEBC site and pages for more specific requests on opening hours and contact information of respective offices."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Where to find IEBC office in Nairobi?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Find IEBC offices in all Nairobi constituencies including Westlands, Dagoretti North, Dagoretti South, Langata, Kibra, Roysambu, Kasarani, Ruaraka, Embakasi South, Embakasi North, Embakasi Central, Embakasi East, Embakasi West, Makadara, Kamukunji, Starehe, and Mathare. Use our interactive map to locate IEBC constituency offices throughout Nairobi County."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Where to find IEBC office in Mombasa?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Locate IEBC offices in all Mombasa constituencies including Changamwe, Jomvu, Kisauni, Likoni, Mvita, and Nyali. Our platform provides complete IEBC office locations and voter registration information for Mombasa County."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Where to find IEBC office in Kisumu?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Find IEBC offices in all Kisumu constituencies including Kisumu Central, Kisumu East, Kisumu West, Seme, Nyando, Muhoroni, and Nyakach. Use our interactive map to locate voter registration centers throughout Kisumu County."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Where to find IEBC office in Nakuru?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Locate IEBC offices in all Nakuru constituencies including Nakuru Town East, Nakuru Town West, Bahati, Gilgil, Kuresoi North, Kuresoi South, Molo, Naivasha, Njoro, Rongai, and Subukia. Our platform covers all IEBC constituency offices in Nakuru County."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How to find IEBC constituency office for voter registration?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Use our comprehensive tool #NasakaIEBC to locate constituency offices in all 290 constituencies across Kenya. Search by your specific constituency name or use the interactive map to find the exact IEBC office location, address, and contact details for voter registration."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What services are available at IEBC office?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "IEBC constituency offices provide voter registration, registration transfers, voter verification, update of voter details, and election information. Find your nearest IEBC office using our platform to access these services in your constituency."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How to get to IEBC office?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Use our interactive map tool #NasakaIEBC with directions to find the best route to any IEBC constituency office. We provide location details and navigation assistance for IEBC offices in all 290 constituencies across Kenya."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How long does it take to register?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Anytime from a few minutes to about 30 minutes, from reports we've skimmed through from Kenyans' feedback! The process is easy and many offices are not busy so you can do it in averagely less than 15 minutes."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "ARE THE OFFICES OPENED ON THE WEEKENDS?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "NO. Unfortunately, IEBC offices only open 8:00 - 5:00 Monday - Friday."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "IS IT TRUE THEY SCAN YOUR IRIS?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "YES. IEBC officials will scan your eyes as you register. According to IEBC's Director Joyce Ekuam you can choose to opt out as per her interview with TV47 on 1st October 2025."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "CAN I PICK WHAT POLLING STATION I WOULD LIKE TO VOTE AT?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "YES! As you register, the IEBC officials give you a list of polling stations within your constituency that you can vote at."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "AS AN ALREADY REGISTERED VOTER DO I NEED TO REGISTER AGAIN?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "NO YOU DO NOT! Once registered you SHOULD NOT register again."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "AS A REGISTERED VOTER CAN I CHANGE MY POLLING STATION?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "NOT YET. You have to wait for MASS VOTER REGISTRATION. IEBC is yet to announce the dates for this."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "I AM A KENYAN IN THE DIASPORA WHERE DO I REGISTER?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "IEBC is yet to share details for diaspora voters, this will most likely be shared during the MASS VOTER REGISTRATION DRIVE."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "I DO NOT HAVE AN ID, CAN I USE MY PASSPORT?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "YES! as long as you are 18+ and your passport is Kenyan and valid and will not have expired by election time!"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How do I find an IEBC office near me?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Use the search box or the interactive map on this page. Search by county, constituency, or allow location access to see nearby offices and registration points."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Do you publish exact addresses or opening hours?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "We publish the location details available in our dataset. Some offices list addresses and hours; others do not. If you plan to visit, contact the office or check official IEBC channels before your trip."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How do I register to vote?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Register at an IEBC constituency office during registration periods. Bring your original National ID or a valid passport. Follow the office instructions; staff will guide you through the process."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What ID do I need to register?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Bring an original National ID or a valid Kenyan passport. If your situation is exceptional, contact the constituency office or official IEBC support to confirm accepted documents."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I transfer my registration to a new constituency?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Transfers are handled by IEBC. Visit the constituency office in your new area and request a transfer; the office will advise on required documents and steps."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How do I check if I am already registered?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Use the official IEBC verification channels or visit a constituency office to confirm your registration status. This site links to the verification options where available."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What if the office listing on this site is wrong or outdated?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Report inaccuracies using our verification/reporting form. We flag reports for review and update the dataset after validation. Field photos or official confirmations speed verification."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I register someone else or register a minor?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Registration is a personal process. Policy requires the registrant to provide ID and complete biometric capture. Minors under 18 are not eligible to register. If you need special assistance, ask the constituency office."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Are mobile or special registration drives listed here?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "We list mobile drives and outreach events when that information is available. Check the map and event notices on the site. Community partners sometimes share scheduled drives via our verification workflow."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How accurate is the dataset?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "We maintain an open dataset gathered from official sources, public records and crowd-sourced verification. Accuracy varies; use the report button to suggest updates and check official IEBC channels for absolute confirmation."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How can I help verify an office near me?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Sign up as a volunteer verifier, submit photos, or complete our verification form with the office name, location notes, and a contact if available. We will review submissions and update the listing after validation."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does this site replace official IEBC channels?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No. This service helps locate and share information about constituency offices. For official procedures, confirmations, or legal matters, consult IEBC directly or visit an official IEBC office."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is my personal data shared if I report an office?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "We only collect the minimum data needed to validate reports. We never publish personal contact details without consent. See our privacy page for full details."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I search by ward or polling station?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "The tool focuses on constituency-level offices. Where available, additional granular locations such as registration centers or polling-station references are shown on a constituency page or the map popups."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What languages is the site available in?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "The primary language is English. We publish key guidance and summaries in Swahili where possible; community contributions help expand localization."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How do I report an office closure or moved office?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Use the report link on the relevant office page, provide the new location or photo evidence if possible, and we will mark the listing as under review. Verified changes are published after validation."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How does the interactive map determine 'nearest'?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "'Nearest' uses your device location if you allow it, or distance is calculated from a searched location. Maps and directions are provided where mapping data is available."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Where can I find legal guidance about voter eligibility?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Legal eligibility rules are set by IEBC and related law. For binding guidance, consult IEBC or a legal advisor. Our resources summarize common eligibility rules and procedures."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How often is the data updated?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "We update the dataset continually as we receive verified reports and official updates. Major refreshes are performed after verification drives and dataset imports."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can organizations use your dataset or API?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. We maintain an open dataset and developer API for civic projects and researchers. Review our API docs and dataset license on the site before using the data in applications; or simply reach us via civiceducationkenya@gmail.com."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How do I contact IEBC directly?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "We link to the official IEBC contact points where available. Use those official channels for formal inquiries or escalation. This site is an independent civic resource."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What should I bring to an IEBC office for registration?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Bring your original National ID or valid passport and any documents requested by IEBC. Check the office page or IEBC guidance for updates that may apply to your situation."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I check my registration details here?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "We provide links and guidance on verification, but official verification should be done through IEBC's verification service or by visiting a constituency office in person."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What if I have mobility or accessibility needs?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Contact the constituency office ahead of your visit to request assistance. If you report accessibility barriers via our form, we will flag the office for follow-up and public notes."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Do you list IEBC national or county headquarters?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "We focus on constituency-level registration offices. National and county headquarters are listed when relevant to registration services; check the site contacts page for national office details."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Who owns and maintains this site?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Civic Education Kenya (CEKA) maintains this resource as an open civic project. We welcome contributors, developers and verifiers; see our contribute page for details."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How does Nasaka IEBC ensure the accuracy of its office locations?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Nasaka IEBC ensures accuracy through a multi-layered verification process. We combine official IEBC data with crowdsourced reports from citizen verifiers. Our platform allows users to submit photos, GPS coordinates, and feedback, which are then reviewed by our team and trusted community partners before being updated in our primary dataset."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What services does Nasaka IEBC offer beyond voter registration?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Beyond voter registration centers, Nasaka IEBC provides detailed directions to offices, ride-hailing support (Uber/Bolt integration for locating offices), voter verification guidance, civic education resources, and a platform for reporting accessibility issues or office closures."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is Nasaka IEBC available in all counties of Kenya?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes, Nasaka IEBC is a national platform covering all 47 counties and 290 constituencies of Kenya. We aim to provide a comprehensive directory of every constituency office from Turkana to Lamu, and Nairobi to Kisumu."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How are office inaccuracies reported on Nasaka IEBC?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Users can report inaccuracies by clicking the 'Report' or 'Verify' button on any office listing. They can specify if an office has moved, closed, or has incorrect contact details, and can upload supporting evidence like photos or updated coordinates."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What happens after an office location is reported?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "After an office is reported, the listing is flagged as 'Under Review' in our system. Our verification team validates the report against other user submissions and official updates. Once verified, the data is updated across the platform for all users."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Are there penalties for submitting false information?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "While we encourage all citizens to contribute, we have systems in place to detect and mitigate false information. Frequent false reporting may result in the user being flagged or restricted from the verification workflow. We prioritize reports from 'Verified Contributors' who have a history of accurate submissions."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can users edit or confirm reported inaccuracies?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes! Other users can view pending reports and 'upvote' or 'confirm' if they have visited the same location and found the report to be accurate. This peer-verification helps us process updates faster."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is there a verification process for reports?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes, every report goes through a verification queue. We use automated checks for GPS proximity and image metadata, followed by human review for complex changes or conflicting reports."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can users flag false reports or false claims on the platform?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Absolutely. If a user sees a report or claim that they believe is incorrect or malicious, they can flag it for immediate review by our moderators."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is there a review process for reported inaccuracies?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Our review process involves cross-referencing user reports with official IEBC gazetted locations and recent public notices. For critical changes, we may even reach out to local community partners on the ground to confirm the office status."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can users view the status of their submitted reports?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes, users who submit reports through our platform can track the status of their contribution (e.g., Pending, Verified, or Resolved) through their contribution history if they are signed in, or via a follow-up notification."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "@type": "ItemList",
+  "name": "IEBC Offices in All 47 Kenyan Counties",
+  "description": "Complete list of IEBC constituency offices across all 47 counties in Kenya",
+  "numberOfItems": 47,
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "IEBC Offices in Nairobi County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "IEBC Offices in Mombasa County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "IEBC Offices in Kisumu County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 4,
+      "name": "IEBC Offices in Nakuru County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 5,
+      "name": "IEBC Offices in Kiambu County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 6,
+      "name": "IEBC Offices in Kakamega County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 7,
+      "name": "IEBC Offices in Machakos County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 8,
+      "name": "IEBC Offices in Bungoma County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 9,
+      "name": "IEBC Offices in Kilifi County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 10,
+      "name": "IEBC Offices in Uasin Gishu County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 11,
+      "name": "IEBC Offices in Meru County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 12,
+      "name": "IEBC Offices in Nyeri County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 13,
+      "name": "IEBC Offices in Murang'a County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 14,
+      "name": "IEBC Offices in Kitui County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 15,
+      "name": "IEBC Offices in Garissa County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 16,
+      "name": "IEBC Offices in Kwale County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 17,
+      "name": "IEBC Offices in Makueni County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 18,
+      "name": "IEBC Offices in Kericho County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 19,
+      "name": "IEBC Offices in Bomet County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 20,
+      "name": "IEBC Offices in Nandi County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 21,
+      "name": "IEBC Offices in Embu County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 22,
+      "name": "IEBC Offices in Kirinyaga County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 23,
+      "name": "IEBC Offices in Laikipia County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 24,
+      "name": "IEBC Offices in Turkana County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 25,
+      "name": "IEBC Offices in West Pokot County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 26,
+      "name": "IEBC Offices in Samburu County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 27,
+      "name": "IEBC Offices in Trans Nzoia County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 28,
+      "name": "IEBC Offices in Nyandarua County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 29,
+      "name": "IEBC Offices in Baringo County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 30,
+      "name": "IEBC Offices in Elgeyo Marakwet County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 31,
+      "name": "IEBC Offices in Kajiado County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 32,
+      "name": "IEBC Offices in Nyamira County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 33,
+      "name": "IEBC Offices in Migori County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 34,
+      "name": "IEBC Offices in Siaya County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 35,
+      "name": "IEBC Offices in Homa Bay County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 36,
+      "name": "IEBC Offices in Busia County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 37,
+      "name": "IEBC Offices in Vihiga County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 38,
+      "name": "IEBC Offices in Tharaka Nithi County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 39,
+      "name": "IEBC Offices in Taita Taveta County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 40,
+      "name": "IEBC Offices in Isiolo County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 41,
+      "name": "IEBC Offices in Marsabit County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 42,
+      "name": "IEBC Offices in Mandera County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 43,
+      "name": "IEBC Offices in Wajir County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 44,
+      "name": "IEBC Offices in Lamu County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 45,
+      "name": "IEBC Offices in Tana River County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 46,
+      "name": "IEBC Offices in Narok County"
+    },
+    {
+      "@type": "ListItem",
+      "position": 47,
+      "name": "IEBC Offices in Kisii County"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+
+  <!-- Geographic Targeting -->
+  <meta name="geo.region" content="KE" />
+  <meta name="geo.placename" content="Kenya" />
+  <meta name="geo.position" content="-1.2920659,36.8219462" />
+  <meta name="ICBM" content="-1.2920659, 36.8219462" />
+
+  <!-- Content Language -->
+  <meta http-equiv="content-language" content="en" />
+  <meta name="language" content="English" />
+  <meta name="locale" content="en_KE" />
+
+  <!-- Robots -->
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+
+  <!-- Stylesheets -->
+  <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet" crossorigin="anonymous" />
+
+  <!-- Client-side helper: dynamic icon selection based on platform and theme -->
+  <script>
+    (function () {
+      try {
+        const params = new URLSearchParams(location.search);
+        const platform = params.get('platform');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        // Enhanced icon selection logic
+        const pickIcons = (platform, prefersDark) => {
+          if (platform === 'tiktok') {
+            return {
+              favicon: '/nasaka-logo-round-blacknblue.png',
+              appleTouch: '/nasaka-logo-round-blacknblue.png',
+              ogImage: '/nasaka-logo-blue.png',
+              themeColor: '#0b63c6'
+            };
+          }
+
+          if (platform === 'reddit') {
+            return {
+              favicon: '/nasaka-logo-round-bnw.png',
+              appleTouch: '/nasaka-logo-round-bnw.png',
+              ogImage: '/nasaka-logo-bnw.png',
+              themeColor: '#1c1c1c'
+            };
+          }
+
+          if (prefersDark) {
+            return {
+              favicon: '/nasaka-logo-white.png',
+              appleTouch: '/nasaka-logo-round-black.png',
+              ogImage: '/nasaka-logo-black.png',
+              themeColor: '#111827'
+            };
+          }
+
+          // Light mode default
+          return {
+            favicon: '/nasaka-logo-blue.png',
+            appleTouch: '/nasaka-logo-round-blacknblue.png',
+            ogImage: '/nasaka-logo-white.png',
+            themeColor: '#0b63c6'
+          };
+        };
+
+        const icons = pickIcons(platform, prefersDark);
+
+        // Update favicon and apple touch icon
+        const updateLink = (rel, href, type = null) => {
+          let el = document.querySelector(`link[rel="${rel}"]`);
+          if (!el) {
+            el = document.createElement('link');
+            el.rel = rel;
+            if (type) el.type = type;
+            document.head.appendChild(el);
+          }
+          el.href = href;
+        };
+
+        // Update PNG favicon
+        updateLink('icon', icons.favicon);
+
+        // Update SVG favicon for modern browsers
+        updateLink('icon', '/nasaka.svg', 'image/svg+xml');
+
+        // Update apple touch icon
+        updateLink('apple-touch-icon', icons.appleTouch);
+
+        // Update theme color
+        const metaTheme = document.querySelector('meta[name="theme-color"]');
+        if (metaTheme) metaTheme.content = icons.themeColor;
+
+        // Update msapplication tile color
+        const msTileColor = document.querySelector('meta[name="msapplication-TileColor"]');
+        if (msTileColor) msTileColor.content = icons.themeColor;
+
+        // Update social meta images
+        const setMeta = (name, content, property = false) => {
+          let selector = property ? `meta[property="${name}"]` : `meta[name="${name}"]`;
+          let m = document.querySelector(selector);
+          if (!m) {
+            m = document.createElement('meta');
+            if (property) m.setAttribute('property', name);
+            else m.setAttribute('name', name);
+            document.head.appendChild(m);
+          }
+          m.content = content;
+        };
+
+        // Update Twitter image
+        setMeta('twitter:image', icons.ogImage);
+
+        // Update all OG images to use the selected one
+        const ogImages = document.querySelectorAll('meta[property="og:image"]');
+        ogImages.forEach(meta => {
+          meta.content = icons.ogImage;
+        });
+
+        // Dynamic SVG color based on theme
+        const updateSvgColor = () => {
+          const svgLink = document.querySelector('link[rel="icon"][type="image/svg+xml"]');
+          if (svgLink) {
+            fetch(svgLink.href)
+              .then(response => response.text())
+              .then(svgText => {
+                // Create a temporary div to parse SVG
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = svgText;
+                const svgElement = tempDiv.querySelector('svg');
+
+                if (svgElement) {
+                  // Set SVG fill color based on theme
+                  const paths = svgElement.querySelectorAll('path');
+                  paths.forEach(path => {
+                    if (prefersDark) {
+                      path.setAttribute('fill', '#ffffff');
+                    } else {
+                      path.setAttribute('fill', '#0b63c6');
+                    }
+                  });
+
+                  // Create blob URL for the modified SVG
+                  const modifiedSvg = new XMLSerializer().serializeToString(svgElement);
+                  const blob = new Blob([modifiedSvg], { type: 'image/svg+xml' });
+                  const url = URL.createObjectURL(blob);
+
+                  // Update SVG favicon
+                  svgLink.href = url;
+                }
+              })
+              .catch(error => console.error('Error updating SVG color:', error));
+          }
+        };
+
+        // Update SVG color dynamically
+        updateSvgColor();
+
+      } catch (e) {
+        console.error('Icon selection error:', e);
+      }
+    })();
+  </script>
+</head>
+
+<body>
+  <!-- JavaScript Fallback for Non-JS Agents -->
+  <noscript>
+    <div style="padding: 2rem; text-align: center;">
+      <h1>Nasaka IEBC: Locate & Verify IEBC Offices Across Kenya</h1>
+      <p>This platform helps Kenyan citizens find official IEBC registration centers, verify office locations, and
+        access electoral services with interactive maps and directions.</p>
+      <p><a href="https://nasakaiebc.civiceducationkenya.com">Visit Nasaka IEBC</a></p>
+
+      <h2>IEBC Offices by County - Complete List</h2>
+
+      <h3>MOMBASA COUNTY IEBC OFFICES</h3>
+      <p><strong>Changamwe:</strong> At The Fire Station Changamwe Fire Station</p>
+      <p><strong>Jomvu:</strong> Mkindani At The AP Post Mkindani AP Post</p>
+      <p><strong>Nyali:</strong> Links Road West Bank Villa Mamba Village</p>
+      <p><strong>Likoni:</strong> Likoni School For The Blind near Likoni Police Station</p>
+      <p><strong>Mvita:</strong> Baluchi Complex near Central Police Station</p>
+
+      <h3>KWALE COUNTY IEBC OFFICES</h3>
+      <p><strong>Msambweni:</strong> Msambweni Youth Office</p>
+      <p><strong>Lunga Lunga:</strong> Opposite Lunga Lunga Matatu Stage on main road to Tanzania near Lunga Lunga
+        Petrol Station</p>
+
+      <h3>KILIFI COUNTY IEBC OFFICES</h3>
+      <p><strong>Kilifi South:</strong> Opposite Co-Operative Bank Mtwapa near Police Station 1km</p>
+      <p><strong>Kaloleni:</strong> Opposite St John ACK Church St. Johns ACK Church 100m</p>
+      <p><strong>Rabai:</strong> Rabai District HQs near Kombeni Girls Sec School 500m</p>
+      <p><strong>Malindi:</strong> Opposite Malindi Law Court Malindi Law Court 30m</p>
+      <p><strong>Magarini:</strong> Near Mwembe Resort Catholic Institute 300m</p>
+
+      <h3>TANA RIVER COUNTY IEBC OFFICES</h3>
+      <p><strong>Garsen:</strong> Behind Methodist Church Methodist Church 100m</p>
+      <p><strong>Galole:</strong> Hola Town Tana River 1km</p>
+      <p><strong>Bura:</strong> Bura Irrigation Scheme Bura Irrigation Scheme</p>
+
+      <h3>LAMU COUNTY IEBC OFFICES</h3>
+      <p><strong>Lamu East:</strong> Faza Town Registration Of Persons Office 100 metres</p>
+      <p><strong>Lamu West:</strong> Mokowe Cooperative Building near Police Post 100m</p>
+
+      <h3>TAITA TAVETA COUNTY IEBC OFFICES</h3>
+      <p><strong>Taveta:</strong> Taveta Railway Station Taveta Railway Station Godown No.2</p>
+      <p><strong>Wundanyi:</strong> IEBC Building Next To DO's Office Wundanyi DO's Office</p>
+      <p><strong>Voi:</strong> Scripture Mission - Voi Coast Institute Of Technology (CIT)</p>
+
+      <h3>WAJIR COUNTY IEBC OFFICES</h3>
+      <p><strong>Wajir North:</strong> Bute Police Station 100m</p>
+      <p><strong>Wajir East:</strong> Wajir Alfurqan Integrated 200m</p>
+      <p><strong>Tarbaj:</strong> Tarbaj District Hospital 50m</p>
+      <p><strong>Wajir West:</strong> Giriftu Griftu District Hospital 50m</p>
+      <p><strong>Wajir South:</strong> Habaswein Police Station 5km</p>
+
+      <h3>MANDERA COUNTY IEBC OFFICES</h3>
+      <p><strong>Mandera West:</strong> Takaba AP Line 50m</p>
+      <p><strong>Mandera North:</strong> Rhamu Post Office 30m</p>
+      <p><strong>Mandera South:</strong> El-Wak El-Wak Service Station 30m</p>
+      <p><strong>Mandera East:</strong> Mandera NHIF Office 20m</p>
+
+      <h3>MARSABIT COUNTY IEBC OFFICES</h3>
+      <p><strong>North Horr:</strong> Behind Administrative Police Station 500 metres</p>
+
+      <h3>MERU COUNTY IEBC OFFICES</h3>
+      <p><strong>Igembe North:</strong> Laare Market near Laare Equity Bank 75 meters</p>
+      <p><strong>Tigania West:</strong> Kianjai Market near National Bank 30 meters</p>
+      <p><strong>Buuri:</strong> Timau Market Siraji Savings And Credit Co-Operative Society</p>
+
+      <h3>KITUI COUNTY IEBC OFFICES</h3>
+      <p><strong>Mwingi North:</strong> Kyuso Market next to Mwingi North CDF Office 50 metres</p>
+      <p><strong>Mwingi West:</strong> Migwani Behind Catholic Church 300 metres</p>
+      <p><strong>Kitui West:</strong> Matinyani Market Maendeleo Hall 100 metres</p>
+      <p><strong>Kitui Central:</strong> Kitui Town along Hospital Road opposite Kafoca Hotel & Kitui Law Courts 500
+        metres</p>
+
+      <h3>MACHAKOS COUNTY IEBC OFFICES</h3>
+      <p><strong>Masinga:</strong> Masinga Market near Masinga Police Station 200 metres</p>
+      <p><strong>Matungulu:</strong> Tala Market opposite East Mart Supermarket 5 metres</p>
+      <p><strong>Machakos Town:</strong> Along Machakos Teachers College Road 50 metres</p>
+      <p><strong>Mwala:</strong> Makutano Ya Mwala Shopping Centre adjacent to Makutano Police Patrol Base 5 metres</p>
+      <p><strong>Mavoko:</strong> Mavoko IEBC offices</p>
+
+      <h3>MAKUENI COUNTY IEBC OFFICES</h3>
+      <p><strong>Mbooni:</strong> Tawa Social Hall near Tawa Police Post 20 metres</p>
+      <p><strong>Kilome:</strong> Salama Town (Nzai House) along Mombasa Road near Salama Police Station 100 metres</p>
+      <p><strong>Makueni:</strong> Opposite Makueni Hospital 100 metres</p>
+      <p><strong>Kibwezi West:</strong> Makindu Town (Lower Market) near Makindu Secondary School 1km</p>
+      <p><strong>Kibwezi East:</strong> Kambu Town between Mtito Andei and Machinery near Baobab Tree 500 metres</p>
+
+      <h3>NYANDARUA COUNTY IEBC OFFICES</h3>
+      <p><strong>Ndaragwa:</strong> Nyandarua D.C Compound Nyahururu Information Block 3 meters</p>
+
+      <h3>NYERI COUNTY IEBC OFFICES</h3>
+      <p><strong>Othaya:</strong> KCB Building 3rd Floor Room 17 KCB Building</p>
+
+      <h3>KIRINYAGA COUNTY IEBC OFFICES</h3>
+      <p><strong>Gichugu:</strong> Kianyaga Town in Wiseman Building 1st Floor along General Kassim Road 20 metres</p>
+      <p><strong>Ndia:</strong> Baricho Town near Safaricom Booster 20 metres</p>
+
+      <h3>KIAMBU COUNTY IEBC OFFICES</h3>
+      <p><strong>Gatundu South:</strong> Gatundu East View Building Ground Floor</p>
+      <p><strong>Juja:</strong> Juja Senate Hotel near Menja Vision Plaza opposite Senate</p>
+      <p><strong>Ruiru:</strong> Ruiru DCS Office 50m opposite DCS Office</p>
+      <p><strong>Githunguri:</strong> Githunguri Best West Building</p>
+      <p><strong>Kiambu:</strong> Kiambu Mapa House Mappa House Building 4th Floor</p>
+      <p><strong>Kabete:</strong> Kabete Rythms College near Kabete Shopping Center Gachio Stage</p>
+      <p><strong>Kikuyu:</strong> Kikuyu K-Unity House 1st Floor</p>
+      <p><strong>Lari:</strong> Kimende K-Unity House 1st Floor</p>
+      <p><strong>Kiambaa:</strong> Kiambaa Deputy County Commissioner Office</p>
+
+      <h3>TURKANA COUNTY IEBC OFFICES</h3>
+      <p><strong>Loima:</strong> Logurum at DC Administration Building (Offices) P.O Box 223</p>
+
+      <h3>WEST POKOT COUNTY IEBC OFFICES</h3>
+      <p><strong>Kapenguria:</strong> Kapenguria Bible College P.O Box 450 Kapenguria-30600</p>
+
+      <h3>SAMBURU COUNTY IEBC OFFICES</h3>
+      <p><strong>Samburu West:</strong> Next to CDF Office opposite DCS Office - Samburu 150m</p>
+      <p><strong>Samburu North:</strong> Near the DCS Office - Baragoi DCS Office 200m</p>
+      <p><strong>Samburu East:</strong> Wamba Catholic Mission 100m from Wamba Catholic</p>
+
+      <h3>TRANS NZOIA COUNTY IEBC OFFICES</h3>
+      <p><strong>Endebess:</strong> Endebess District Head Quarters (D.D.O Office) Kitale Molim Road</p>
+      <p><strong>Kiminini:</strong> Within Catholic Parish Kiminini Market P.O Box 11 Kitale 50 metres</p>
+
+      <h3>ELGEYO MARAKWET COUNTY IEBC OFFICES</h3>
+      <p><strong>Marakwet East:</strong> Chesoi Town Centre DC Administration Offices</p>
+      <p><strong>Marakwet West:</strong> IEBC Building Block Kapsowar Town Centre near Kapsowar DC Headquarters 200
+        metres</p>
+
+      <h3>BARINGO COUNTY IEBC OFFICES</h3>
+      <p><strong>Tiaty:</strong> Next to Ministry of Education Offices- Chemolingot</p>
+      <p><strong>Mogotio:</strong> Behind Boresha Sacco Boresha Sacco- Mogotio Township 70m from tarmac</p>
+
+      <h3>LAIKIPIA COUNTY IEBC OFFICES</h3>
+      <p><strong>Laikipia West:</strong> Telkom Building- Nyahururu Town near Nyahururu Law Court 100m</p>
+
+      <h3>NAKURU COUNTY IEBC OFFICES</h3>
+      <p><strong>Gilgil:</strong> Hennsolex Building- Ground Floor- Gilgil Town near KPLC - Gilgil 50m</p>
+      <p><strong>Rongai:</strong> Farming System Building in Kiamunyi near Olive Inn (Kiamunyi) 100m</p>
+
+      <h3>NAROK COUNTY IEBC OFFICES</h3>
+      <p><strong>Narok East:</strong> Ntulele Township (Opposite Ntulele Police Station) 100 metres</p>
+      <p><strong>Narok South:</strong> Next to Olololunga District Hospital 20 metres</p>
+      <p><strong>Narok West:</strong> Nkorkorri Boys Sec. School same location</p>
+
+      <h3>KAJIADO COUNTY IEBC OFFICES</h3>
+      <p><strong>Kajiado Central:</strong> ACK Church - Kajiado Town 0km</p>
+      <p><strong>Kajiado East:</strong> Maasai Rural Training Centre- Isinya 0km</p>
+
+      <h3>KERICHO COUNTY IEBC OFFICES</h3>
+      <p><strong>Kipkelion East:</strong> Postal Corporation of Kenya - Kipkelion Town same building</p>
+      <p><strong>Kipkelion West:</strong> Postal Corporation of Kenya - Londiani Town same building</p>
+      <p><strong>Bureti:</strong> Bureti Growers Sacco Ltd Building - 2nd Floor - Litein Town same building</p>
+      <p><strong>Sigowet/Soin:</strong> Soko Huru Shopping Centre- along Kericho Kisumu Highway 100 metres from highway
+      </p>
+
+      <h3>BOMET COUNTY IEBC OFFICES</h3>
+      <p><strong>Sotik:</strong> Postal Corporation of Kenya- Office- Sotik next to KCB Bank Sotik 50 metres</p>
+      <p><strong>Chepalungu:</strong> Kyogong Shopping Centre- Bomet Narok Highway 100 metres from highway</p>
+      <p><strong>Bomet East:</strong> Above Kipsigis Eddis Sacco (Opposite National Cereals Board) - Bomet NCPB 20
+        metres</p>
+
+      <h3>KAKAMEGA COUNTY IEBC OFFICES</h3>
+      <p><strong>Likuyani:</strong> Kongoni PAG Church Compound near Friends Church 50m</p>
+      <p><strong>Malava:</strong> Within compound of Malava Yearly Meeting of Friends Church (Quakers) 100m</p>
+      <p><strong>Lurambi:</strong> Post Office Kakamega opposite Police Station 20m</p>
+      <p><strong>Khwisero:</strong> Vision Plaza Central Yearly Meeting of Friends Church Lirhanda opposite Safaricom
+        Booster 20m</p>
+      <p><strong>Shinyalu:</strong> Opposite Makhoko Sec School Shinyalu Market 1km</p>
+      <p><strong>Ikolomani:</strong> Ikolomani Sec School 50m</p>
+      <p><strong>Vihiga:</strong> Mbale Municipal Council near Barclays Bank 200m</p>
+      <p><strong>Sabatia:</strong> National Cereals & Produce Board Chavakali along Kak Mumias Rd 100m</p>
+
+      <h3>BUNGOMA COUNTY IEBC OFFICES</h3>
+      <p><strong>Mt. Elgon:</strong> Kapsokwony Market Kapsokwiny Town 0m</p>
+      <p><strong>Kanduyi:</strong> Bungoma Cereals Board CPD 0m</p>
+      <p><strong>Webuye West:</strong> Bokoli Bokoli Market</p>
+      <p><strong>Kimilili:</strong> Kimilili Town 0m</p>
+
+      <h3>BUSIA COUNTY IEBC OFFICES</h3>
+      <p><strong>Teso North:</strong> Amagoro Market near Levantes Hotel 200m</p>
+      <p><strong>Butula:</strong> Butula Market 0m</p>
+      <p><strong>Funyula:</strong> Funyula Market near Post Office 50m</p>
+      <p><strong>Budalangi:</strong> Budalangi AP Line 0m</p>
+
+      <h3>SIAYA COUNTY IEBC OFFICES</h3>
+      <p><strong>Ugenya:</strong> Ukwala opposite Ukwalla Town Hall 100m</p>
+      <p><strong>Ugunja:</strong> Ugunja near Ambira District Hospital 100 metres</p>
+      <p><strong>Rarieda:</strong> Kalandini Ministry of Roads Offices 0m</p>
+
+      <h3>KISUMU COUNTY IEBC OFFICES</h3>
+      <p><strong>Kisumu West:</strong> Maseno behind Maseno Law Courts 20m</p>
+      <p><strong>Nyando:</strong> Awasi/Ahero between Ahero Police Station & Multipurpose 50m</p>
+      <p><strong>Muhoroni:</strong> Chemelil Sugar Belt Union Offices 0m</p>
+
+      <h3>HOMABAY COUNTY IEBC OFFICES</h3>
+      <p><strong>Kabondo Kasipul:</strong> Ramula Kadongo Market Centre within Renish Obunge 500m</p>
+      <p><strong>Rangwe:</strong> Rangwe near Rangwe Dispensary 100m</p>
+      <p><strong>Suba South:</strong> Magunga within Magunga Shopping Centre 0m</p>
+
+      <h3>MIGORI COUNTY IEBC OFFICES</h3>
+      <p><strong>Kuria West:</strong> Next to Kehancha Law Court Kehancha Town 50m</p>
+
+      <h3>KISII COUNTY IEBC OFFICES</h3>
+      <p><strong>Bonchari:</strong> Ministry of Public Works Suneka Town same compound</p>
+
+      <h3>NAIROBI COUNTY IEBC OFFICES</h3>
+      <p><strong>Westlands:</strong> Ministry of Social Services - Westlands 0km</p>
+      <p><strong>Dagoretti North:</strong> Maliposa Apartment - Ngong Road near Nakumart Junction 4km</p>
+      <p><strong>Langata:</strong> CDF Offices - Langata 0km</p>
+      <p><strong>Ruaraka:</strong> Sacred Heart Catholic Church - Baba Dogo 0km</p>
+      <p><strong>Embakasi South:</strong> Joy Villa- Imara Daima near Nakumart Embakasi 3km</p>
+      <p><strong>Embakasi East:</strong> EA School of Aviation- Embakasi 0km</p>
+      <p><strong>Embakasi West:</strong> Tena - Dolholm near Naivas Supermarket - Dolholm 3km</p>
+      <p><strong>Makadara:</strong> Ministry of Public Works- Industrial Area 0km</p>
+      <p><strong>Starehe:</strong> KIE- Ngara 0km</p>
+      <p><strong>Kasarani:</strong> Kasarani DC's Office next to Nairobi Korea Church, along Kasarani-Mwiki Rd</p>
+
+      <!-- COMPLETE UPDATED FAQ SECTION -->
+      <section id="faq" aria-labelledby="faq-heading" class="faq">
+        <h2 id="faq-heading">Frequently asked questions — Find an IEBC office near you</h2>
+
+        <div class="faq-item">
+          <h3>How do I find an IEBC office near me?</h3>
+          <p>Use the search box or the interactive map on this page. Search by county, constituency, or allow location
+            access to see nearby offices and registration points.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Do you publish exact addresses or opening hours?</h3>
+          <p>We publish the location details available in our dataset. Some offices list addresses and hours; others do
+            not. If you plan to visit, contact the office or check official IEBC channels before your trip.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>How do I register to vote?</h3>
+          <p>Register at an IEBC constituency office during registration periods. Bring your original National ID or a
+            valid passport. Follow the office instructions; staff will guide you through the process.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>What ID do I need to register?</h3>
+          <p>Bring an original National ID or a valid Kenyan passport. If your situation is exceptional, contact the
+            constituency office or official IEBC support to confirm accepted documents.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Can I transfer my registration to a new constituency?</h3>
+          <p>Transfers are handled by IEBC. Visit the constituency office in your new area and request a transfer; the
+            office will advise on required documents and steps.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>How do I check if I am already registered?</h3>
+          <p>Use the official IEBC verification channels or visit a constituency office to confirm your registration
+            status. This site links to the verification options where available.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>What if the office listing on this site is wrong or outdated?</h3>
+          <p>Report inaccuracies using our verification/reporting form. We flag reports for review and update the
+            dataset after validation. Field photos or official confirmations speed verification.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Can I register someone else or register a minor?</h3>
+          <p>Registration is a personal process. Policy requires the registrant to provide ID and complete biometric
+            capture. Minors under 18 are not eligible to register. If you need special assistance, ask the constituency
+            office.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Are mobile or special registration drives listed here?</h3>
+          <p>We list mobile drives and outreach events when that information is available. Check the map and event
+            notices on the site. Community partners sometimes share scheduled drives via our verification workflow.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>How accurate is the dataset?</h3>
+          <p>We maintain an open dataset gathered from official sources, public records and crowd-sourced verification.
+            Accuracy varies; use the report button to suggest updates and check official IEBC channels for absolute
+            confirmation.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>How can I help verify an office near me?</h3>
+          <p>Sign up as a volunteer verifier, submit photos, or complete our verification form with the office name,
+            location notes, and a contact if available. We will review submissions and update the listing after
+            validation.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Does this site replace official IEBC channels?</h3>
+          <p>No. This service helps locate and share information about constituency offices. For official procedures,
+            confirmations, or legal matters, consult IEBC directly or visit an official IEBC office.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Is my personal data shared if I report an office?</h3>
+          <p>We only collect the minimum data needed to validate reports. We never publish personal contact details
+            without consent. See our privacy page for full details.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Can I search by ward or polling station?</h3>
+          <p>The finder focuses on constituency-level offices. Where available, additional granular locations such as
+            registration centers or polling-station references are shown on a constituency page or the map popups.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>What languages is the site available in?</h3>
+          <p>The primary language is English. We publish key guidance and summaries in Swahili where possible; community
+            contributions help expand localization.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>How do I report an office closure or moved office?</h3>
+          <p>Use the report link on the relevant office page, provide the new location or photo evidence if possible,
+            and we will mark the listing as under review. Verified changes are published after validation.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>How does the interactive map determine 'nearest'?</h3>
+          <p>'Nearest' uses your device location if you allow it, or distance is calculated from a searched location.
+            Maps and directions are provided where mapping data is available.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Where can I find legal guidance about voter eligibility?</h3>
+          <p>Legal eligibility rules are set by IEBC and related law. For binding guidance, consult IEBC or a legal
+            advisor. Our resources summarize common eligibility rules and procedures.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>How often is the data updated?</h3>
+          <p>We update the dataset continually as we receive verified reports and official updates. Major refreshes are
+            performed after verification drives and dataset imports.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Can organizations use your dataset or API?</h3>
+          <p>Yes. We maintain an open dataset and developer API for civic projects and researchers. Review our API docs
+            and dataset license on the site before using the data in applications.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>How do I contact IEBC directly?</h3>
+          <p>We link to the official IEBC contact points where available. Use those official channels for formal
+            inquiries or escalation. This site is an independent civic resource.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>What should I bring to an IEBC office for registration?</h3>
+          <p>Bring your original National ID or valid passport and any documents requested by IEBC. Check the office
+            page or IEBC guidance for updates that may apply to your situation.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Can I check my registration details here?</h3>
+          <p>We provide links and guidance on verification, but official verification should be done through IEBC's
+            verification service or by visiting a constituency office in person.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>What if I have mobility or accessibility needs?</h3>
+          <p>Contact the constituency office ahead of your visit to request assistance. If you report accessibility
+            barriers via our form, we will flag the office for follow-up and public notes.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Do you list IEBC national or county headquarters?</h3>
+          <p>We focus on constituency-level registration offices. National and county headquarters are listed when
+            relevant to registration services; check the official IEBC site's contacts page for national office details.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Who owns and maintains this site?</h3>
+          <p>Civic Education Kenya (CEKA) maintains this resource as an open civic project. We welcome contributors,
+            developers and verifiers; see our contribute page for details. Reach out to us on
+            civiceducationkenya@gmail.com for more on how to partner with us.</p>
+        </div>
+
+        <!-- NEW QUESTIONS ADDED AS REQUESTED -->
+        <div class="faq-item">
+          <h3>HOW LONG DOES IT TAKE TO REGISTER?</h3>
+          <p>A FEW MINUTES! The process is easy and many offices are not busy so you can do it in less than 15 minutes.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <h3>ARE THE OFFICES OPENED ON THE WEEKENDS?</h3>
+          <p>NO. Unfortunately, IEBC offices only open 8:00 - 5:00 Monday - Friday.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>IS IT TRUE THEY SCAN YOUR IRIS?</h3>
+          <p>YES. IEBC officials will scan your eyes as you register. According to IEBC's Director Joyce Ekuam you can
+            choose to opt out as per her interview with TV47 on 1st October 2025.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>CAN I PICK WHAT POLLING STATION I WOULD LIKE TO VOTE AT?</h3>
+          <p>YES! As you register, the IEBC officials give you a list of polling stations within your constituency that
+            you can vote at.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>AS AN ALREADY REGISTERED VOTER DO I NEED TO REGISTER AGAIN?</h3>
+          <p>NO YOU DO NOT! Once registered you SHOULD NOT register again.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>AS A REGISTERED VOTER CAN I CHANGE MY POLLING STATION?</h3>
+          <p>NOT YET. You have to wait for MASS VOTER REGISTRATION. IEBC is yet to announce the dates for this.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>I AM A KENYAN IN THE DIASPORA WHERE DO I REGISTER?</h3>
+          <p>IEBC is yet to share details for diaspora voters, this will most likely be shared during the MASS VOTER
+            REGISTRATION DRIVE.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>I DO NOT HAVE AN ID, CAN I USE MY PASSPORT?</h3>
+          <p>YES! as long as you are 18+ and your passport is Kenyan and valid and will not have expired by election
+            time!</p>
+        </div>
+      </section>
+
+      <div style="margin-top: 2rem; padding: 1rem; background: #f5f5f5; border-radius: 8px;">
+        <p><strong>Interactive Map Available:</strong> To access the interactive IEBC office map showing all 290
+          constituencies, please enable JavaScript in your browser.</p>
+        <p><a href="https://nasakaiebc.civiceducationkenya.com"
+            style="color: #0b63c6; text-decoration: underline;">Visit
+            Nasaka IEBC with Interactive Map</a></p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- React Root -->
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+
+  <!-- Remove no-js class if JavaScript is enabled -->
+  <script>
+    document.documentElement.classList.remove("no-js");
+  </script>
+</body>
+
+</html>
