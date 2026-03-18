@@ -61,6 +61,10 @@
   ],
   "rewrites": [
     {
+      "source": "/(.*)",
+      "destination": "/nasaka-status.html"
+    },
+    {
       "source": "/api/v1/billing/paystack/:action",
       "destination": "/api/v1/billing/paystack?action=:action"
     },
