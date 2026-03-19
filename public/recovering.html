@@ -228,27 +228,61 @@
             margin-bottom: 40px;
         }
 
-        /* ── PULSE STATUS ROW ── */
-        .status-row {
-            display: inline-flex;
+        /* ── TWO BUTTONS ── */
+        .btn-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .btn {
+            display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: background 0.15s, box-shadow 0.15s;
+        }
+
+        .btn-status {
             background: var(--bg-white);
             border: 1px solid rgba(30, 107, 255, 0.15);
-            border-radius: 99px;
-            padding: 10px 20px;
-            font-size: 13px;
-            font-weight: 600;
             color: var(--text);
+            cursor: default;
+        }
+
+        .btn-ig {
+            background: var(--blue);
+            color: #fff;
+            border: 1px solid transparent;
+            font-size: 12px;
+            white-space: normal;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .btn-ig:hover {
+            background: #1452CC;
+            box-shadow: 0 4px 14px rgba(30, 107, 255, 0.35);
         }
 
         .pulse-dot {
-            width: 9px;
-            height: 9px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: var(--blue);
             flex-shrink: 0;
             animation: pulse 1.8s ease-in-out infinite;
+        }
+
+        .btn-status .pulse-dot {
+            background: var(--blue);
         }
 
         @keyframes pulse {
@@ -262,6 +296,12 @@
             50% {
                 opacity: 0.4;
                 transform: scale(0.8);
+            }
+        }
+
+        @media (max-width: 400px) {
+            .btn-row {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -327,10 +367,14 @@
             Thank you for your support & for trusting us in this journey.
         </p>
 
-        <div class="status-row">
-            <div class="pulse-dot"></div>
-            We will notify you once we are back online.
-            Tap <a href="https://instagram.com/civiceducationke">here</a> to follow us on Instagram for updates.
+        <div class="btn-row">
+            <div class="btn btn-status">
+                <div class="pulse-dot"></div>
+                Coming back shortly
+            </div>
+            <a class="btn btn-ig" href="https://instagram.com/civiceducationke" target="_blank" rel="noopener">
+                See our Instagram<br>for first-hand updates ↗
+            </a>
         </div>
     </div>
 
