@@ -251,9 +251,18 @@
             align-items: center;
             gap: 16px;
             position: sticky;
-            top: 57px;
+            top: 0;
             z-index: 99;
             width: 100%;
+            transform: translateY(0);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+            will-change: transform;
+        }
+
+        .top-progress.hidden {
+            transform: translateY(-100%);
+            opacity: 0;
+            pointer-events: none;
         }
 
         .top-progress-label {
@@ -305,7 +314,6 @@
 
         @media (max-width: 480px) {
             .top-progress {
-                top: 56px;
                 gap: 10px;
                 padding: 9px 14px;
             }
@@ -1397,6 +1405,38 @@
                 localStorage.setItem('nasaka-theme', nowDark ? 'light' : 'dark');
                 applyDark(!nowDark);
             });
+
+            /* ── SCROLL BEHAVIOUR FOR PROGRESS BAR ── */
+            const banner = document.querySelector('.banner');
+            const progressBar = document.querySelector('.top-progress');
+
+            const setProgressTop = () => {
+                if (banner && progressBar) {
+                    const bannerH = banner.offsetHeight;
+                    progressBar.style.top = bannerH + 'px';
+                }
+            };
+
+            setProgressTop();
+            window.addEventListener('resize', setProgressTop);
+
+            let lastScroll = 0;
+            let progressBarH = progressBar ? progressBar.offsetHeight : 0;
+
+            window.addEventListener('scroll', () => {
+                const current = window.scrollY;
+                const bannerH = banner ? banner.offsetHeight : 57;
+
+                if (current <= bannerH + progressBarH) {
+                    progressBar.classList.remove('hidden');
+                } else if (current > lastScroll) {
+                    progressBar.classList.add('hidden');
+                } else if (current < lastScroll) {
+                    progressBar.classList.remove('hidden');
+                }
+
+                lastScroll = current;
+            }, { passive: true });
         })();
     </script>
 
