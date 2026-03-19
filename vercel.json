@@ -3,6 +3,11 @@
   "trailingSlash": false,
   "redirects": [
     {
+      "source": "/",
+      "destination": "/recovering.html",
+      "permanent": false
+    },
+    {
       "source": "/(.*)",
       "has": [
         {
