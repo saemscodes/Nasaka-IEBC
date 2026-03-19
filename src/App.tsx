@@ -36,8 +36,6 @@ const AuthCallback = React.lazy(() => import('./pages/AuthCallback'));
 const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
 import FlatRouteResolver from './components/IEBCOffice/FlatRouteResolver';
 import { AuthProvider } from './hooks/useAuth';
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/react";
 
 // Import supabase client from existing location
 import { supabase } from "@/integrations/supabase/client";
@@ -589,8 +587,6 @@ const App = () => {
               <AuthProvider>
                 <AppContent />
               </AuthProvider>
-              <Analytics />
-              <SpeedInsights />
               <PWAInstallBanner />
             </TooltipProvider>
           </LanguageProvider>

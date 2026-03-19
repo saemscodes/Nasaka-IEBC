@@ -92,17 +92,18 @@ function checkFeatureAccess(tier: string, req: Request): { allowed: boolean; mes
     return { allowed: true };
 }
 
-import { get } from '@vercel/edge-config';
-
 // ---- Main Validation Function ----
 export async function validateApiKey(req: Request, options: { required?: boolean } = { required: true }) {
     // 0. Maintenance Mode Check (Global)
     try {
-        const flags = await get<Record<string, any>>('feature_flags');
-        if (flags?.maintenance_mode) {
+        if (process.env.MAINTENANCE_MODE === 'true') {
             return { valid: false as const, error: 'System is under planned maintenance. Please try again soon.', status: 503 };
         }
     } catch { /* fail open */ }
+
+    /* Then in Cloudflare Pages → Settings → Environment Variables, add:
+    ```
+    MAINTENANCE_MODE = false */
 
     const apiKey = req.headers.get('X-API-Key');
     const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'guest';
