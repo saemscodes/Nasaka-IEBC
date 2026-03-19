@@ -101,6 +101,10 @@
       "destination": "/api/services?service=petition-stats"
     },
     {
+      "source": "/api/usage",
+      "destination": "/api/services?service=usage"
+    },
+    {
       "source": "/api/trigger-workflow",
       "destination": "/api/services?service=workflow"
     },

@@ -1032,7 +1032,26 @@
                 });
             };
 
+            /* ── LIVE VERCEL USAGE METRICS ── */
+            const updateLiveUsage = async () => {
+                try {
+                    const res = await fetch('/api/usage');
+                    if (!res.ok) return;
+                    const { requests } = await res.json();
+                    if (requests === undefined) return;
+
+                    const metricEl = document.querySelector('.metric-number');
+                    if (metricEl) {
+                        metricEl.textContent = (requests / 1000000).toFixed(2) + 'M';
+                    }
+                } catch (e) {
+                    console.error('Usage update error:', e);
+                }
+            };
+
             updateFunding();
+            updateLiveUsage();
+            setInterval(updateLiveUsage, 600000); // 10 minutes
         })();
     </script>
 </body>

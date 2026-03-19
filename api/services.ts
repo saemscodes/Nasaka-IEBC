@@ -30,10 +30,10 @@ export default async function handler(req: Request): Promise<Response> {
             return handleVerifyVoter(req, headers);
         case 'enquire':
             return handleEnquire(req, headers);
-        case 'callback':
-            return handleAuthCallback(req, headers);
         case 'download':
             return handleDownload(req, headers);
+        case 'usage':
+            return handleUsage(req, headers);
         default:
             return errorResponse('Invalid service. Use ?service=[name]', 400);
     }
@@ -118,4 +118,42 @@ async function handleAuthCallback(req: Request, headers: any) {
 async function handleDownload(req: Request, headers: any) {
     if (req.method !== 'GET') return errorResponse('Method not allowed', 405);
     return Response.json({ success: true, download_url: "https://blob.example.com/data.json" }, { headers });
+}
+
+async function handleUsage(req: Request, headers: any) {
+    if (req.method !== 'GET') return errorResponse('Method not allowed', 405);
+
+    const token = process.env.VERCEL_API_TOKEN;
+    if (!token) {
+        return Response.json({ requests: 0, error: 'Token not configured' }, { headers, status: 500 });
+    }
+
+    try {
+        const res = await fetch(
+            'https://api.vercel.com/v2/usage?from=start-of-month&groupBy=day',
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        if (!res.ok) {
+            const errorMsg = await res.text();
+            return Response.json({ requests: 0, error: `Vercel API error: ${errorMsg}` }, { headers, status: res.status });
+        }
+
+        const data = await res.json();
+        const requests = data?.usage?.edgeRequests?.total ?? 0;
+
+        return Response.json({ requests }, {
+            headers: {
+                ...headers,
+                'Cache-Control': 's-maxage=600, stale-while-revalidate=1200'
+            }
+        });
+    } catch (err: any) {
+        return Response.json({ requests: 0, error: err.message }, { headers, status: 500 });
+    }
 }
