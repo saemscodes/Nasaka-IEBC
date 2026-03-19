@@ -62,7 +62,7 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/nasaka-status.html"
+      "destination": "/recovering.html"
     },
     {
       "source": "/api/v1/billing/paystack/:action",
@@ -126,7 +126,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": "/recovering.html"
     }
   ],
   "headers": [
