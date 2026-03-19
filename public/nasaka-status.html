@@ -146,7 +146,8 @@
 
         .top-progress-fill {
             height: 100%;
-            width: 12.04%;
+            width: 0%;
+            /* Automated via JS */
             background: var(--blue);
             border-radius: 99px;
             position: relative;
@@ -477,7 +478,8 @@
 
         .progress-fill {
             height: 100%;
-            width: 12.04%;
+            width: 0%;
+            /* Automated via JS */
             background: #FCD34D;
             border-radius: 99px;
             position: relative;
@@ -762,7 +764,8 @@
 
     <!-- TOP MINI PROGRESS BAR -->
     <div class="top-progress">
-        <div class="top-progress-label"><strong>KSh 602</strong> raised of KSh 5,000</div>
+        <div class="top-progress-label"><strong>KSh <span class="val-raised">957</span></strong> raised of KSh <span
+                class="val-target">5,000</span></div>
         <div class="top-progress-track">
             <div class="top-progress-fill"></div>
         </div>
@@ -930,7 +933,8 @@
                     <div class="tl-date">Now to March 30, 2026</div>
                     <div class="tl-title">Budget gap open, asking for your help</div>
                     <div class="tl-desc">The code is done. We need the budget to get the upgraded hosting live and keep
-                        things running. We need KSh 5,000 total. KSh 602 raised so far.</div>
+                        things running. We need KSh <span class="val-target">5,000</span> total. KSh <span
+                            class="val-raised">957</span> raised so far.</div>
                 </div>
             </div>
             <div class="tl-item">
@@ -955,14 +959,14 @@
                 serves Kenyans.</p>
 
             <!-- FUNDING PROGRESS VISUALIZER -->
-            <div class="progress-section">
+            <div class="progress-section" id="funding-progress" data-raised="957" data-target="5000">
                 <div class="progress-header">
                     <div class="progress-raised">
-                        KSh 602
+                        KSh <span class="val-raised">957</span>
                         <span>raised so far</span>
                     </div>
                     <div class="progress-target">
-                        <strong>KSh 5,000</strong>
+                        <strong>KSh <span class="val-target">5,000</span></strong>
                         needed to recover
                     </div>
                 </div>
@@ -970,8 +974,8 @@
                     <div class="progress-fill"></div>
                 </div>
                 <div class="progress-caption">
-                    <span>12% of the way there</span>
-                    <span class="gap">KSh 4,398 still needed</span>
+                    <span><span class="val-pct">19</span>% of the way there</span>
+                    <span class="gap">KSh <span class="val-gap">4,043</span> still needed</span>
                 </div>
             </div>
 
@@ -1002,6 +1006,35 @@
         </div>
 
     </div>
+
+    <script>
+        (function () {
+            /* ── AUTOMATE FUNDING PROGRESS ── */
+            const updateFunding = () => {
+                const container = document.getElementById('funding-progress');
+                if (!container) return;
+
+                const raised = parseInt(container.getAttribute('data-raised') || '0', 10);
+                const target = parseInt(container.getAttribute('data-target') || '5000', 10);
+                const pct = Math.min(Math.max((raised / target) * 100, 0), 100).toFixed(2);
+                const pctRound = Math.round(raised / target * 100);
+                const gap = Math.max(target - raised, 0);
+
+                const formatNum = (num) => num.toLocaleString('en-KE');
+
+                document.querySelectorAll('.val-raised').forEach(el => el.textContent = formatNum(raised));
+                document.querySelectorAll('.val-target').forEach(el => el.textContent = formatNum(target));
+                document.querySelectorAll('.val-pct').forEach(el => el.textContent = pctRound);
+                document.querySelectorAll('.val-gap').forEach(el => el.textContent = formatNum(gap));
+
+                document.querySelectorAll('.top-progress-fill, .progress-fill').forEach(el => {
+                    el.style.width = pct + '%';
+                });
+            };
+
+            updateFunding();
+        })();
+    </script>
 </body>
 
 </html>
