@@ -138,88 +138,101 @@ const useGeolocation = () => {
       return;
     }
 
-    const options = {
+    const highAccuracyOptions = {
       enableHighAccuracy: true,
-      timeout: 15000,
-      maximumAge: 0
+      timeout: 8000,
+      maximumAge: 30000
     };
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        try {
-          if (!position || !position.coords) {
-            throw new Error('Invalid position data received');
-          }
+    const lowAccuracyOptions = {
+      enableHighAccuracy: false,
+      timeout: 5000,
+      maximumAge: 60000
+    };
 
-          const { latitude, longitude, accuracy } = position.coords;
+    // GPS success handler — shared between high and low accuracy attempts
+    const handleGPSSuccess = (position) => {
+      try {
+        if (!position || !position.coords) {
+          throw new Error('Invalid position data received');
+        }
 
-          if (!latitude || !longitude || isNaN(latitude) || isNaN(longitude)) {
-            throw new Error('Invalid coordinates received');
-          }
+        const { latitude, longitude, accuracy } = position.coords;
 
+        if (!latitude || !longitude || isNaN(latitude) || isNaN(longitude)) {
+          throw new Error('Invalid coordinates received');
+        }
+
+        setLocation({
+          latitude,
+          longitude,
+          accuracy: accuracy || 0,
+          timestamp: position.timestamp || Date.now()
+        });
+        setSource('gps');
+        setLoading(false);
+        setError(null);
+      } catch (processingError) {
+        setError(processingError.message || 'Failed to process location data');
+        setLoading(false);
+      }
+    };
+
+    // IP fallback handler — shared between error cases
+    const fallbackToIP = (errorMessage) => {
+      fetchIPLocation().then((ipLoc) => {
+        if (ipLoc) {
           setLocation({
-            latitude,
-            longitude,
-            accuracy: accuracy || 0,
-            timestamp: position.timestamp || Date.now()
+            latitude: ipLoc.latitude,
+            longitude: ipLoc.longitude,
+            accuracy: ipLoc.accuracy,
+            timestamp: Date.now()
           });
-          setSource('gps');
-          setLoading(false);
+          setSource(ipLoc.source);
           setError(null);
-        } catch (processingError) {
-          setError(processingError.message || 'Failed to process location data');
-          setLoading(false);
-        }
-      },
-      (err) => {
-        let errorMessage = 'Unable to retrieve your location';
-        let shouldFallbackToIP = false;
-
-        if (!err) {
-          shouldFallbackToIP = true;
-        } else {
-          switch (err.code) {
-            case 1:
-              errorMessage = 'Permission denied. Using approximate location from IP.';
-              shouldFallbackToIP = true;
-              break;
-            case 2:
-              errorMessage = 'Location information unavailable. Using approximate location from IP.';
-              shouldFallbackToIP = true;
-              break;
-            case 3:
-              errorMessage = 'Location request timed out. Using approximate location from IP.';
-              shouldFallbackToIP = true;
-              break;
-            default:
-              errorMessage = err.message || 'An unknown error occurred while getting your location';
-              shouldFallbackToIP = true;
-              break;
-          }
-        }
-
-        if (shouldFallbackToIP) {
-          fetchIPLocation().then((ipLoc) => {
-            if (ipLoc) {
-              setLocation({
-                latitude: ipLoc.latitude,
-                longitude: ipLoc.longitude,
-                accuracy: ipLoc.accuracy,
-                timestamp: Date.now()
-              });
-              setSource(ipLoc.source);
-              setError(null);
-            } else {
-              setError(errorMessage);
-            }
-            setLoading(false);
-          });
         } else {
           setError(errorMessage);
-          setLoading(false);
         }
+        setLoading(false);
+      });
+    };
+
+    // Layer 1: Try high accuracy GPS first (WiFi + GPS fusion)
+    navigator.geolocation.getCurrentPosition(
+      handleGPSSuccess,
+      (err) => {
+        // Layer 2: High accuracy failed — try low accuracy (cell tower)
+        navigator.geolocation.getCurrentPosition(
+          handleGPSSuccess,
+          (lowAccErr) => {
+            // Layer 3: Both GPS modes failed — fall back to IP geolocation
+            let errorMessage = 'Unable to retrieve your location';
+
+            if (!lowAccErr) {
+              errorMessage = 'Location unavailable. Using approximate location from IP.';
+            } else {
+              switch (lowAccErr.code) {
+                case 1:
+                  errorMessage = 'Permission denied. Using approximate location from IP.';
+                  break;
+                case 2:
+                  errorMessage = 'Location information unavailable. Using approximate location from IP.';
+                  break;
+                case 3:
+                  errorMessage = 'Location request timed out. Using approximate location from IP.';
+                  break;
+                default:
+                  errorMessage = lowAccErr.message || 'An unknown error occurred while getting your location';
+                  break;
+              }
+            }
+
+            fallbackToIP(errorMessage);
+          },
+          lowAccuracyOptions
+        );
       },
-      options
+      highAccuracyOptions
     );
   }, []);
 

@@ -3,11 +3,6 @@
   "trailingSlash": false,
   "redirects": [
     {
-      "source": "/",
-      "destination": "/recovering.html",
-      "permanent": false
-    },
-    {
       "source": "/(.*)",
       "has": [
         {
@@ -65,10 +60,6 @@
     }
   ],
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/recovering.html"
-    },
     {
       "source": "/api/v1/billing/paystack/:action",
       "destination": "/api/v1/billing/paystack?action=:action"
@@ -131,7 +122,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/recovering.html"
+      "destination": "/index.html"
     }
   ],
   "headers": [

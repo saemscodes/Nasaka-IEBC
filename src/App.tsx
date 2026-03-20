@@ -30,6 +30,7 @@ const ElectionResources = React.lazy(() => import('./pages/SEO/ElectionResources
 const DataAPI = React.lazy(() => import('./pages/SEO/DataAPI'));
 const VoterRegistration = React.lazy(() => import('./pages/SEO/VoterRegistration'));
 const Pricing = React.lazy(() => import('./pages/Pricing'));
+const Docs = React.lazy(() => import('./pages/Docs'));
 const ApiKeysDashboard = React.lazy(() => import('./pages/Dashboard/ApiKeys'));
 const Auth = React.lazy(() => import('./pages/Auth'));
 const AuthCallback = React.lazy(() => import('./pages/AuthCallback'));
@@ -189,7 +190,7 @@ const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#007AFF]/5 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -504,6 +505,7 @@ const AppContent = () => {
 
         {/* ✅ B2B BILLING & DASHBOARD ROUTES */}
         <Route path="/pricing" element={<React.Suspense fallback={<LoadingState />}><Pricing /></React.Suspense>} />
+        <Route path="/docs" element={<React.Suspense fallback={<LoadingState />}><Docs /></React.Suspense>} />
         <Route path="/dashboard/api-keys" element={<React.Suspense fallback={<LoadingState />}><ApiKeysDashboard /></React.Suspense>} />
 
         {/* ✅ DEDICATED AUTH ROUTES */}

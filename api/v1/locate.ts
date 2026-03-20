@@ -36,20 +36,24 @@ export default async function handler(req: Request): Promise<Response> {
     const lat = parseFloat(url.searchParams.get('lat') || '');
     const lng = parseFloat(url.searchParams.get('lng') || '');
     const constituency = url.searchParams.get('constituency');
+    const ward = url.searchParams.get('ward'); // NEW
     const county = url.searchParams.get('county');
+    const q = url.searchParams.get('q');
     const radiusKm = Math.min(parseFloat(url.searchParams.get('radius') || '25'), 100);
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '10'), 50);
+    const includeDiaspora = url.searchParams.get('include_diaspora') === 'true';
 
     const hasCoords = !isNaN(lat) && !isNaN(lng);
-    const hasFilter = !!(constituency || county);
+    const hasFilter = !!(constituency || county || ward);
+    const hasTextQuery = !!q?.trim();
 
-    if (!hasCoords && !hasFilter) {
+    if (!hasCoords && !hasFilter && !hasTextQuery) {
         return new Response(JSON.stringify({
-            error: 'Provide either lat/lng coordinates or constituency/county name',
+            error: 'Provide either lat/lng coordinates, constituency/ward/county name, or q (text query)',
             usage: {
                 by_location: '/api/v1/locate?lat=-1.286&lng=36.817&radius=25&limit=10',
-                by_constituency: '/api/v1/locate?constituency=Westlands',
-                by_county: '/api/v1/locate?county=Nairobi'
+                by_ward: '/api/v1/locate?ward=West%20Kabras',
+                by_diaspora: '/api/v1/locate?q=London&include_diaspora=true'
             }
         }), {
             status: 400,
@@ -57,35 +61,12 @@ export default async function handler(req: Request): Promise<Response> {
         });
     }
 
-    // Canonical 47 Kenyan counties
-    const COUNTY_NORMALIZE: Record<string, string> = {
-        'MOMBASA': 'MOMBASA', 'KWALE': 'KWALE', 'KILIFI': 'KILIFI',
-        'TANA RIVER': 'TANA RIVER', 'TANARIVER': 'TANA RIVER', 'TANA-RIVER': 'TANA RIVER',
-        'LAMU': 'LAMU', 'TAITA TAVETA': 'TAITA TAVETA', 'TAITA-TAVETA': 'TAITA TAVETA', 'TAITA/TAVETA': 'TAITA TAVETA',
-        'GARISSA': 'GARISSA', 'WAJIR': 'WAJIR', 'MANDERA': 'MANDERA',
-        'MARSABIT': 'MARSABIT', 'ISIOLO': 'ISIOLO', 'MERU': 'MERU',
-        'THARAKA NITHI': 'THARAKA-NITHI', 'EMBU': 'EMBU', 'KITUI': 'KITUI', 'MACHAKOS': 'MACHAKOS', 'MAKUENI': 'MAKUENI',
-        'NYANDARUA': 'NYANDARUA', 'NYERI': 'NYERI', 'KIRINYAGA': 'KIRINYAGA',
-        'MURANG\'A': 'MURANG\'A', 'KIAMBU': 'KIAMBU', 'TURKANA': 'TURKANA',
-        'WEST POKOT': 'WEST POKOT', 'SAMBURU': 'SAMBURU',
-        'TRANS NZOIA': 'TRANS-NZOIA', 'UASIN GISHU': 'UASIN GISHU',
-        'ELGEYO MARAKWET': 'ELGEYO-MARAKWET', 'NANDI': 'NANDI', 'BARINGO': 'BARINGO', 'LAIKIPIA': 'LAIKIPIA', 'NAKURU': 'NAKURU',
-        'NAROK': 'NAROK', 'KAJIADO': 'KAJIADO', 'KERICHO': 'KERICHO', 'BOMET': 'BOMET',
-        'KAKAMEGA': 'KAKAMEGA', 'VIHIGA': 'VIHIGA', 'BUNGOMA': 'BUNGOMA', 'BUSIA': 'BUSIA',
-        'SIAYA': 'SIAYA', 'KISUMU': 'KISUMU', 'HOMA BAY': 'HOMA BAY', 'MIGORI': 'MIGORI', 'KISII': 'KISII', 'NYAMIRA': 'NYAMIRA',
-        'NAIROBI': 'NAIROBI'
-    };
-
-    function normalizeCounty(c: string | null): string | null {
-        if (!c) return null;
-        const upper = c.trim().toUpperCase();
-        return COUNTY_NORMALIZE[upper] || upper;
-    }
+    // Check if coords are outside Kenya
+    const isOutsideKenya = hasCoords && (lat < -5.0 || lat > 5.2 || lng < 33.8 || lng > 42.0);
+    const shouldSearchDiaspora = includeDiaspora || isOutsideKenya;
 
     // ---- 1. Check Upstash Redis Cache ----
-    const cacheLat = hasCoords ? lat.toFixed(3) : 'null';
-    const cacheLng = hasCoords ? lng.toFixed(3) : 'null';
-    const cacheKey = `nasaka:locate:${cacheLat}:${cacheLng}:${constituency || 'any'}:${county || 'any'}:${radiusKm}:${limit}`;
+    const cacheKey = `nasaka:locate:v10:${hasCoords ? lat.toFixed(3) : 'X'}:${hasCoords ? lng.toFixed(3) : 'X'}:${constituency || 'any'}:${ward || 'any'}:${county || 'any'}:${q || 'none'}:${radiusKm}:${limit}:${shouldSearchDiaspora}`;
 
     if (UPSTASH_URL && UPSTASH_TOKEN) {
         try {
@@ -107,65 +88,86 @@ export default async function handler(req: Request): Promise<Response> {
     }
 
     try {
-        // ---- 2. Supabase Query ----
-        let queryUrl = `${SUPABASE_URL}/rest/v1/iebc_offices?select=id,constituency,county,office_location,latitude,longitude,verified,formatted_address,landmark&latitude=not.is.null&longitude=not.is.null&limit=200`;
+        let results: any[] = [];
+        let sourceMetrics = 'none';
 
-        if (constituency) queryUrl += `&constituency=ilike.*${encodeURIComponent(constituency)}*`;
-        if (county) {
-            const normalized = normalizeCounty(county);
-            queryUrl += `&county=ilike.*${encodeURIComponent(normalized || county)}*`;
+        // ---- 2a. Diaspora Path (if outside Kenya or explicitly requested) ----
+        if (shouldSearchDiaspora) {
+            const rpcResp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/find_nearest_kenyan_mission`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    search_lat: hasCoords ? lat : 0,
+                    search_lng: hasCoords ? lng : 0,
+                    max_results: limit
+                }),
+            });
+            if (rpcResp.ok) {
+                results = await rpcResp.json();
+                sourceMetrics = 'rpc_diaspora';
+            }
         }
 
-        const resp = await fetch(queryUrl, {
-            headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`,
-                'Content-Type': 'application/json'
+        // ---- 2b. Kenya RPC path: text query + proximity (v2 Ward-Aware) ----
+        if (results.length === 0 && (hasTextQuery || hasCoords)) {
+            const rpcBody: any = {
+                search_query: q || ward || constituency || '',
+                radius_km: radiusKm,
+                max_results: limit,
+            };
+            if (hasCoords) {
+                rpcBody.search_lat = lat;
+                rpcBody.search_lng = lng;
             }
-        });
 
-        // 📝 Fallback to Blob if Supabase fails
-        if (!resp.ok) {
-            logger.error(resp.status, 'Supabase fail, trying Blob fallback');
-            const fbResp = await fetch(`https://nasaka-iebc.public.blob.vercel-storage.com/datasets/offices-latest.json`);
-            if (fbResp.ok) {
-                let offices = await fbResp.json();
-                if (hasCoords) {
-                    offices = offices.map((o: any) => ({ ...o, distance_km: Math.round(haversineKm(lat, lng, o.latitude, o.longitude) * 100) / 100 }))
-                        .filter((o: any) => o.distance_km <= radiusKm)
-                        .sort((a: any, b: any) => a.distance_km - b.distance_km)
-                        .slice(0, limit);
+            const rpcResp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/search_offices_by_text_and_location_v2`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(rpcBody),
+            });
+
+            if (rpcResp.ok) {
+                results = await rpcResp.json();
+                sourceMetrics = 'rpc_v2_kenya';
+            }
+        }
+
+        // ---- 2c. Legacy / Direct PostgREST Fallback ----
+        if (results.length === 0) {
+            let queryUrl = `${SUPABASE_URL}/rest/v1/iebc_offices?select=id,constituency,county,ward,office_location,latitude,longitude,verified,formatted_address&limit=${limit}`;
+            if (constituency) queryUrl += `&constituency=ilike.*${encodeURIComponent(constituency)}*`;
+            if (ward) queryUrl += `&ward=ilike.*${encodeURIComponent(ward)}*`;
+            if (county) queryUrl += `&county=ilike.*${encodeURIComponent(county)}*`;
+
+            const resp = await fetch(queryUrl, {
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`,
+                    'Content-Type': 'application/json'
                 }
-                const responseData = { data: offices, meta: { source: 'blob_fallback' } };
-                logger.success(200, auth.tier, 'BYPASS');
-                return new Response(JSON.stringify(responseData), {
-                    headers: { ...corsHeaders(), 'Content-Type': 'application/json' }
-                });
+            });
+            if (resp.ok) {
+                results = await resp.json();
+                sourceMetrics = 'postgrest_fallback';
             }
-            return errorResponse('Database connection failed', 502);
-        }
-
-        let offices: any[] = await resp.json();
-
-        // Spatial filtering
-        if (hasCoords) {
-            offices = offices.map(o => ({
-                ...o,
-                distance_km: Math.round(haversineKm(lat, lng, o.latitude, o.longitude) * 100) / 100
-            })).filter(o => o.distance_km <= radiusKm)
-                .sort((a, b) => a.distance_km - b.distance_km)
-                .slice(0, limit);
-        } else {
-            offices = offices.slice(0, limit);
         }
 
         const responseData = {
-            data: offices,
-            query: { lat: hasCoords ? lat : undefined, lng: hasCoords ? lng : undefined, radius_km: hasCoords ? radiusKm : undefined },
-            total: offices.length
+            data: results,
+            query: { q, lat, lng, ward, constituency, county, radius_km: radiusKm },
+            total: results.length,
+            meta: { source: sourceMetrics, timestamp: new Date().toISOString() }
         };
 
-        // Cache the result in Upstash (5 minutes)
+        // Cache the result (5 minutes)
         if (UPSTASH_URL && UPSTASH_TOKEN) {
             fetch(`${UPSTASH_URL}/set/${cacheKey}`, {
                 method: 'POST',

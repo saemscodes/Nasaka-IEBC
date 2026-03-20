@@ -82,19 +82,80 @@ interface PricingData {
     note: string;
 }
 
-// ─── Tier Icons ──────────────────────────────────────────────────────────────
+// ─── Tier Icons (Custom SVGs, Nasaka Blue) ──────────────────────────────────
+const TierIcon = ({ tier, className = 'w-6 h-6' }: { tier: string; className?: string }) => (
+    <img src={`/icons/tiers/${tier}.svg`} alt={tier} className={className} />
+);
+
 const TIER_ICONS: Record<string, React.ReactNode> = {
-    jamii: <Users className="w-6 h-6" />,
-    mwananchi: <Zap className="w-6 h-6" />,
-    taifa: <Crown className="w-6 h-6" />,
-    serikali: <Building2 className="w-6 h-6" />
+    jamii: <TierIcon tier="jamii" />,
+    mwananchi: <TierIcon tier="mwananchi" />,
+    taifa: <TierIcon tier="taifa" />,
+    serikali: <TierIcon tier="serikali" />
 };
 
+// ─── Nasaka Blue Unified Color Scheme ────────────────────────────────────────
+const NASAKA_BLUE = '#007AFF';
 const TIER_COLORS: Record<string, { bg: string; text: string; border: string; accent: string }> = {
-    jamii: { bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/20', accent: 'from-emerald-500 to-teal-600' },
-    mwananchi: { bg: 'bg-blue-500/10', text: 'text-blue-500', border: 'border-blue-500/30', accent: 'from-blue-500 to-indigo-600' },
-    taifa: { bg: 'bg-purple-500/10', text: 'text-purple-500', border: 'border-purple-500/20', accent: 'from-purple-500 to-pink-600' },
-    serikali: { bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-500/20', accent: 'from-amber-500 to-orange-600' }
+    jamii: { bg: 'bg-[#007AFF]/5', text: 'text-[#007AFF]', border: 'border-[#007AFF]/15', accent: 'from-[#007AFF] to-[#0055CC]' },
+    mwananchi: { bg: 'bg-[#007AFF]/10', text: 'text-[#007AFF]', border: 'border-[#007AFF]/25', accent: 'from-[#007AFF] to-[#0055CC]' },
+    taifa: { bg: 'bg-[#007AFF]/15', text: 'text-[#007AFF]', border: 'border-[#007AFF]/30', accent: 'from-[#005ECB] to-[#003D8A]' },
+    serikali: { bg: 'bg-[#007AFF]/20', text: 'text-[#007AFF]', border: 'border-[#007AFF]/35', accent: 'from-[#004DB3] to-[#002D6B]' }
+};
+
+// ─── Fallback Pricing Data (used when API is unreachable) ────────────────────
+const FALLBACK_PRICING: PricingData = {
+    tiers: [
+        {
+            id: 'jamii', name: 'Jamii', subtitle: 'Community & learners',
+            monthly_limit: 5000, burst_rate: '2/s', billing: 'free',
+            features: ['5,000 requests/mo', 'Standard fields only', 'JSON responses', 'Community support'],
+            blocked: ['GeoJSON/CSV export', 'Boundary data', 'Landmark & confidence fields'],
+            cta: 'Get Free Key', highlighted: false
+        },
+        {
+            id: 'mwananchi', name: 'Mwananchi', subtitle: 'Developers & startups',
+            monthly_limit: 100000, burst_rate: '10/s', billing: 'monthly',
+            price_kes_monthly: 2500, price_kes_annual: 25000, annual_savings_kes: 5000,
+            billing_options: ['monthly', 'annual'],
+            features: ['100,000 requests/mo', 'All fields including confidence', 'GeoJSON export', 'Email support', 'Overage available'],
+            overage_kes_per_10k: 200,
+            cta: 'Start Building', highlighted: true
+        },
+        {
+            id: 'taifa', name: 'Taifa', subtitle: 'Organizations & media',
+            monthly_limit: 500000, burst_rate: '30/s', billing: 'monthly',
+            price_kes_monthly: 7500, price_kes_annual: 75000, annual_savings_kes: 15000,
+            billing_options: ['monthly', 'annual'],
+            features: ['500,000 requests/mo', 'Full dataset access', 'CSV + GeoJSON export', 'Boundary polygons', 'Priority support', 'Bulk download'],
+            overage_kes_per_10k: 100,
+            cta: 'Go National', highlighted: false
+        },
+        {
+            id: 'serikali', name: 'Serikali', subtitle: 'Government & enterprise',
+            monthly_limit: null, burst_rate: '100/s', billing: 'custom',
+            features: ['Custom quota', 'Dedicated infrastructure', 'SLA contract', 'SFTP data dumps', 'Account manager', 'Custom integrations'],
+            cta: 'Contact Sales', highlighted: false, contact_only: true
+        }
+    ],
+    credit_packs: [
+        { id: 'pack_5k', credits: 5000, price_kes: 500, product_key: 'credits_5k' },
+        { id: 'pack_50k', credits: 50000, price_kes: 4000, product_key: 'credits_50k' },
+        { id: 'pack_500k', credits: 500000, price_kes: 30000, product_key: 'credits_500k' }
+    ],
+    credit_weights: { standard_lookup: 1, boundary_lookup: 2, csv_export_per_1k_rows: 5 },
+    data_licenses: [
+        { id: 'license_academic', name: 'Academic License', price_kes: 15000, period: 'year', product_key: 'license_academic' },
+        { id: 'license_commercial', name: 'Commercial License', price_kes: 50000, period: 'year', product_key: 'license_commercial' }
+    ],
+    discounts: {
+        nonprofit_academic: '50% off Mwananchi and Taifa tiers for verified nonprofits and academic institutions.',
+        requirement: 'Must provide letterhead verification from a registered NGO or accredited university.',
+        apply_url: '/dashboard/api-keys'
+    },
+    paystack_public_key: null,
+    currency: 'KES',
+    note: 'All prices in Kenya Shillings. USD equivalents available at checkout.'
 };
 
 // ─── Enterprise Form ─────────────────────────────────────────────────────────
@@ -155,8 +216,8 @@ const EnterpriseForm = ({ isDark }: { isDark: boolean }) => {
                 animate={{ opacity: 1, scale: 1 }}
                 className={`p-10 rounded-3xl text-center ${isDark ? 'bg-ios-gray-800' : 'bg-white'}`}
             >
-                <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-6">
-                    <Check className="w-8 h-8 text-emerald-500" />
+                <div className="w-16 h-16 rounded-full bg-[#007AFF]/10 flex items-center justify-center mx-auto mb-6">
+                    <Check className="w-8 h-8 text-[#007AFF]" />
                 </div>
                 <h3 className="text-2xl font-bold mb-3">Enquiry Received</h3>
                 <p className="text-muted-foreground max-w-md mx-auto">
@@ -282,7 +343,7 @@ const EnterpriseForm = ({ isDark }: { isDark: boolean }) => {
             <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-4 rounded-2xl font-bold text-white bg-gradient-to-r from-amber-500 to-orange-600 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-60"
+                className="w-full py-4 rounded-2xl font-bold text-white bg-[#007AFF] hover:bg-[#0055CC] hover:shadow-lg hover:shadow-[#007AFF]/20 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-60"
             >
                 {submitting ? (
                     <span className="flex items-center justify-center gap-2">
@@ -337,10 +398,10 @@ const TierCard = ({
         <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 + 0.2 }}
-            className={`relative flex flex-col p-8 rounded-[2.5rem] border transition-all hover:scale-[1.02] ${tier.highlighted
-                ? `border-2 ${colors.border} shadow-xl ${isDark ? 'bg-ios-gray-800' : 'bg-white'}`
-                : `${isDark ? 'bg-ios-gray-800 border-ios-gray-700' : 'bg-white border-ios-gray-100 shadow-sm'}`
+            transition={{ delay: index * 0.1 + 0.2, type: 'spring', stiffness: 300, damping: 30 }}
+            className={`relative flex flex-col p-8 rounded-[2.5rem] border backdrop-blur-xl transition-all hover:scale-[1.02] hover:shadow-2xl ${tier.highlighted
+                ? `border-2 ${colors.border} shadow-xl ${isDark ? 'bg-[#1C1C1E]/90' : 'bg-white/90'}`
+                : `${isDark ? 'bg-[#1C1C1E]/80 border-white/5' : 'bg-white/80 border-black/5 shadow-sm'}`
                 }`}
         >
             {tier.highlighted && (
@@ -501,11 +562,17 @@ const Pricing = () => {
         const fetchPricing = async () => {
             try {
                 const resp = await fetch('/api/v1/billing/pricing');
-                if (!resp.ok) throw new Error('Failed to load pricing');
+                const contentType = resp.headers.get('content-type') || '';
+                if (!resp.ok || !contentType.includes('application/json')) {
+                    console.warn('[Pricing] API unavailable, using fallback data');
+                    setPricing(FALLBACK_PRICING);
+                    return;
+                }
                 const json = await resp.json();
-                setPricing(json.data);
+                setPricing(json.data || FALLBACK_PRICING);
             } catch (err: any) {
-                setError(err.message || 'Failed to load pricing data');
+                console.warn('[Pricing] Fetch failed, using fallback:', err.message);
+                setPricing(FALLBACK_PRICING);
             } finally {
                 setLoading(false);
             }
@@ -515,10 +582,10 @@ const Pricing = () => {
 
     if (loading) {
         return (
-            <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-ios-gray-900' : 'bg-ios-gray-50'}`}>
+            <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-[#0A0A0A]' : 'bg-[#F2F2F7]'}`}>
                 <div className="text-center">
                     <Loader2 className="w-10 h-10 animate-spin text-blue-500 mx-auto mb-4" />
-                    <p className="text-muted-foreground">Loading pricing…</p>
+                    <p className={isDark ? 'text-[#98989D]' : 'text-[#8E8E93]'}>Loading pricing…</p>
                 </div>
             </div>
         );
@@ -526,14 +593,14 @@ const Pricing = () => {
 
     if (error || !pricing) {
         return (
-            <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-ios-gray-900' : 'bg-ios-gray-50'}`}>
+            <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-[#0A0A0A]' : 'bg-[#F2F2F7]'}`}>
                 <div className="text-center max-w-md">
                     <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-4" />
-                    <p className="text-red-500 font-semibold mb-2">Failed to load pricing</p>
-                    <p className="text-muted-foreground text-sm">{error}</p>
+                    <p className="text-red-500 font-black mb-2">Failed to load pricing</p>
+                    <p className={`text-sm ${isDark ? 'text-[#98989D]' : 'text-[#8E8E93]'}`}>{error}</p>
                     <button
                         onClick={() => window.location.reload()}
-                        className="mt-4 px-6 py-2 rounded-xl bg-blue-500 text-white font-bold hover:bg-blue-600 transition-colors"
+                        className="mt-4 px-6 py-2.5 rounded-xl bg-blue-500 text-white font-bold hover:bg-blue-600 hover:shadow-lg transition-all active:scale-[0.98]"
                     >
                         Retry
                     </button>
@@ -543,7 +610,7 @@ const Pricing = () => {
     }
 
     return (
-        <div className={`min-h-screen pb-20 transition-colors duration-500 ${isDark ? 'bg-ios-gray-900 text-white' : 'bg-ios-gray-50 text-ios-gray-900'}`}>
+        <div className={`min-h-screen pb-20 transition-colors duration-500 ${isDark ? 'bg-[#0A0A0A] text-white' : 'bg-[#F2F2F7] text-[#1C1C1E]'}`}>
             <SEOHead
                 title="API Pricing — Nasaka IEBC | Kenya Electoral Data API"
                 description="Access Kenya's most comprehensive IEBC office data API. Free community tier, paid plans from KES 2,500/month. Credit packs and data licenses available."
@@ -557,30 +624,39 @@ const Pricing = () => {
                 ]}
             />
 
-            <div className="max-w-7xl mx-auto px-6 pt-16">
+            {/* Topo background overlay */}
+            <div
+                className="fixed inset-0 pointer-events-none opacity-[0.03]"
+                style={{ backgroundImage: 'url(/topo-bg.svg)', backgroundSize: '600px', backgroundRepeat: 'repeat' }}
+            />
+
+            <div className="relative max-w-7xl mx-auto px-6 pt-16">
                 {/* ── Hero ── */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-center mb-12"
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    className="text-center mb-14"
                 >
-                    <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-500/10 text-blue-500 text-sm font-bold mb-4">
-                        <Globe className="w-4 h-4 mr-2" />
-                        Civic Data API
+                    <div className="inline-flex items-center px-4 py-2 rounded-full bg-[#007AFF]/10 text-[#007AFF] text-xs font-black uppercase tracking-[0.15em] mb-6">
+                        <img src="/nasaka.svg" alt="Nasaka" className="w-3.5 h-3.5 mr-2" style={{ filter: 'invert(35%) sepia(91%) saturate(3000%) hue-rotate(200deg) brightness(100%) contrast(101%)' }} />
+                        Nasaka API
                     </div>
-                    <h1 className="text-5xl md:text-6xl font-black mb-6 tracking-tight">API Pricing</h1>
-                    <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+                    <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
+                        API <span className="text-[#007AFF]">Pricing</span>
+                    </h1>
+                    <p className={`text-lg max-w-2xl mx-auto mb-8 ${isDark ? 'text-[#98989D]' : 'text-[#8E8E93]'}`}>
                         Power your civic technology with Kenya's most comprehensive IEBC office dataset.
                         From community projects to enterprise deployments.
                     </p>
 
                     {/* ── Billing Toggle ── */}
-                    <div className={`inline-flex items-center gap-3 p-1.5 rounded-2xl ${isDark ? 'bg-ios-gray-800' : 'bg-ios-gray-100'}`}>
+                    <div className={`inline-flex items-center gap-1 p-1.5 rounded-2xl ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
                         <button
                             onClick={() => setIsAnnual(false)}
                             className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${!isAnnual
-                                ? 'bg-white text-ios-gray-900 shadow-sm dark:bg-ios-gray-700 dark:text-white'
-                                : 'text-muted-foreground hover:text-foreground'
+                                ? `${isDark ? 'bg-white/10 text-white' : 'bg-white text-[#1C1C1E] shadow-sm'}`
+                                : `${isDark ? 'text-[#98989D]' : 'text-[#8E8E93]'} hover:text-foreground`
                                 }`}
                         >
                             Monthly
@@ -588,20 +664,32 @@ const Pricing = () => {
                         <button
                             onClick={() => setIsAnnual(true)}
                             className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${isAnnual
-                                ? 'bg-white text-ios-gray-900 shadow-sm dark:bg-ios-gray-700 dark:text-white'
-                                : 'text-muted-foreground hover:text-foreground'
+                                ? `${isDark ? 'bg-white/10 text-white' : 'bg-white text-[#1C1C1E] shadow-sm'}`
+                                : `${isDark ? 'text-[#98989D]' : 'text-[#8E8E93]'} hover:text-foreground`
                                 }`}
                         >
                             Annual
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500">
+                            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500">
                                 Save 17%
                             </span>
                         </button>
                     </div>
+
+                    {/* ── Sandbox CTA ── */}
+                    <div className="mt-6">
+                        <Link
+                            to="/docs#sandbox"
+                            className={`inline-flex items-center gap-2 text-sm font-bold text-[#007AFF] hover:text-[#0055CC] transition-colors`}
+                        >
+                            <Zap className="w-4 h-4" />
+                            Try the API Sandbox — free, instant, no key needed
+                            <ChevronRight className="w-4 h-4" />
+                        </Link>
+                    </div>
                 </motion.div>
 
                 {/* ── Tier Cards ── */}
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-20">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-20">
                     {pricing.tiers.map((tier, i) => (
                         <TierCard
                             key={tier.id}
@@ -622,36 +710,36 @@ const Pricing = () => {
                     className="mb-20"
                 >
                     <div className="text-center mb-10">
-                        <div className="inline-flex items-center px-4 py-2 rounded-full bg-amber-500/10 text-amber-500 text-sm font-bold mb-4">
-                            <Coins className="w-4 h-4 mr-2" />
+                        <div className="inline-flex items-center px-4 py-2 rounded-full bg-[#007AFF]/10 text-[#007AFF] text-xs font-black uppercase tracking-[0.15em] mb-4">
+                            <Coins className="w-3.5 h-3.5 mr-2" />
                             Pay Per Use
                         </div>
-                        <h2 className="text-4xl font-black mb-3">Credit Packs</h2>
-                        <p className="text-muted-foreground max-w-lg mx-auto">
+                        <h2 className="text-4xl font-black mb-3" style={{ fontFamily: 'var(--font-display)' }}>Credit Packs</h2>
+                        <p className={`max-w-lg mx-auto ${isDark ? 'text-[#98989D]' : 'text-[#8E8E93]'}`}>
                             Perfect for grant-funded projects with lump-sum budgets. Credits never expire.
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto">
                         {pricing.credit_packs.map((pack, i) => (
                             <motion.div
                                 key={pack.id}
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
-                                transition={{ delay: i * 0.1 }}
-                                className={`p-8 rounded-[2.5rem] border text-center transition-all hover:scale-[1.02] ${isDark ? 'bg-ios-gray-800 border-ios-gray-700' : 'bg-white border-ios-gray-100 shadow-sm'
+                                transition={{ delay: i * 0.1, type: 'spring', stiffness: 300, damping: 30 }}
+                                className={`p-8 rounded-[2.5rem] border backdrop-blur-xl text-center transition-all hover:scale-[1.02] hover:shadow-2xl ${isDark ? 'bg-[#1C1C1E]/80 border-white/5' : 'bg-white/80 border-black/5 shadow-sm'
                                     }`}
                             >
-                                <CreditCard className="w-8 h-8 text-amber-500 mx-auto mb-4" />
+                                <div className="w-14 h-14 rounded-2xl bg-[#007AFF]/10 flex items-center justify-center mx-auto mb-4"><Coins className="w-7 h-7 text-[#007AFF]" /></div>
                                 <h3 className="text-xl font-bold mb-1">{pack.credits.toLocaleString()} Credits</h3>
                                 <p className="text-3xl font-black mb-2">KES {pack.price_kes.toLocaleString()}</p>
-                                <p className="text-xs text-muted-foreground mb-6">
+                                <p className={`text-xs mb-6 ${isDark ? 'text-[#98989D]' : 'text-[#8E8E93]'}`}>
                                     KES {(pack.price_kes / pack.credits * 1000).toFixed(0)} per 1,000 requests
                                 </p>
                                 <button
                                     onClick={() => handlePurchase(pack.product_key, `${pack.credits.toLocaleString()} Credits`)}
-                                    className="w-full py-3 rounded-xl font-bold text-sm block text-center bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:shadow-lg active:scale-[0.98] transition-all"
+                                    className="w-full py-3 rounded-xl font-bold text-sm block text-center bg-[#007AFF] text-white hover:bg-[#0055CC] hover:shadow-lg hover:shadow-[#007AFF]/20 active:scale-[0.98] transition-all"
                                 >
                                     Buy Credits
                                 </button>
@@ -659,9 +747,9 @@ const Pricing = () => {
                         ))}
                     </div>
 
-                    <div className={`mt-8 p-6 rounded-2xl text-center text-sm max-w-4xl mx-auto ${isDark ? 'bg-ios-gray-800' : 'bg-ios-gray-100'}`}>
-                        <p className="text-muted-foreground">
-                            <strong>Credit weights:</strong> Standard lookup = {pricing.credit_weights.standard_lookup} credit •
+                    <div className={`mt-8 p-6 rounded-2xl text-center text-sm max-w-4xl mx-auto ${isDark ? 'bg-white/5' : 'bg-black/[0.03]'}`}>
+                        <p className={isDark ? 'text-[#98989D]' : 'text-[#8E8E93]'}>
+                            <strong className={isDark ? 'text-white' : 'text-[#1C1C1E]'}>Credit weights:</strong> Standard lookup = {pricing.credit_weights.standard_lookup} credit •
                             Boundary lookup = {pricing.credit_weights.boundary_lookup} credits •
                             CSV export (per 1K rows) = {pricing.credit_weights.csv_export_per_1k_rows} credits
                         </p>
@@ -676,34 +764,39 @@ const Pricing = () => {
                     className="mb-20"
                 >
                     <div className="text-center mb-10">
-                        <div className="inline-flex items-center px-4 py-2 rounded-full bg-purple-500/10 text-purple-500 text-sm font-bold mb-4">
-                            <FileText className="w-4 h-4 mr-2" />
+                        <div className="inline-flex items-center px-4 py-2 rounded-full bg-[#007AFF]/10 text-[#007AFF] text-xs font-black uppercase tracking-[0.15em] mb-4">
+                            <FileText className="w-3.5 h-3.5 mr-2" />
                             Full Dataset
                         </div>
-                        <h2 className="text-4xl font-black mb-3">Data Licenses</h2>
-                        <p className="text-muted-foreground max-w-lg mx-auto">
+                        <h2 className="text-4xl font-black mb-3" style={{ fontFamily: 'var(--font-display)' }}>Data Licenses</h2>
+                        <p className={`max-w-lg mx-auto ${isDark ? 'text-[#98989D]' : 'text-[#8E8E93]'}`}>
                             Annual flat-fee access to our complete verified dataset. GeoJSON + CSV, updated quarterly. No API call counting.
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mx-auto">
                         {pricing.data_licenses.map((lic, i) => (
                             <motion.div
                                 key={lic.id}
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
-                                transition={{ delay: i * 0.1 }}
-                                className={`p-8 rounded-[2.5rem] border text-center transition-all hover:scale-[1.02] ${isDark ? 'bg-ios-gray-800 border-ios-gray-700' : 'bg-white border-ios-gray-100 shadow-sm'
+                                transition={{ delay: i * 0.1, type: 'spring', stiffness: 300, damping: 30 }}
+                                className={`p-8 rounded-[2.5rem] border backdrop-blur-xl text-center transition-all hover:scale-[1.02] hover:shadow-2xl ${isDark ? 'bg-[#1C1C1E]/80 border-white/5' : 'bg-white/80 border-black/5 shadow-sm'
                                     }`}
                             >
-                                <GraduationCap className={`w-8 h-8 mx-auto mb-4 ${lic.id === 'license_academic' ? 'text-blue-500' : 'text-purple-500'}`} />
+                                <div className="w-14 h-14 rounded-2xl bg-[#007AFF]/10 flex items-center justify-center mx-auto mb-4">
+                                    {lic.id === 'license_academic'
+                                        ? <GraduationCap className="w-7 h-7 text-[#007AFF]" />
+                                        : <Briefcase className="w-7 h-7 text-[#007AFF]" />
+                                    }
+                                </div>
                                 <h3 className="text-xl font-bold mb-1">{lic.name}</h3>
                                 <p className="text-3xl font-black mb-1">KES {lic.price_kes.toLocaleString()}</p>
-                                <p className="text-xs text-muted-foreground mb-6">per {lic.period}</p>
+                                <p className={`text-xs mb-6 ${isDark ? 'text-[#98989D]' : 'text-[#8E8E93]'}`}>per {lic.period}</p>
                                 <button
                                     onClick={() => handlePurchase(lic.product_key, lic.name)}
-                                    className="w-full py-3 rounded-xl font-bold text-sm block text-center bg-gradient-to-r from-purple-500 to-pink-600 text-white hover:shadow-lg active:scale-[0.98] transition-all"
+                                    className="w-full py-3 rounded-xl font-bold text-sm block text-center bg-[#007AFF] text-white hover:bg-[#0055CC] hover:shadow-lg hover:shadow-[#007AFF]/20 active:scale-[0.98] transition-all"
                                 >
                                     Get License
                                 </button>
@@ -717,16 +810,16 @@ const Pricing = () => {
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className={`mb-20 p-10 rounded-[3rem] border ${isDark ? 'bg-ios-gray-800 border-ios-gray-700' : 'bg-white border-ios-gray-100 shadow-sm'}`}
+                    className={`mb-20 p-10 rounded-[3rem] border backdrop-blur-xl ${isDark ? 'bg-[#1C1C1E]/80 border-white/5' : 'bg-white/80 border-black/5 shadow-sm'}`}
                 >
                     <div className="flex flex-col md:flex-row items-center gap-8">
-                        <div className={`w-20 h-20 rounded-2xl flex items-center justify-center shrink-0 bg-emerald-500/10`}>
-                            <Shield className="w-10 h-10 text-emerald-500" />
+                        <div className="w-20 h-20 rounded-2xl flex items-center justify-center shrink-0 bg-[#007AFF]/10">
+                            <Shield className="w-10 h-10 text-[#007AFF]" />
                         </div>
                         <div className="flex-1 text-center md:text-left">
-                            <h3 className="text-2xl font-bold mb-2">Nonprofit & Academic Discount</h3>
-                            <p className="text-muted-foreground mb-1">{pricing.discounts.nonprofit_academic}</p>
-                            <p className="text-sm text-muted-foreground">{pricing.discounts.requirement}</p>
+                            <h3 className="text-2xl font-black mb-2">Nonprofit & Academic Discount</h3>
+                            <p className={`mb-1 ${isDark ? 'text-[#98989D]' : 'text-[#8E8E93]'}`}>{pricing.discounts.nonprofit_academic}</p>
+                            <p className={`text-sm ${isDark ? 'text-[#98989D]' : 'text-[#8E8E93]'}`}>{pricing.discounts.requirement}</p>
                         </div>
                         <button
                             onClick={() => {
@@ -736,7 +829,7 @@ const Pricing = () => {
                                     navigate('/dashboard/api-keys');
                                 }
                             }}
-                            className="px-8 py-4 rounded-2xl font-bold bg-emerald-500 text-white hover:bg-emerald-600 hover:shadow-lg active:scale-[0.98] transition-all shrink-0 flex items-center gap-2"
+                            className="px-8 py-4 rounded-2xl font-bold bg-[#007AFF] text-white hover:bg-[#0055CC] hover:shadow-xl hover:shadow-[#007AFF]/20 active:scale-[0.98] transition-all shrink-0 flex items-center gap-2"
                         >
                             Apply Now
                             <ArrowRight className="w-5 h-5" />
@@ -753,17 +846,17 @@ const Pricing = () => {
                     className="mb-20"
                 >
                     <div className="text-center mb-10">
-                        <div className="inline-flex items-center px-4 py-2 rounded-full bg-amber-500/10 text-amber-500 text-sm font-bold mb-4">
-                            <Building2 className="w-4 h-4 mr-2" />
+                        <div className="inline-flex items-center px-4 py-2 rounded-full bg-[#007AFF]/10 text-[#007AFF] text-xs font-black uppercase tracking-[0.15em] mb-4">
+                            <img src="/icons/tiers/serikali.svg" alt="Enterprise" className="w-3.5 h-3.5 mr-2" />
                             Enterprise
                         </div>
-                        <h2 className="text-4xl font-black mb-3">Serikali — Enterprise & Government</h2>
-                        <p className="text-muted-foreground max-w-lg mx-auto">
+                        <h2 className="text-4xl font-black mb-3" style={{ fontFamily: 'var(--font-display)' }}>Serikali — Enterprise & Government</h2>
+                        <p className={`max-w-lg mx-auto ${isDark ? 'text-[#98989D]' : 'text-[#8E8E93]'}`}>
                             Need custom quotas, SLA contracts, or SFTP data dumps? We'll tailor a solution for your organization.
                         </p>
                     </div>
 
-                    <div className={`max-w-2xl mx-auto p-8 md:p-10 rounded-[3rem] border ${isDark ? 'bg-ios-gray-800 border-ios-gray-700' : 'bg-white border-ios-gray-100 shadow-sm'
+                    <div className={`max-w-2xl mx-auto p-8 md:p-10 rounded-[3rem] border backdrop-blur-xl ${isDark ? 'bg-[#1C1C1E]/80 border-white/5' : 'bg-white/80 border-black/5 shadow-sm'
                         }`}>
                         <EnterpriseForm isDark={isDark} />
                     </div>

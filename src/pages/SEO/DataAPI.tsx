@@ -113,7 +113,7 @@ const DataAPI = () => {
                     </div>
                     <h1 className="text-6xl font-black mb-6 tracking-tight leading-tight">
                         Nasaka IEBC <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600">Developer Console</span>
+                        <span className="text-[#007AFF]">Developer Console</span>
                     </h1>
                     <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
                         Access high-resolution geographic data for 290 constituencies and 46,000+ polling stations. Built on the Vercel Edge for sub-50ms global latency.
@@ -219,7 +219,7 @@ const DataAPI = () => {
                         </section>
 
                         {/* Integration Example */}
-                        <section className={`p-10 rounded-[3.5rem] bg-gradient-to-br from-blue-600 to-indigo-800 text-white relative overflow-hidden`}>
+                        <section className={`p-10 rounded-[3.5rem] bg-[#007AFF] text-white relative overflow-hidden`}>
                             <div className="relative z-10">
                                 <h2 className="text-4xl font-black mb-6">Built for High Speed.</h2>
                                 <p className="text-lg text-blue-100 mb-8 max-w-xl">

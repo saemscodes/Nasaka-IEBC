@@ -14,8 +14,11 @@ import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
 import ContributeLocationButton from '@/components/IEBCOffice/ContributeLocationButton';
 import OfflineRouteDownloader from '@/components/IEBCOffice/OfflineRouteDownloader';
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
+import RadiusCircle from '@/components/map/RadiusCircle';
+import MapModeToggle from '@/components/map/MapModeToggle';
 import { useIEBCOffices } from '@/hooks/useIEBCOffices';
 import { useMapControls } from '@/hooks/useMapControls';
+import { useMapStateMachine } from '@/hooks/useMapStateMachine';
 import { findNearestOffice, findNearestOffices } from '@/utils/geoUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { getTrafficInfo } from '@/utils/kenyaFareCalculator';
@@ -93,6 +96,17 @@ const IEBCOfficeMap = () => {
   const routeBadgeRef = useRef(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const badgeStartPos = useRef({ x: 0, y: 0 });
+
+  // Uber-style state machine for map zoom transitions
+  const { mapState, dispatchMap } = useMapStateMachine();
+
+  // Radius circle state for place search visualisation
+  const [radiusCenter, setRadiusCenter] = useState(null);
+  const [radiusKm, setRadiusKm] = useState(15);
+  const [isRadiusAnimating, setIsRadiusAnimating] = useState(false);
+
+  // Map mode: domestic (Kenya IEBC offices) vs diaspora (global missions)
+  const [mapMode, setMapMode] = useState('domestic');
 
   // Handle URL query parameter or state selection on component mount
   useEffect(() => {
@@ -287,14 +301,20 @@ const IEBCOfficeMap = () => {
       setNearbyOffices(results);
       openListPanel();
       setIsPanelBackdropVisible(true);
+
+      // State machine: if results have coordinates, drive zoom
+      if (results.length > 0 && results[0].latitude && results[0].longitude) {
+        dispatchMap({ type: 'OFFICES_FOUND', offices: results, radiusKm: 50 }, mapInstanceRef.current);
+      }
     } else if (result.latitude && result.longitude) {
       // Office object selected
       handleOfficeSelect(result);
+      dispatchMap({ type: 'OFFICE_SELECTED', officeId: result.id }, mapInstanceRef.current);
     } else {
       // Other result type
       handleOfficeSelect(result);
     }
-  }, [searchOffices, handleOfficeSelect, openListPanel]);
+  }, [searchOffices, handleOfficeSelect, openListPanel, dispatchMap]);
 
   // Double-tap handler for area search - ONLY IF WE HAVE LOCATION ACCESS
   const handleDoubleTap = useCallback(async (latlng) => {
@@ -313,6 +333,12 @@ const IEBCOfficeMap = () => {
           duration: 1
         });
       }
+
+      // Radius visualisation for double-tap area search
+      setRadiusCenter([latlng.lat, latlng.lng]);
+      setRadiusKm(5);
+      setIsRadiusAnimating(true);
+      setTimeout(() => setIsRadiusAnimating(false), 3000);
 
       openListPanel();
       setIsPanelBackdropVisible(true);
@@ -444,6 +470,90 @@ const IEBCOfficeMap = () => {
   };
 
   const handleRetryLocation = () => navigate('/', { replace: true });
+
+  // Uber-style: handle place search from SearchBar
+  // Receives { latitude, longitude, name, county, boundingBox } from place suggestion
+  // or no args when user taps the "Use my location" button
+  const handleLocationSearch = useCallback(async (placeData) => {
+    if (!placeData || (!placeData.latitude && !placeData.longitude)) {
+      // No place data — existing behaviour: go home to re-enter with fresh location
+      navigate('/', { replace: true });
+      return;
+    }
+
+    const { latitude, longitude, name } = placeData;
+    const searchRadiusKm = 15;
+
+    // State machine: start search phase
+    dispatchMap({ type: 'SEARCH_STARTED', lat: latitude, lng: longitude }, mapInstanceRef.current);
+
+    // Show radius circle with sonar animation
+    setRadiusCenter([latitude, longitude]);
+    setRadiusKm(searchRadiusKm);
+    setIsRadiusAnimating(true);
+
+    setIsSearchingNearby(true);
+
+    try {
+      // Try Supabase RPC first (bounding box + Haversine)
+      const { data: rpcResults, error: rpcError } = await supabase.rpc('find_offices_near_place', {
+        search_lat: latitude,
+        search_lng: longitude,
+        radius_km: searchRadiusKm,
+        max_results: 20,
+      });
+
+      let nearby;
+      if (!rpcError && rpcResults && rpcResults.length > 0) {
+        nearby = rpcResults;
+      } else {
+        // Fallback: client-side search from loaded offices
+        nearby = await searchNearbyOffices(latitude, longitude, searchRadiusKm * 1000);
+      }
+
+      setNearbyOffices(nearby);
+      setSearchResults(nearby);
+
+      // State machine: offices found — auto-zoom to fit
+      dispatchMap({ type: 'OFFICES_FOUND', offices: nearby, radiusKm: searchRadiusKm }, mapInstanceRef.current);
+
+      // Stop sonar pulse after results arrive
+      setTimeout(() => setIsRadiusAnimating(false), 2000);
+
+      openListPanel();
+      setIsPanelBackdropVisible(true);
+    } catch (err) {
+      console.error('[IEBCOfficeMap] Place search failed:', err);
+      // Fallback: just fly to the place
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.flyTo([latitude, longitude], 13, { duration: 1.0 });
+      }
+      setIsRadiusAnimating(false);
+    } finally {
+      setIsSearchingNearby(false);
+    }
+  }, [dispatchMap, openListPanel, navigate, offices]);
+
+  // Map mode change handler
+  const handleMapModeChange = useCallback((newMode) => {
+    setMapMode(newMode);
+    if (mapInstanceRef.current) {
+      if (newMode === 'diaspora') {
+        // World view for diaspora
+        mapInstanceRef.current.flyTo([10, 20], 2, { duration: 1.5 });
+      } else {
+        // Kenya view for domestic
+        if (userLocation?.latitude && userLocation?.longitude) {
+          mapInstanceRef.current.flyTo([userLocation.latitude, userLocation.longitude], 13, { duration: 1.2 });
+        } else {
+          mapInstanceRef.current.flyTo([-0.0236, 37.9062], 6, { duration: 1.2 });
+        }
+      }
+    }
+    // Clear radius circle when switching modes
+    setRadiusCenter(null);
+    setIsRadiusAnimating(false);
+  }, [userLocation]);
 
   const openLayerPanel = () => {
     setIsLayerPanelOpen(true);
@@ -611,7 +721,7 @@ const IEBCOfficeMap = () => {
           onChange={setSearchQuery}
           onFocus={handleSearchFocus}
           onSearch={handleSearch}
-          onLocationSearch={handleRetryLocation}
+          onLocationSearch={handleLocationSearch}
           placeholder={t('search.placeholder', 'Search IEBC offices by county, constituency, or location...')}
         />
       </div>
@@ -722,6 +832,43 @@ const IEBCOfficeMap = () => {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Map Mode Toggle — Kenya / Diaspora */}
+      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[1000]">
+        <MapModeToggle mode={mapMode} onChange={handleMapModeChange} />
+      </div>
+
+      {/* Results Summary Pill — shows when place search has results */}
+      <AnimatePresence>
+        {radiusCenter && nearbyOffices.length > 0 && mapState.phase === 'results' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-36 left-1/2 -translate-x-1/2 z-[999]"
+          >
+            <div
+              className="inline-flex items-center gap-2 rounded-full shadow-lg px-4 py-2 text-xs font-semibold border"
+              style={{
+                background: 'rgba(255,255,255,0.95)',
+                borderColor: 'rgba(216,216,220,0.8)',
+                backdropFilter: 'blur(20px)',
+              }}
+            >
+              <span className="w-2 h-2 rounded-full bg-green-500" />
+              <span className="text-gray-700">
+                {nearbyOffices.length} IEBC office{nearbyOffices.length !== 1 ? 's' : ''} within {radiusKm}km
+              </span>
+              {nearbyOffices[0]?.distance_km != null && (
+                <>
+                  <span className="text-gray-400">·</span>
+                  <span style={{ color: '#007AFF' }}>nearest {nearbyOffices[0].distance_km.toFixed(1)}km</span>
+                </>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Draggable Route Badge - ONLY WITH LOCATION ACCESS */}
       <AnimatePresence>
@@ -852,6 +999,15 @@ const IEBCOfficeMap = () => {
             onRouteFound={handleRouteFound}
             onRouteError={handleRouteError}
             showAlternatives={false}
+          />
+        )}
+
+        {/* Radius Circle — Uber-style search area visualisation */}
+        {radiusCenter && (
+          <RadiusCircle
+            center={radiusCenter}
+            radiusKm={radiusKm}
+            animating={isRadiusAnimating}
           />
         )}
       </MapContainer>

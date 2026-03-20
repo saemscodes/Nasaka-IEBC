@@ -10,6 +10,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== NASAKA TYPOGRAPHY SYSTEM ===== */
+:root {
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+body {
+  font-family: var(--font-body);
+}
+
+code,
+pre,
+.font-mono {
+  font-family: var(--font-mono) !important;
+}
+
 /* ===== ENHANCED Z-INDEX HIERARCHY SYSTEM ===== */
 :root {
   /* Base map layers - LOWEST */

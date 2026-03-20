@@ -68,7 +68,7 @@ const AdminNexus = () => {
                             <span className="text-[10px] text-gray-500 font-medium">by CEKA</span>
                         </div>
                         <div className="h-10 w-10 rounded-full border border-white/10 p-0.5">
-                            <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xs font-bold">
+                            <div className="w-full h-full rounded-full bg-[#007AFF] flex items-center justify-center text-xs font-bold">
                                 AD
                             </div>
                         </div>

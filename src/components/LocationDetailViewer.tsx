@@ -80,16 +80,16 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
       duration: toast.duration || 3000,
       progress: 100
     };
-    
+
     setToasts(prev => [...prev, newToast]);
-    
+
     // Animate progress bar
     const interval = setInterval(() => {
-      setToasts(prev => prev.map(t => 
+      setToasts(prev => prev.map(t =>
         t.id === id ? { ...t, progress: Math.max(0, t.progress - 2) } : t
       ));
     }, newToast.duration / 50);
-    
+
     // Remove toast after duration
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
@@ -98,7 +98,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
   };
 
   const updateSearchStep = (stepId: string, status: SearchStep['status'], duration?: number) => {
-    setSearchSteps(prev => prev.map(step => 
+    setSearchSteps(prev => prev.map(step =>
       step.id === stepId ? { ...step, status, duration } : step
     ));
   };
@@ -195,7 +195,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
     setIsSearching(true);
     setSearchResults([]);
     setShowResults(false);
-    
+
     const steps = initializeSearchSteps();
     setSearchSteps(steps);
 
@@ -211,7 +211,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
       updateSearchStep('connect', 'active');
       await simulateDelay(800);
       updateSearchStep('connect', 'completed', 800);
-      
+
       let allResults: Petition[] = [];
       let exactMatches: Petition[] = [];
       let constituencyMatches: Petition[] = [];
@@ -222,21 +222,21 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
       if (location.member_of_parliament) {
         updateSearchStep('exact-match', 'active');
         await simulateDelay(1200);
-        
+
         try {
           const { data: exactMPMatches, error } = await supabase
             .from('petitions')
             .select('*')
             .eq('status', 'active')
             .ilike('mp_name', `%${location.member_of_parliament}%`);
-          
+
           if (error) throw error;
-          
+
           if (exactMPMatches && exactMPMatches.length > 0) {
             exactMatches = exactMPMatches;
             allResults = [...allResults, ...exactMatches];
             updateSearchStep('exact-match', 'completed', 1200);
-            
+
             addToast({
               type: 'success',
               title: 'Exact MP Match Found!',
@@ -245,7 +245,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
             });
           } else {
             updateSearchStep('exact-match', 'failed', 1200);
-            
+
             addToast({
               type: 'info',
               title: 'No Exact MP Match',
@@ -265,7 +265,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
       if (location.constituency || location.name) {
         updateSearchStep('constituency-match', 'active');
         await simulateDelay(1000);
-        
+
         try {
           const constituencyName = location.constituency || location.name;
           const { data: constituencyData, error } = await supabase
@@ -273,19 +273,19 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
             .select('*')
             .eq('status', 'active')
             .ilike('constituency', `%${constituencyName}%`);
-          
+
           if (error) throw error;
-          
+
           if (constituencyData && constituencyData.length > 0) {
             // Filter out already found exact matches
-            constituencyMatches = constituencyData.filter(petition => 
+            constituencyMatches = constituencyData.filter(petition =>
               !exactMatches.some(exact => exact.id === petition.id)
             );
-            
+
             if (constituencyMatches.length > 0) {
               allResults = [...allResults, ...constituencyMatches];
               updateSearchStep('constituency-match', 'completed', 1000);
-              
+
               addToast({
                 type: 'success',
                 title: 'Constituency Match Found!',
@@ -310,26 +310,26 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
       if (location.county) {
         updateSearchStep('county-match', 'active');
         await simulateDelay(900);
-        
+
         try {
           const { data: countyData, error } = await supabase
             .from('petitions')
             .select('*')
             .eq('status', 'active')
             .ilike('county', `%${location.county}%`);
-          
+
           if (error) throw error;
-          
+
           if (countyData && countyData.length > 0) {
             // Filter out already found matches
-            countyMatches = countyData.filter(petition => 
+            countyMatches = countyData.filter(petition =>
               !allResults.some(existing => existing.id === petition.id)
             );
-            
+
             if (countyMatches.length > 0) {
               allResults = [...allResults, ...countyMatches];
               updateSearchStep('county-match', 'completed', 900);
-              
+
               addToast({
                 type: 'success',
                 title: 'County Match Found!',
@@ -353,7 +353,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
       // Step 5: Partial Match Analysis
       updateSearchStep('partial-match', 'active');
       await simulateDelay(1400);
-      
+
       if (allResults.length === 0 && location.member_of_parliament) {
         try {
           // Search for partial matches using similarity scoring
@@ -362,9 +362,9 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
             .select('*')
             .eq('status', 'active')
             .limit(50);
-          
+
           if (error) throw error;
-          
+
           if (allPetitions) {
             const potentialMatches = allPetitions
               .map(petition => ({
@@ -378,12 +378,12 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
               .filter(petition => petition.similarity > 0.4) // 40% similarity threshold
               .sort((a, b) => b.similarity - a.similarity)
               .slice(0, 3); // Limit to top 3 matches
-            
+
             if (potentialMatches.length > 0) {
               partialMatches = potentialMatches;
               allResults = [...allResults, ...partialMatches];
               updateSearchStep('partial-match', 'completed', 1400);
-              
+
               addToast({
                 type: 'info',
                 title: 'Potential Matches Found',
@@ -405,27 +405,27 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
       // Step 6: Results Processing
       updateSearchStep('results', 'active');
       await simulateDelay(700);
-      
+
       // Remove duplicates and sort by relevance
-      const uniqueResults = allResults.filter((petition, index, self) => 
+      const uniqueResults = allResults.filter((petition, index, self) =>
         index === self.findIndex(p => p.id === petition.id)
       );
-      
+
       // Sort results: exact matches first, then constituency, then county, then partial
       const sortedResults = uniqueResults.sort((a, b) => {
         const aExact = exactMatches.some(exact => exact.id === a.id);
         const bExact = exactMatches.some(exact => exact.id === b.id);
         const aConstituency = constituencyMatches.some(constituency => constituency.id === a.id);
         const bConstituency = constituencyMatches.some(constituency => constituency.id === b.id);
-        
+
         if (aExact && !bExact) return -1;
         if (!aExact && bExact) return 1;
         if (aConstituency && !bConstituency) return -1;
         if (!aConstituency && bConstituency) return 1;
-        
+
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       });
-      
+
       setSearchResults(sortedResults);
       updateSearchStep('results', 'completed', 700);
 
@@ -435,13 +435,13 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
         const constituencyCount = constituencyMatches.length;
         const countyCount = countyMatches.length;
         const partialCount = partialMatches.length;
-        
+
         let resultBreakdown = '';
         if (exactCount > 0) resultBreakdown += `${exactCount} exact MP match(es)`;
         if (constituencyCount > 0) resultBreakdown += `${resultBreakdown ? ', ' : ''}${constituencyCount} constituency match(es)`;
         if (countyCount > 0) resultBreakdown += `${resultBreakdown ? ', ' : ''}${countyCount} county match(es)`;
         if (partialCount > 0) resultBreakdown += `${resultBreakdown ? ', ' : ''}${partialCount} potential match(es)`;
-        
+
         addToast({
           type: 'success',
           title: 'Search Complete!',
@@ -479,7 +479,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
       description: `Opening detailed view for petition against ${petition.mp_name}`,
       duration: 3000
     });
-    
+
     // Simulate navigation with smooth transition
     setTimeout(() => {
       // In a real app, this would be: router.push(`/petition/${petition.id}`)
@@ -554,29 +554,26 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
                   {toast.type === 'info' && <Search className="w-4 h-4 text-blue-600" />}
                 </div>
                 <div className="ml-2 sm:ml-3 flex-1 min-w-0">
-                  <h4 className={`font-bold truncate ${
-                    toast.type === 'success' ? 'text-green-900' : 
-                    toast.type === 'error' ? 'text-red-900' : 
-                    toast.type === 'warning' ? 'text-yellow-900' : 'text-blue-900'
-                  }`}>
+                  <h4 className={`font-bold truncate ${toast.type === 'success' ? 'text-green-900' :
+                      toast.type === 'error' ? 'text-red-900' :
+                        toast.type === 'warning' ? 'text-yellow-900' : 'text-blue-900'
+                    }`}>
                     {toast.title}
                   </h4>
-                  <p className={`mt-1 leading-relaxed ${
-                    toast.type === 'success' ? 'text-green-800' : 
-                    toast.type === 'error' ? 'text-red-800' : 
-                    toast.type === 'warning' ? 'text-yellow-800' : 'text-blue-800'
-                  }`}>
+                  <p className={`mt-1 leading-relaxed ${toast.type === 'success' ? 'text-green-800' :
+                      toast.type === 'error' ? 'text-red-800' :
+                        toast.type === 'warning' ? 'text-yellow-800' : 'text-blue-800'
+                    }`}>
                     {toast.description}
                   </p>
                 </div>
               </div>
               <div className="mt-2 sm:mt-3 bg-gray-200 rounded-full h-1 sm:h-1.5 overflow-hidden">
-                <div 
-                  className={`h-full rounded-full transition-all duration-150 ease-linear ${
-                    toast.type === 'success' ? 'bg-gradient-to-r from-green-400 to-green-600' : 
-                    toast.type === 'error' ? 'bg-gradient-to-r from-red-400 to-red-600' : 
-                    toast.type === 'warning' ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' : 'bg-gradient-to-r from-blue-400 to-blue-600'
-                  }`}
+                <div
+                  className={`h-full rounded-full transition-all duration-150 ease-linear ${toast.type === 'success' ? 'bg-gradient-to-r from-green-400 to-green-600' :
+                      toast.type === 'error' ? 'bg-gradient-to-r from-red-400 to-red-600' :
+                        toast.type === 'warning' ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' : 'bg-gradient-to-r from-blue-400 to-blue-600'
+                    }`}
                   style={{ width: `${toast.progress}%` }}
                 />
               </div>
@@ -588,7 +585,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
       {/* Search Progress Steps with mobile optimization */}
       {searchSteps.length > 0 && (
         <div className="fixed bottom-2 sm:bottom-4 left-2 sm:left-4 z-[60] w-[calc(100vw-1rem)] sm:w-96 max-w-md">
-          <Card className="shadow-2xl border-2 border-blue-300 bg-gradient-to-br from-blue-50/95 to-indigo-50/95 backdrop-blur-sm">
+          <Card className="shadow-2xl border-2 border-[#007AFF]/30 bg-[#007AFF]/5 backdrop-blur-sm">
             <CardHeader className="pb-2 sm:pb-3">
               <CardTitle className="text-blue-900 text-xs sm:text-sm flex items-center">
                 <Search className="w-3 h-3 sm:w-4 sm:h-4 mr-2 animate-pulse" />
@@ -599,43 +596,38 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
               {searchSteps.map((step, index) => (
                 <div
                   key={step.id}
-                  className={`flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 rounded-lg transition-all duration-500 transform ${
-                    step.status === 'active' ? 'bg-blue-100 border-2 border-blue-400 scale-105 shadow-lg' : 
-                    step.status === 'completed' ? 'bg-green-100 border-2 border-green-400 shadow-md' : 
-                    step.status === 'failed' ? 'bg-red-100 border-2 border-red-400 shadow-md' : 
-                    'bg-gray-50 border border-gray-300'
-                  } ${index === 0 ? 'animate-fade-in' : ''}`}
+                  className={`flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 rounded-lg transition-all duration-500 transform ${step.status === 'active' ? 'bg-blue-100 border-2 border-blue-400 scale-105 shadow-lg' :
+                      step.status === 'completed' ? 'bg-green-100 border-2 border-green-400 shadow-md' :
+                        step.status === 'failed' ? 'bg-red-100 border-2 border-red-400 shadow-md' :
+                          'bg-gray-50 border border-gray-300'
+                    } ${index === 0 ? 'animate-fade-in' : ''}`}
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <div className={`flex-shrink-0 transition-transform duration-300 ${
-                    step.status === 'active' ? 'animate-spin scale-110' : 
-                    step.status === 'completed' ? 'animate-bounce' : ''
-                  }`}>
+                  <div className={`flex-shrink-0 transition-transform duration-300 ${step.status === 'active' ? 'animate-spin scale-110' :
+                      step.status === 'completed' ? 'animate-bounce' : ''
+                    }`}>
                     {step.status === 'completed' ? (
                       <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-700" />
                     ) : step.status === 'failed' ? (
                       <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-700" />
                     ) : (
-                      <div className={`${
-                        step.status === 'active' ? 'text-blue-700' : 'text-gray-500'
-                      }`}>
+                      <div className={`${step.status === 'active' ? 'text-blue-700' : 'text-gray-500'
+                        }`}>
                         {step.icon}
                       </div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-xs sm:text-sm font-semibold truncate ${
-                      step.status === 'completed' ? 'text-green-900' : 
-                      step.status === 'failed' ? 'text-red-900' : 
-                      step.status === 'active' ? 'text-blue-900' : 'text-gray-700'
-                    }`}>
+                    <p className={`text-xs sm:text-sm font-semibold truncate ${step.status === 'completed' ? 'text-green-900' :
+                        step.status === 'failed' ? 'text-red-900' :
+                          step.status === 'active' ? 'text-blue-900' : 'text-gray-700'
+                      }`}>
                       {step.title}
                     </p>
-                    <p className={`text-xs truncate leading-relaxed ${
-                      step.status === 'completed' ? 'text-green-700' : 
-                      step.status === 'failed' ? 'text-red-700' : 
-                      step.status === 'active' ? 'text-blue-700' : 'text-gray-600'
-                    }`}>
+                    <p className={`text-xs truncate leading-relaxed ${step.status === 'completed' ? 'text-green-700' :
+                        step.status === 'failed' ? 'text-red-700' :
+                          step.status === 'active' ? 'text-blue-700' : 'text-gray-600'
+                      }`}>
                       {step.description}
                     </p>
                   </div>
@@ -742,10 +734,10 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
                   </div>
                 );
               })}
-              
-              <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+
+              <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-[#007AFF]/5 rounded-lg border border-[#007AFF]/20">
                 <p className="text-xs sm:text-sm text-blue-800 leading-relaxed">
-                  <strong>How it works:</strong> Click on any petition above to view details and add your signature. 
+                  <strong>How it works:</strong> Click on any petition above to view details and add your signature.
                   Each petition requires signatures from multiple wards to meet legal requirements for recall proceedings.
                 </p>
               </div>
@@ -793,14 +785,14 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
                     <p className="text-blue-700 dark:text-blue-300 text-sm sm:text-base truncate">{location.county}</p>
                   </div>
                 )}
-                
+
                 {location.constituency && (
                   <div className="bg-green-50 dark:bg-green-900/20 p-3 sm:p-4 rounded-lg">
                     <h4 className="font-semibold text-green-800 dark:text-green-200 mb-1 text-sm sm:text-base">Constituency</h4>
                     <p className="text-green-700 dark:text-green-300 text-sm sm:text-base truncate">{location.constituency}</p>
                   </div>
                 )}
-                
+
                 {location.type === 'ward' && (
                   <div className="bg-purple-50 dark:bg-purple-900/20 p-3 sm:p-4 rounded-lg">
                     <h4 className="font-semibold text-purple-800 dark:text-purple-200 mb-1 text-sm sm:text-base">Ward</h4>
@@ -823,7 +815,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
                   </p>
                 </div>
               )}
-              
+
               {location.total_voters && (
                 <div className="bg-green-50 dark:bg-green-900/20 p-3 sm:p-4 rounded-lg">
                   <div className="flex items-center space-x-2 mb-2">
@@ -842,7 +834,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
               <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
                 Leadership
               </h4>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 justify-items-center">
                 {location.member_of_parliament && (
                   <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 p-3 sm:p-4 rounded-lg border border-green-200 dark:border-green-700">
@@ -854,7 +846,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
                     </p>
                   </div>
                 )}
-                
+
                 {location.governor && (
                   <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 p-3 sm:p-4 rounded-lg border border-blue-200 dark:border-blue-700">
                     <h5 className="font-semibold text-blue-800 dark:text-blue-200 mb-1 text-sm sm:text-base">
@@ -865,9 +857,9 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
                     </p>
                   </div>
                 )}
-                
+
                 {location.senator && (
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20 p-3 sm:p-4 rounded-lg border border-purple-200 dark:border-purple-700">
+                  <div className="bg-[#007AFF]/5 dark:bg-[#007AFF]/10 p-3 sm:p-4 rounded-lg border border-[#007AFF]/20 dark:border-[#007AFF]/30">
                     <h5 className="font-semibold text-purple-800 dark:text-purple-200 mb-1 text-sm sm:text-base">
                       Senator
                     </h5>
@@ -885,7 +877,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
                 Close
               </Button>
               {location.member_of_parliament && (
-                <Button 
+                <Button
                   className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
                   onClick={searchPetitions}
                   disabled={isSearching}

@@ -73,7 +73,7 @@ const AdminSidebar = ({ activeTab, onTabChange, onLogout, isOpen, toggleSidebar 
         >
             {/* Brand Header */}
             <div className="mb-10 flex items-center h-12 px-2">
-                <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/20">
+                <div className="w-10 h-10 bg-[#007AFF] rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#007AFF]/20">
                     <ShieldCheck className="text-white" size={24} />
                 </div>
                 <motion.div

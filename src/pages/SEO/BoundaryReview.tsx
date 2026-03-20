@@ -99,8 +99,8 @@ const BoundaryReview = () => {
                         transition={{ delay: 0.1 }}
                         className={`p-10 rounded-[2.5rem] border shadow-sm ${isDark ? 'bg-ios-gray-800 border-ios-gray-700' : 'bg-white border-ios-gray-100'}`}
                     >
-                        <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-6">
-                            <TrendingUp className="w-6 h-6 text-purple-500" />
+                        <div className="w-12 h-12 rounded-2xl bg-[#007AFF]/10 flex items-center justify-center mb-6">
+                            <TrendingUp className="w-6 h-6 text-[#007AFF]" />
                         </div>
                         <h2 className="text-2xl font-bold mb-4">Population Quotas</h2>
                         <p className="text-muted-foreground leading-relaxed">

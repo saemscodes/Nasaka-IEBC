@@ -1,0 +1,1 @@
+id,ward_name,constituency,county,registration_target,created_at,member_of_parliament,total_count

@@ -101,10 +101,6 @@ export async function validateApiKey(req: Request, options: { required?: boolean
         }
     } catch { /* fail open */ }
 
-    /* Then in Cloudflare Pages → Settings → Environment Variables, add:
-    ```
-    MAINTENANCE_MODE = false */
-
     const apiKey = req.headers.get('X-API-Key');
     const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'guest';
     const isPublic = !apiKey;
@@ -271,6 +267,24 @@ export async function validateApiKey(req: Request, options: { required?: boolean
         remaining: monthlyLimit - k.monthly_request_count,
         creditsBalance: k.credits_balance as number
     };
+}
+
+// ---- Credit Deduction (fire-and-forget) ----
+export async function deductCredits(keyId: string, weight: number = 1) {
+    const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!SUPABASE_URL || !SUPABASE_KEY || weight <= 0) return;
+
+    // Call RPC to atomically decrement credits_balance
+    fetch(`${SUPABASE_URL}/rest/v1/rpc/deduct_credits`, {
+        method: 'POST',
+        headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ p_key_id: keyId, p_amount: weight })
+    }).catch(() => { }); // fire-and-forget
 }
 
 // ---- Usage Logging (fire-and-forget) ----

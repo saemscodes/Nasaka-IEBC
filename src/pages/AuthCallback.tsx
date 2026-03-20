@@ -16,12 +16,25 @@ const AuthCallback = () => {
     const errorParam = searchParams.get('error');
     const errorDescription = searchParams.get('error_description');
 
+    // AuthCallback.tsx
     useEffect(() => {
         const handleAuthCallback = async () => {
             setIsProcessing(true);
             setError(null);
 
-            // Handle OAuth errors
+            // 1. Handle CEKA OAuth specifically
+            // If there's a 'code' from CEKA but no Supabase internal '__auth_token' match,
+            // it's a redirect from CEKA to authorize the sandbox.
+            const code = searchParams.get('code');
+            if (code && !errorParam) {
+                console.log('[AuthCallback] Detected CEKA OAuth code, redirecting to sandbox...');
+                // We redirect to the docs page with the code in the hash fragment or query
+                // SandboxWidget will pick this up to initialize the session
+                navigate(`/docs?code=${code}#sandbox`, { replace: true });
+                return;
+            }
+
+            // 2. Handle standard OAuth errors (both Supabase and CEKA)
             if (errorParam) {
                 setError(errorDescription || 'Authentication failed');
                 toast.error(errorDescription || 'Authentication failed');

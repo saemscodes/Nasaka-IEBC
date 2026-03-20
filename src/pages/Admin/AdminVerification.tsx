@@ -91,7 +91,7 @@ const AdminVerification: React.FC<AdminVerificationProps> = ({ onVerified }) => 
                 boxShadow: ["0 0 20px rgba(59, 130, 246, 0.2)", "0 0 40px rgba(59, 130, 246, 0.4)", "0 0 20px rgba(59, 130, 246, 0.2)"]
               }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="w-20 h-20 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/20"
+              className="w-20 h-20 bg-[#007AFF] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-[#007AFF]/20"
             >
               <Shield className="w-10 h-10 text-white" />
             </motion.div>

@@ -62,7 +62,7 @@ interface PaymentRecord {
     created_at: string;
 }
 
-// ─── Tier Config ─────────────────────────────────────────────────────────────
+// ─── Tier Config (Nasaka Blue) ───────────────────────────────────────────────
 const TIER_CONFIG: Record<string, {
     icon: React.ReactNode;
     color: string;
@@ -70,10 +70,10 @@ const TIER_CONFIG: Record<string, {
     monthlyLimit: number;
     label: string;
 }> = {
-    jamii: { icon: <Users className="w-4 h-4" />, color: 'text-emerald-500', bgColor: 'bg-emerald-500/10', monthlyLimit: 5000, label: 'Jamii (Community)' },
-    mwananchi: { icon: <Zap className="w-4 h-4" />, color: 'text-blue-500', bgColor: 'bg-blue-500/10', monthlyLimit: 100000, label: 'Mwananchi' },
-    taifa: { icon: <Crown className="w-4 h-4" />, color: 'text-purple-500', bgColor: 'bg-purple-500/10', monthlyLimit: 500000, label: 'Taifa' },
-    serikali: { icon: <Building2 className="w-4 h-4" />, color: 'text-amber-500', bgColor: 'bg-amber-500/10', monthlyLimit: 0, label: 'Serikali (Enterprise)' }
+    jamii: { icon: <img src="/icons/tiers/jamii.svg" alt="Jamii" className="w-4 h-4" />, color: 'text-[#007AFF]', bgColor: 'bg-[#007AFF]/5', monthlyLimit: 5000, label: 'Jamii (Community)' },
+    mwananchi: { icon: <img src="/icons/tiers/mwananchi.svg" alt="Mwananchi" className="w-4 h-4" />, color: 'text-[#007AFF]', bgColor: 'bg-[#007AFF]/10', monthlyLimit: 100000, label: 'Mwananchi' },
+    taifa: { icon: <img src="/icons/tiers/taifa.svg" alt="Taifa" className="w-4 h-4" />, color: 'text-[#007AFF]', bgColor: 'bg-[#007AFF]/15', monthlyLimit: 500000, label: 'Taifa' },
+    serikali: { icon: <img src="/icons/tiers/serikali.svg" alt="Serikali" className="w-4 h-4" />, color: 'text-[#007AFF]', bgColor: 'bg-[#007AFF]/20', monthlyLimit: 0, label: 'Serikali (Enterprise)' }
 };
 
 // ─── Stat Card ───────────────────────────────────────────────────────────────
@@ -237,7 +237,7 @@ const ApiKeyRow = ({
                 {apiKey.tier !== 'serikali' && apiKey.tier !== 'taifa' && (
                     <Link
                         to="/pricing"
-                        className="flex-1 py-2.5 rounded-xl text-center font-bold text-sm bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:shadow-lg active:scale-[0.98] transition-all"
+                        className="flex-1 py-2.5 rounded-xl text-center font-bold text-sm bg-[#007AFF] hover:bg-[#0055CC] text-white hover:shadow-lg active:scale-[0.98] transition-all"
                     >
                         Upgrade Plan
                     </Link>
@@ -325,7 +325,7 @@ const ApiKeys = () => {
     const [searchParams] = useSearchParams();
     const { user, isAuthenticated, signOut, loading: authLoading } = useAuth();
 
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [apiKeys, setApiKeys] = useState<ApiKeyData[]>([]);
     const [payments, setPayments] = useState<PaymentRecord[]>([]);
     const [paymentsLoading, setPaymentsLoading] = useState(true);
@@ -477,7 +477,7 @@ const ApiKeys = () => {
                             </Link>
                             <Link
                                 to="/pricing"
-                                className="px-6 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:shadow-lg active:scale-[0.98] transition-all flex items-center gap-2"
+                                className="px-6 py-2.5 rounded-xl font-bold text-sm bg-[#007AFF] hover:bg-[#0055CC] text-white hover:shadow-lg active:scale-[0.98] transition-all flex items-center gap-2"
                             >
                                 Upgrade
                                 <ArrowUpRight className="w-4 h-4" />
@@ -523,7 +523,7 @@ const ApiKeys = () => {
                         value={payments.filter(p => p.status === 'success').length}
                         subtext={`KES ${payments.filter(p => p.status === 'success').reduce((s, p) => s + p.amount_kobo / 100, 0).toLocaleString()}`}
                         isDark={isDark}
-                        color="text-purple-500"
+                        color="text-[#007AFF]"
                     />
                 </motion.div>
 
@@ -578,7 +578,7 @@ const ApiKeys = () => {
                     <h2 className="text-2xl font-black mb-6">Data Exports</h2>
                     <div className={`p-8 rounded-[2.5rem] border ${isDark ? 'bg-ios-gray-800 border-ios-gray-700' : 'bg-white border-ios-gray-100 shadow-sm'}`}>
                         <div className="flex items-center gap-4 mb-6">
-                            <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+                            <div className="w-12 h-12 rounded-2xl bg-[#007AFF]/10 flex items-center justify-center text-[#007AFF]">
                                 <Database className="w-6 h-6" />
                             </div>
                             <div>
@@ -660,7 +660,7 @@ const ApiKeys = () => {
                         to="/pricing"
                         className={`p-6 rounded-[2rem] border flex items-center gap-4 transition-all hover:scale-[1.02] ${isDark ? 'bg-ios-gray-800 border-ios-gray-700' : 'bg-white border-ios-gray-100 shadow-sm'}`}
                     >
-                        <CreditCard className="w-6 h-6 text-purple-500" />
+                        <CreditCard className="w-6 h-6 text-[#007AFF]" />
                         <div>
                             <p className="font-bold">Pricing</p>
                             <p className="text-xs text-muted-foreground">Compare tiers & upgrade</p>

@@ -6,6 +6,17 @@ import { useNavigate } from 'react-router-dom';
 import { slugify } from '@/components/SEO/SEOHead';
 import Fuse from 'fuse.js';
 import { useTheme } from '@/contexts/ThemeContext';
+import { geocodeCached } from '@/lib/geocode-cached';
+import { pipelineGeocodeWithCache } from '@/lib/geocode-cached';
+import { setLocalOffices } from '@/lib/geocoding/pipeline';
+import {
+  normalizeQuery,
+  calculateItemRelevanceScore,
+  sortByRelevance,
+  highlightSearchMatches,
+  trackSearchEvent,
+  globalSearchCache,
+} from '@/lib/searchUtils';
 
 const SearchBar = ({
   value,
@@ -70,6 +81,9 @@ const SearchBar = ({
 
       setAllOffices(data || []);
 
+      // Feed data into the geocoding pipeline's local layer
+      setLocalOffices(data || []);
+
       // Initialize Fuse.js for fuzzy search
       const fuseOptions = {
         keys: [
@@ -95,23 +109,69 @@ const SearchBar = ({
     }
   };
 
-  // Enhanced search function with Fuse.js
-  const performSearch = useCallback((searchTerm) => {
+  // Enhanced search function with Fuse.js + 13-layer pipeline fallback + searchUtils scoring
+  const performSearch = useCallback(async (searchTerm) => {
     if (!searchTerm.trim() || !fuse) {
       setSuggestions([]);
       return;
     }
 
     setIsLoading(true);
+    const normalized = normalizeQuery(searchTerm);
+
+    // Check in-memory cache first
+    const cachedResult = globalSearchCache.get(`suggestions:${normalized}`);
+    if (cachedResult) {
+      setSuggestions(cachedResult);
+      setIsLoading(false);
+      return;
+    }
 
     try {
+      // ── Tier 1: Fuse.js (local, instant) ─────────────────────────────────
       const results = fuse.search(searchTerm).slice(0, 8);
-      const formattedSuggestions = results.map(result => ({
+      let formattedSuggestions = results.map(result => ({
         ...result.item,
         matches: result.matches,
         score: result.score,
         type: 'office'
       }));
+
+      // ── Re-rank with searchUtils relevance scoring ──────────────────────
+      if (formattedSuggestions.length > 1) {
+        formattedSuggestions = sortByRelevance(formattedSuggestions, searchTerm)
+          .map(item => ({ ...item, type: 'office' }))
+          .slice(0, 8);
+      }
+
+      // ── Tier 2: Multi-layer pipeline (when Fuse returns < 3 results) ───
+      if (formattedSuggestions.length < 3 && searchTerm.length >= 3) {
+        try {
+          const pipelineResult = await pipelineGeocodeWithCache(searchTerm, {
+            isGlobal: false,
+          });
+
+          if (pipelineResult.result) {
+            const place = pipelineResult.result;
+            const placeSuggestion = {
+              id: `place-${place.lat}-${place.lng}`,
+              name: place.name,
+              county: place.county,
+              displayName: place.displayName,
+              latitude: place.lat,
+              longitude: place.lng,
+              boundingBox: place.boundingBox,
+              type: 'place',
+              score: place.confidence,
+              pipelineSource: pipelineResult.layerUsed,
+              pipelineDepth: pipelineResult.fallbackDepth,
+            };
+            formattedSuggestions.push(placeSuggestion);
+          }
+        } catch {
+          // Pipeline exhausted — still show whatever Fuse found
+        }
+      }
 
       // Add search query suggestion
       if (searchTerm.length > 2) {
@@ -123,6 +183,16 @@ const SearchBar = ({
           query: searchTerm
         });
       }
+
+      // Cache in memory for 5 minutes
+      globalSearchCache.set(`suggestions:${normalized}`, formattedSuggestions);
+
+      // Track search analytics
+      trackSearchEvent('search_performed', {
+        query: searchTerm,
+        source: formattedSuggestions.some(s => s.type === 'place') ? 'pipeline' : 'fuse',
+        resultsCount: formattedSuggestions.length,
+      });
 
       setSuggestions(formattedSuggestions);
     } catch (error) {
@@ -168,6 +238,15 @@ const SearchBar = ({
   const handleSuggestionSelect = (suggestion) => {
     if (suggestion.type === 'office' && onSearch) {
       onSearch(suggestion);
+    } else if (suggestion.type === 'place' && onLocationSearch) {
+      // Uber-style: user selected a geocoded place — trigger location-based search
+      onLocationSearch({
+        latitude: suggestion.latitude,
+        longitude: suggestion.longitude,
+        name: suggestion.name,
+        county: suggestion.county,
+        boundingBox: suggestion.boundingBox,
+      });
     } else if (suggestion.type === 'search_query' && onSearch) {
       // FIX: Treat search_query suggestions the same as pressing Enter
       onSearch({ searchQuery: suggestion.query });
@@ -250,6 +329,13 @@ const SearchBar = ({
       return {
         primary: suggestion.name,
         secondary: suggestion.subtitle
+      };
+    }
+
+    if (suggestion.type === 'place') {
+      return {
+        primary: suggestion.name,
+        secondary: suggestion.county ? `${suggestion.county} County · 📍 Place` : suggestion.displayName?.split(',').slice(1, 3).join(',')
       };
     }
 

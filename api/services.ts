@@ -30,6 +30,8 @@ export default async function handler(req: Request): Promise<Response> {
             return handleVerifyVoter(req, headers);
         case 'enquire':
             return handleEnquire(req, headers);
+        case 'auth-callback':
+            return handleAuthCallback(req, headers);
         case 'download':
             return handleDownload(req, headers);
         case 'usage':
@@ -104,20 +106,268 @@ async function handleVerifyVoter(req: Request, headers: any) {
 
 async function handleEnquire(req: Request, headers: any) {
     if (req.method !== 'POST') return errorResponse('Method not allowed', 405);
-    return Response.json({ message: 'Enquiry submitted' }, { headers });
+
+    const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!SUPABASE_URL || !SUPABASE_KEY) return errorResponse('Server misconfiguration', 500);
+
+    let body: any;
+    try { body = await req.json(); } catch { return errorResponse('Invalid JSON body', 400); }
+
+    const { organisation_name, contact_name, contact_email, contact_phone, organisation_type, use_case, estimated_monthly_requests, preferred_currency } = body;
+
+    if (!organisation_name || !contact_name || !contact_email || !organisation_type || !use_case) {
+        return errorResponse('Missing required fields: organisation_name, contact_name, contact_email, organisation_type, use_case', 400);
+    }
+
+    const insertResp = await fetch(`${SUPABASE_URL}/rest/v1/nasaka_enterprise_leads`, {
+        method: 'POST',
+        headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({
+            organisation_name,
+            contact_name,
+            contact_email,
+            contact_phone: contact_phone || null,
+            organisation_type,
+            use_case,
+            estimated_monthly_requests: estimated_monthly_requests || null,
+            preferred_currency: preferred_currency || 'KES',
+            status: 'new'
+        })
+    });
+
+    if (!insertResp.ok) {
+        const errText = await insertResp.text();
+        return errorResponse(`Failed to save enquiry: ${errText}`, 502);
+    }
+
+    const inserted = await insertResp.json();
+    return Response.json({ message: 'Enquiry submitted successfully', id: inserted?.[0]?.id || null }, { headers });
 }
 
 async function handleAuthCallback(req: Request, headers: any) {
     const url = new URL(req.url);
     const code = url.searchParams.get('code');
-    if (!code) return Response.redirect(`${url.origin}/auth?error=missing_code`);
-    // Redirect to dashboard
+    const state = url.searchParams.get('state');
+    const errorParam = url.searchParams.get('error');
+
+    if (errorParam) {
+        return Response.redirect(`${url.origin}/?auth_error=${encodeURIComponent(errorParam)}`);
+    }
+
+    if (!code) {
+        return Response.redirect(`${url.origin}/?auth_error=missing_code`);
+    }
+
+    // Decode CEKA OAuth code (base64 JSON: { u: userId, t: timestamp })
+    let cekaData: { u: string; t: number };
+    try {
+        cekaData = JSON.parse(atob(code));
+    } catch {
+        return Response.redirect(`${url.origin}/?auth_error=invalid_code`);
+    }
+
+    const cekaUserId = cekaData.u;
+    const codeTimestamp = cekaData.t;
+
+    if (!cekaUserId || !codeTimestamp) {
+        return Response.redirect(`${url.origin}/?auth_error=malformed_code`);
+    }
+
+    // Verify code is recent (5 minute window)
+    if (Date.now() - codeTimestamp > 5 * 60 * 1000) {
+        return Response.redirect(`${url.origin}/?auth_error=expired_code`);
+    }
+
+    const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+    const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+        return Response.redirect(`${url.origin}/?auth_error=server_misconfigured`);
+    }
+
+    // Check if a Nasaka profile already exists with this CEKA ID
+    const profileResp = await fetch(
+        `${SUPABASE_URL}/rest/v1/nasaka_profiles?ceka_id=eq.${cekaUserId}&select=user_id`,
+        {
+            headers: {
+                'apikey': SUPABASE_SERVICE_KEY,
+                'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
+            }
+        }
+    );
+
+    const profiles: any[] = await profileResp.json();
+    let nasakaUserId: string;
+
+    if (profiles.length > 0) {
+        // Existing linked user — generate a magic link for sign-in
+        nasakaUserId = profiles[0].user_id;
+    } else {
+        // New CEKA user — create a Nasaka account
+        // Generate a deterministic email from CEKA user ID to create the Supabase user
+        const cekaEmail = `ceka_${cekaUserId.replace(/-/g, '').slice(0, 12)}@nasaka.ceka.link`;
+        const tempPassword = `ceka_${cekaUserId}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+
+        // Create user via Supabase Admin API
+        const createResp = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+            method: 'POST',
+            headers: {
+                'apikey': SUPABASE_SERVICE_KEY,
+                'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: cekaEmail,
+                password: tempPassword,
+                email_confirm: true,
+                user_metadata: {
+                    display_name: `CEKA User`,
+                    auth_source: 'ceka_oauth',
+                    ceka_user_id: cekaUserId
+                }
+            })
+        });
+
+        if (!createResp.ok) {
+            const errText = await createResp.text();
+            console.error('Failed to create CEKA user:', errText);
+            return Response.redirect(`${url.origin}/?auth_error=account_creation_failed`);
+        }
+
+        const newUser = await createResp.json();
+        nasakaUserId = newUser.id;
+
+        // Link the CEKA ID to the nasaka_profiles record (trigger creates it)
+        await fetch(
+            `${SUPABASE_URL}/rest/v1/nasaka_profiles?user_id=eq.${nasakaUserId}`,
+            {
+                method: 'PATCH',
+                headers: {
+                    'apikey': SUPABASE_SERVICE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({
+                    ceka_id: cekaUserId,
+                    ceka_data: { linked_at: new Date().toISOString(), source: 'oauth_callback' }
+                })
+            }
+        );
+    }
+
+    // Generate a magic link for the user to establish a Supabase session
+    const magicLinkResp = await fetch(`${SUPABASE_URL}/auth/v1/admin/generate_link`, {
+        method: 'POST',
+        headers: {
+            'apikey': SUPABASE_SERVICE_KEY,
+            'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            type: 'magiclink',
+            email: profiles.length > 0
+                ? undefined  // Will be filled by the user lookup below
+                : `ceka_${cekaUserId.replace(/-/g, '').slice(0, 12)}@nasaka.ceka.link`,
+            options: {
+                redirect_to: `${url.origin}/dashboard/api-keys?auth_source=ceka`
+            }
+        })
+    });
+
+    if (!magicLinkResp.ok) {
+        // Fallback: If magic link generation fails, look up the user email and try again
+        const userLookupResp = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${nasakaUserId}`, {
+            headers: {
+                'apikey': SUPABASE_SERVICE_KEY,
+                'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
+            }
+        });
+
+        if (userLookupResp.ok) {
+            const userData = await userLookupResp.json();
+            const retryResp = await fetch(`${SUPABASE_URL}/auth/v1/admin/generate_link`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_SERVICE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    type: 'magiclink',
+                    email: userData.email,
+                    options: {
+                        redirect_to: `${url.origin}/dashboard/api-keys?auth_source=ceka`
+                    }
+                })
+            });
+
+            if (retryResp.ok) {
+                const retryData = await retryResp.json();
+                const actionLink = retryData.properties?.action_link;
+                if (actionLink) {
+                    return Response.redirect(actionLink);
+                }
+            }
+        }
+
+        // Ultimate fallback: redirect to dashboard with auth_source flag
+        return Response.redirect(`${url.origin}/dashboard/api-keys?auth_source=ceka&ceka_linked=true`);
+    }
+
+    const linkData = await magicLinkResp.json();
+    const actionLink = linkData.properties?.action_link;
+
+    if (actionLink) {
+        return Response.redirect(actionLink);
+    }
+
+    // Fallback redirect
     return Response.redirect(`${url.origin}/dashboard/api-keys?auth_source=ceka`);
 }
 
 async function handleDownload(req: Request, headers: any) {
     if (req.method !== 'GET') return errorResponse('Method not allowed', 405);
-    return Response.json({ success: true, download_url: "https://blob.example.com/data.json" }, { headers });
+
+    const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!SUPABASE_URL || !SUPABASE_KEY) return errorResponse('Server misconfiguration', 500);
+
+    const licenseId = new URL(req.url).searchParams.get('license_id');
+    if (!licenseId) return errorResponse('Missing license_id', 400);
+
+    // Verify the license is approved and not expired
+    const licResp = await fetch(
+        `${SUPABASE_URL}/rest/v1/nasaka_license_applications?id=eq.${licenseId}&status=eq.approved&select=download_url,download_expires_at`,
+        {
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`
+            }
+        }
+    );
+
+    const licenses: any[] = await licResp.json();
+    if (!licenses || licenses.length === 0) {
+        return errorResponse('License not found or not approved', 404);
+    }
+
+    const lic = licenses[0];
+    if (lic.download_expires_at && new Date(lic.download_expires_at) < new Date()) {
+        return errorResponse('Download link has expired. Contact support.', 410);
+    }
+
+    if (!lic.download_url) {
+        return errorResponse('Download not yet available. The dataset is being prepared.', 202);
+    }
+
+    return Response.json({ success: true, download_url: lic.download_url }, { headers });
 }
 
 async function handleUsage(req: Request, headers: any) {

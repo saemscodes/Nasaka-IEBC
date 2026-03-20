@@ -1,6 +1,6 @@
 export const config = { runtime: 'nodejs' };
 
-import { validateApiKey, errorResponse, corsHeaders, logApiUsage } from '../../src/api-lib/api-auth';
+import { validateApiKey, errorResponse, corsHeaders, logApiUsage, deductCredits } from '../../src/api-lib/api-auth';
 import { createLogger } from '../../src/api-lib/logger';
 
 export default async function handler(req: Request): Promise<Response> {
@@ -33,6 +33,7 @@ export default async function handler(req: Request): Promise<Response> {
     const url = new URL(req.url);
     const county = url.searchParams.get('county');
     const constituency = url.searchParams.get('constituency');
+    const ward = url.searchParams.get('ward');
     const verified = url.searchParams.get('verified');
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '50'), 200);
     const offset = parseInt(url.searchParams.get('offset') || '0');
@@ -40,7 +41,7 @@ export default async function handler(req: Request): Promise<Response> {
     // ---- 1. REQUEST COST WEIGHTING ----
     let weight = 1;
     if (limit > 100) weight += 1;
-    if (!county && !constituency) weight += 1; // Heavy full-database scan
+    if (!county && !constituency && !ward) weight += 1; // Heavy full-database scan
 
     // Canonical 47 Kenyan counties — normalize variants
     const COUNTY_NORMALIZE: Record<string, string> = {
@@ -77,13 +78,14 @@ export default async function handler(req: Request): Promise<Response> {
     }
 
     try {
-        let queryUrl = `${SUPABASE_URL}/rest/v1/iebc_offices?select=id,constituency,county,office_location,latitude,longitude,verified,formatted_address,landmark,geocode_status,confidence_score&order=county.asc,constituency.asc&limit=${limit}&offset=${offset}`;
+        let queryUrl = `${SUPABASE_URL}/rest/v1/iebc_offices?select=id,constituency,county,ward,office_location,latitude,longitude,verified,formatted_address,landmark,geocode_status,confidence_score&order=county.asc,constituency.asc&limit=${limit}&offset=${offset}`;
 
         if (county) {
             const normalized = normalizeCounty(county);
             queryUrl += `&county=ilike.*${encodeURIComponent(normalized || county)}*`;
         }
         if (constituency) queryUrl += `&constituency=ilike.*${encodeURIComponent(constituency)}*`;
+        if (ward) queryUrl += `&ward=ilike.*${encodeURIComponent(ward)}*`;
         if (verified === 'true') queryUrl += `&verified=eq.true`;
         if (verified === 'false') queryUrl += `&verified=eq.false`;
 
@@ -97,7 +99,7 @@ export default async function handler(req: Request): Promise<Response> {
         });
 
         if (!resp.ok) {
-            // Blob fallback... (omitted for brevity in this snippet, but preserved in full)
+            // Blob fallback...
             const BLOB_FALLBACK_URL = `https://nasaka-iebc.public.blob.vercel-storage.com/datasets/offices-latest.json`;
             const fbResp = await fetch(BLOB_FALLBACK_URL);
             if (fbResp.ok) {
@@ -134,12 +136,13 @@ export default async function handler(req: Request): Promise<Response> {
 
         // Log usage with weight
         logApiUsage(auth.keyId, '/api/v1/offices', 'GET', 200, startTime, req, weight);
+        deductCredits(auth.keyId, weight);
         logger.success(200, auth.tier, 'MISS', { weight });
 
         return Response.json({
             data: offices,
             pagination: { total, limit, offset, has_more: offset + limit < total },
-            meta: { tier: auth.tier, shaped: isLowTier }
+            meta: { tier: auth.tier, shaped: isLowTier, timestamp: new Date().toISOString() }
         }, {
             headers: {
                 ...corsHeaders(),

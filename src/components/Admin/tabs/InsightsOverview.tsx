@@ -265,7 +265,7 @@ const InsightsOverview = ({ onTabChange }: { onTabChange?: (tab: string) => void
 
                 {/* System Health / Alerts */}
                 <div className="space-y-6">
-                    <div className="bg-gradient-to-br from-blue-600/20 to-indigo-600/20 border border-blue-500/20 rounded-[2.5rem] p-8 relative overflow-hidden">
+                    <div className="bg-[#007AFF]/20 border border-[#007AFF]/20 rounded-[2.5rem] p-8 relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-6 opacity-10">
                             <ShieldCheck size={120} />
                         </div>

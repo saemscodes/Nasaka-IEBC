@@ -25,6 +25,7 @@ export default async function handler(req: Request): Promise<Response> {
     const url = new URL(req.url);
     const county = url.searchParams.get('county');
     const constituency = url.searchParams.get('constituency');
+    const ward = url.searchParams.get('ward');
     const verifiedOnly = url.searchParams.get('verified') === 'true';
     const format = url.searchParams.get('format') || 'json';
 
@@ -63,13 +64,14 @@ export default async function handler(req: Request): Promise<Response> {
     }
 
     try {
-        let queryUrl = `${SUPABASE_URL}/rest/v1/iebc_offices?select=id,constituency,constituency_code,county,office_location,latitude,longitude,verified,verified_latitude,verified_longitude,geocode_status,geocode_method,confidence_score,accuracy_meters,formatted_address&latitude=not.is.null&longitude=not.is.null&order=county.asc,constituency.asc`;
+        let queryUrl = `${SUPABASE_URL}/rest/v1/iebc_offices?select=id,constituency,constituency_code,county,ward,office_location,latitude,longitude,verified,verified_latitude,verified_longitude,geocode_status,geocode_method,confidence_score,accuracy_meters,formatted_address&latitude=not.is.null&longitude=not.is.null&order=county.asc,constituency.asc`;
 
         if (county) {
             const normalized = normalizeCounty(county);
             queryUrl += `&county=ilike.*${encodeURIComponent(normalized || county)}*`;
         }
         if (constituency) queryUrl += `&constituency=ilike.*${encodeURIComponent(constituency)}*`;
+        if (ward) queryUrl += `&ward=ilike.*${encodeURIComponent(ward)}*`;
         if (verifiedOnly) queryUrl += `&verified=eq.true`;
 
         const resp = await fetch(queryUrl, {
@@ -115,6 +117,7 @@ export default async function handler(req: Request): Promise<Response> {
                         constituency: o.constituency,
                         constituency_code: o.constituency_code,
                         county: o.county,
+                        ward: o.ward,
                         office_location: o.office_location,
                         verified: o.verified,
                         geocode_status: o.geocode_status,
@@ -137,9 +140,9 @@ export default async function handler(req: Request): Promise<Response> {
 
         // CSV format
         if (format === 'csv') {
-            const header = 'id,constituency,constituency_code,county,office_location,latitude,longitude,verified_latitude,verified_longitude,verified,geocode_status,confidence_score,accuracy_meters';
+            const header = 'id,constituency,constituency_code,county,ward,office_location,latitude,longitude,verified_latitude,verified_longitude,verified,geocode_status,confidence_score,accuracy_meters';
             const rows = offices.map(o =>
-                [o.id, `"${(o.constituency || '').replace(/"/g, '""')}"`, o.constituency_code, `"${(o.county || '').replace(/"/g, '""')}"`, `"${(o.office_location || '').replace(/"/g, '""')}"`, o.latitude, o.longitude, o.verified_latitude, o.verified_longitude, o.verified, o.geocode_status, o.confidence_score, o.accuracy_meters].join(',')
+                [o.id, `"${(o.constituency || '').replace(/"/g, '""')}"`, o.constituency_code, `"${(o.county || '').replace(/"/g, '""')}"`, `"${(o.ward || '').replace(/"/g, '""')}"`, `"${(o.office_location || '').replace(/"/g, '""')}"`, o.latitude, o.longitude, o.verified_latitude, o.verified_longitude, o.verified, o.geocode_status, o.confidence_score, o.accuracy_meters].join(',')
             );
             const csv = [header, ...rows].join('\n');
 
@@ -159,6 +162,7 @@ export default async function handler(req: Request): Promise<Response> {
             constituency: o.constituency,
             constituency_code: o.constituency_code,
             county: o.county,
+            ward: o.ward,
             office_location: o.office_location,
             coordinates: {
                 latitude: o.verified_latitude || o.latitude,

@@ -1,1 +1,12 @@
-/*    /index.html   200
+# Cloudflare Pages redirects
+# Legacy IEBC office routes
+/IEBC.office / 301
+/iebc-office / 301
+/iebc-office/map /map 301
+/iebc-office/privacy /privacy 301
+/iebc-office/terms /terms 301
+/nasaka-iebc/privacy /privacy 301
+/nasaka-iebc/terms /terms 301
+
+# SPA fallback (must be last)
+/* /index.html 200

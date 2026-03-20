@@ -8,13 +8,14 @@ import { supabaseCustom, authPKCE } from '@/integrations/supabase/customClient';
 import Fuse from 'fuse.js';
 import { debounce } from '@/lib/searchUtils';
 import { toast } from 'sonner';
-import { 
-  getCachedOffices, 
-  setCachedOffices, 
+import {
+  getCachedOffices,
+  setCachedOffices,
   clearOfficesCache,
   networkStatus,
   addToSyncQueue
 } from '@/utils/offlineStorage';
+import { calculateDistance } from '@/utils/geoUtils';
 
 interface Office {
   id: number;
@@ -109,7 +110,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     cacheSize: 0,
     isExpired: false
   });
-  
+
   const searchControllerRef = useRef<AbortController | null>(null);
   const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -122,7 +123,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
         fetchOffices(true);
       }
     });
-    
+
     return removeListener;
   }, [loading]);
 
@@ -154,9 +155,9 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    
+
     abortControllerRef.current = new AbortController();
-    
+
     try {
       setLoading(true);
       setError(null);
@@ -166,13 +167,13 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
         if (cached?.data?.length > 0) {
           const cacheAge = Date.now() - cached.timestamp;
           const isCacheValid = cacheAge < cacheDuration;
-          
+
           if (isCacheValid) {
             setOffices(cached.data);
             setLastSyncTime(new Date(cached.timestamp));
             setLoading(false);
             await updateCacheStatus();
-            
+
             if (!isOffline) {
               fetchFreshData();
             }
@@ -185,10 +186,10 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
 
       const freshData = await fetchFreshData();
       return freshData;
-      
+
     } catch (err: any) {
       console.error('Error fetching offices:', err);
-      
+
       const cached = await getCachedOffices();
       if (!cached?.data?.length) {
         setError(err.message || 'Failed to load IEBC offices');
@@ -197,7 +198,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
         setLastSyncTime(new Date(cached.timestamp));
         setError('Using cached data - ' + (err.message || 'Network error'));
       }
-      
+
       return [];
     } finally {
       setLoading(false);
@@ -211,7 +212,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     }
 
     const client = window.location.pathname.includes('/admin') ? supabaseCustom : supabase;
-    
+
     const { data, error: supabaseError } = await client
       .from('iebc_offices')
       .select('*')
@@ -261,7 +262,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
       ignoreLocation: true,
       distance: 100
     };
-    
+
     setFuse(new Fuse(validOffices, fuseOptions));
 
     return validOffices;
@@ -269,7 +270,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
 
   const performSearch = useCallback(async (query: string, options: any = {}) => {
     const { source = 'ui', autoSelectFirst = false, useCache = true } = options;
-    
+
     if (!query.trim()) {
       setSearchResults([]);
       setSearchSuggestions([]);
@@ -283,10 +284,10 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     searchControllerRef.current = new AbortController();
 
     setIsSearching(true);
-    
+
     try {
       let results: any[] = [];
-      
+
       if (fuse) {
         const fuseResults = fuse.search(query.trim());
         results = fuseResults.map(result => ({
@@ -301,7 +302,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
         if (cached?.data?.length) {
           const lowercaseQuery = query.toLowerCase();
           results = cached.data
-            .filter(office => 
+            .filter(office =>
               office.county?.toLowerCase().includes(lowercaseQuery) ||
               office.constituency_name?.toLowerCase().includes(lowercaseQuery) ||
               office.office_location?.toLowerCase().includes(lowercaseQuery)
@@ -366,9 +367,9 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
           type: 'office'
         }));
       }
-      
+
       const lowercaseQuery = query.toLowerCase();
-      return offices.filter(office => 
+      return offices.filter(office =>
         office.county?.toLowerCase().includes(lowercaseQuery) ||
         office.constituency_name?.toLowerCase().includes(lowercaseQuery) ||
         office.office_location?.toLowerCase().includes(lowercaseQuery)
@@ -392,7 +393,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
 
   const handleSearch = useCallback((query: string, options: any = {}) => {
     setSearchQuery(query);
-    
+
     if (query.trim()) {
       debouncedSearch(query, options);
     } else {
@@ -407,7 +408,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     setSearchResults([]);
     setSearchSuggestions([]);
     setIsSearching(false);
-    
+
     if (searchControllerRef.current) {
       searchControllerRef.current.abort();
     }
@@ -415,7 +416,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
 
   const getOfficesByCounty = useCallback((county: string) => {
     if (!county) return offices;
-    return offices.filter(office => 
+    return offices.filter(office =>
       office.county?.toLowerCase() === county.toLowerCase()
     );
   }, [offices]);
@@ -426,15 +427,15 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
 
   const getNearbyOffices = useCallback((lat: number, lng: number, radiusKm = 50) => {
     if (!lat || !lng) return [];
-    
+
     return offices.filter(office => {
       if (!office.latitude || !office.longitude) return false;
-      
+
       const distance = calculateDistance(
         lat, lng,
         office.latitude, office.longitude
       );
-      
+
       return distance <= radiusKm;
     });
   }, [offices]);
@@ -445,7 +446,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
         fetchOffices(true);
       }, refreshInterval);
     }
-    
+
     return () => {
       if (refreshTimerRef.current) {
         clearInterval(refreshTimerRef.current);
@@ -455,7 +456,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
 
   useEffect(() => {
     if (isOffline) return;
-    
+
     const subscription = supabase
       .channel('iebc-offices-changes')
       .on(
@@ -468,7 +469,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
         },
         (payload) => {
           console.log('Database change detected:', payload.eventType);
-          
+
           switch (payload.eventType) {
             case 'INSERT':
               if (payload.new.verified) {
@@ -484,28 +485,28 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
                 });
               }
               break;
-              
+
             case 'UPDATE':
-              setOffices(prev => 
-                prev.map(office => 
-                  office.id === payload.new.id 
+              setOffices(prev =>
+                prev.map(office =>
+                  office.id === payload.new.id
                     ? {
-                        ...office,
-                        ...payload.new,
-                        displayName: payload.new.constituency_name || payload.new.office_location,
-                        formattedAddress: payload.new.formatted_address || `${payload.new.office_location}, ${payload.new.county} County`,
-                        coordinates: [payload.new.latitude, payload.new.longitude]
-                      }
+                      ...office,
+                      ...payload.new,
+                      displayName: payload.new.constituency_name || payload.new.office_location,
+                      formattedAddress: payload.new.formatted_address || `${payload.new.office_location}, ${payload.new.county} County`,
+                      coordinates: [payload.new.latitude, payload.new.longitude]
+                    }
                     : office
                 )
               );
               break;
-              
+
             case 'DELETE':
               setOffices(prev => prev.filter(office => office.id !== payload.old.id));
               break;
           }
-          
+
           setCachedOffices(offices);
         }
       )
@@ -522,7 +523,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
 
   useEffect(() => {
     fetchOffices();
-    
+
     return () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -533,17 +534,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     };
   }, []);
 
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-  };
+  // calculateDistance is now imported from @/utils/geoUtils — single source of truth
 
   const clearCache = async () => {
     try {
@@ -694,11 +685,11 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     return searchOffices(searchQuery);
   }, [offices, searchQuery, searchOffices]);
 
-  return { 
-    offices, 
+  return {
+    offices,
     filteredOffices,
-    loading, 
-    error, 
+    loading,
+    error,
     refetch: () => fetchOffices(true),
     searchQuery,
     searchResults,

@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Play, CheckCircle, XCircle, Clock, FileText, 
-  Database, MapPin, AlertTriangle, RefreshCw, Download 
+import {
+  Play, CheckCircle, XCircle, Clock, FileText,
+  Database, MapPin, AlertTriangle, RefreshCw, Download
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,67 +27,67 @@ export const PythonScriptExecutor: React.FC = () => {
     { name: 'validate_data', status: 'idle', message: 'Ready to validate processed data', progress: 0 },
     { name: 'supabase_ingest', status: 'idle', message: 'Ready to upload to database', progress: 0 },
   ]);
-  
+
   const [isProcessing, setIsProcessing] = useState(false);
 
   const updateScriptStatus = (index: number, updates: Partial<ScriptStatus>) => {
-    setScripts(prev => prev.map((script, i) => 
+    setScripts(prev => prev.map((script, i) =>
       i === index ? { ...script, ...updates } : script
     ));
   };
 
   const executeScript = async (scriptName: string, index: number) => {
     updateScriptStatus(index, { status: 'running', progress: 10 });
-    
+
     try {
       updateScriptStatus(index, { progress: 30, message: `Processing ${scriptName}...` });
-      
+
       const response = await fetch(`/scripts/${scriptName}.py`);
       if (!response.ok) {
         throw new Error(`Script ${scriptName} not accessible`);
       }
-      
+
       updateScriptStatus(index, { progress: 70, message: `Finalizing ${scriptName}...` });
-      
+
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      updateScriptStatus(index, { 
-        status: 'success', 
-        progress: 100, 
-        message: `${scriptName} completed successfully` 
+
+      updateScriptStatus(index, {
+        status: 'success',
+        progress: 100,
+        message: `${scriptName} completed successfully`
       });
-      
+
       toast({
         title: "Script Complete",
         description: `${scriptName} executed successfully`,
       });
-      
+
       return true;
     } catch (error) {
-      updateScriptStatus(index, { 
-        status: 'error', 
+      updateScriptStatus(index, {
+        status: 'error',
         progress: 0,
         message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
-      
+
       toast({
         title: "Script Failed",
         description: `${scriptName} encountered an error`,
         variant: "destructive",
       });
-      
+
       return false;
     }
   };
 
   const runAllScripts = async () => {
     setIsProcessing(true);
-    
+
     toast({
       title: "Processing Started",
       description: "Running all IEBC data processing scripts...",
     });
-    
+
     for (let i = 0; i < scripts.length; i++) {
       const success = await executeScript(scripts[i].name, i);
       if (!success) {
@@ -96,9 +96,9 @@ export const PythonScriptExecutor: React.FC = () => {
       }
       await new Promise(resolve => setTimeout(resolve, 500));
     }
-    
+
     setIsProcessing(false);
-    
+
     toast({
       title: "Processing Complete",
       description: "All IEBC data processing scripts completed successfully!",
@@ -136,7 +136,7 @@ export const PythonScriptExecutor: React.FC = () => {
       success: 'bg-green-100 text-green-700',
       error: 'bg-red-100 text-red-700',
     };
-    
+
     return (
       <Badge className={colors[status]}>
         {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -146,7 +146,7 @@ export const PythonScriptExecutor: React.FC = () => {
 
   return (
     <Card className="border-0 shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+      <CardHeader className="bg-[#007AFF] text-white">
         <CardTitle className="flex items-center gap-2">
           <Database className="w-6 h-6" />
           IEBC Data Processing Pipeline
@@ -159,22 +159,22 @@ export const PythonScriptExecutor: React.FC = () => {
         <Alert>
           <AlertTriangle className="w-4 h-4" />
           <AlertDescription>
-            These scripts process IEBC voter registration office data. Ensure you have the required API keys 
+            These scripts process IEBC voter registration office data. Ensure you have the required API keys
             configured (Google Maps API, Mapbox API) and necessary Python dependencies installed.
           </AlertDescription>
         </Alert>
 
         <div className="flex gap-3">
-          <Button 
-            onClick={runAllScripts} 
+          <Button
+            onClick={runAllScripts}
             disabled={isProcessing}
             className="flex-1"
           >
             <Play className="w-4 h-4 mr-2" />
             Run All Scripts
           </Button>
-          <Button 
-            onClick={resetAll} 
+          <Button
+            onClick={resetAll}
             variant="outline"
             disabled={isProcessing}
           >
