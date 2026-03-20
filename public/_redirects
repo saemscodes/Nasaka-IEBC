@@ -7,6 +7,5 @@
 /iebc-office/terms /terms 301
 /nasaka-iebc/privacy /privacy 301
 /nasaka-iebc/terms /terms 301
-
 # SPA fallback (must be last)
 /* /index.html 200
