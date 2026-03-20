@@ -27,6 +27,7 @@ export default async function handler(req: Request): Promise<Response> {
     const constituency = url.searchParams.get('constituency');
     const ward = url.searchParams.get('ward');
     const verifiedOnly = url.searchParams.get('verified') === 'true';
+    const table = url.searchParams.get('table') || 'iebc_offices';
     const format = url.searchParams.get('format') || 'json';
 
     // Canonical 47 Kenyan counties — normalize variants
@@ -64,15 +65,28 @@ export default async function handler(req: Request): Promise<Response> {
     }
 
     try {
-        let queryUrl = `${SUPABASE_URL}/rest/v1/iebc_offices?select=id,constituency,constituency_code,county,ward,office_location,latitude,longitude,verified,verified_latitude,verified_longitude,geocode_status,geocode_method,confidence_score,accuracy_meters,formatted_address&latitude=not.is.null&longitude=not.is.null&order=county.asc,constituency.asc`;
+        let tableName = 'iebc_offices';
+        let selectFields = 'id,constituency,constituency_code,county,ward,office_location,latitude,longitude,verified,verified_latitude,verified_longitude,geocode_status,geocode_method,confidence_score,accuracy_meters,formatted_address';
 
-        if (county) {
-            const normalized = normalizeCounty(county);
-            queryUrl += `&county=ilike.*${encodeURIComponent(normalized || county)}*`;
+        if (table === 'diaspora_registration_centres') {
+            tableName = 'diaspora_registration_centres';
+            selectFields = 'id,mission_name,city,country,continent,latitude,longitude,address,geocode_status,geocode_method,geocode_confidence,formatted_address';
         }
-        if (constituency) queryUrl += `&constituency=ilike.*${encodeURIComponent(constituency)}*`;
-        if (ward) queryUrl += `&ward=ilike.*${encodeURIComponent(ward)}*`;
-        if (verifiedOnly) queryUrl += `&verified=eq.true`;
+
+        let queryUrl = `${SUPABASE_URL}/rest/v1/${tableName}?select=${selectFields}&latitude=not.is.null&longitude=not.is.null`;
+
+        if (tableName === 'iebc_offices') {
+            queryUrl += `&order=county.asc,constituency.asc`;
+            if (county) {
+                const normalized = normalizeCounty(county);
+                queryUrl += `&county=ilike.*${encodeURIComponent(normalized || county)}*`;
+            }
+            if (constituency) queryUrl += `&constituency=ilike.*${encodeURIComponent(constituency)}*`;
+            if (ward) queryUrl += `&ward=ilike.*${encodeURIComponent(ward)}*`;
+            if (verifiedOnly) queryUrl += `&verified=eq.true`;
+        } else {
+            queryUrl += `&order=country.asc,city.asc`;
+        }
 
         const resp = await fetch(queryUrl, {
             headers: {
@@ -100,7 +114,6 @@ export default async function handler(req: Request): Promise<Response> {
 
         // GeoJSON format
         if (format === 'geojson') {
-
             const geojson = {
                 type: 'FeatureCollection',
                 features: offices.map(o => ({
@@ -114,16 +127,18 @@ export default async function handler(req: Request): Promise<Response> {
                     },
                     properties: {
                         id: o.id,
+                        name: o.mission_name || o.constituency,
                         constituency: o.constituency,
                         constituency_code: o.constituency_code,
                         county: o.county,
+                        country: o.country,
+                        city: o.city,
                         ward: o.ward,
-                        office_location: o.office_location,
-                        verified: o.verified,
+                        office_location: o.office_location || o.address,
+                        verified: !!o.verified,
                         geocode_status: o.geocode_status,
                         geocode_method: o.geocode_method,
-                        confidence_score: o.confidence_score,
-                        accuracy_meters: o.accuracy_meters,
+                        confidence_score: o.confidence_score || o.geocode_confidence,
                         formatted_address: o.formatted_address
                     }
                 }))
@@ -140,10 +155,18 @@ export default async function handler(req: Request): Promise<Response> {
 
         // CSV format
         if (format === 'csv') {
-            const header = 'id,constituency,constituency_code,county,ward,office_location,latitude,longitude,verified_latitude,verified_longitude,verified,geocode_status,confidence_score,accuracy_meters';
-            const rows = offices.map(o =>
-                [o.id, `"${(o.constituency || '').replace(/"/g, '""')}"`, o.constituency_code, `"${(o.county || '').replace(/"/g, '""')}"`, `"${(o.ward || '').replace(/"/g, '""')}"`, `"${(o.office_location || '').replace(/"/g, '""')}"`, o.latitude, o.longitude, o.verified_latitude, o.verified_longitude, o.verified, o.geocode_status, o.confidence_score, o.accuracy_meters].join(',')
-            );
+            const isOffices = tableName === 'iebc_offices';
+            const header = isOffices
+                ? 'id,constituency,constituency_code,county,ward,office_location,latitude,longitude,verified,geocode_status,confidence_score'
+                : 'id,mission_name,city,country,continent,latitude,longitude,geocode_status,geocode_confidence';
+
+            const rows = offices.map(o => {
+                if (isOffices) {
+                    return [o.id, `"${(o.constituency || '').replace(/"/g, '""')}"`, o.constituency_code, `"${(o.county || '').replace(/"/g, '""')}"`, `"${(o.ward || '').replace(/"/g, '""')}"`, `"${(o.office_location || '').replace(/"/g, '""')}"`, o.latitude, o.longitude, o.verified, o.geocode_status, o.confidence_score].join(',');
+                } else {
+                    return [o.id, `"${(o.mission_name || '').replace(/"/g, '""')}"`, `"${(o.city || '').replace(/"/g, '""')}"`, `"${(o.country || '').replace(/"/g, '""')}"`, o.continent, o.latitude, o.longitude, o.geocode_status, o.geocode_confidence].join(',');
+                }
+            });
             const csv = [header, ...rows].join('\n');
 
             return new Response(csv, {
@@ -159,24 +182,18 @@ export default async function handler(req: Request): Promise<Response> {
         // Default JSON format
         const enriched = offices.map(o => ({
             id: o.id,
-            constituency: o.constituency,
-            constituency_code: o.constituency_code,
-            county: o.county,
-            ward: o.ward,
-            office_location: o.office_location,
+            name: o.mission_name || o.constituency,
+            context: o.country || o.county,
+            location: o.city || o.ward || o.office_location,
             coordinates: {
                 latitude: o.verified_latitude || o.latitude,
                 longitude: o.verified_longitude || o.longitude,
                 source: o.verified_latitude ? 'verified' : 'geocoded',
                 geocode_method: o.geocode_method,
-                confidence_score: o.confidence_score,
-                accuracy_meters: o.accuracy_meters
+                confidence_score: o.confidence_score || o.geocode_confidence,
             },
-            verification: {
-                verified: o.verified,
-                geocode_status: o.geocode_status,
-                formatted_address: o.formatted_address
-            }
+            address: o.formatted_address || o.address,
+            table: tableName
         }));
 
         return Response.json({

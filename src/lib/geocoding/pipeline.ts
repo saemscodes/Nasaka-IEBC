@@ -17,6 +17,7 @@
 import Fuse from 'fuse.js';
 import { supabase } from '@/integrations/supabase/client';
 import { normalizeQuery } from '@/lib/searchUtils';
+import { layer_geonames } from './geonames-layer';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -32,6 +33,7 @@ export type GeocodingSource =
     | 'mapbox'
     | 'here'
     | 'pelias'
+    | 'geonames'
     | 'manual_picker';
 
 export interface GeocodedResult {
@@ -524,6 +526,11 @@ export async function resolveLocation(
             {
                 name: 'photon',
                 fn: () => layer3_photon(query, isGlobal ? '' : countryCode.toUpperCase()),
+                kenyaOnly: false,
+            },
+            {
+                name: 'geonames',
+                fn: () => layer_geonames(query, isGlobal ? '' : countryCode.toUpperCase()),
                 kenyaOnly: false,
             },
             {

@@ -43,6 +43,40 @@ export default async function handler(req: Request): Promise<Response> {
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '10'), 50);
     const includeDiaspora = url.searchParams.get('include_diaspora') === 'true';
 
+    // Canonical 47 Kenyan counties — normalize variants
+    const COUNTY_NORMALIZE: Record<string, string> = {
+        'MOMBASA': 'MOMBASA', 'KWALE': 'KWALE', 'KILIFI': 'KILIFI',
+        'TANA RIVER': 'TANA RIVER', 'TANARIVER': 'TANA RIVER', 'TANA-RIVER': 'TANA RIVER',
+        'LAMU': 'LAMU', 'TAITA TAVETA': 'TAITA TAVETA', 'TAITA-TAVETA': 'TAITA TAVETA', 'TAITA/TAVETA': 'TAITA TAVETA',
+        'GARISSA': 'GARISSA', 'WAJIR': 'WAJIR', 'MANDERA': 'MANDERA',
+        'MARSABIT': 'MARSABIT', 'ISIOLO': 'ISIOLO', 'MERU': 'MERU',
+        'THARAKA NITHI': 'THARAKA-NITHI', 'THARAKA-NITHI': 'THARAKA-NITHI', 'THARAKA NITHI ': 'THARAKA-NITHI',
+        'THARAKA - NITHI': 'THARAKA-NITHI', 'THARAKA / NITHI': 'THARAKA-NITHI',
+        'EMBU': 'EMBU', 'KITUI': 'KITUI', 'MACHAKOS': 'MACHAKOS', 'MAKUENI': 'MAKUENI',
+        'NYANDARUA': 'NYANDARUA', 'NYERI': 'NYERI', 'KIRINYAGA': 'KIRINYAGA',
+        'MURANG\'A': 'MURANG\'A', 'MURANGA': 'MURANG\'A', 'MURANG A': 'MURANG\'A',
+        'KIAMBU': 'KIAMBU', 'TURKANA': 'TURKANA',
+        'WEST POKOT': 'WEST POKOT', 'WESTPOKOT': 'WEST POKOT', 'WEST-POKOT': 'WEST POKOT',
+        'SAMBURU': 'SAMBURU',
+        'TRANS NZOIA': 'TRANS-NZOIA', 'TRANS-NZOIA': 'TRANS-NZOIA', 'TRANSNZOIA': 'TRANS-NZOIA',
+        'UASIN GISHU': 'UASIN GISHU', 'UASINGISHU': 'UASIN GISHU', 'UASIN-GISHU': 'UASIN GISHU',
+        'ELGEYO MARAKWET': 'ELGEYO-MARAKWET', 'ELGEYO-MARAKWET': 'ELGEYO-MARAKWET', 'ELGEYO/MARAKWET': 'ELGEYO-MARAKWET', 'KEIYO-MARAKWET': 'ELGEYO-MARAKWET',
+        'ELEGEYO-MARAKWET': 'ELGEYO-MARAKWET',
+        'NANDI': 'NANDI', 'BARINGO': 'BARINGO', 'LAIKIPIA': 'LAIKIPIA', 'NAKURU': 'NAKURU',
+        'NAROK': 'NAROK', 'KAJIADO': 'KAJIADO', 'KERICHO': 'KERICHO', 'BOMET': 'BOMET',
+        'KAKAMEGA': 'KAKAMEGA', 'VIHIGA': 'VIHIGA', 'BUNGOMA': 'BUNGOMA', 'BUSIA': 'BUSIA',
+        'SIAYA': 'SIAYA', 'KISUMU': 'KISUMU',
+        'HOMA BAY': 'HOMA BAY', 'HOMABAY': 'HOMA BAY', 'HOMA-BAY': 'HOMA BAY',
+        'MIGORI': 'MIGORI', 'KISII': 'KISII', 'NYAMIRA': 'NYAMIRA',
+        'NAIROBI': 'NAIROBI', 'NAIROBI CITY': 'NAIROBI'
+    };
+
+    function normalizeCounty(c: string | null): string | null {
+        if (!c) return null;
+        const upper = c.trim().toUpperCase();
+        return COUNTY_NORMALIZE[upper] || upper;
+    }
+
     const hasCoords = !isNaN(lat) && !isNaN(lng);
     const hasFilter = !!(constituency || county || ward);
     const hasTextQuery = !!q?.trim();
@@ -93,22 +127,40 @@ export default async function handler(req: Request): Promise<Response> {
 
         // ---- 2a. Diaspora Path (if outside Kenya or explicitly requested) ----
         if (shouldSearchDiaspora) {
-            const rpcResp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/find_nearest_kenyan_mission`, {
-                method: 'POST',
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': `Bearer ${SUPABASE_KEY}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    search_lat: hasCoords ? lat : 0,
-                    search_lng: hasCoords ? lng : 0,
-                    max_results: limit
-                }),
-            });
-            if (rpcResp.ok) {
-                results = await rpcResp.json();
-                sourceMetrics = 'rpc_diaspora';
+            if (hasCoords) {
+                // Proximity search for Diaspora
+                const rpcResp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/find_nearest_kenyan_mission`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        search_lat: lat,
+                        search_lng: lng,
+                        max_results: limit
+                    }),
+                });
+                if (rpcResp.ok) {
+                    results = await rpcResp.json();
+                    sourceMetrics = 'rpc_diaspora_proximity';
+                }
+            } else if (hasTextQuery) {
+                // Text search for Diaspora
+                const queryStr = q || '';
+                const diasporaUrl = `${SUPABASE_URL}/rest/v1/diaspora_registration_centres?or=(mission_name.ilike.*${encodeURIComponent(queryStr)}*,city.ilike.*${encodeURIComponent(queryStr)}*,country.ilike.*${encodeURIComponent(queryStr)}*)&limit=${limit}`;
+                const dResp = await fetch(diasporaUrl, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (dResp.ok) {
+                    results = await dResp.json();
+                    sourceMetrics = 'diaspora_text_search';
+                }
             }
         }
 

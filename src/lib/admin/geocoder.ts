@@ -16,7 +16,8 @@ import { supabase } from "@/integrations/supabase/client";
 export type GeocoderSource =
     | "nominatim"
     | "google_maps_url"
-    | "geocode_xyz"
+    | "geocode_earth"
+    | "geonames"
     | "geokeo"
     | "gemini_ai";
 
@@ -117,7 +118,8 @@ class RateLimiter {
 }
 
 const nominatimLimiter = new RateLimiter(1);
-const geocodeXyzLimiter = new RateLimiter(1);
+const geocodeEarthLimiter = new RateLimiter(10); // geocode.earth supports 10 req/s
+const geonamesLimiter = new RateLimiter(1); // GeoNames recommends 1s delay
 const geokeoLimiter = new RateLimiter(10, 2500);
 const geminiLimiter = new RateLimiter(1);
 
@@ -221,32 +223,70 @@ export async function geocodeGoogleMapsURL(office: IEBCOffice): Promise<Geocoder
     }
 }
 
-export async function geocodeGeocodeXyz(office: IEBCOffice): Promise<GeocoderResult | null> {
-    await geocodeXyzLimiter.throttle();
+export async function geocodeGeocodeEarth(office: IEBCOffice): Promise<GeocoderResult | null> {
+    await geocodeEarthLimiter.throttle();
+
+    const apiKey = (typeof import.meta !== "undefined" && import.meta.env?.VITE_GEOCODE_EARTH_KEY) ||
+        (typeof process !== "undefined" && process.env?.VITE_GEOCODE_EARTH_KEY);
+    if (!apiKey) return null;
+
     const query = buildSearchQuery(office);
 
     try {
-        const url = `https://geocode.xyz/${encodeURIComponent(query)}?json=1&region=KE`;
+        const url = `https://api.geocode.earth/v1/search?text=${encodeURIComponent(query)}&boundary.country=KEN&api_key=${apiKey}&size=1`;
         const response = await fetch(url);
         if (!response.ok) return null;
         const data = await response.json();
-        if (!data || data.error || !data.latt || !data.longt) return null;
 
-        const lat = parseFloat(data.latt);
-        const lng = parseFloat(data.longt);
+        if (!data || !data.features || data.features.length === 0) return null;
+
+        const feature = data.features[0];
+        const [lng, lat] = feature.geometry.coordinates;
         if (isNaN(lat) || isNaN(lng) || !isInKenya(lat, lng)) return null;
 
-        const confidence = data.confidence
-            ? Math.min(parseFloat(data.confidence) / 100, 1.0)
-            : 0.45;
+        const props = feature.properties;
+        return {
+            lat,
+            lng,
+            source: "geocode_earth",
+            confidence: props.confidence ?? 0.5,
+            displayName: props.label ?? query,
+            rawResponse: data,
+        };
+    } catch {
+        return null;
+    }
+}
+
+export async function geocodeGeonames(office: IEBCOffice): Promise<GeocoderResult | null> {
+    await geonamesLimiter.throttle();
+
+    const username = (typeof import.meta !== "undefined" && import.meta.env?.VITE_GEONAMES_USERNAME) ||
+        (typeof process !== "undefined" && process.env?.VITE_GEONAMES_USERNAME) ||
+        "civiceducationkenya";
+
+    const query = buildSearchQuery(office);
+
+    try {
+        const url = `http://api.geonames.org/searchJSON?q=${encodeURIComponent(query)}&country=KE&maxRows=1&username=${username}`;
+        const response = await fetch(url);
+        if (!response.ok) return null;
+        const data = await response.json();
+
+        if (!data || !data.geonames || data.geonames.length === 0) return null;
+
+        const result = data.geonames[0];
+        const lat = parseFloat(result.lat);
+        const lng = parseFloat(result.lng);
+        if (isNaN(lat) || isNaN(lng) || !isInKenya(lat, lng)) return null;
 
         return {
             lat,
             lng,
-            source: "geocode_xyz",
-            confidence,
-            displayName: data.standard?.addresst ?? query,
-            rawResponse: data,
+            source: "geonames",
+            confidence: result.score ? Math.min(result.score / 100, 1.0) : 0.65,
+            displayName: [result.name, result.adminName1, result.countryName].filter(Boolean).join(", "),
+            rawResponse: result,
         };
     } catch {
         return null;
@@ -353,7 +393,8 @@ export async function runMultiSourceResolver(office: IEBCOffice): Promise<Geocod
     const results = await Promise.allSettled([
         geocodeNominatim(office),
         geocodeGoogleMapsURL(office),
-        geocodeGeocodeXyz(office),
+        geocodeGeocodeEarth(office),
+        geocodeGeonames(office),
         geocodeGeokeo(office),
         geocodeGemini(office),
     ]);

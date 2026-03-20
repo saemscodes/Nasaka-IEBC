@@ -63,6 +63,8 @@ ARCGIS_API_KEY_2 = os.getenv("ARCGIS_API_KEY_SECONDARY", "")
 LOCATIONIQ_API_KEY = os.getenv("VITE_LOCATION_IQ_API_KEY", os.getenv("VITE_LOCATIONIQ_API_KEY", os.getenv("VITE_LOCATION_IQ", os.getenv("LOCATIONIQ_API_KEY", ""))))
 OPENCAGE_API_KEY = os.getenv("VITE_OPENCAGE_API_KEY", os.getenv("OPENCAGE_API_KEY", ""))
 GEOAPIFY_API_KEY = os.getenv("VITE_GEOAPIFY_API_KEY", os.getenv("GEOAPIFY_API_KEY", ""))
+GEOCODE_EARTH_KEY = os.getenv("VITE_GEOCODE_EARTH_KEY", "ge-ce02c91bea45c413")
+GEONAMES_USERNAME = os.getenv("VITE_GEONAMES_USERNAME", "civiceducationkenya")
 
 DOMAIN = os.getenv("DOMAIN", "nasakaiebc.civiceducationkenya.com")
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
@@ -112,6 +114,8 @@ RATE_LIMITERS = {
     "opencage":    RateLimiter(1.1),   # v9.5: 1 req/s
     "groq":        RateLimiter(1.0),   # v9.5
     "hf":          RateLimiter(0.5),   # v9.5
+    "geocode_earth": RateLimiter(0.1),  # v10.2: geocode.earth supports 10 req/s
+    "geonames":    RateLimiter(1.0),   # v10.3: GeoNames recommends 1s delay for free accounts
 }
 
 logging.basicConfig(
@@ -460,21 +464,49 @@ def save_rev_geo_cache():
         log.warning(f"  Failed to save cache file: {e}")
 
 
+# ── v10.2: Enhanced County Normalization (API Alignment) ───────────────────
+COUNTY_NORMALIZE = {
+    'MOMBASA': 'MOMBASA', 'KWALE': 'KWALE', 'KILIFI': 'KILIFI',
+    'TANA RIVER': 'TANA RIVER', 'TANARIVER': 'TANA RIVER', 'TANA-RIVER': 'TANA RIVER',
+    'LAMU': 'LAMU', 'TAITA TAVETA': 'TAITA TAVETA', 'TAITA-TAVETA': 'TAITA TAVETA', 'TAITA/TAVETA': 'TAITA TAVETA',
+    'GARISSA': 'GARISSA', 'WAJIR': 'WAJIR', 'MANDERA': 'MANDERA',
+    'MARSABIT': 'MARSABIT', 'ISIOLO': 'ISIOLO', 'MERU': 'MERU',
+    'THARAKA NITHI': 'THARAKA-NITHI', 'THARAKA-NITHI': 'THARAKA-NITHI', 'THARAKA NITHI ': 'THARAKA-NITHI',
+    'THARAKA - NITHI': 'THARAKA-NITHI', 'THARAKA / NITHI': 'THARAKA-NITHI',
+    'EMBU': 'EMBU', 'KITUI': 'KITUI', 'MACHAKOS': 'MACHAKOS', 'MAKUENI': 'MAKUENI',
+    'NYANDARUA': 'NYANDARUA', 'NYERI': 'NYERI', 'KIRINYAGA': 'KIRINYAGA',
+    'MURANG\'A': 'MURANG\'A', 'MURANGA': 'MURANG\'A', 'MURANG A': 'MURANG\'A',
+    'KIAMBU': 'KIAMBU', 'TURKANA': 'TURKANA',
+    'WEST POKOT': 'WEST POKOT', 'WESTPOKOT': 'WEST POKOT', 'WEST-POKOT': 'WEST POKOT',
+    'SAMBURU': 'SAMBURU',
+    'TRANS NZOIA': 'TRANS-NZOIA', 'TRANS-NZOIA': 'TRANS-NZOIA', 'TRANSNZOIA': 'TRANS-NZOIA',
+    'UASIN GISHU': 'UASIN GISHU', 'UASINGISHU': 'UASIN GISHU', 'UASIN-GISHU': 'UASIN GISHU',
+    'ELGEYO MARAKWET': 'ELGEYO-MARAKWET', 'ELGEYO-MARAKWET': 'ELGEYO-MARAKWET', 'ELGEYO/MARAKWET': 'ELGEYO-MARAKWET', 'KEIYO-MARAKWET': 'ELGEYO-MARAKWET',
+    'ELEGEYO-MARAKWET': 'ELGEYO-MARAKWET',
+    'NANDI': 'NANDI', 'BARINGO': 'BARINGO', 'LAIKIPIA': 'LAIKIPIA', 'NAKURU': 'NAKURU',
+    'NAROK': 'NAROK', 'KAJIADO': 'KAJIADO', 'KERICHO': 'KERICHO', 'BOMET': 'BOMET',
+    'KAKAMEGA': 'KAKAMEGA', 'VIHIGA': 'VIHIGA', 'BUNGOMA': 'BUNGOMA', 'BUSIA': 'BUSIA',
+    'SIAYA': 'SIAYA', 'KISUMU': 'KISUMU',
+    'HOMA BAY': 'HOMA BAY', 'HOMABAY': 'HOMA BAY', 'HOMA-BAY': 'HOMA BAY',
+    'MIGORI': 'MIGORI', 'KISII': 'KISII', 'NYAMIRA': 'NYAMIRA',
+    'NAIROBI': 'NAIROBI', 'NAIROBI CITY': 'NAIROBI'
+}
+
 def normalize_county(name: str) -> str:
-    """Normalize county name for comparison (uppercase, strip, handle Murang'a etc). v10: strict."""
+    """Normalize county name for comparison (uppercase, strip, handle Murang'a etc). Alignment with api/v1/offices.ts."""
+    if not name: return ""
     n = name.strip().upper()
     n = n.replace("\u2019", "'").replace("\u2018", "'").replace("`", "'")
-    n = n.replace("/", "-").replace("\u2013", "-")  # v9.1: slash/hyphen equivalence
-    # v10: Strip trailing " COUNTY" suffix (e.g. "NAIROBI COUNTY" → "NAIROBI")
+    
+    # Try the comprehensive mapping first
+    if n in COUNTY_NORMALIZE:
+        return COUNTY_NORMALIZE[n]
+    
+    # Otherwise fallback to regex-based cleaning
     n = re.sub(r"\s+COUNTY\s*$", "", n)
-    # v10: Collapse spaces around hyphens ("THARAKA - NITHI" → "THARAKA-NITHI")
     n = re.sub(r"\s*-\s*", "-", n)
     n = re.sub(r"\s+", " ", n)
-    # v10: Common spelling variants
-    n = n.replace("ELEGEYO", "ELGEYO")  # ELEGEYO-MARAKWET → ELGEYO-MARAKWET
-    n = n.replace("NAIROBI CITY", "NAIROBI")  # Nairobi City → Nairobi
-    n = n.replace("HOMABAY", "HOMA BAY")  # HomaBay → Homa Bay
-    # v9.1: Resolve sub-counties/constituencies to parent counties
+    
     return SUBCOUNTY_TO_COUNTY.get(n, n)
 
 
@@ -679,28 +711,77 @@ def geocode_nominatim(query: str, limit: int = 5) -> List[Dict]:
         return []
 
 
-def geocode_geocodexyz(query: str) -> List[Dict]:
-    """Geocode.xyz — free, 1 req/s, region=KE."""
+def geocode_earth(query: str, continent: Optional[str] = None) -> List[Dict]:
+    """Geocode.earth (Pelias) — reliable fallback for geocode.xyz (v10.2)."""
+    if not GEOCODE_EARTH_KEY:
+        return []
     try:
-        RATE_LIMITERS["geocode_xyz"].wait()
-        resp = safe_request(
-            f"https://geocode.xyz/{requests.utils.quote(query)}",
-            params={"json": "1", "region": "KE"},
-        )
-        if not resp:
+        RATE_LIMITERS["geocode_earth"].wait()
+        params = {
+            "text": query,
+            "api_key": GEOCODE_EARTH_KEY,
+            "size": "5",
+        }
+        # If continent is provided (diaspora), we don't restrict to KEN
+        if not continent:
+            params["boundary.country"] = "KEN"
+
+        resp = requests.get("https://api.geocode.earth/v1/search", params=params, timeout=10)
+        if resp.status_code != 200:
+            return []
+        
+        data = resp.json()
+        results = []
+        for feature in data.get("features", []):
+            props = feature.get("properties", {})
+            lat = feature["geometry"]["coordinates"][1]
+            lng = feature["geometry"]["coordinates"][0]
+            
+            results.append({
+                "lat": lat, "lng": lng, 
+                "source": "geocode_earth", 
+                "confidence": props.get("confidence", 0.5),
+                "display_name": props.get("label", query),
+                "county_from_api": props.get("region", "") or props.get("county", ""),
+                "country_from_api": props.get("country", ""),
+            })
+        return results
+    except Exception as e:
+        log.warning(f"  Geocode.earth failed: {e}")
+        return []
+
+
+def geocode_geonames(query: str, country: str = "KE") -> List[Dict]:
+    """GeoNames Search — reliable open-source data (v10.3)."""
+    if not GEONAMES_USERNAME:
+        return []
+    try:
+        RATE_LIMITERS["geonames"].wait()
+        params = {
+            "q": query,
+            "country": country,
+            "maxRows": "3",
+            "username": GEONAMES_USERNAME,
+            "type": "json"
+        }
+        resp = requests.get("http://api.geonames.org/searchJSON", params=params, timeout=10)
+        if resp.status_code != 200:
             return []
         data = resp.json()
-        if not data or "error" in data or not data.get("latt") or not data.get("longt"):
-            return []
-        lat, lng = float(data["latt"]), float(data["longt"])
-        if not is_in_kenya(lat, lng):
-            return []
-        conf = min(float(data.get("confidence", "45")) / 100, 1.0) if data.get("confidence") else 0.45
-        return [{"lat": lat, "lng": lng, "source": "geocode_xyz", "confidence": conf,
-                 "display_name": data.get("standard", {}).get("addresst", query),
-                 "county_from_api": ""}]
+        results = []
+        for g in data.get("geonames", []):
+            lat, lng = float(g["lat"]), float(g["lng"])
+            if country == "KE" and not is_in_kenya(lat, lng):
+                continue
+            results.append({
+                "lat": lat, "lng": lng, "source": "geonames",
+                "confidence": 0.65,
+                "display_name": f"{g.get('name')}, {g.get('adminName1')}, {g.get('countryName')}",
+                "county_from_api": g.get("adminName1", ""),
+            })
+        return results
     except Exception as e:
-        log.warning(f"  Geocode.xyz failed: {e}")
+        log.warning(f"  GeoNames failed: {e}")
         return []
 
 
@@ -1134,11 +1215,13 @@ def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) 
         gko_results = geocode_geokeo(query)
         # Photon
         pho_results = geocode_photon(query)
-        # geocode.xyz (fallback)
-        xyz_results = geocode_geocodexyz(query)
+        # geocode.earth (v10.2: REPLACED geocode.xyz)
+        xyz_results = geocode_earth(query)
+        # GeoNames (v10.3)
+        gn_results = geocode_geonames(query)
 
         # Combine candidates for this query
-        query_candidates = nom_results + liq_results + gaf_results + arc_results + gko_results + pho_results + xyz_results
+        query_candidates = nom_results + liq_results + gaf_results + arc_results + gko_results + pho_results + xyz_results + gn_results
 
         # v9.5 Late-stage fallback for OpenCage (only if no results yet)
         if not query_candidates:
@@ -1717,7 +1800,9 @@ def resolve_record_crossvalidated(record: Dict, expected_context: str, t_cfg: Di
         # Standard Sources
         results = (geocode_nominatim(query, limit=5) + geocode_locationiq(query) + 
                    geocode_geoapify(query) + geocode_arcgis(query) + 
-                   geocode_geokeo(query) + geocode_photon(query) + geocode_geocodexyz(query))
+                   geocode_geokeo(query) + geocode_photon(query) + 
+                   geocode_earth(query, t_cfg.get("continent")) +
+                   geocode_geonames(query, t_cfg.get("country_code", "KE")))
         
         for r in results:
             r["query_used"], r["query_index"] = query, qi
