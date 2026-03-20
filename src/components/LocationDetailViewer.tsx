@@ -233,7 +233,7 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
           if (error) throw error;
 
           if (exactMPMatches && exactMPMatches.length > 0) {
-            exactMatches = exactMPMatches;
+            exactMatches = exactMPMatches as unknown as Petition[];
             allResults = [...allResults, ...exactMatches];
             updateSearchStep('exact-match', 'completed', 1200);
 
@@ -277,8 +277,9 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
           if (error) throw error;
 
           if (constituencyData && constituencyData.length > 0) {
+            const results = constituencyData as unknown as Petition[];
             // Filter out already found exact matches
-            constituencyMatches = constituencyData.filter(petition =>
+            constituencyMatches = results.filter(petition =>
               !exactMatches.some(exact => exact.id === petition.id)
             );
 
@@ -321,8 +322,9 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
           if (error) throw error;
 
           if (countyData && countyData.length > 0) {
+            const results = countyData as unknown as Petition[];
             // Filter out already found matches
-            countyMatches = countyData.filter(petition =>
+            countyMatches = results.filter(petition =>
               !allResults.some(existing => existing.id === petition.id)
             );
 
@@ -366,7 +368,8 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
           if (error) throw error;
 
           if (allPetitions) {
-            const potentialMatches = allPetitions
+            const results = allPetitions as unknown as Petition[];
+            const potentialMatches = results
               .map(petition => ({
                 ...petition,
                 similarity: Math.max(
@@ -555,14 +558,14 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
                 </div>
                 <div className="ml-2 sm:ml-3 flex-1 min-w-0">
                   <h4 className={`font-bold truncate ${toast.type === 'success' ? 'text-green-900' :
-                      toast.type === 'error' ? 'text-red-900' :
-                        toast.type === 'warning' ? 'text-yellow-900' : 'text-blue-900'
+                    toast.type === 'error' ? 'text-red-900' :
+                      toast.type === 'warning' ? 'text-yellow-900' : 'text-blue-900'
                     }`}>
                     {toast.title}
                   </h4>
                   <p className={`mt-1 leading-relaxed ${toast.type === 'success' ? 'text-green-800' :
-                      toast.type === 'error' ? 'text-red-800' :
-                        toast.type === 'warning' ? 'text-yellow-800' : 'text-blue-800'
+                    toast.type === 'error' ? 'text-red-800' :
+                      toast.type === 'warning' ? 'text-yellow-800' : 'text-blue-800'
                     }`}>
                     {toast.description}
                   </p>
@@ -571,8 +574,8 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
               <div className="mt-2 sm:mt-3 bg-gray-200 rounded-full h-1 sm:h-1.5 overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-150 ease-linear ${toast.type === 'success' ? 'bg-gradient-to-r from-green-400 to-green-600' :
-                      toast.type === 'error' ? 'bg-gradient-to-r from-red-400 to-red-600' :
-                        toast.type === 'warning' ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' : 'bg-gradient-to-r from-blue-400 to-blue-600'
+                    toast.type === 'error' ? 'bg-gradient-to-r from-red-400 to-red-600' :
+                      toast.type === 'warning' ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' : 'bg-gradient-to-r from-blue-400 to-blue-600'
                     }`}
                   style={{ width: `${toast.progress}%` }}
                 />
@@ -597,14 +600,14 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
                 <div
                   key={step.id}
                   className={`flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 rounded-lg transition-all duration-500 transform ${step.status === 'active' ? 'bg-blue-100 border-2 border-blue-400 scale-105 shadow-lg' :
-                      step.status === 'completed' ? 'bg-green-100 border-2 border-green-400 shadow-md' :
-                        step.status === 'failed' ? 'bg-red-100 border-2 border-red-400 shadow-md' :
-                          'bg-gray-50 border border-gray-300'
+                    step.status === 'completed' ? 'bg-green-100 border-2 border-green-400 shadow-md' :
+                      step.status === 'failed' ? 'bg-red-100 border-2 border-red-400 shadow-md' :
+                        'bg-gray-50 border border-gray-300'
                     } ${index === 0 ? 'animate-fade-in' : ''}`}
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <div className={`flex-shrink-0 transition-transform duration-300 ${step.status === 'active' ? 'animate-spin scale-110' :
-                      step.status === 'completed' ? 'animate-bounce' : ''
+                    step.status === 'completed' ? 'animate-bounce' : ''
                     }`}>
                     {step.status === 'completed' ? (
                       <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-700" />
@@ -619,14 +622,14 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className={`text-xs sm:text-sm font-semibold truncate ${step.status === 'completed' ? 'text-green-900' :
-                        step.status === 'failed' ? 'text-red-900' :
-                          step.status === 'active' ? 'text-blue-900' : 'text-gray-700'
+                      step.status === 'failed' ? 'text-red-900' :
+                        step.status === 'active' ? 'text-blue-900' : 'text-gray-700'
                       }`}>
                       {step.title}
                     </p>
                     <p className={`text-xs truncate leading-relaxed ${step.status === 'completed' ? 'text-green-700' :
-                        step.status === 'failed' ? 'text-red-700' :
-                          step.status === 'active' ? 'text-blue-700' : 'text-gray-600'
+                      step.status === 'failed' ? 'text-red-700' :
+                        step.status === 'active' ? 'text-blue-700' : 'text-gray-600'
                       }`}>
                       {step.description}
                     </p>

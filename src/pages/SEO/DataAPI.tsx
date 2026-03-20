@@ -38,7 +38,7 @@ const DataAPI = () => {
     const handleDownloadCSV = async () => {
         setIsDownloading(true);
         try {
-            const { data, error } = await supabase
+            const { data, error } = await (supabase as any)
                 .from('iebc_offices')
                 .select('county, constituency, office_location, latitude, longitude, verified')
                 .eq('verified', true)
@@ -48,7 +48,7 @@ const DataAPI = () => {
             const headers = ['County', 'Constituency', 'Office Location', 'Latitude', 'Longitude', 'Verified'];
             const csvRows = [
                 headers.join(','),
-                ...data.map(row => [
+                ...(data as any[]).map(row => [
                     `"${row.county}"`,
                     `"${row.constituency}"`,
                     `"${row.office_location}"`,

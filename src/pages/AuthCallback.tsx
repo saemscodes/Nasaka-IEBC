@@ -80,7 +80,7 @@ const AuthCallback = () => {
 
                 if (profileError && profileError.code === 'PGRST116') {
                     // Profile missing, create minimal one
-                    await supabase.from('nasaka_profiles').insert({
+                    await (supabase as any).from('nasaka_profiles').insert({
                         user_id: currentUser.id,
                         display_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0]
                     });

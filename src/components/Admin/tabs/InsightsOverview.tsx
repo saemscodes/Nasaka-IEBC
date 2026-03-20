@@ -78,7 +78,7 @@ const InsightsOverview = ({ onTabChange }: { onTabChange?: (tab: string) => void
 
                 setStats({
                     totalOffices: officesResp.count || 0,
-                    verifiedOffices: officesResp.data?.filter(o => o.verified).length || 0,
+                    verifiedOffices: (officesResp.data as any[])?.filter(o => o.verified).length || 0,
                     pendingContributions: contributionsResp.count || 0,
                     activeUsers: uniqueContributors
                 });

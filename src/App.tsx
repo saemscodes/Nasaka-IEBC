@@ -144,7 +144,9 @@ const AdminLogin = ({ onLogin }: { onLogin: (success: boolean) => void }) => {
         .eq('user_id', data.user.id)
         .single();
 
-      if (coreError || !coreTeam?.is_admin || !coreTeam?.is_active) {
+      const teamData = coreTeam as { is_admin: boolean; is_active: boolean } | null;
+
+      if (coreError || !teamData?.is_admin || !teamData?.is_active) {
         setError('Access Denied: Admin privileges required.');
         await supabase.auth.signOut();
         setIsLoading(false);
@@ -352,7 +354,8 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
           .eq('user_id', session.user.id)
           .single();
 
-        const isValid = !!(coreTeam?.is_admin && coreTeam?.is_active);
+        const teamData = coreTeam as { is_admin: boolean; is_active: boolean } | null;
+        const isValid = !!(teamData?.is_admin && teamData?.is_active);
         _cachedAdminStatus = { authenticated: isValid, checked: true };
 
         if (isMounted) {

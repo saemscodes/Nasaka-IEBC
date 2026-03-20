@@ -481,7 +481,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
                     displayName: payload.new.constituency_name || payload.new.office_location,
                     formattedAddress: payload.new.formatted_address || `${payload.new.office_location}, ${payload.new.county} County`,
                     coordinates: [payload.new.latitude, payload.new.longitude]
-                  }];
+                  } as Office];
                 });
               }
               break;
@@ -496,7 +496,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
                       displayName: payload.new.constituency_name || payload.new.office_location,
                       formattedAddress: payload.new.formatted_address || `${payload.new.office_location}, ${payload.new.county} County`,
                       coordinates: [payload.new.latitude, payload.new.longitude]
-                    }
+                    } as Office
                     : office
                 )
               );
@@ -563,7 +563,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
       description: string;
       photos?: string[];
     }) => {
-      const { data: contribution, error } = await supabase
+      const { data: contribution, error } = await (supabase as any)
         .from('iebc_office_contributions')
         .insert({
           original_office_id: data.officeId,
@@ -594,7 +594,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
       userLongitude: number;
       userAccuracyMeters: number;
     }) => {
-      const { data: confirmation, error } = await supabase
+      const { data: confirmation, error } = await (supabase as any)
         .from('confirmations')
         .insert({
           office_id: data.officeId,
@@ -624,7 +624,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
       status: 'operational' | 'closed' | 'relocated' | 'under_renovation';
       reason: string;
     }) => {
-      const { data: statusReport, error } = await supabase
+      const { data: statusReport, error } = await (supabase as any)
         .from('operational_status_history')
         .insert({
           office_id: data.officeId,
@@ -655,7 +655,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
       hours?: string;
       notes?: string;
     }) => {
-      const { data: contactUpdate, error } = await supabase
+      const { data: contactUpdate, error } = await (supabase as any)
         .from('contact_update_requests')
         .insert({
           office_id: data.officeId,

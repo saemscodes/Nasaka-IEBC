@@ -10,6 +10,6 @@ import handler from '../../../../api/v1/billing/paystack';
  *   /api/v1/billing/verify     → ?action=verify
  *   /api/v1/billing/webhook    → ?action=webhook
  */
-export const onRequest: PagesFunction = async (context) => {
+export const onRequest: any = async (context: any) => {
     return handler(context.request);
 };

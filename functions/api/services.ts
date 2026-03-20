@@ -7,3 +7,5 @@ import handler from '../../api/services';
 export const onRequest: PagesFunction = async (context) => {
     return handler(context.request);
 };
+
+export default handler;
