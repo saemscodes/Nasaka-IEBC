@@ -300,7 +300,7 @@
 /* Search Bar - Fixed to viewport top */
 .fixed-search-container {
   position: fixed;
-  top: calc(16px + var(--spacing-safe-top));
+  top: calc(24px + var(--spacing-safe-top));
   left: 16px;
   right: 16px;
   z-index: var(--z-fixed-search);
@@ -608,7 +608,8 @@
 .office-marker,
 .user-location-marker,
 .geojson-office-marker,
-.geojson-office-marker-detailed {
+.geojson-office-marker-detailed,
+.diaspora-marker {
   background: transparent !important;
   border: none !important;
   z-index: var(--z-map-markers) !important;
@@ -796,6 +797,43 @@
   .bottom-sheet-handle {
     background: hsl(var(--muted-foreground) / 0.4);
   }
+}
+
+/* ============================================
+   13. OFFLINE SIDEBAR ENHANCEMENTS (v10.5)
+   ============================================ */
+.offline-sidebar-enhanced .premium-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.offline-sidebar-enhanced .stat-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(var(--muted-foreground));
+}
+
+.offline-sidebar-enhanced .stat-value {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: hsl(var(--foreground));
+}
+
+.offline-sidebar-enhanced .progress-track {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.offline-sidebar-enhanced .progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ios-blue) 0%, var(--ios-blue-light) 100%);
+  box-shadow: 0 0 15px var(--ios-blue);
 }
 
 /* ============================================

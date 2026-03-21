@@ -155,7 +155,7 @@ async function fetchMistralScore(input: AIConsensusInput): Promise<AIScoreResult
 
     try {
         const prompt = buildScoringPrompt(input);
-        const res = await fetch('/api/ai-proxy', {
+        const res = await fetch('/api/services?service=ai-proxy', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -203,7 +203,7 @@ async function fetchGroqScore(input: AIConsensusInput): Promise<AIScoreResult | 
 
     try {
         const prompt = buildScoringPrompt(input);
-        const res = await fetch('/api/ai-proxy', {
+        const res = await fetch('/api/services?service=ai-proxy', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -260,7 +260,7 @@ async function fetchGeminiReferee(
             ? `${buildScoringPrompt(input)}\n\nTwo other AI models scored this location:\n- Model A: ${scoreA}/100\n- Model B: ${scoreB}/100\n\nConsider both scores and provide your own independent assessment. If they disagree by more than 25 points, lean toward the more conservative (higher difficulty) score for safety.`
             : buildScoringPrompt(input);
 
-        const res = await fetch('/api/ai-proxy', {
+        const res = await fetch('/api/services?service=ai-proxy', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -309,7 +309,7 @@ async function verifyGroundTruth(input: AIConsensusInput): Promise<{ verified: b
     try {
         const prompt = buildGroundTruthPrompt(input);
 
-        const res = await fetch('/api/ai-proxy', {
+        const res = await fetch('/api/services?service=ai-proxy', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

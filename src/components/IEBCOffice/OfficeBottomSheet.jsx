@@ -230,8 +230,10 @@ const OfficeBottomSheet = ({
   onExpand,
   onCollapse,
   onClose,
-  hasLocationAccess = false
+  hasLocationAccess = false,
+  isDiaspora: isDiasporaProp
 }) => {
+  const isDiaspora = isDiasporaProp ?? (office?.type === 'diaspora' || office?.designation_state !== undefined);
   const navigate = useNavigate();
   const [dragY, setDragY] = useState(0);
   const [showUberModal, setShowUberModal] = useState(false);
@@ -276,9 +278,9 @@ const OfficeBottomSheet = ({
     );
   }, [hasLocationAccess, office, userLocation]);
 
-  // Calculate fare estimates - ONLY if we have location access
+  // Calculate fare estimates - ONLY if we have location access and NOT diaspora
   const fareEstimates = useMemo(() => {
-    if (!hasLocationAccess || !distanceToOffice) return null;
+    if (!hasLocationAccess || !distanceToOffice || isDiaspora) return null;
 
     const estimatedMinutes = currentRoute?.[0]?.summary?.totalTime
       ? Math.round(currentRoute[0].summary.totalTime / 60)
@@ -463,7 +465,10 @@ const OfficeBottomSheet = ({
                 <div className="flex-1">
                   <h3 className={`font-semibold text-lg line-clamp-1 transition-colors duration-300 ${isDark ? 'text-white' : 'text-foreground'
                     }`}>
-                    {office.office_name || office.constituency_name || t('office.officeName', 'IEBC Office')}
+                    {isDiaspora
+                      ? (office.mission_name || t('office.diasporaTitle', 'Diaspora Centre'))
+                      : (office.office_name || office.constituency_name || t('office.officeName', 'IEBC Office'))
+                    }
                   </h3>
                   {(() => {
                     const dn = getOfficeDisplayName(office);
@@ -478,9 +483,12 @@ const OfficeBottomSheet = ({
                   })()}
                   <p className={`text-sm mt-1 line-clamp-1 transition-colors duration-300 ${isDark ? 'text-ios-gray-300' : 'text-muted-foreground'
                     }`}>
-                    {office.constituency_name && office.county
-                      ? `${office.constituency_name}, ${office.county}`
-                      : office.county || office.constituency_name || t('office.location', 'Location')}
+                    {isDiaspora
+                      ? `${office.city}, ${office.country}`
+                      : (office.constituency_name && office.county
+                        ? `${office.constituency_name}, ${office.county}`
+                        : office.county || office.constituency_name || t('office.location', 'Location'))
+                    }
                   </p>
                 </div>
 
@@ -584,6 +592,14 @@ const OfficeBottomSheet = ({
                         {office.office_type}
                       </span>
                     )}
+                    {isDiaspora && (
+                      <span className={`inline-block mt-2 px-3 py-1 text-xs font-medium rounded-full transition-colors duration-300 ${isDark
+                        ? 'bg-purple-900/30 text-purple-400'
+                        : 'bg-purple-100 text-purple-700'
+                        }`}>
+                        {t('office.diasporaBadge', 'Diaspora Registration Centre')}
+                      </span>
+                    )}
                   </div>
 
                   {/* LOCATION ACCESS WARNING - SHOW WHEN NO ACCESS */}
@@ -617,8 +633,8 @@ const OfficeBottomSheet = ({
                     </div>
                   )}
 
-                  {/* FARE ESTIMATES CARD - ONLY SHOW IF LOCATION ACCESS GRANTED */}
-                  {hasLocationAccess && fareEstimates && (
+                  {/* FARE ESTIMATES CARD - ONLY SHOW IF LOCATION ACCESS GRANTED AND NOT DIASPORA */}
+                  {hasLocationAccess && fareEstimates && !isDiaspora && (
                     <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark
                       ? 'bg-gradient-to-br from-green-900/20 to-blue-900/20 border-green-700/30'
                       : 'bg-gradient-to-br from-green-50 to-blue-50 border-green-200'

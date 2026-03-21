@@ -166,7 +166,7 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className={`office-list-panel open fixed right-0 top-0 h-full w-[400px] z-[100] bg-background border-l border-border shadow-2xl ${className}`}
+            className={`office-list-panel open fixed right-0 top-0 h-full w-[400px] z-[100] bg-background border-l border-border shadow-2xl offline-sidebar-enhanced ${className}`}
         >
             {/* Header */}
             <div className="sticky top-0 bg-background/95 dark:bg-card/95 backdrop-blur-xl border-b border-border z-10 px-5 py-4">
@@ -220,10 +220,10 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-center">
-                                            <p className={`text-[10px] font-bold uppercase tracking-tighter ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>{t('offline.weather', 'Current Weather')}</p>
+                                            <p className="stat-label">{t('offline.weather', 'Current Weather')}</p>
                                             <span className="text-[10px] font-bold text-green-500">{travelInsights.temperature}°C</span>
                                         </div>
-                                        <p className={`text-sm font-bold truncate leading-tight ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>{travelInsights.weatherDesc}</p>
+                                        <p className="stat-value truncate leading-tight">{travelInsights.weatherDesc}</p>
                                         <p className={`text-[9px] font-medium ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>{travelInsights.precipProb}% {t('offline.precipChance', 'Precipitation Chance')}</p>
                                     </div>
                                 </div>
@@ -235,9 +235,9 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                                         <IconCar className="w-4 h-4" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className={`text-[10px] font-bold uppercase tracking-tighter ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>{t('offline.traffic', 'Traffic Conditions')}</p>
+                                        <p className="stat-label">{t('offline.traffic', 'Traffic Conditions')}</p>
                                         <div className="flex items-center justify-between">
-                                            <p className={`text-sm font-bold truncate ${trafficInfo.color || (isDark ? 'text-white' : 'text-ios-gray-900')}`}>{trafficInfo.description}</p>
+                                            <p className={`stat-value truncate ${trafficInfo.color || (isDark ? 'text-white' : 'text-ios-gray-900')}`}>{trafficInfo.description}</p>
                                             <span className={`text-[9px] font-bold uppercase ${isDark ? 'text-ios-gray-500' : 'text-ios-gray-400'}`}>{t('offline.realTime', 'Live')}</span>
                                         </div>
                                     </div>
@@ -320,11 +320,11 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                                     </span>
                                     <span className={`text-2xl font-black ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>{progress}%</span>
                                 </div>
-                                <div className={`w-full h-4 rounded-full overflow-hidden p-1 ${isDark ? 'bg-black/40' : 'bg-white/40'}`}>
+                                <div className="progress-track">
                                     <motion.div
                                         initial={{ width: 0 }}
                                         animate={{ width: `${progress}%` }}
-                                        className={`h-full rounded-full ${status === 'done' ? 'bg-green-500' : 'bg-ios-blue shadow-[0_0_15px_rgba(0,122,255,0.6)]'}`}
+                                        className={`progress-fill ${status === 'done' ? 'bg-green-500' : ''}`}
                                     />
                                 </div>
                                 {status === 'done' && (
@@ -346,7 +346,12 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                             </svg>
                             <span className="text-[10px] font-black uppercase tracking-widest">{t('offline.storageStatus', 'Device Storage')}</span>
                         </div>
-                        <p className={`text-[10px] font-bold ml-5 ${isDark ? 'text-ios-gray-300' : 'text-ios-gray-600'}`}>{storageUsed.toUpperCase()}</p>
+                        <p className={`text-[10px] font-bold ml-5 ${isDark ? 'text-ios-gray-300' : 'text-ios-gray-600'}`}>
+                            {storageUsed.toUpperCase().replace(/\(([\d.]+)%\)/, (match, p1) => {
+                                const val = parseFloat(p1);
+                                return `(${val > 100 ? '100%+' : `${val}%`})`;
+                            })}
+                        </p>
                     </div>
                 )}
 

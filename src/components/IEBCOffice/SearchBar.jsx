@@ -71,18 +71,31 @@ const SearchBar = ({
 
   const loadAllOffices = async () => {
     try {
-      const { data, error } = await supabase
-        .from('iebc_offices')
-        .select('*')
-        .not('latitude', 'is', null)
-        .not('longitude', 'is', null);
+      // Parallel fetch for iebc_offices and diaspora_registration_centres
+      const [iebcRes, diasporaRes] = await Promise.all([
+        supabase
+          .from('iebc_offices')
+          .select('*')
+          .not('latitude', 'is', null)
+          .not('longitude', 'is', null),
+        supabase
+          .from('diaspora_registration_centres')
+          .select('*')
+          .not('latitude', 'is', null)
+          .not('longitude', 'is', null)
+      ]);
 
-      if (error) throw error;
+      if (iebcRes.error) throw iebcRes.error;
+      if (diasporaRes.error) throw diasporaRes.error;
 
-      setAllOffices(data || []);
+      const iebcData = (iebcRes.data || []).map(o => ({ ...o, type: 'office' }));
+      const diasporaData = (diasporaRes.data || []).map(o => ({ ...o, type: 'diaspora' }));
+      const combined = [...iebcData, ...diasporaData];
+
+      setAllOffices(combined);
 
       // Feed data into the geocoding pipeline's local layer
-      setLocalOffices(data || []);
+      setLocalOffices(combined);
 
       // Initialize Fuse.js for fuzzy search
       const fuseOptions = {
@@ -93,7 +106,10 @@ const SearchBar = ({
           'office_location',
           'landmark',
           'clean_office_location',
-          'formatted_address'
+          'formatted_address',
+          'mission_name',
+          'city',
+          'country'
         ],
         threshold: 0.3,
         includeScore: true,
@@ -103,7 +119,7 @@ const SearchBar = ({
         findAllMatches: true
       };
 
-      setFuse(new Fuse(data || [], fuseOptions));
+      setFuse(new Fuse(combined, fuseOptions));
     } catch (error) {
       console.error('Error loading offices for search:', error);
     }
@@ -134,7 +150,7 @@ const SearchBar = ({
         ...result.item,
         matches: result.matches,
         score: result.score,
-        type: 'office'
+        type: result.item.type || 'office'
       }));
 
       // ── Re-rank with searchUtils relevance scoring ──────────────────────
@@ -236,7 +252,7 @@ const SearchBar = ({
   };
 
   const handleSuggestionSelect = (suggestion) => {
-    if (suggestion.type === 'office' && onSearch) {
+    if ((suggestion.type === 'office' || suggestion.type === 'diaspora') && onSearch) {
       onSearch(suggestion);
     } else if (suggestion.type === 'place' && onLocationSearch) {
       // Uber-style: user selected a geocoded place — trigger location-based search
@@ -343,6 +359,23 @@ const SearchBar = ({
     const countyMatch = suggestion.matches?.find(m => m.key === 'county');
     const constituencyMatch = suggestion.matches?.find(m => m.key === 'constituency_name');
     const locationMatch = suggestion.matches?.find(m => m.key === 'office_location');
+    const missionMatch = suggestion.matches?.find(m => m.key === 'mission_name');
+    const cityMatch = suggestion.matches?.find(m => m.key === 'city');
+    const countryMatch = suggestion.matches?.find(m => m.key === 'country');
+
+    if (suggestion.type === 'diaspora') {
+      return {
+        primary: missionMatch ?
+          highlightMatches(suggestion.mission_name, [missionMatch]) :
+          suggestion.mission_name || t('office.diasporaTitle', 'Diaspora Centre'),
+        secondary: cityMatch ?
+          highlightMatches(suggestion.city, [cityMatch]) :
+          suggestion.city,
+        tertiary: countryMatch ?
+          highlightMatches(suggestion.country, [countryMatch]) :
+          suggestion.country
+      };
+    }
 
     return {
       primary: constituencyMatch ?
@@ -498,15 +531,23 @@ const SearchBar = ({
                               }`}
                           >
                             <div className="flex items-start space-x-4">
-                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${suggestion.type === 'office'
+                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${suggestion.type === 'diaspora'
                                 ? theme === 'dark'
-                                  ? 'bg-ios-blue-dark/30 text-ios-blue-light shadow-lg'
-                                  : 'bg-ios-blue/20 text-ios-blue-dark shadow-md'
-                                : theme === 'dark'
-                                  ? 'bg-green-500/30 text-green-300 shadow-lg'
-                                  : 'bg-green-500/20 text-green-600 shadow-md'
+                                  ? 'bg-purple-500/30 text-purple-300 shadow-lg'
+                                  : 'bg-purple-100 text-purple-600 shadow-md'
+                                : suggestion.type === 'office'
+                                  ? theme === 'dark'
+                                    ? 'bg-ios-blue-dark/30 text-ios-blue-light shadow-lg'
+                                    : 'bg-ios-blue/20 text-ios-blue-dark shadow-md'
+                                  : theme === 'dark'
+                                    ? 'bg-green-500/30 text-green-300 shadow-lg'
+                                    : 'bg-green-500/20 text-green-600 shadow-md'
                                 }`}>
-                                {suggestion.type === 'office' ? (
+                                {suggestion.type === 'diaspora' ? (
+                                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z" fill="currentColor" />
+                                  </svg>
+                                ) : suggestion.type === 'office' ? (
                                   <IEBCIcon className="w-5 h-5" />
                                 ) : (
                                   <Search className="w-5 h-5" />

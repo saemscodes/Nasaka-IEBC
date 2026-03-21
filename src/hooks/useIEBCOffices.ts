@@ -18,7 +18,7 @@ import {
 import { calculateDistance } from '@/utils/geoUtils';
 
 interface Office {
-  id: number;
+  id: number | string;
   county: string;
   constituency: string;
   constituency_name: string | null;
@@ -213,32 +213,62 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
 
     const client = window.location.pathname.includes('/admin') ? supabaseCustom : supabase;
 
-    const { data, error: supabaseError } = await client
-      .from('iebc_offices')
-      .select('*')
-      .not('latitude', 'is', null)
-      .not('longitude', 'is', null)
-      .eq('verified', true)
-      .order('county')
-      .order('constituency_name');
+    // Parallel fetch for IEBC Offices and Diaspora Centres
+    const [officesRes, diasporaRes] = await Promise.all([
+      client
+        .from('iebc_offices')
+        .select('*')
+        .not('latitude', 'is', null)
+        .not('longitude', 'is', null)
+        .eq('verified', true)
+        .order('county')
+        .order('constituency_name'),
+      client
+        .from('diaspora_registration_centres')
+        .select('*')
+        .not('latitude', 'is', null)
+        .not('longitude', 'is', null)
+        .order('country')
+        .order('mission_name')
+    ]);
 
-    if (supabaseError) throw supabaseError;
+    if (officesRes.error) throw officesRes.error;
+    if (diasporaRes.error) console.warn('Diaspora fetch failed:', diasporaRes.error);
 
-    const validOffices = ((data as any[]) || [])
+    const validOffices = ((officesRes.data as any[]) || [])
       .filter(office => office.latitude && office.longitude)
       .map(office => ({
         ...office,
+        type: 'office',
         displayName: office.constituency_name || office.office_location,
         formattedAddress: office.formatted_address || `${office.office_location}, ${office.county} County`,
         coordinates: [office.latitude, office.longitude],
         isCached: false
       }));
 
-    setOffices(validOffices);
+    const validDiaspora = ((diasporaRes.data as any[]) || [])
+      .filter(center => center.latitude && center.longitude)
+      .map(center => ({
+        ...center,
+        id: `d-${center.id}`,
+        type: 'diaspora',
+        county: center.country,
+        constituency_name: center.mission_name,
+        office_location: center.city,
+        displayName: center.mission_name,
+        formattedAddress: center.formatted_address || `${center.mission_name}, ${center.city}, ${center.country}`,
+        coordinates: [center.latitude, center.longitude],
+        isCached: false,
+        verified: true // Diaspora centers are official
+      }));
+
+    const allLocations = [...validOffices, ...validDiaspora];
+
+    setOffices(allLocations);
     setLastSyncTime(new Date());
 
     if (enableOfflineCache) {
-      await setCachedOffices(validOffices);
+      await setCachedOffices(allLocations);
     }
 
     const fuseOptions = {
@@ -250,7 +280,10 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
         'landmark',
         'clean_office_location',
         'formatted_address',
-        'displayName'
+        'displayName',
+        'mission_name',
+        'city',
+        'country'
       ],
       threshold: 0.3,
       includeScore: true,
@@ -263,9 +296,9 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
       distance: 100
     };
 
-    setFuse(new Fuse(validOffices, fuseOptions));
+    setFuse(new Fuse(allLocations, fuseOptions));
 
-    return validOffices;
+    return allLocations;
   };
 
   const performSearch = useCallback(async (query: string, options: any = {}) => {
@@ -338,8 +371,20 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
         });
       }
 
-      setSearchResults(results.slice(0, 20));
-      setSearchSuggestions(results.slice(0, 8));
+      const resultsWithDisplay = results.map(r => {
+        if (r.type === 'diaspora' || (!r.constituency_name && r.mission_name)) {
+          return {
+            ...r,
+            name: r.mission_name || 'Diaspora Centre',
+            subtitle: `${r.city}, ${r.country}`,
+            type: 'diaspora'
+          };
+        }
+        return r;
+      });
+
+      setSearchResults(resultsWithDisplay.slice(0, 20));
+      setSearchSuggestions(resultsWithDisplay.slice(0, 8));
 
       return results;
     } catch (error: any) {

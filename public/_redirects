@@ -7,5 +7,10 @@
 /iebc-office/terms /terms 301
 /nasaka-iebc/privacy /privacy 301
 /nasaka-iebc/terms /terms 301
+
+# API Consolidation Redirects
+/api/ai-proxy /api/services?service=ai-proxy 200
+/api/locate /api/services?service=usage 200
+
 # SPA fallback (must be last)
 /* /index.html 200

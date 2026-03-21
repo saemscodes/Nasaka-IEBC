@@ -597,6 +597,8 @@ const IEBCOfficeMap = () => {
   }, [routingError]);
 
   // Handle panel backdrop visibility
+  const isDiaspora = selectedOffice?.type === 'diaspora';
+
   useEffect(() => {
     if (!isListPanelOpen && !isLayerPanelOpen) {
       setIsPanelBackdropVisible(false);
@@ -857,7 +859,7 @@ const IEBCOfficeMap = () => {
             >
               <span className="w-2 h-2 rounded-full bg-green-500" />
               <span className="text-gray-700">
-                {nearbyOffices.length} IEBC office{nearbyOffices.length !== 1 ? 's' : ''} within {radiusKm}km
+                {nearbyOffices.length} {isDiaspora ? 'centre' : 'IEBC office'}{nearbyOffices.length !== 1 ? 's' : ''} within {radiusKm}km
               </span>
               {nearbyOffices[0]?.distance_km != null && (
                 <>
@@ -1079,6 +1081,7 @@ const IEBCOfficeMap = () => {
         onCollapse={handleBottomSheetCollapse}
         onClose={handleBottomSheetClose}
         hasLocationAccess={hasLocationAccess}
+        isDiaspora={isDiaspora}
       />
     </div>
   );

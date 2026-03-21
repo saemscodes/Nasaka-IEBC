@@ -9,7 +9,7 @@ export async function layer_geonames(
 ): Promise<GeocodedResult[]> {
     const USERNAME = (typeof import.meta !== "undefined" && import.meta.env?.VITE_GEONAMES_USERNAME) ||
         (typeof process !== "undefined" && process.env?.VITE_GEONAMES_USERNAME) ||
-        "civiceducationkenya";
+        "saemscodes";
 
     const params = new URLSearchParams({
         q: query,
