@@ -224,7 +224,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
 
     if (supabaseError) throw supabaseError;
 
-    const validOffices = (data || [])
+    const validOffices = ((data as any[]) || [])
       .filter(office => office.latitude && office.longitude)
       .map(office => ({
         ...office,

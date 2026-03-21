@@ -56,7 +56,7 @@ const InsightsOverview = ({ onTabChange }: { onTabChange?: (tab: string) => void
         activeUsers: 0,
     });
     const [loading, setLoading] = useState(true);
-    const [chartData, setChartData] = useState([]);
+    const [chartData, setChartData] = useState<any[]>([]);
     const [timeRange, setTimeRange] = useState('7');
     const [urgentClusters, setUrgentClusters] = useState(0);
     const [pendingHitl, setPendingHitl] = useState(0);
@@ -117,7 +117,7 @@ const InsightsOverview = ({ onTabChange }: { onTabChange?: (tab: string) => void
                 buckets[key] = 0;
             }
 
-            data.forEach(row => {
+            (data as any[]).forEach((row: { created_at: string }) => {
                 const key = row.created_at.split('T')[0];
                 if (buckets[key] !== undefined) {
                     buckets[key]++;
@@ -142,10 +142,12 @@ const InsightsOverview = ({ onTabChange }: { onTabChange?: (tab: string) => void
 
     useEffect(() => {
         const fetchUrgentData = async () => {
-            const { data: offices } = await supabase
+            const { data: officesData } = await supabase
                 .from('iebc_offices')
                 .select('id, latitude, longitude')
                 .not('latitude', 'is', null);
+
+            const offices = officesData as any[];
 
             if (offices && offices.length > 0) {
                 let clusterCount = 0;

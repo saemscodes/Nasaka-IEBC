@@ -259,7 +259,7 @@ async function layer5_constituency(query: string): Promise<GeocodedResult[]> {
     if (!data || data.length === 0) return [];
 
     const seen = new Set<string>();
-    return data
+    return (data as any[])
         .filter((row) => {
             const key = row.constituency_name || row.constituency;
             if (seen.has(key)) return false;

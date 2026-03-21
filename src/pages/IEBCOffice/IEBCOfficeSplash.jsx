@@ -334,30 +334,36 @@ const IEBCOfficeSplash = () => {
                         const worker = getGeoWorker();
 
                         if (worker) {
-                            // Perf 7: Use Web Worker (includes Perf 6 bounding-box pre-filter)
-                            worker.onmessage = (e) => {
-                                if (e.data.type === 'NEAREST_RESULT' && e.data.nearestOffice) {
-                                    // Fix 5: Persist userLocation for return navigation
-                                    try {
-                                        sessionStorage.setItem('nasaka_userLocation', JSON.stringify(location));
-                                    } catch (_) { /* private browsing */ }
+                            const handleWorkerMessage = (e) => {
+                                if (e.data.type === 'NEAREST_RESULT') {
+                                    worker.removeEventListener('message', handleWorkerMessage);
+                                    if (e.data.nearestOffice) {
+                                        try {
+                                            sessionStorage.setItem('nasaka_userLocation', JSON.stringify(location));
+                                        } catch (_) { }
 
-                                    navigate('/map', {
-                                        state: {
-                                            selectedOffice: e.data.nearestOffice,
-                                            userLocation: location
-                                        },
-                                        replace: true
-                                    });
-                                } else {
-                                    // Worker found no result — fallback
-                                    navigateToMapFallback();
+                                        navigate('/map', {
+                                            state: {
+                                                selectedOffice: e.data.nearestOffice,
+                                                userLocation: location
+                                            },
+                                            replace: true
+                                        });
+                                    } else {
+                                        navigateToMapFallback();
+                                    }
                                 }
                             };
-                            worker.onerror = () => {
-                                // Worker error — fall back to main-thread calculation
+
+                            const handleWorkerError = () => {
+                                worker.removeEventListener('message', handleWorkerMessage);
+                                worker.removeEventListener('error', handleWorkerError);
                                 findNearestOnMainThread(offices);
                             };
+
+                            worker.addEventListener('message', handleWorkerMessage);
+                            worker.addEventListener('error', handleWorkerError);
+
                             worker.postMessage({
                                 type: 'FIND_NEAREST',
                                 userLocation: location,

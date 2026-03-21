@@ -47,7 +47,7 @@ export default async function handler(req: Request, env?: any): Promise<Response
 
 // ---- Service Handlers (Ported logic) ----
 
-async function handleAiProxy(req: Request, headers: any) {
+async function handleAiProxy(req: Request, headers: any, env?: any) {
     if (req.method !== 'POST') return errorResponse('Method not allowed', 405);
     const { provider, body } = await req.json();
     if (!provider || !body) return errorResponse('Provider and body are required', 400);
@@ -67,6 +67,10 @@ async function handleAiProxy(req: Request, headers: any) {
         case 'gemini':
             url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${getEnv('VITE_GEMINI_API_KEY', env)}`;
             break;
+        case 'ipapi':
+            const ip = body.ip || '';
+            const res = await fetch(`https://ipapi.co/${ip}/json/`);
+            return Response.json(await res.json(), { headers });
         default:
             return errorResponse('Invalid provider', 400);
     }
@@ -79,14 +83,14 @@ async function handleAiProxy(req: Request, headers: any) {
     return Response.json(await response.json(), { headers });
 }
 
-async function handleSignatureSession(req: Request, headers: any) {
+async function handleSignatureSession(req: Request, headers: any, env?: any) {
     if (req.method !== 'POST') return errorResponse('Method not allowed', 405);
     const body = await req.json();
     // Simplified session logic
     return Response.json({ success: true, sessionId: `sig_${Date.now()}`, redirectUrl: "/sign" }, { headers });
 }
 
-async function handlePetitionStats(req: Request, headers: any) {
+async function handlePetitionStats(req: Request, headers: any, env?: any) {
     if (req.method !== 'GET') return errorResponse('Method not allowed', 405);
     return Response.json({
         totalSignatures: 8750,
@@ -96,13 +100,13 @@ async function handlePetitionStats(req: Request, headers: any) {
     }, { headers });
 }
 
-async function handleWorkflow(req: Request, headers: any) {
+async function handleWorkflow(req: Request, headers: any, env?: any) {
     if (req.method !== 'POST') return errorResponse('Method not allowed', 405);
     const { scriptId } = await req.json();
     return Response.json({ success: true, message: `Dispatched ${scriptId}` }, { headers });
 }
 
-async function handleVerifyVoter(req: Request, headers: any) {
+async function handleVerifyVoter(req: Request, headers: any, env?: any) {
     if (req.method !== 'POST') return errorResponse('Method not allowed', 405);
     const { nationalId } = await req.json();
     return Response.json({ verified: true, voterDetails: { name: "John Doe", nationalId } }, { headers });
