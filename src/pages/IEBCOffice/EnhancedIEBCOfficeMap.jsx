@@ -17,7 +17,7 @@ import { useIEBCOffices } from '../../hooks/useIEBCOffices';
 import { useMapControls } from '../../hooks/useMapControls';
 import { findNearestOffice, findNearestOffices } from '../../utils/geoUtils';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Thermometer, Wind, CloudRain } from 'lucide-react';
+import { Thermometer, Wind, CloudRain, ChevronRight } from 'lucide-react';
 
 const EnhancedIEBCOfficeMap = () => {
   const { t } = useTranslation('nasaka');
@@ -461,11 +461,14 @@ const EnhancedIEBCOfficeMap = () => {
           style={{ zIndex: 'var(--z-fixed-badges, 1005)' }}
           className="absolute top-20 right-4 bg-card/90 backdrop-blur-xl rounded-2xl p-3 shadow-lg border border-border max-w-[240px]"
         >
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-foreground text-sm font-semibold">
-              {currentRoute.length} route{currentRoute.length > 1 ? 's' : ''} found
-            </span>
+          <div className="flex justify-between items-start">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-foreground text-sm font-semibold">
+                {currentRoute.length} route{currentRoute.length > 1 ? 's' : ''} found
+              </span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground/50" strokeWidth={1.5} />
           </div>
           {currentRoute[0] && (
             <div className="text-muted-foreground text-xs mt-1">
@@ -527,10 +530,10 @@ const EnhancedIEBCOfficeMap = () => {
                         <span className="text-[9px] px-1 py-0.5 rounded bg-green-500/20 text-green-600 dark:text-green-400 font-bold">✓ Verified</span>
                       )}
                       <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${travelInsights.aiConfidence === 'high'
-                          ? 'bg-green-500/20 text-green-600 dark:text-green-400'
-                          : travelInsights.aiConfidence === 'medium'
-                            ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
-                            : 'bg-red-500/20 text-red-600 dark:text-red-400'
+                        ? 'bg-green-500/20 text-green-600 dark:text-green-400'
+                        : travelInsights.aiConfidence === 'medium'
+                          ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
+                          : 'bg-red-500/20 text-red-600 dark:text-red-400'
                         }`}>{travelInsights.aiScore}/100</span>
                     </div>
                   </div>

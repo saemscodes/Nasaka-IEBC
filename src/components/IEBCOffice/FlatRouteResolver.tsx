@@ -37,8 +37,8 @@ const FlatRouteResolver = () => {
                     .ilike('county', searchName)
                     .limit(1);
 
-                if (countyData?.length > 0) {
-                    navigate(`/${slugify(countyData[0].county)}`, { replace: true });
+                if (countyData && (countyData as any[]).length > 0) {
+                    navigate(`/${slugify((countyData as any[])[0].county)}`, { replace: true });
                     return;
                 }
 
@@ -48,8 +48,8 @@ const FlatRouteResolver = () => {
                     .select('county, constituency_name')
                     .or(`constituency_name.ilike.${searchName},constituency_name.ilike.${slug.replace(/-town$/, '').replace(/-/g, ' ')}`);
 
-                if (areaData?.length > 0) {
-                    const match = areaData[0];
+                if (areaData && (areaData as any[]).length > 0) {
+                    const match = (areaData as any[])[0];
                     const county_slug = slugify(match.county);
                     let area_slug = slugify(match.constituency_name);
                     if (area_slug === county_slug) area_slug = `${area_slug}-town`;
@@ -65,8 +65,8 @@ const FlatRouteResolver = () => {
                     .ilike('ward_name', searchName)
                     .limit(1);
 
-                if (wardData?.length > 0) {
-                    const w = wardData[0];
+                if (wardData && (wardData as any[]).length > 0) {
+                    const w = (wardData as any[])[0];
                     navigate(`/${slugify(w.county)}/${slugify(w.constituency)}/${slugify(w.ward_name)}`, { replace: true });
                     return;
                 }
@@ -79,14 +79,13 @@ const FlatRouteResolver = () => {
 
                     // Find the nearest ward centroid to this resolved point
                     // We use the wards table which has lat/lng for every ward
-                    const { data: nearestWard } = await supabase
-                        .rpc('get_nearest_ward', {
-                            lat_param: lat,
-                            lng_param: lng
-                        });
+                    const { data: nearestWard } = await (supabase.rpc as any)('get_nearest_ward', {
+                        lat_param: lat,
+                        lng_param: lng
+                    });
 
-                    if (nearestWard && nearestWard.length > 0) {
-                        const w = nearestWard[0];
+                    if (nearestWard && (nearestWard as any[]).length > 0) {
+                        const w = (nearestWard as any[])[0];
                         const path = `/${slugify(w.county)}/${slugify(w.constituency)}/${slugify(w.ward_name)}`;
                         // Pass the exact resolved coordinates to center the map correctly at the destination
                         navigate(`${path}?lat=${lat}&lng=${lng}&q=${encodeURIComponent(searchName)}`, { replace: true });

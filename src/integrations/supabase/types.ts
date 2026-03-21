@@ -167,6 +167,16 @@ export interface IEBCOffice {
     distance_km?: number; // Computed field
 }
 
+export interface Ward {
+    id: number;
+    county: string;
+    constituency: string;
+    ward_name: string;
+    latitude: number;
+    longitude: number;
+    created_at: string;
+}
+
 export interface AdminTask {
     id: string;
     task_type: string;
@@ -218,6 +228,7 @@ export type Database = {
             admin_tasks: { Row: AdminTask; Insert: Partial<AdminTask>; Update: Partial<AdminTask> };
             admin_task_logs: { Row: AdminTaskLog; Insert: Partial<AdminTaskLog>; Update: Partial<AdminTaskLog> };
             geocoding_service_log: { Row: GeocodingServiceLog; Insert: Partial<GeocodingServiceLog>; Update: Partial<GeocodingServiceLog> };
+            wards: { Row: Ward; Insert: Partial<Ward>; Update: Partial<Ward> };
         };
         Functions: {
             validate_api_key: {
@@ -251,6 +262,10 @@ export type Database = {
             get_tier_monthly_limit: {
                 Args: { p_tier: string };
                 Returns: number;
+            };
+            get_nearest_ward: {
+                Args: { lat_param: number; lng_param: number };
+                Returns: Ward[];
             };
         };
     };

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useCallback, useState, useRef } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import MapContainer from '@/components/IEBCOffice/MapContainer';
 import SearchBar from '@/components/IEBCOffice/SearchBar';
@@ -932,7 +933,7 @@ const IEBCOfficeMap = () => {
               damping: 30,
               mass: 1
             }}
-            className={`route-badge-draggable ${isDraggingRouteBadge ? 'dragging' : ''} ${isOffline ? 'offline' : ''}`}
+            className={`route-badge-draggable group ${isDraggingRouteBadge ? 'dragging' : ''} ${isOffline ? 'offline' : ''}`}
             style={{
               position: 'fixed',
               left: 0,
@@ -955,13 +956,16 @@ const IEBCOfficeMap = () => {
               }
             }}
           >
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 ${isOffline ? 'bg-amber-500' : 'bg-green-500'} rounded-full animate-pulse`}></div>
-              <span className="text-sm font-medium">
-                {isOffline
-                  ? t('bottomSheet.offlineMode', 'Offline Mode')
-                  : t('bottomSheet.routesFound', { count: currentRoute.length })}
-              </span>
+            <div className="flex justify-between items-start">
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 ${isOffline ? 'bg-amber-500' : 'bg-green-500'} rounded-full animate-pulse`}></div>
+                <span className="text-sm font-medium">
+                  {isOffline
+                    ? t('bottomSheet.offlineMode', 'Offline Mode')
+                    : t('bottomSheet.routesFound', { count: currentRoute.length })}
+                </span>
+              </div>
+              {!isOffline && <ChevronRight className="w-4 h-4 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5" strokeWidth={1.5} />}
             </div>
             {isOffline ? (
               <div className="text-muted-foreground text-[10px] mt-1 italic">
@@ -977,16 +981,16 @@ const IEBCOfficeMap = () => {
                 </div>
               )
             )}
-            {/* Traffic + Weather quick-glance (PREMIUM) */}
+            {/* Traffic + Weather quick-glance (PREMIUM) - VERTICAL STACK */}
             {travelInsights && !isOffline && (
-              <div className="flex items-center gap-3 mt-1.5 pt-1.5 border-t border-gray-200 dark:border-white/10 text-[9px] font-bold uppercase tracking-wider">
-                <div className="flex items-center gap-1">
-                  <img src="/context/Button icons/sun-svgrepo-com.svg" className="w-2.5 h-2.5 dark:invert" alt="weather" />
+              <div className="flex flex-col gap-1.5 mt-1.5 pt-1.5 border-t border-gray-200 dark:border-white/10 text-[9px] font-bold uppercase tracking-wider">
+                <div className="flex items-center gap-2">
+                  <img src="/context/Button icons/sun-svgrepo-com.svg" className="w-2.5 h-2.5 dark:invert opacity-70" alt="weather" />
                   <span className="text-gray-600 dark:text-white/80">{travelInsights.weatherDesc} • {travelInsights.temperature}°C</span>
                 </div>
                 {travelInsights.trafficCondition && (
-                  <div className="flex items-center gap-1">
-                    <img src="/context/Button icons/car-front-view-609-svgrepo-com.svg" className="w-2.5 h-2.5 dark:invert" alt="traffic" />
+                  <div className="flex items-center gap-2">
+                    <img src="/context/Button icons/car-front-view-609-svgrepo-com.svg" className="w-2.5 h-2.5 dark:invert opacity-70" alt="traffic" />
                     <span className={travelInsights.trafficColor || 'text-green-600 dark:text-green-400'}>{travelInsights.trafficCondition}</span>
                   </div>
                 )}
