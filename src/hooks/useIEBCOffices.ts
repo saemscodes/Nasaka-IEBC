@@ -18,26 +18,83 @@ import {
 import { calculateDistance } from '@/utils/geoUtils';
 
 interface Office {
+  // Common Fields
   id: number | string;
-  county: string;
-  constituency: string;
-  constituency_name: string | null;
-  constituency_code: number | null;
-  office_location: string;
-  landmark: string | null;
+  type: 'office' | 'diaspora';
   latitude: number | null;
   longitude: number | null;
   formatted_address: string | null;
   verified: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
+
+  // Domestic (IEBC) Fields
+  county?: string | null;
+  constituency?: string | null;
+  constituency_name?: string | null;
+  constituency_code?: number | null;
+  ward?: string | null;
+  ward_id?: string | null;
+  office_location?: string;
+  landmark?: string | null;
+  landmark_type?: string | null;
+  landmark_subtype?: string | null;
+  clean_office_location?: string | null;
+
+  // Geolocation & Verification (Precision Refinements)
+  geocode_status?: string | null;
+  geocode_method?: string | null;
+  geocode_confidence?: number | null;
+  geocode_verified?: boolean | null;
+  geocode_verified_at?: string | null;
+  multi_source_confidence?: number | null;
+  confidence_score?: number | null;
+  verification_source?: string | null;
+  verified_at?: string | null;
+
+  // Physical & GIS data
+  elevation_meters?: number | null;
+  isochrone_15min?: string | null;
+  isochrone_30min?: string | null;
+  isochrone_45min?: string | null;
+  landmark_normalized?: string | null;
+  landmark_source?: string | null;
+  walking_effort?: string | null;
+
+  // Diaspora Specific Fields
+  mission_name?: string | null;
+  mission_type?: 'high_commission' | 'embassy' | 'consulate' | 'liaison' | null;
+  city?: string | null;
+  country?: string | null;
+  country_code?: string | null;
+  continent?: 'Africa' | 'Europe' | 'Americas' | 'Asia' | 'Oceania' | 'MiddleEast' | null;
+  region?: string | null;
+  google_maps_url?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  website_url?: string | null;
+  whatsapp?: string | null;
+  designation_state?: 'embassy_only' | 'embassy_probable' | 'iebc_confirmed' | null;
+  designated_2017?: boolean | null;
+  designated_2022?: boolean | null;
+  designation_count?: number | null;
+  is_iebc_confirmed_2027?: boolean | null;
+  confirmed_2027_source_url?: string | null;
+  confirmed_2027_gazette_ref?: string | null;
+  services_2027?: any | null;
+  registration_opens_at?: string | null;
+  registration_closes_at?: string | null;
+  voting_date?: string | null;
+  registration_requirements?: any | null;
+  inquiry_contact_name?: string | null;
+  inquiry_contact_email?: string | null;
+  inquiry_notes?: string | null;
+
+  // UI Derived Fields (Internal)
   displayName?: string;
   formattedAddress?: string;
   coordinates?: [number, number];
   isCached?: boolean;
-  confidence_score?: number | null;
-  verification_source?: string | null;
-  verified_at?: string | null;
-  created_at?: string | null;
-  updated_at?: string | null;
 }
 
 interface Contribution {
@@ -271,7 +328,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
         formattedAddress: office.formatted_address || `${office.office_location}, ${office.county} County`,
         coordinates: [office.latitude, office.longitude],
         isCached: false
-      }));
+      })) as Office[];
 
     const validDiaspora = ((diasporaRes.data as any[]) || [])
       .filter(center => center.latitude && center.longitude)
@@ -279,7 +336,8 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
         ...center,
         id: `d-${center.id}`,
         type: 'diaspora',
-        county: center.country,
+        country: center.country,
+        county: null, // Explictly null for Diaspora
         constituency_name: center.mission_name,
         office_location: center.city,
         displayName: center.mission_name,
@@ -287,7 +345,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
         coordinates: [center.latitude, center.longitude],
         isCached: false,
         verified: true // Diaspora centers are official
-      }));
+      })) as Office[];
 
     const allLocations = [...validOffices, ...validDiaspora];
 

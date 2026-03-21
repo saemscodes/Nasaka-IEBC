@@ -1042,10 +1042,12 @@ const OfficeBottomSheet = ({
                     >
                       <span className="text-center">
                         {(() => {
-                          const { county, constituency_name, ward_name } = office;
+                          const { county, constituency_name, ward_name, type, mission_name, country } = office;
                           let area = '';
 
-                          if (constituency_name && county) {
+                          if (type === 'diaspora') {
+                            area = mission_name && country ? `${mission_name}, ${country}` : (mission_name || country || office.city);
+                          } else if (constituency_name && county) {
                             area = `${constituency_name}, ${county}`; // i
                           } else if (county) {
                             area = county; // ii

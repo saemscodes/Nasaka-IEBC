@@ -8,6 +8,7 @@
  */
 
 import { Helmet } from 'react-helmet-async';
+import { STATIC_FAQS } from './static-faqs';
 
 const SITE_URL = 'https://nasakaiebc.civiceducationkenya.com';
 const DEFAULT_OG_IMAGE = `${SITE_URL}/1.webp`;
@@ -74,7 +75,7 @@ export function SEOHead({
         ? Array.isArray(schema)
             ? schema
             : [schema]
-        : [];
+        : [generateWebsiteSchema(), generateFAQSchema()];
 
     return (
         <Helmet>
@@ -252,12 +253,13 @@ export function generateWebsiteSchema() {
 }
 
 export function generateFAQSchema(
-    faqs: { question: string; answer: string }[]
+    faqs?: { question: string; answer: string }[]
 ) {
+    const finalFaqs = faqs && faqs.length > 0 ? faqs : STATIC_FAQS;
     return {
         '@context': 'https://schema.org',
         '@type': 'FAQPage',
-        mainEntity: faqs.map((faq) => ({
+        mainEntity: finalFaqs.map((faq) => ({
             '@type': 'Question',
             name: faq.question,
             acceptedAnswer: {
