@@ -21,7 +21,7 @@ const DoubleTapHandler = ({ onDoubleTap, doubleTapDelay = 300 }) => {
     click: (e) => {
       const currentTime = new Date().getTime();
       const tapLength = currentTime - lastTap;
-      
+
       if (tapLength < doubleTapDelay && tapLength > 0) {
         // Double-tap detected
         onDoubleTap(e.latlng);
@@ -93,16 +93,16 @@ const MapController = forwardRef(({ center, zoom, onMapReady, onDoubleTap, isMod
 
 MapController.displayName = 'MapController';
 
-const MapContainer = forwardRef(({ 
-  center, 
-  zoom, 
-  children, 
-  className, 
-  onMapReady, 
-  onDoubleTap, 
+const MapContainer = forwardRef(({
+  center,
+  zoom,
+  children,
+  className,
+  onMapReady,
+  onDoubleTap,
   isModalMap = false,
   onClick,
-  ...props 
+  ...props
 }, ref) => {
   const defaultCenter = [-1.286389, 36.817223]; // Nairobi
   const defaultZoom = isModalMap ? 16 : 10;
@@ -125,12 +125,12 @@ const MapContainer = forwardRef(({
         center={center || defaultCenter}
         zoom={zoom || defaultZoom}
         className={`w-full h-full ${className || ''}`}
-        style={{ 
-          position: 'absolute', 
-          top: 0, 
-          left: 0, 
-          width: '100%', 
-          height: '100%', 
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
           zIndex: isModalMap ? 'var(--z-map-modal, 10)' : 'var(--z-map-base, 1)'
         }}
         zoomControl={true}
@@ -143,12 +143,16 @@ const MapContainer = forwardRef(({
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          maxZoom={19}
+          keepBuffer={4}
+          updateWhenIdle={true}
+          updateWhenZooming={false}
         />
-        <MapController 
-          ref={ref} 
-          center={center} 
-          zoom={zoom} 
-          onMapReady={onMapReady} 
+        <MapController
+          ref={ref}
+          center={center}
+          zoom={zoom}
+          onMapReady={onMapReady}
           onDoubleTap={handleDoubleTap}
           isModalMap={isModalMap}
         />

@@ -24,7 +24,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { getTrafficInfo } from '@/utils/kenyaFareCalculator';
 import { getTravelInsights } from '@/services/travelService';
 import L from 'leaflet';
+import '@maplibre/maplibre-gl-leaflet';
 import { SEOHead } from '@/components/SEO/SEOHead';
+import { debounce } from '@/lib/searchUtils';
 
 const IEBCOfficeMap = () => {
   const navigate = useNavigate();
@@ -193,21 +195,21 @@ const IEBCOfficeMap = () => {
 
   // Initialize tile layers
   const initializeTileLayers = useCallback((map) => {
-    // Standard OpenStreetMap
-    tileLayersRef.current.standard = L.tileLayer(
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19
-      }
-    );
+    // OpenFreeMap — Vector-mapped GL layer
+    // @ts-ignore
+    tileLayersRef.current.standard = L.maplibreGL({
+      style: 'https://tiles.openfreemap.org/styles/liberty',
+      attribution: '&copy; <a href="https://openfreemap.org/">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
 
     // Satellite view
     tileLayersRef.current.satellite = L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
         attribution: '&copy; <a href="https://www.esri.com/">Esri</a>',
-        maxZoom: 19
+        maxZoom: 19,
+        updateWhenIdle: true,
+        keepBuffer: 2
       }
     );
 
