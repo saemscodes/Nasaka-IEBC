@@ -534,19 +534,28 @@ const IEBCOfficeMap = () => {
     }
   }, [dispatchMap, openListPanel, navigate, offices]);
 
-  // Map mode change handler
+  // Map mode change handler — smooth easeInOut zoom transitions
   const handleMapModeChange = useCallback((newMode) => {
     setMapMode(newMode);
     if (mapInstanceRef.current) {
       if (newMode === 'diaspora') {
-        // World view for diaspora
-        mapInstanceRef.current.flyTo([10, 20], 2, { duration: 1.5 });
+        // World view for diaspora — longer duration for smooth zoom-out
+        mapInstanceRef.current.flyTo([10, 20], 2, {
+          duration: 2.5,
+          easeLinearity: 0.15,
+        });
       } else {
-        // Kenya view for domestic
+        // Kenya view for domestic — smooth return
         if (userLocation?.latitude && userLocation?.longitude) {
-          mapInstanceRef.current.flyTo([userLocation.latitude, userLocation.longitude], 13, { duration: 1.2 });
+          mapInstanceRef.current.flyTo([userLocation.latitude, userLocation.longitude], 13, {
+            duration: 2.0,
+            easeLinearity: 0.2,
+          });
         } else {
-          mapInstanceRef.current.flyTo([-0.0236, 37.9062], 6, { duration: 1.2 });
+          mapInstanceRef.current.flyTo([-0.0236, 37.9062], 6, {
+            duration: 2.0,
+            easeLinearity: 0.2,
+          });
         }
       }
     }
@@ -711,10 +720,10 @@ const IEBCOfficeMap = () => {
     <div className="ios-map-container relative">
       {/* SEO Head — map page meta tags */}
       <SEOHead
-        title="IEBC Office Map — All 290 Constituencies | Nasaka IEBC"
-        description="Interactive map of IEBC constituency offices across all 47 counties in Kenya. Find directions, voter registration info, and community-verified locations."
+        title="Nasaka IEBC — Find IEBC Offices near You"
+        description="Find IEBC offices in all 47 counties and 290 constituencies. Nasaka IEBC helps Kenyans locate, verify and engage with IEBC service points. Interactive maps, directions, ride-hailing services support, verification and civic reporting for trustworthy electoral access.\ Learn how to register to vote, check status, transfer registration at your nearest IEBC office."
         canonical="/map"
-        keywords="IEBC office map, IEBC office locations Kenya, find IEBC office on map, voter registration map Kenya"
+        keywords="IEBC office map, IEBC office locations Kenya, find IEBC office on map, voter registration map Kenya, IEBC office, voter registration Kenya, where to register to vote, IEBC office near me, nearest IEBC office, IEBC constituency office, get registered Kenya, how to register as a voter, check voter registration, IEBC voter verification, transfer voter registration, IEBC contacts, IEBC office hours, IEBC office Nairobi, IEBC office Mombasa, IEBC office Kisumu, IEBC office Nakuru, IEBC office Eldoret, IEBC office Westlands, IEBC office Kasarani, IEBC office Embakasi, voter registration center, where to find IEBC office, visit IEBC constituency office"
       />
       {/* FIXED UI Controls - ALWAYS ON TOP */}
       <div className="fixed-search-container">
@@ -780,7 +789,7 @@ const IEBCOfficeMap = () => {
               aria-label={t('search.useCurrentLocation', 'Use my location')}
             >
               {/* REPLACED SVG WITH HOME ICON */}
-              <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg className="w-5 h-5 text-[#1C1C1E] dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M2 12.2039C2 9.91549 2 8.77128 2.5192 7.82274C3.0384 6.87421 3.98695 6.28551 5.88403 5.10813L7.88403 3.86687C9.88939 2.62229 10.8921 2 12 2C13.1079 2 14.1106 2.62229 16.116 3.86687L18.116 5.10812C20.0131 6.28551 20.9616 6.87421 21.4808 7.82274C22 8.77128 22 9.91549 22 12.2039V13.725C22 17.6258 22 19.5763 20.8284 20.7881C19.6569 22 17.7712 22 14 22H10C6.22876 22 4.34315 22 3.17157 20.7881C2 19.5763 2 17.6258 2 13.725V12.2039Z" stroke="currentColor" strokeWidth="2" />
                 <path d="M9 16C9.85038 16.6303 10.8846 17 12 17C13.1154 17 14.1496 16.6303 15 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
@@ -836,7 +845,7 @@ const IEBCOfficeMap = () => {
       </div>
 
       {/* Map Mode Toggle — Kenya / Diaspora */}
-      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[1000]">
+      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 md:left-auto md:right-6 md:bottom-32 md:translate-x-0 z-[1000]">
         <MapModeToggle mode={mapMode} onChange={handleMapModeChange} />
       </div>
 
@@ -847,24 +856,26 @@ const IEBCOfficeMap = () => {
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className="fixed bottom-36 left-1/2 -translate-x-1/2 z-[999]"
+            className="fixed bottom-36 left-1/2 -translate-x-1/2 md:left-auto md:right-6 md:bottom-48 md:translate-x-0 z-[999]"
           >
             <div
-              className="inline-flex items-center gap-2 rounded-full shadow-lg px-4 py-2 text-xs font-semibold border"
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-bold border"
               style={{
-                background: 'rgba(255,255,255,0.95)',
-                borderColor: 'rgba(216,216,220,0.8)',
-                backdropFilter: 'blur(20px)',
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.88), rgba(240,245,255,0.92))',
+                borderColor: 'rgba(200,210,230,0.6)',
+                backdropFilter: 'blur(24px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+                boxShadow: '0 4px 20px rgba(30, 107, 255, 0.12), 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)',
               }}
             >
-              <span className="w-2 h-2 rounded-full bg-green-500" />
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
               <span className="text-gray-700">
                 {nearbyOffices.length} {isDiaspora ? 'centre' : 'IEBC office'}{nearbyOffices.length !== 1 ? 's' : ''} within {radiusKm}km
               </span>
               {nearbyOffices[0]?.distance_km != null && (
                 <>
-                  <span className="text-gray-400">·</span>
-                  <span style={{ color: '#007AFF' }}>nearest {nearbyOffices[0].distance_km.toFixed(1)}km</span>
+                  <span className="text-gray-300">·</span>
+                  <span style={{ color: '#1E6BFF', fontWeight: 800 }}>nearest {nearbyOffices[0].distance_km.toFixed(1)}km</span>
                 </>
               )}
             </div>

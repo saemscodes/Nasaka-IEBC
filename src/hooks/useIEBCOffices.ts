@@ -98,6 +98,8 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [fuse, setFuse] = useState<Fuse<Office> | null>(null);
+  const loadingFailsafeRef = useRef<NodeJS.Timeout | null>(null);
+  const hasFetchedRef = useRef(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
@@ -158,6 +160,15 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
 
     abortControllerRef.current = new AbortController();
 
+    // FAILSAFE: Absolutely guarantee loading resolves within 20s no matter what
+    if (loadingFailsafeRef.current) clearTimeout(loadingFailsafeRef.current);
+    loadingFailsafeRef.current = setTimeout(() => {
+      setLoading(prev => {
+        if (prev) console.warn('[useIEBCOffices] FAILSAFE: Force-clearing stuck loading state after 20s');
+        return false;
+      });
+    }, 20000);
+
     try {
       setLoading(true);
       setError(null);
@@ -172,10 +183,14 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
             setOffices(cached.data);
             setLastSyncTime(new Date(cached.timestamp));
             setLoading(false);
+            if (loadingFailsafeRef.current) clearTimeout(loadingFailsafeRef.current);
             await updateCacheStatus();
 
+            // Background refresh — fire-and-forget but SAFELY
             if (!isOffline) {
-              fetchFreshData();
+              fetchFreshData().catch(bgErr => {
+                console.warn('[useIEBCOffices] Background refresh failed (non-blocking):', bgErr?.message);
+              });
             }
             return cached.data;
           } else {
@@ -202,6 +217,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
       return [];
     } finally {
       setLoading(false);
+      if (loadingFailsafeRef.current) clearTimeout(loadingFailsafeRef.current);
       await updateCacheStatus();
     }
   }, [enableOfflineCache, cacheDuration, isOffline, updateCacheStatus]);
@@ -213,24 +229,35 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
 
     const client = window.location.pathname.includes('/admin') ? supabaseCustom : supabase;
 
-    // Parallel fetch for IEBC Offices and Diaspora Centres
-    const [officesRes, diasporaRes] = await Promise.all([
-      client
-        .from('iebc_offices')
-        .select('*')
-        .not('latitude', 'is', null)
-        .not('longitude', 'is', null)
-        .eq('verified', true)
-        .order('county')
-        .order('constituency_name'),
-      client
-        .from('diaspora_registration_centres')
-        .select('*')
-        .not('latitude', 'is', null)
-        .not('longitude', 'is', null)
-        .order('country')
-        .order('mission_name')
-    ]);
+    // Parallel fetch with a 15-second safety timeout
+    const fetchWithTimeout = async () => {
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Data fetch timed out after 15s')), 15000)
+      );
+
+      return Promise.race([
+        Promise.all([
+          client
+            .from('iebc_offices')
+            .select('*')
+            .not('latitude', 'is', null)
+            .not('longitude', 'is', null)
+            .eq('verified', true)
+            .order('county')
+            .order('constituency_name'),
+          client
+            .from('diaspora_registration_centres')
+            .select('*')
+            .not('latitude', 'is', null)
+            .not('longitude', 'is', null)
+            .order('country')
+            .order('mission_name')
+        ]),
+        timeoutPromise
+      ]) as Promise<[any, any]>;
+    };
+
+    const [officesRes, diasporaRes] = await fetchWithTimeout();
 
     if (officesRes.error) throw officesRes.error;
     if (diasporaRes.error) console.warn('Diaspora fetch failed:', diasporaRes.error);
@@ -567,14 +594,22 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
   }, [isOffline, offices]);
 
   useEffect(() => {
+    // Guard against Strict Mode double-mount causing duplicate fetches
+    if (hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
+
     fetchOffices();
 
     return () => {
+      hasFetchedRef.current = false;
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
       if (refreshTimerRef.current) {
         clearInterval(refreshTimerRef.current);
+      }
+      if (loadingFailsafeRef.current) {
+        clearTimeout(loadingFailsafeRef.current);
       }
     };
   }, []);

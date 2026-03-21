@@ -925,23 +925,25 @@ pre,
 
 @media (min-width: 768px) {
   .office-bottom-sheet {
-    left: 50%;
-    transform: translateX(-50%) translateY(calc(100% - 80px));
-    max-width: 600px;
-    border-radius: 24px;
-    margin-bottom: 20px;
+    left: auto !important;
+    right: 24px !important;
+    bottom: 24px !important;
+    max-width: 400px;
+    border-radius: 32px;
+    margin-bottom: 0px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
   }
 
   .office-bottom-sheet.peek {
-    transform: translateX(-50%) translateY(calc(100% - 80px));
+    transform: translateY(calc(100% - 80px));
   }
 
   .office-bottom-sheet.expanded {
-    transform: translateX(-50%) translateY(0);
+    transform: translateY(0);
   }
 
   .office-bottom-sheet.hidden {
-    transform: translateX(-50%) translateY(100%);
+    transform: translateY(100%);
   }
 }
 

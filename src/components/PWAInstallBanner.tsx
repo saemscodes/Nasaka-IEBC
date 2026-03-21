@@ -14,8 +14,8 @@ export const PWAInstallBanner: React.FC = () => {
 
   useEffect(() => {
     // Check if already installed
-    const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || 
-                           (window.navigator as any).standalone === true;
+    const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true;
     setIsStandalone(isStandaloneMode);
 
     // Check for iOS
@@ -27,7 +27,7 @@ export const PWAInstallBanner: React.FC = () => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      
+
       // Show banner after 5 seconds on page
       setTimeout(() => {
         if (!isStandaloneMode) {
@@ -61,12 +61,12 @@ export const PWAInstallBanner: React.FC = () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      
+
       if (outcome === 'accepted') {
         console.log('User accepted the install prompt');
         localStorage.setItem('pwa-install-accepted', 'true');
       }
-      
+
       setDeferredPrompt(null);
       setIsVisible(false);
     }
@@ -95,18 +95,18 @@ export const PWAInstallBanner: React.FC = () => {
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 bg-white/20 rounded-xl">
-                <Smartphone className="w-6 h-6" />
+                <img src="/nasaka.svg" alt="Nasaka" className="w-6 h-6" style={{ filter: 'brightness(10) saturate(0)' }} />
               </div>
               <div>
                 <h3 className="font-bold text-lg">Install Nasaka IEBC</h3>
                 <p className="text-sm text-blue-100 opacity-90">
-                  {isIOS 
-                    ? 'Add to home screen for quick access' 
+                  {isIOS
+                    ? 'Add to home screen for quick access'
                     : 'Install app for offline use and faster loading'}
                 </p>
               </div>
             </div>
-            
+
             <div className="mt-4 flex gap-2">
               {!isIOS && deferredPrompt ? (
                 <button
@@ -124,7 +124,7 @@ export const PWAInstallBanner: React.FC = () => {
                   {isIOS ? 'Show Instructions' : 'Install'}
                 </button>
               )}
-              
+
               <button
                 onClick={handleDismiss}
                 className="px-4 py-3 text-white/80 hover:text-white transition-colors rounded-xl hover:bg-white/10"
@@ -147,8 +147,8 @@ export const usePWA = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                        (window.navigator as any).standalone === true;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true;
     setIsPWA(isStandalone);
 
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -166,16 +166,16 @@ export const usePWA = () => {
 
   const installPWA = async () => {
     if (!deferredPrompt) return false;
-    
+
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    
+
     if (outcome === 'accepted') {
       setCanInstall(false);
       setIsPWA(true);
       return true;
     }
-    
+
     return false;
   };
 

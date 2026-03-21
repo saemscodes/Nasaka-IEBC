@@ -447,9 +447,9 @@ const OfficeBottomSheet = ({
             }}
             exit={{ y: '100%' }}
             className={`office-bottom-sheet ${state} ${isDark
-              ? 'bg-card border-border text-foreground'
+              ? 'bg-card border-border text-foreground md:border-ios-gray-600'
               : 'bg-white border-ios-gray-200 text-ios-gray-900'
-              } transition-colors duration-300`}
+              } md:left-auto md:right-6 md:bottom-6 md:w-[400px] md:max-h-[85vh] md:rounded-[32px] md:border shadow-2xl transition-colors duration-300`}
             style={{ y: dragY }}
           >
             {/* Drag Handle */}
