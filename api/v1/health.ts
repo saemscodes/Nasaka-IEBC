@@ -1,8 +1,12 @@
 export const config = { runtime: 'nodejs' };
 
-export default async function handler(req: Request): Promise<Response> {
-    const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-    const SUPABASE_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY;
+const getEnv = (name: string, env?: any) => {
+    return env?.[name] || process.env?.[name];
+};
+
+export default async function handler(req: Request, env?: any): Promise<Response> {
+    const SUPABASE_URL = getEnv('VITE_SUPABASE_URL', env) || getEnv('SUPABASE_URL', env);
+    const SUPABASE_KEY = getEnv('VITE_SUPABASE_PUBLISHABLE_KEY', env) || getEnv('SUPABASE_ANON_KEY', env);
 
     const status = {
         status: "operational",

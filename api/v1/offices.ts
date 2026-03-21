@@ -3,7 +3,11 @@ export const config = { runtime: 'nodejs' };
 import { validateApiKey, errorResponse, corsHeaders, logApiUsage, deductCredits } from '../../src/api-lib/api-auth';
 import { createLogger } from '../../src/api-lib/logger';
 
-export default async function handler(req: Request): Promise<Response> {
+const getEnv = (name: string, env?: any) => {
+    return env?.[name] || process.env?.[name];
+};
+
+export default async function handler(req: Request, env?: any): Promise<Response> {
     const logger = createLogger(req);
     const startTime = Date.now();
 
@@ -22,8 +26,8 @@ export default async function handler(req: Request): Promise<Response> {
         return errorResponse(auth.error, auth.status, { retryAfter: auth.retryAfter });
     }
 
-    const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const SUPABASE_URL = getEnv('VITE_SUPABASE_URL', env) || getEnv('SUPABASE_URL', env);
+    const SUPABASE_KEY = getEnv('SUPABASE_SERVICE_ROLE_KEY', env);
 
     if (!SUPABASE_URL || !SUPABASE_KEY) {
         logger.error(500, 'Server misconfiguration');

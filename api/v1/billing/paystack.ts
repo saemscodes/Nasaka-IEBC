@@ -35,7 +35,11 @@ const PLAN_CODE_ENV_MAP: Record<string, string> = {
     taifa_annual: 'PAYSTACK_TAIFA_PLAN_CODE_ANNUAL'
 };
 
-export default async function handler(req: Request): Promise<Response> {
+const getEnv = (name: string, env?: any) => {
+    return env?.[name] || process.env?.[name];
+};
+
+export default async function handler(req: Request, env?: any): Promise<Response> {
     const url = new URL(req.url);
     const action = url.searchParams.get('action');
     const headers = corsHeaders();
@@ -44,23 +48,24 @@ export default async function handler(req: Request): Promise<Response> {
 
     switch (action) {
         case 'pricing':
-            return handlePricing(req, headers);
+            return handlePricing(req, headers, env);
         case 'initialize':
-            return handleInitialize(req, headers);
+            return handleInitialize(req, headers, env);
         case 'verify':
-            return handleVerify(req, headers);
+            return handleVerify(req, headers, env);
         case 'webhook':
-            return handleWebhook(req, headers);
+            return handleWebhook(req, headers, env);
         default:
             return errorResponse('Invalid action. Use ?action=initialize|verify|webhook|pricing', 400);
     }
 }
 
-async function handlePricing(req: Request, headers: any) {
+async function handlePricing(req: Request, headers: any, env?: any) {
     if (req.method !== 'GET') return errorResponse('Method not allowed', 405);
 
     const pricing = {
         tiers: [
+            // ... (Jamii skipped for brevity)
             {
                 id: 'jamii',
                 name: 'Jamii',
@@ -109,8 +114,8 @@ async function handlePricing(req: Request, headers: any) {
                     '100,000 requests/month'
                 ],
                 paystack_plan_codes: {
-                    monthly: process.env.PAYSTACK_MWANANCHI_PLAN_CODE_MONTHLY || null,
-                    annual: process.env.PAYSTACK_MWANANCHI_PLAN_CODE_ANNUAL || null
+                    monthly: getEnv('PAYSTACK_MWANANCHI_PLAN_CODE_MONTHLY', env) || null,
+                    annual: getEnv('PAYSTACK_MWANANCHI_PLAN_CODE_ANNUAL', env) || null
                 },
                 cta: 'Start Mwananchi',
                 highlighted: true
@@ -137,8 +142,8 @@ async function handlePricing(req: Request, headers: any) {
                     'Weighted endpoint credits'
                 ],
                 paystack_plan_codes: {
-                    monthly: process.env.PAYSTACK_TAIFA_PLAN_CODE_MONTHLY || null,
-                    annual: process.env.PAYSTACK_TAIFA_PLAN_CODE_ANNUAL || null
+                    monthly: getEnv('PAYSTACK_TAIFA_PLAN_CODE_MONTHLY', env) || null,
+                    annual: getEnv('PAYSTACK_TAIFA_PLAN_CODE_ANNUAL', env) || null
                 },
                 cta: 'Start Taifa',
                 highlighted: false
@@ -185,7 +190,7 @@ async function handlePricing(req: Request, headers: any) {
             requirement: 'Registration certificate or institutional email required',
             apply_url: 'https://nasakaiebc.civiceducationkenya.com/dashboard/discount-apply'
         },
-        paystack_public_key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || process.env.PAYSTACK_PUBLIC_KEY || null,
+        paystack_public_key: getEnv('NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY', env) || getEnv('PAYSTACK_PUBLIC_KEY', env) || null,
         currency: 'KES',
         note: 'Credit packs never expire. All prices in Kenya Shillings (KES).'
     };
@@ -193,9 +198,9 @@ async function handlePricing(req: Request, headers: any) {
     return Response.json({ data: pricing }, { status: 200, headers: { ...headers, 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200' } });
 }
 
-async function handleInitialize(req: Request, headers: any) {
+async function handleInitialize(req: Request, headers: any, env?: any) {
     if (req.method !== 'POST') return errorResponse('Method not allowed', 405);
-    const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
+    const PAYSTACK_SECRET = getEnv('PAYSTACK_SECRET_KEY', env);
     if (!PAYSTACK_SECRET) return errorResponse('Payment gateway not configured', 500);
 
     let body: any;
@@ -205,9 +210,9 @@ async function handleInitialize(req: Request, headers: any) {
     const authHeader = req.headers.get('authorization');
     if (!authHeader) return errorResponse('Authentication required', 401);
 
-    const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-    const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-    const SUPABASE_SR_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const SUPABASE_URL = getEnv('SUPABASE_URL', env) || getEnv('VITE_SUPABASE_URL', env);
+    const SUPABASE_KEY = getEnv('SUPABASE_ANON_KEY', env) || getEnv('VITE_SUPABASE_ANON_KEY', env);
+    const SUPABASE_SR_KEY = getEnv('SUPABASE_SERVICE_ROLE_KEY', env);
 
     // Verify session
     const userResp = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
@@ -221,7 +226,7 @@ async function handleInitialize(req: Request, headers: any) {
     if (!priceInfo) return errorResponse('Invalid product_key', 400);
 
     const isSubscription = product_key in PLAN_CODE_ENV_MAP;
-    const planCode = isSubscription ? process.env[PLAN_CODE_ENV_MAP[product_key]] : null;
+    const planCode = isSubscription ? getEnv(PLAN_CODE_ENV_MAP[product_key], env) : null;
 
     if (isSubscription && !planCode) return errorResponse('Plan not configured', 500);
 
@@ -266,12 +271,12 @@ async function handleInitialize(req: Request, headers: any) {
     }
 }
 
-async function handleVerify(req: Request, headers: any) {
+async function handleVerify(req: Request, headers: any, env?: any) {
     if (req.method !== 'GET') return errorResponse('Method not allowed', 405);
     const reference = new URL(req.url).searchParams.get('reference');
     if (!reference) return errorResponse('Missing reference', 400);
 
-    const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
+    const PAYSTACK_SECRET = getEnv('PAYSTACK_SECRET_KEY', env);
     if (!PAYSTACK_SECRET) return errorResponse('Payment gateway not configured', 500);
 
     try {
@@ -301,12 +306,12 @@ async function handleVerify(req: Request, headers: any) {
     }
 }
 
-async function handleWebhook(req: Request, headers: any) {
+async function handleWebhook(req: Request, headers: any, env?: any) {
     if (req.method !== 'POST') return errorResponse('Method not allowed', 405);
 
-    const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
-    const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const PAYSTACK_SECRET = getEnv('PAYSTACK_SECRET_KEY', env);
+    const SUPABASE_URL = getEnv('SUPABASE_URL', env) || getEnv('VITE_SUPABASE_URL', env);
+    const SUPABASE_KEY = getEnv('SUPABASE_SERVICE_ROLE_KEY', env);
     if (!PAYSTACK_SECRET || !SUPABASE_URL || !SUPABASE_KEY) return errorResponse('Server misconfiguration', 500);
 
     const signature = req.headers.get('x-paystack-signature');

@@ -24,5 +24,23 @@ export const cekaSupabase = createClient(CEKA_SUPABASE_URL, CEKA_SUPABASE_ANON_K
 export const CEKA_OAUTH_BASE = "https://www.civiceducationkenya.com";
 export const CEKA_OAUTH_URL = `${CEKA_OAUTH_BASE}/oauth/consent`;
 export const CEKA_TOKEN_URL = `${CEKA_SUPABASE_URL}/functions/v1/oauth-token`;
-export const CEKA_CLIENT_ID = import.meta.env.VITE_CEKA_CLIENT_ID || 'nasaka-iebc-v1';
-export const CEKA_REDIRECT_URI = `${window.location.origin}/auth/callback`;
+
+// Safe environment checks for Cloudflare Workers / SSR
+const getEnvVar = (name: string) => {
+    if (typeof process !== 'undefined' && process.env?.[name]) return process.env[name];
+    try {
+        // @ts-ignore - Vite specific
+        if (typeof import.meta !== 'undefined' && import.meta.env?.[name]) return import.meta.env[name];
+    } catch (e) { }
+    return undefined;
+};
+
+export const CEKA_CLIENT_ID = getEnvVar('VITE_CEKA_CLIENT_ID') || 'nasaka-iebc-v1';
+
+export const getRedirectUri = (origin?: string) => {
+    const base = origin || (typeof window !== 'undefined' ? window.location.origin : 'https://nasakaiebc.civiceducationkenya.com');
+    return `${base}/auth/callback`;
+};
+
+// Legacy Export for backward compat
+export const CEKA_REDIRECT_URI = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : 'https://nasakaiebc.civiceducationkenya.com/auth/callback';

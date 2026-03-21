@@ -8,7 +8,7 @@ import { corsHeaders } from '../../../src/api-lib/api-auth';
 import { getSandboxResponse } from '../../../src/data/sandbox-fixtures';
 import { getSession, consumeRequest } from './init';
 
-export default async function handler(req: Request): Promise<Response> {
+export default async function handler(req: Request, env?: any): Promise<Response> {
     if (req.method === 'OPTIONS') {
         return new Response(null, { headers: corsHeaders() });
     }

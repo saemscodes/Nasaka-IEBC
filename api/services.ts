@@ -10,7 +10,11 @@ export const config = { runtime: 'nodejs' };
  * verify-voter, enterprise/enquire, auth/ceka/callback, licenses/download
  */
 
-export default async function handler(req: Request): Promise<Response> {
+const getEnv = (name: string, env?: any) => {
+    return env?.[name] || process.env?.[name];
+};
+
+export default async function handler(req: Request, env?: any): Promise<Response> {
     const url = new URL(req.url);
     const service = url.searchParams.get('service');
     const headers = corsHeaders();
@@ -19,23 +23,23 @@ export default async function handler(req: Request): Promise<Response> {
 
     switch (service) {
         case 'ai-proxy':
-            return handleAiProxy(req, headers);
+            return handleAiProxy(req, headers, env);
         case 'signature-session':
-            return handleSignatureSession(req, headers);
+            return handleSignatureSession(req, headers, env);
         case 'petition-stats':
-            return handlePetitionStats(req, headers);
+            return handlePetitionStats(req, headers, env);
         case 'workflow':
-            return handleWorkflow(req, headers);
+            return handleWorkflow(req, headers, env);
         case 'verify-voter':
-            return handleVerifyVoter(req, headers);
+            return handleVerifyVoter(req, headers, env);
         case 'enquire':
-            return handleEnquire(req, headers);
+            return handleEnquire(req, headers, env);
         case 'auth-callback':
-            return handleAuthCallback(req, headers);
+            return handleAuthCallback(req, headers, env);
         case 'download':
-            return handleDownload(req, headers);
+            return handleDownload(req, headers, env);
         case 'usage':
-            return handleUsage(req, headers);
+            return handleUsage(req, headers, env);
         default:
             return errorResponse('Invalid service. Use ?service=[name]', 400);
     }
@@ -54,14 +58,14 @@ async function handleAiProxy(req: Request, headers: any) {
     switch (provider) {
         case 'mistral':
             url = 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3';
-            proxyHeaders['Authorization'] = `Bearer ${process.env.VITE_HF_API_TOKEN}`;
+            proxyHeaders['Authorization'] = `Bearer ${getEnv('VITE_HF_API_TOKEN', env)}`;
             break;
         case 'groq':
             url = 'https://api.groq.com/openai/v1/chat/completions';
-            proxyHeaders['Authorization'] = `Bearer ${process.env.VITE_GROQ_API_KEY}`;
+            proxyHeaders['Authorization'] = `Bearer ${getEnv('VITE_GROQ_API_KEY', env)}`;
             break;
         case 'gemini':
-            url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.VITE_GEMINI_API_KEY}`;
+            url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${getEnv('VITE_GEMINI_API_KEY', env)}`;
             break;
         default:
             return errorResponse('Invalid provider', 400);
@@ -104,11 +108,11 @@ async function handleVerifyVoter(req: Request, headers: any) {
     return Response.json({ verified: true, voterDetails: { name: "John Doe", nationalId } }, { headers });
 }
 
-async function handleEnquire(req: Request, headers: any) {
+async function handleEnquire(req: Request, headers: any, env?: any) {
     if (req.method !== 'POST') return errorResponse('Method not allowed', 405);
 
-    const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const SUPABASE_URL = getEnv('SUPABASE_URL', env) || getEnv('VITE_SUPABASE_URL', env);
+    const SUPABASE_KEY = getEnv('SUPABASE_SERVICE_ROLE_KEY', env);
     if (!SUPABASE_URL || !SUPABASE_KEY) return errorResponse('Server misconfiguration', 500);
 
     let body: any;
@@ -150,7 +154,7 @@ async function handleEnquire(req: Request, headers: any) {
     return Response.json({ message: 'Enquiry submitted successfully', id: inserted?.[0]?.id || null }, { headers });
 }
 
-async function handleAuthCallback(req: Request, headers: any) {
+async function handleAuthCallback(req: Request, headers: any, env?: any) {
     const url = new URL(req.url);
     const code = url.searchParams.get('code');
     const state = url.searchParams.get('state');
@@ -184,8 +188,8 @@ async function handleAuthCallback(req: Request, headers: any) {
         return Response.redirect(`${url.origin}/?auth_error=expired_code`);
     }
 
-    const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-    const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const SUPABASE_URL = getEnv('SUPABASE_URL', env) || getEnv('VITE_SUPABASE_URL', env);
+    const SUPABASE_SERVICE_KEY = getEnv('SUPABASE_SERVICE_ROLE_KEY', env);
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
         return Response.redirect(`${url.origin}/?auth_error=server_misconfigured`);
@@ -332,11 +336,11 @@ async function handleAuthCallback(req: Request, headers: any) {
     return Response.redirect(`${url.origin}/dashboard/api-keys?auth_source=ceka`);
 }
 
-async function handleDownload(req: Request, headers: any) {
+async function handleDownload(req: Request, headers: any, env?: any) {
     if (req.method !== 'GET') return errorResponse('Method not allowed', 405);
 
-    const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const SUPABASE_URL = getEnv('SUPABASE_URL', env) || getEnv('VITE_SUPABASE_URL', env);
+    const SUPABASE_KEY = getEnv('SUPABASE_SERVICE_ROLE_KEY', env);
     if (!SUPABASE_URL || !SUPABASE_KEY) return errorResponse('Server misconfiguration', 500);
 
     const licenseId = new URL(req.url).searchParams.get('license_id');
@@ -370,10 +374,10 @@ async function handleDownload(req: Request, headers: any) {
     return Response.json({ success: true, download_url: lic.download_url }, { headers });
 }
 
-async function handleUsage(req: Request, headers: any) {
+async function handleUsage(req: Request, headers: any, env?: any) {
     if (req.method !== 'GET') return errorResponse('Method not allowed', 405);
 
-    const token = process.env.VERCEL_API_TOKEN;
+    const token = getEnv('VERCEL_API_TOKEN', env);
     if (!token) {
         return Response.json({ requests: 0, error: 'Token not configured' }, { headers, status: 500 });
     }

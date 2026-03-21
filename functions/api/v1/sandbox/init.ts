@@ -1,8 +1,5 @@
 import handler from "../../../../api/v1/sandbox/init";
 
-export const onRequest: PagesFunction = async (context) => {
-    for (const [key, val] of Object.entries(context.env)) {
-        if (typeof val === 'string') (process.env as any)[key] = val;
-    }
-    return handler(context.request);
+export const onRequest: any = async (context: any) => {
+    return handler(context.request, context.env);
 };

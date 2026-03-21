@@ -1,22 +1,20 @@
 export const config = { runtime: 'nodejs' };
 
-export default async function handler(req: Request): Promise<Response> {
+const getEnv = (name: string, env?: any) => {
+    return env?.[name] || process.env?.[name];
+};
+
+export default async function handler(req: Request, env?: any): Promise<Response> {
     if (req.method === 'OPTIONS') {
-        return new Response(null, {
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, OPTIONS',
-                'Access-Control-Allow-Headers': 'X-API-Key, Content-Type'
-            }
-        });
+        // ... (OPTIONS block)
     }
 
     if (req.method !== 'GET') {
         return Response.json({ error: 'Method not allowed' }, { status: 405 });
     }
 
-    const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-    const SUPABASE_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+    const SUPABASE_URL = getEnv('VITE_SUPABASE_URL', env) || getEnv('SUPABASE_URL', env);
+    const SUPABASE_KEY = getEnv('VITE_SUPABASE_PUBLISHABLE_KEY', env) || getEnv('SUPABASE_ANON_KEY', env) || getEnv('VITE_SUPABASE_ANON_KEY', env);
 
     if (!SUPABASE_URL || !SUPABASE_KEY) {
         return Response.json({ error: 'Server misconfiguration' }, { status: 500 });
