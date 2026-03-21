@@ -95,7 +95,7 @@ export const PWAInstallBanner: React.FC = () => {
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 bg-white/20 rounded-xl">
-                <img src="/nasaka.svg" alt="Nasaka" className="w-6 h-6" style={{ filter: 'brightness(10) saturate(0)' }} />
+                <img src="/nasaka.svg" alt="Nasaka" className="w-6 h-6" style={{ filter: 'brightness(0) invert(1)' }} />
               </div>
               <div>
                 <h3 className="font-bold text-lg">Install Nasaka IEBC</h3>
