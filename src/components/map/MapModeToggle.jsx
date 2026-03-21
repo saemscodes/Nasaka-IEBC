@@ -61,9 +61,6 @@ const MapModeToggle = ({ mode = 'domestic', onChange }) => {
                     src="/icons/flag-kenya.svg"
                     alt=""
                     className="w-4 h-4"
-                    style={{
-                        filter: mode === 'domestic' ? 'brightness(1.8) saturate(0.5)' : 'none',
-                    }}
                 />
                 <span>Kenya</span>
             </button>
@@ -82,9 +79,6 @@ const MapModeToggle = ({ mode = 'domestic', onChange }) => {
                     src="/icons/earth-africa.svg"
                     alt=""
                     className="w-4 h-4"
-                    style={{
-                        filter: mode === 'diaspora' ? 'brightness(10) saturate(0)' : 'none',
-                    }}
                 />
                 <span>Diaspora</span>
             </button>

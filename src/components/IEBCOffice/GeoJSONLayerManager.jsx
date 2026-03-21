@@ -144,7 +144,8 @@ const GeoJSONLayerManager = ({
           longitude: office.longitude,
           verified: office.verified,
           formatted_address: office.formatted_address,
-          displayName: office.displayName
+          displayName: office.displayName,
+          type: office.type || (office.designation_state ? 'diaspora' : 'office')
         }
       }))
     };

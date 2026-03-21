@@ -1022,18 +1022,51 @@ const OfficeBottomSheet = ({
                     {/* ✅ View Full Details Link (Full Ham) */}
                     <button
                       onClick={() => {
-                        const countySlug = slugify(office.county);
-                        let areaSlug = slugify(office.constituency_name || '');
-                        if (areaSlug === countySlug) areaSlug = `${areaSlug}-town`;
-                        navigate(`/${countySlug}/${areaSlug}`);
+                        const countySlug = slugify(office.county || 'kenya');
+                        let areaSlug = slugify(office.constituency_name || office.city || '');
+                        const wardSlug = office.ward_name ? slugify(office.ward_name) : null;
+
+                        if (wardSlug && areaSlug) {
+                          navigate(`/${countySlug}/${areaSlug}/${wardSlug}`);
+                        } else if (areaSlug) {
+                          if (areaSlug === countySlug) areaSlug = `${areaSlug}-town`;
+                          navigate(`/${countySlug}/${areaSlug}`);
+                        } else {
+                          navigate(`/${countySlug}`);
+                        }
                       }}
                       className={`w-full mb-4 font-semibold py-4 px-6 rounded-2xl flex items-center justify-center space-x-2 transition-all active:scale-95 duration-300 shadow-lg ${isDark
                         ? 'bg-ios-blue-600 text-white shadow-ios-blue/30'
                         : 'bg-ios-blue text-white shadow-ios-blue/20'
                         }`}
                     >
-                      <span>View Verified Office Records</span>
-                      <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <span className="text-center">
+                        {(() => {
+                          const { county, constituency_name, ward_name } = office;
+                          let area = '';
+
+                          if (constituency_name && county) {
+                            area = `${constituency_name}, ${county}`; // i
+                          } else if (county) {
+                            area = county; // ii
+                          } else if (ward_name && constituency_name) {
+                            area = `${ward_name}, ${constituency_name}`; // iii
+                          } else if (ward_name && county) {
+                            area = `${ward_name}, ${county}`; // iv
+                          } else if (constituency_name) {
+                            area = constituency_name; // v
+                          } else if (ward_name && constituency_name && county) {
+                            area = `${ward_name}, ${constituency_name}, ${county}`; // vi
+                          } else if (ward_name) {
+                            area = ward_name; // vii
+                          } else {
+                            area = office.city || office.country || t('common.thisArea', 'this area');
+                          }
+
+                          return t('bottomSheet.moreAboutArea', { area });
+                        })()}
+                      </span>
+                      <svg className="w-5 h-5 ml-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                       </svg>
                     </button>
@@ -1110,6 +1143,29 @@ const OfficeBottomSheet = ({
                         </span>
                       </button>
                     </div>
+
+                    {/* Routing Condition Check (USER REQUEST - VPN & LOCALIZED POLICY) */}
+                    {distanceToOffice && distanceToOffice > 5000000 && (
+                      <div className={`mt-4 p-4 rounded-2xl border flex items-start gap-4 shadow-sm animate-in fade-in slide-in-from-bottom-2 ${isDark
+                        ? 'bg-[#0b63c6]/10 border-[#0b63c6]/30'
+                        : 'bg-blue-50 border-blue-200'
+                        }`}>
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${isDark ? 'bg-[#0b63c6]/20' : 'bg-blue-100'
+                          }`}>
+                          <IconCompass className="w-5 h-5 text-[#0b63c6]" />
+                        </div>
+                        <div className="flex-1 min-w-0 pt-0.5">
+                          <h4 className={`text-sm font-bold leading-tight ${isDark ? 'text-blue-200' : 'text-blue-900'
+                            }`}>
+                            {t('bottomSheet.longDistanceRoutingTitle', 'Localized Routing Policy')}
+                          </h4>
+                          <p className={`text-xs mt-1.5 leading-relaxed ${isDark ? 'text-blue-200/70' : 'text-blue-700/80'
+                            }`}>
+                            {t('bottomSheet.longDistanceRoutingDesc', 'You appear to be viewing a location far from your position. If using a VPN, please toggle it for precise domestic routing. For cross-continental travel, we provide deep-links to our trusted navigation partners.')}
+                          </p>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Copy Coordinates - ALWAYS AVAILABLE */}
                     {office.latitude && office.longitude && (

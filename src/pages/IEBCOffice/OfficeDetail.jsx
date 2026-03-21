@@ -33,10 +33,11 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 const OfficeDetail = () => {
-    const { county: rawCounty, area: rawArea, constituency: rawConstituency } = useParams();
+    const { county: rawCounty, area: rawArea, constituency: rawConstituency, ward: rawWard } = useParams();
     // rawArea is from the new /:county/:area route
     // rawConstituency is from the legacy /iebc-office/:county/:constituency route
     const currentArea = rawArea || rawConstituency;
+    const currentWard = rawWard;
     const navigate = useNavigate();
     const { theme } = useTheme();
     const isDark = theme === 'dark';
@@ -72,6 +73,7 @@ const OfficeDetail = () => {
     const sanitizeSlug = (slug) => slug?.toLowerCase().trim().replace(/[^\w-]/g, '');
     const countySlug = sanitizeSlug(rawCounty);
     const areaSlug = sanitizeSlug(currentArea);
+    const wardSlug = sanitizeSlug(currentWard);
 
     // Redirection Logic: Redirect legacy /iebc-office paths to hierarchical canonical paths
     useEffect(() => {
@@ -104,7 +106,21 @@ const OfficeDetail = () => {
 
             let data = null;
 
-            if (areaSearch) {
+            if (wardSlug) {
+                const wardSearch = deslugify(wardSlug);
+                const constituencySearch = deslugify(areaSlug);
+
+                const { data: d0, error: e0 } = await supabase
+                    .from('iebc_offices')
+                    .select('*')
+                    .ilike('ward_name', `%${wardSearch}%`)
+                    .ilike('constituency_name', `%${constituencySearch}%`)
+                    .limit(1)
+                    .maybeSingle();
+
+                if (e0) throw e0;
+                data = d0;
+            } else if (areaSearch) {
                 // Fix 2: Step 1 — fuzzy match with %search% on constituency_name
                 const { data: d1, error: e1 } = await supabase
                     .from('iebc_offices')

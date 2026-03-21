@@ -1705,6 +1705,6 @@ button.ios-control-btn {
 /* ===== END OF FILE ===== */
 @media (max-width: 640px) {
   .fixed-search-container {
-    top: calc(36px + var(--spacing-safe-top));
+    top: calc(16px + var(--spacing-safe-top));
   }
 }

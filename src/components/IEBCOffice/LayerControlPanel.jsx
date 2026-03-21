@@ -86,6 +86,30 @@ const LayerControlPanel = ({
       name: 'Satellite',
       description: 'Aerial imagery view',
       preview: 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+    },
+    {
+      id: 'dark',
+      name: 'Black',
+      description: 'High-contrast dark view',
+      preview: 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'
+    },
+    {
+      id: 'green',
+      name: 'Green',
+      description: 'Bright terrain view',
+      preview: 'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z'
+    },
+    {
+      id: 'retro',
+      name: 'Retro',
+      description: 'Vintage map style',
+      preview: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
+    },
+    {
+      id: 'blue',
+      name: 'Blue',
+      description: 'Ocean and water focus',
+      preview: 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9'
     }
   ];
 
@@ -139,8 +163,8 @@ const LayerControlPanel = ({
                 key={option.id}
                 onClick={() => handleBaseMapChange(option.id)}
                 className={`relative p-4 rounded-xl border-2 transition-all ${baseMap === option.id
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border bg-background hover:border-muted-foreground'
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border bg-background hover:border-muted-foreground'
                   }`}
               >
                 <div className="flex flex-col items-center text-center">
@@ -191,24 +215,24 @@ const LayerControlPanel = ({
                   onClick={() => handleLayerToggle(layer.id)}
                   disabled={isDisabled}
                   className={`w-full p-4 rounded-xl border-2 transition-all text-left ${isDisabled
-                      ? 'border-muted bg-muted opacity-50 cursor-not-allowed'
-                      : isActive
-                        ? 'border-primary bg-primary/10'
-                        : 'border-border bg-background hover:border-muted-foreground'
+                    ? 'border-muted bg-muted opacity-50 cursor-not-allowed'
+                    : isActive
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border bg-background hover:border-muted-foreground'
                     }`}
                 >
                   <div className="flex items-start">
                     <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center ${isDisabled
-                        ? 'bg-muted'
-                        : isActive
-                          ? 'bg-primary/20'
-                          : 'bg-muted'
+                      ? 'bg-muted'
+                      : isActive
+                        ? 'bg-primary/20'
+                        : 'bg-muted'
                       }`}>
                       <div className={`${isDisabled
-                          ? 'text-muted-foreground'
-                          : isActive
-                            ? 'text-primary'
-                            : 'text-muted-foreground'
+                        ? 'text-muted-foreground'
+                        : isActive
+                          ? 'text-primary'
+                          : 'text-muted-foreground'
                         }`}>
                         {layer.icon}
                       </div>
@@ -222,10 +246,10 @@ const LayerControlPanel = ({
                         </h4>
                         <motion.div
                           className={`relative inline-flex items-center w-12 h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${isDisabled
-                              ? 'bg-muted/50'
-                              : isActive
-                                ? 'bg-primary'
-                                : 'bg-muted'
+                            ? 'bg-muted/50'
+                            : isActive
+                              ? 'bg-primary'
+                              : 'bg-muted'
                             }`}
                           style={{
                             boxShadow: isActive && !isDisabled
@@ -235,8 +259,8 @@ const LayerControlPanel = ({
                           whileTap={!isDisabled ? { scale: 0.95 } : {}}
                         >
                           <div className={`absolute inset-0 rounded-full ${isActive && !isDisabled
-                              ? 'bg-gradient-to-r from-primary to-primary/90'
-                              : 'bg-gradient-to-r from-muted to-muted/80'
+                            ? 'bg-gradient-to-r from-primary to-primary/90'
+                            : 'bg-gradient-to-r from-muted to-muted/80'
                             }`} />
 
                           <motion.span

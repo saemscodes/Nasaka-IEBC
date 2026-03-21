@@ -213,6 +213,34 @@ const IEBCOfficeMap = () => {
       }
     );
 
+    // Dark view (Black)
+    // @ts-ignore
+    tileLayersRef.current.dark = L.maplibreGL({
+      style: 'https://tiles.openfreemap.org/styles/dark',
+      attribution: '&copy; <a href="https://openfreemap.org/">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+
+    // Green view (Bright)
+    // @ts-ignore
+    tileLayersRef.current.green = L.maplibreGL({
+      style: 'https://tiles.openfreemap.org/styles/bright',
+      attribution: '&copy; <a href="https://openfreemap.org/">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+
+    // Retro view
+    // @ts-ignore
+    tileLayersRef.current.retro = L.maplibreGL({
+      style: 'https://tiles.openfreemap.org/styles/liberty',
+      attribution: '&copy; <a href="https://openfreemap.org/">OpenFreeMap</a>'
+    });
+
+    // Blue view
+    // @ts-ignore
+    tileLayersRef.current.blue = L.maplibreGL({
+      style: 'https://tiles.openfreemap.org/styles/positron',
+      attribution: '&copy; <a href="https://openfreemap.org/">OpenFreeMap</a>'
+    });
+
     // Add default base map
     tileLayersRef.current.standard.addTo(map);
   }, []);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/components/SEO/SEOHead";
 import LoadingSpinner from './LoadingSpinner';
@@ -9,13 +9,13 @@ import LoadingSpinner from './LoadingSpinner';
  * ─────────────────────────────────────────────────────────────────────────
  * Handles flat slugs like /ruiru or /kiambu.
  * 1. Checks if it's a known county.
- * 2. Checks if it's a known area.
- * 3. Redirects to hierarchical canonical route: /{county}/{area}
+ * 2. Checks if it's a known area (constituency).
+ * 3. Checks if it's a known ward.
+ * 4. Redirects to hierarchical canonical route.
  */
 const FlatRouteResolver = () => {
     const { slug } = useParams();
     const navigate = useNavigate();
-    const location = useLocation();
     const [status, setStatus] = useState<'loading' | 'error' | 'not-found'>('loading');
 
     useEffect(() => {
@@ -29,32 +29,30 @@ const FlatRouteResolver = () => {
                 // Step 1: Check if it's a direct county slug
                 const { data: countyData } = await supabase
                     .from('iebc_offices')
-
                     .select('county')
                     .ilike('county', slug.replace(/-/g, ' '))
                     .limit(1);
 
-                if (countyData && countyData.length > 0) {
-                    const canonicalCounty = slugify(countyData[0].county);
+                if (countyData && (countyData as any[]).length > 0) {
+                    const data = countyData as any[];
+                    const canonicalCounty = slugify(data[0].county);
                     navigate(`/${canonicalCounty}`, { replace: true });
                     return;
                 }
 
                 // Step 2: Check if it's an area slug (constituency)
-                // We fetch to see if this slug matches ANY constituency_name
                 const { data: areaData } = await supabase
                     .from('iebc_offices')
                     .select('county, constituency_name')
                     .or(`constituency_name.ilike.${slug.replace(/-/g, ' ')},constituency_name.ilike.${slug.replace(/-town$/, '').replace(/-/g, ' ')}`);
 
-                if (areaData && areaData.length > 0) {
-                    // If unique, redirect to hierarchical
-                    if (areaData.length === 1 || new Set(areaData.map(a => a.county)).size === 1) {
-                        const match = areaData[0];
+                if (areaData && (areaData as any[]).length > 0) {
+                    const data = areaData as any[];
+                    if (data.length === 1 || new Set(data.map(a => a.county)).size === 1) {
+                        const match = data[0];
                         const county_slug = slugify(match.county);
                         let area_slug = slugify(match.constituency_name);
 
-                        // Disambiguation
                         if (area_slug === county_slug) {
                             area_slug = `${area_slug}-town`;
                         }
@@ -62,13 +60,28 @@ const FlatRouteResolver = () => {
                         navigate(`/${county_slug}/${area_slug}`, { replace: true });
                         return;
                     } else {
-                        // Ambiguous area (exists in multiple counties) - Go to generic map or disambiguation
                         navigate(`/map?q=${slug}`, { replace: true });
                         return;
                     }
                 }
 
-                // Step 3: Not found
+                // Step 3: Check if it's a Ward slug
+                const { data: wardData } = await supabase
+                    .from('iebc_offices')
+                    .select('county, constituency_name, ward_name')
+                    .ilike('ward_name', slug.replace(/-/g, ' '))
+                    .limit(1);
+
+                if (wardData && (wardData as any[]).length > 0) {
+                    const match = (wardData as any[])[0];
+                    const county_slug = slugify(match.county);
+                    const constituency_slug = slugify(match.constituency_name);
+                    const ward_slug = slugify(match.ward_name);
+
+                    navigate(`/${county_slug}/${constituency_slug}/${ward_slug}`, { replace: true });
+                    return;
+                }
+
                 setStatus('not-found');
             } catch (error) {
                 console.error("Resolution error:", error);
@@ -89,7 +102,6 @@ const FlatRouteResolver = () => {
     }
 
     if (status === 'error' || status === 'not-found') {
-        // Let it fall through to NotFound or generic handling
         navigate('/404', { replace: true });
         return null;
     }

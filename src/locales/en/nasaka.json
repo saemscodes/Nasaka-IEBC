@@ -127,7 +127,8 @@
     "startSecure": "Protect Trip",
     "storageStatus": "Device Storage Status",
     "sidebarTitle": "Offline Maps",
-    "sidebarDesc": "Download map tiles along your route to ensure navigation continues even when you lose internet connection in \"dead zones\"."
+    "sidebarDesc": "Download map tiles along your route to ensure navigation continues even when you lose internet connection in \"dead zones\".",
+    "moreAboutArea": "More about {{area}}"
   },
   "officeList": {
     "searchResults": "Search Results",
@@ -143,6 +144,10 @@
     "standardDesc": "Default street map view",
     "satellite": "Satellite",
     "satelliteDesc": "Aerial imagery view",
+    "dark": "Black",
+    "darkDesc": "High contrast dark mode view",
+    "green": "Green",
+    "greenDesc": "Topographic and terrain view",
     "dataLayers": "Data Layers",
     "iebcOffices": "IEBC Offices",
     "iebcOfficesDesc": "All IEBC office locations across Kenya",
