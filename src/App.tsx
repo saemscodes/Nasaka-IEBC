@@ -540,7 +540,7 @@ const AppContent = () => {
           }
         />
         <Route
-          path="/:county/:area"
+          path="/:county/:constituency"
           element={
             <React.Suspense fallback={<LoadingState />}>
               <OfficeDetail />

@@ -71,8 +71,8 @@ const SearchBar = ({
 
   const loadAllOffices = async () => {
     try {
-      // Parallel fetch for iebc_offices and diaspora_registration_centres
-      const [iebcRes, diasporaRes] = await Promise.all([
+      // Parallel fetch for iebc_offices, diaspora_registration_centres, and wards
+      const [iebcRes, diasporaRes, wardsRes] = await Promise.all([
         supabase
           .from('iebc_offices')
           .select('*')
@@ -82,15 +82,29 @@ const SearchBar = ({
           .from('diaspora_registration_centres')
           .select('*')
           .not('latitude', 'is', null)
+          .not('longitude', 'is', null),
+        supabase
+          .from('wards')
+          .select('id,ward_name,constituency_name,county,latitude,longitude')
+          .not('latitude', 'is', null)
           .not('longitude', 'is', null)
       ]);
 
       if (iebcRes.error) throw iebcRes.error;
       if (diasporaRes.error) throw diasporaRes.error;
+      if (wardsRes.error) throw wardsRes.error;
 
       const iebcData = (iebcRes.data || []).map(o => ({ ...o, type: 'office' }));
       const diasporaData = (diasporaRes.data || []).map(o => ({ ...o, type: 'diaspora' }));
-      const combined = [...iebcData, ...diasporaData];
+      const wardData = (wardsRes.data || []).map(w => ({
+        ...w,
+        type: 'ward',
+        office_location: w.ward_name, // Map for Fuse
+        constituency_name: w.constituency_name,
+        county: w.county
+      }));
+
+      const combined = [...iebcData, ...diasporaData, ...wardData];
 
       setAllOffices(combined);
 

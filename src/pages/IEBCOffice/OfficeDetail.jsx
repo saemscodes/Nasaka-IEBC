@@ -12,6 +12,7 @@ import {
     Copy,
     ExternalLink,
     ChevronRight,
+    ArrowRight,
     Info
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +20,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { getTravelInsights } from '@/services/travelService';
+import { resolveLocation } from '@/lib/geocoding/pipeline';
 import {
     SEOHead,
     generateOfficeSchema,
@@ -33,12 +35,15 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 const OfficeDetail = () => {
-    const { county: rawCounty, area: rawArea, constituency: rawConstituency, ward: rawWard } = useParams();
-    // rawArea is from the new /:county/:area route
-    // rawConstituency is from the legacy /iebc-office/:county/:constituency route
-    const currentArea = rawArea || rawConstituency;
-    const currentWard = rawWard;
+    const { county: rawCounty, constituency: rawConstituency, ward: rawWard } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Extract optional query parameters for geographical resolution context
+    const queryParams = new URLSearchParams(location.search);
+    const overrideLat = queryParams.get('lat') ? parseFloat(queryParams.get('lat')) : null;
+    const overrideLng = queryParams.get('lng') ? parseFloat(queryParams.get('lng')) : null;
+    const originalSearch = queryParams.get('q');
     const { theme } = useTheme();
     const isDark = theme === 'dark';
     const { t } = useTranslation();
@@ -72,44 +77,49 @@ const OfficeDetail = () => {
     // URL Sanitization
     const sanitizeSlug = (slug) => slug?.toLowerCase().trim().replace(/[^\w-]/g, '');
     const countySlug = sanitizeSlug(rawCounty);
-    const areaSlug = sanitizeSlug(currentArea);
-    const wardSlug = sanitizeSlug(currentWard);
+    const constituencySlug = sanitizeSlug(rawConstituency);
+    const wardSlug = sanitizeSlug(rawWard);
 
-    // Redirection Logic: Redirect legacy /iebc-office paths to hierarchical canonical paths
+    // Redirection Logic: Redirect legacy paths to hierarchical canonical paths
     useEffect(() => {
-        if ((window.location.pathname.startsWith('/iebc-office/') || window.location.pathname.startsWith('/nasaka-iebc/')) && office) {
-            const countySlugLocal = slugify(office.county);
-            let areaSlugLocal = slugify(office.constituency_name);
+        if (!office) return;
 
-            // Apply disambiguation logic: area-town if matches county
-            if (areaSlugLocal === countySlugLocal) {
-                areaSlugLocal = `${areaSlugLocal}-town`;
-            }
+        const isLegacyPath = window.location.pathname.startsWith('/iebc-office/') ||
+            window.location.pathname.startsWith('/nasaka-iebc/');
 
-            const canonicalPath = `/${countySlugLocal}/${areaSlugLocal}`;
-            // Log removed for production
+        const canonicalCounty = slugify(office.county);
+        const canonicalConstituency = slugify(office.constituency_name);
+        // If we are on a ward page, we want the ward slug too
+        const canonicalWard = office.ward_name ? slugify(office.ward_name) : wardSlug;
 
-            navigate(canonicalPath, { replace: true });
+        // Disambiguation
+        let constPart = canonicalConstituency;
+        if (constPart === canonicalCounty) constPart = `${constPart}-town`;
+
+        let expectedPath = `/${canonicalCounty}/${constPart}`;
+        if (wardSlug && canonicalWard) expectedPath += `/${canonicalWard}`;
+
+        if (isLegacyPath || (window.location.pathname !== expectedPath && !location.search)) {
+            navigate(expectedPath, { replace: true });
         }
-    }, [office, navigate]);
+    }, [office, navigate, location.pathname, wardSlug]);
 
     const fetchOfficeData = useCallback(async () => {
         setLoading(true);
         try {
             const countySearch = deslugify(countySlug);
-            let areaSearch = areaSlug ? deslugify(areaSlug) : null;
+            let constituencySearch = constituencySlug ? deslugify(constituencySlug) : null;
 
-            // Handle disambiguation: If area ends with "-town", remove it for database search
-            if (areaSearch && areaSearch.toLowerCase().endsWith(' town')) {
-                areaSearch = areaSearch.substring(0, areaSearch.length - 5);
+            // Handle disambiguation: If constituency ends with "-town", remove it for database search
+            if (constituencySearch && constituencySearch.toLowerCase().endsWith(' town')) {
+                constituencySearch = constituencySearch.substring(0, constituencySearch.length - 5);
             }
 
             let data = null;
 
             if (wardSlug) {
                 const wardSearch = deslugify(wardSlug);
-                const constituencySearch = deslugify(areaSlug);
-
+                // 1. Try exact ward match with hierarchy
                 const { data: d0, error: e0 } = await supabase
                     .from('iebc_offices')
                     .select('*')
@@ -120,36 +130,23 @@ const OfficeDetail = () => {
 
                 if (e0) throw e0;
                 data = d0;
-            } else if (areaSearch) {
-                // Fix 2: Step 1 — fuzzy match with %search% on constituency_name
+            }
+
+            if (!data && constituencySearch) {
+                // 2. Try constituency match
                 const { data: d1, error: e1 } = await supabase
                     .from('iebc_offices')
                     .select('*')
-                    .ilike('constituency_name', `%${areaSearch}%`)
+                    .ilike('constituency_name', `%${constituencySearch}%`)
                     .limit(1)
                     .maybeSingle();
 
                 if (e1) throw e1;
                 data = d1;
+            }
 
-                // Fix 2: Step 2 — multi-word fallback: split and try individual terms
-                if (!data && areaSearch.includes(' ')) {
-                    const terms = areaSearch.split(' ').filter(t => t.length > 2);
-                    for (const term of terms) {
-                        const { data: d2 } = await supabase
-                            .from('iebc_offices')
-                            .select('*')
-                            .ilike('constituency_name', `%${term}%`)
-                            .limit(1)
-                            .maybeSingle();
-                        if (d2) {
-                            data = d2;
-                            break;
-                        }
-                    }
-                }
-            } else {
-                // County-only search
+            if (!data) {
+                // 3. County-only fallback
                 const { data: d3, error: e3 } = await supabase
                     .from('iebc_offices')
                     .select('*')
@@ -162,7 +159,45 @@ const OfficeDetail = () => {
             }
 
             if (!data) {
-                // Final fuzzy fallback on county
+                // 4. Geographical Fallback (HAM MODE)
+                // If the URL contains a landmark or descriptive text that didn't match the DB
+                const searchString = `${wardSlug ? deslugify(wardSlug) + ' ' : ''}${constituencySearch || ''} ${countySearch}`.trim();
+                const geo = await resolveLocation(searchString);
+
+                if (geo.result && geo.result.isKenyan) {
+                    const { lat, lng } = geo.result;
+                    // Find nearest ward from centroids
+                    const { data: nearest } = await supabase.rpc('get_nearest_ward', {
+                        lat_param: lat,
+                        lng_param: lng
+                    });
+
+                    if (nearest && nearest.length > 0) {
+                        const w = nearest[0];
+                        // Get the actual office for this ward
+                        const { data: finalOffice } = await supabase
+                            .from('iebc_offices')
+                            .select('*')
+                            .eq('ward_name', w.ward_name)
+                            .ilike('constituency_name', w.constituency)
+                            .limit(1)
+                            .maybeSingle();
+
+                        if (finalOffice) {
+                            // Perfect match found via geography context!
+                            // We will trigger the canonical redirect in the next useEffect
+                            setOffice(finalOffice);
+                            // Set coordinates to center the map on the SEARCHED landmark, 
+                            // not just the office centroid
+                            // We'll use a hack of setting a local state or just navigating
+                            const canonicalPath = `/${slugify(w.county)}/${slugify(w.constituency)}/${slugify(w.ward_name)}`;
+                            navigate(`${canonicalPath}?lat=${lat}&lng=${lng}&q=${encodeURIComponent(searchString)}`, { replace: true });
+                            return;
+                        }
+                    }
+                }
+
+                // Final fuzzy fallback on county as absolute last resort
                 const { data: fuzzyData } = await supabase
                     .from('iebc_offices')
                     .select('*')
@@ -246,8 +281,12 @@ const OfficeDetail = () => {
                 console.error('Share failed:', err);
             }
         } else {
-            navigator.clipboard.writeText(url);
-            toast.success('Link copied to clipboard');
+            try {
+                await navigator.clipboard.writeText(url);
+                toast.success('Link copied to clipboard');
+            } catch (e) {
+                toast.error('Failed to copy link');
+            }
         }
     };
 
@@ -273,26 +312,42 @@ const OfficeDetail = () => {
 
     const officeName = office.constituency_name || 'IEBC Office';
     const countyName = office.county || 'Kenya';
-    const seoTitle = `${officeName} IEBC Office — ${countyName} County | Nasaka IEBC`;
-    const seoDescription = `Find the IEBC constituency office for ${officeName}, ${countyName} County. Get directions, voter registration info, and community verified data.`;
+    const wardName = office.ward_name || deslugify(wardSlug);
+
+    const displayTitle = wardSlug && office.ward_name ? `${wardName} Ward, ${officeName}` : officeName;
+    const seoTitle = `${displayTitle} IEBC Office — ${countyName} County | Nasaka IEBC`;
+    const seoDescription = `Find the IEBC constituency office for ${officeName}, ${countyName} County${wardSlug ? ` serving ${wardName} Ward` : ''}. Get directions, voter registration info, and community verified data.`;
+
+    const breadcrumbItems = [
+        { name: 'Home', url: '/' },
+        { name: 'Nasaka IEBC', url: '/' },
+        { name: countyName, url: `/${slugify(countyName)}` },
+        {
+            name: officeName,
+            url: `/${slugify(countyName)}/${slugify(officeName)}${slugify(officeName) === slugify(countyName) ? '-town' : ''}`
+        }
+    ];
+
+    if (wardSlug && office.ward_name) {
+        breadcrumbItems.push({
+            name: office.ward_name,
+            url: `/${slugify(countyName)}/${slugify(officeName)}${slugify(officeName) === slugify(countyName) ? '-town' : ''}/${slugify(office.ward_name)}`
+        });
+    }
+
+    // Canonical logic
+    let canonical = `/${slugify(countyName)}/${slugify(officeName)}${slugify(officeName) === slugify(countyName) ? '-town' : ''}`;
+    if (wardSlug && office.ward_name) canonical += `/${slugify(office.ward_name)}`;
 
     return (
         <div className={`min-h-screen pb-20 transition-colors duration-500 ${isDark ? 'bg-ios-gray-900 text-white' : 'bg-ios-gray-50 text-ios-gray-900'}`}>
             <SEOHead
                 title={seoTitle}
                 description={seoDescription}
-                canonical={`/${slugify(countyName)}/${slugify(officeName)}`}
+                canonical={canonical}
                 schema={[
                     generateOfficeSchema(office),
-                    generateBreadcrumbSchema([
-                        { name: 'Home', url: '/' },
-                        { name: 'Nasaka IEBC', url: '/' },
-                        { name: countyName, url: `/${slugify(countyName)}` },
-                        {
-                            name: officeName,
-                            url: `/${slugify(countyName)}/${slugify(officeName)}${slugify(officeName) === slugify(countyName) ? '-town' : ''}`
-                        }
-                    ]),
+                    generateBreadcrumbSchema(breadcrumbItems),
                     generateFAQSchema([
                         {
                             question: `Where is the ${officeName} IEBC office located?`,
@@ -312,7 +367,9 @@ const OfficeDetail = () => {
                     <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-ios-gray-200/50 rounded-full transition-colors">
                         <ArrowLeft className="w-6 h-6" />
                     </button>
-                    <h1 className="text-lg font-semibold truncate px-4">{officeName}</h1>
+                    <h1 className="text-lg font-semibold truncate px-4">
+                        {wardSlug && office.ward_name ? `${office.ward_name} Ward` : officeName}
+                    </h1>
                     <button onClick={handleShare} className="p-2 -mr-2 hover:bg-ios-gray-200/50 rounded-full transition-colors">
                         <Share2 className="w-5 h-5" />
                     </button>
@@ -377,8 +434,8 @@ const OfficeDetail = () => {
                     <section className={`rounded-3xl overflow-hidden border shadow-sm ${isDark ? 'border-ios-gray-700' : 'border-ios-gray-100'}`}>
                         <div style={{ height: '200px', width: '100%' }}>
                             <MapContainer
-                                center={[office.latitude, office.longitude]}
-                                zoom={14}
+                                center={[overrideLat || office.latitude, overrideLng || office.longitude]}
+                                zoom={overrideLat ? 16 : 14}
                                 scrollWheelZoom={false}
                                 dragging={false}
                                 zoomControl={false}
@@ -400,6 +457,25 @@ const OfficeDetail = () => {
                                         <div className="text-xs text-muted-foreground">{countyName} County</div>
                                     </Popup>
                                 </Marker>
+
+                                {overrideLat && overrideLng && (
+                                    <Marker
+                                        position={[overrideLat, overrideLng]}
+                                        icon={L.divIcon({
+                                            html: `<div style="width:24px;height:24px;background:#059669;border-radius:50%;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center">
+                                                <div style="width:8px;height:8px;background:white;border-radius:50%"></div>
+                                            </div>`,
+                                            className: '',
+                                            iconSize: [24, 24],
+                                            iconAnchor: [12, 12]
+                                        })}
+                                    >
+                                        <Popup>
+                                            <div className="text-sm font-bold">Search Location: {originalSearch || 'Resolved Landmark'}</div>
+                                            <div className="text-xs">Nearest IEBC Office is {officeName}</div>
+                                        </Popup>
+                                    </Marker>
+                                )}
                             </MapContainer>
                         </div>
                     </section>
@@ -423,6 +499,56 @@ const OfficeDetail = () => {
                             <span className="text-xs font-mono font-bold">{office.constituency_code || '---'}</span>
                         </div>
                     </div>
+                </section>
+
+                {/* More About Area CTA (USER REQUESTED PRIORITY) */}
+                <section className="mb-4">
+                    <button
+                        onClick={() => {
+                            const countySlug = slugify(office.county || 'kenya');
+                            navigate(`/${countySlug}`);
+                        }}
+                        className={`w-full py-4 px-6 rounded-3xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-lg ${isDark
+                            ? 'bg-[#0b63c6] text-white shadow-[#0b63c6]/20 hover:bg-[#0b63c6]/90'
+                            : 'bg-[#0b63c6] text-white shadow-blue-500/20 hover:bg-[#0851a1]'
+                            }`}
+                    >
+                        <span className="font-bold text-center">
+                            {(() => {
+                                const { county, constituency_name, ward_name } = office;
+                                let area = '';
+
+                                // PRIORITY LIST:
+                                // i) CONSTITUENCY, COUNTY
+                                // ii) COUNTY
+                                // iii) WARD, CONSTITUENCY
+                                // iv) WARD, COUNTY
+                                // v) CONSTITUENCY
+                                // vi) WARD, CONSTITUENCY, COUNTY
+                                // vii) WARD
+                                if (constituency_name && county) {
+                                    area = `${constituency_name}, ${county}`; // i
+                                } else if (county) {
+                                    area = county; // ii
+                                } else if (ward_name && constituency_name) {
+                                    area = `${ward_name}, ${constituency_name}`; // iii
+                                } else if (ward_name && county) {
+                                    area = `${ward_name}, ${county}`; // iv
+                                } else if (constituency_name) {
+                                    area = constituency_name; // v
+                                } else if (ward_name && constituency_name && county) {
+                                    area = `${ward_name}, ${constituency_name}, ${county}`; // vi
+                                } else if (ward_name) {
+                                    area = ward_name; // vii
+                                } else {
+                                    area = 'this area';
+                                }
+
+                                return t('bottomSheet.moreAboutArea', { area });
+                            })()}
+                        </span>
+                        <ArrowRight className="w-5 h-5" />
+                    </button>
                 </section>
 
                 {/* Live Intelligence Section */}

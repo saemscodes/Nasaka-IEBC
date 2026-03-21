@@ -153,6 +153,7 @@ export function SEOHead({
 interface OfficeSchemaInput {
     constituency_name?: string;
     county?: string;
+    ward_name?: string;
     latitude?: number;
     longitude?: number;
     address?: string;
@@ -165,22 +166,29 @@ interface OfficeSchemaInput {
 export function generateOfficeSchema(office: OfficeSchemaInput) {
     const officeName = office.constituency_name || 'IEBC Office';
     const countyName = office.county || 'Kenya';
+    const wardName = office.ward_name;
     const countySlug = slugify(countyName);
-    let areaSlug = office.slug || slugify(officeName);
 
-    // Disambiguation: area-town if matches county
-    if (areaSlug === countySlug) {
-        areaSlug = `${areaSlug}-town`;
+    let constituencySlug = slugify(officeName);
+    if (constituencySlug === countySlug) {
+        constituencySlug = `${constituencySlug}-town`;
     }
+
+    let canonicalUrl = `${SITE_URL}/${countySlug}/${constituencySlug}`;
+    if (wardName) {
+        canonicalUrl += `/${slugify(wardName)}`;
+    }
+
+    const displayTitle = wardName ? `${wardName} Ward, ${officeName}` : officeName;
 
     return {
         '@context': 'https://schema.org',
         '@type': 'GovernmentOffice',
-        name: `IEBC Constituency Office — ${officeName}`,
-        description: `Official IEBC constituency office for ${officeName}, ${countyName} County, Kenya. Visit for voter registration (CVR), ID verification, polling station info, and electoral services.`,
+        name: `IEBC Office — ${displayTitle}`,
+        description: `Official IEBC office for ${displayTitle}, ${countyName} County, Kenya. Visit for voter registration (CVR), ID verification, polling station info, and electoral services.`,
         address: {
             '@type': 'PostalAddress',
-            streetAddress: office.address || `${officeName} Constituency`,
+            streetAddress: office.address || `${displayTitle}`,
             addressLocality: officeName,
             addressRegion: `${countyName} County`,
             addressCountry: 'KE',
@@ -194,7 +202,7 @@ export function generateOfficeSchema(office: OfficeSchemaInput) {
                 },
             }
             : {}),
-        url: `${SITE_URL}/${countySlug}/${areaSlug}`,
+        url: canonicalUrl,
         ...(office.phone ? { telephone: office.phone } : {}),
         openingHoursSpecification: {
             '@type': 'OpeningHoursSpecification',
