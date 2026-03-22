@@ -82,7 +82,7 @@ define(['./workbox-237f2c1f'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "/index.html",
-    "revision": "0.l27ov635g38"
+    "revision": "0.t0hvfegc2q8"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("/index.html"), {
@@ -130,7 +130,7 @@ define(['./workbox-237f2c1f'], (function (workbox) { 'use strict';
   workbox.registerRoute(/^https:\/\/.*\.?tile\.openstreetmap\.org\/.*/, new workbox.CacheFirst({
     "cacheName": "osm-tiles-cache",
     plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 1000,
+      maxEntries: 200,
       maxAgeSeconds: 2592000
     }), new workbox.CacheableResponsePlugin({
       statuses: [0, 200]
@@ -139,7 +139,7 @@ define(['./workbox-237f2c1f'], (function (workbox) { 'use strict';
   workbox.registerRoute(/^https:\/\/server\.arcgisonline\.com\/ArcGIS\/rest\/services\/World_Imagery\/MapServer\/tile\/.*/, new workbox.CacheFirst({
     "cacheName": "satellite-tiles-cache",
     plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 500,
+      maxEntries: 100,
       maxAgeSeconds: 2592000
     }), new workbox.CacheableResponsePlugin({
       statuses: [0, 200]

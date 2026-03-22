@@ -339,5 +339,5 @@ export default defineConfig(({ mode }) => ({
   },
 
   publicDir: 'public',
-  assetsInclude: ['**/*.geojson', '**/*.csv', '**/*.glb']
+  assetsInclude: ['**/*.geojson', '**/*.csv']
 }));

@@ -108,7 +108,7 @@ const Index = () => {
 
       if (wardsError) throw wardsError;
 
-      const uniqueWardsCovered = new Set((signatures as any[])?.map(s => s.ward)).size;
+      const uniqueWardsCovered = new Set(signatures?.map(s => s.ward)).size;
       const totalWards = wards?.length || 0;
       const complianceScore = totalWards > 0 ? Math.round((uniqueWardsCovered / totalWards) * 100) : 0;
 

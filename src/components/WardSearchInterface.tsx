@@ -87,7 +87,7 @@ const WardSearchInterface = () => {
         .order('name', { ascending: true });
 
       if (constituenciesError) throw constituenciesError;
-      setConstituencies(((constituenciesData as any[]) || []).map((c: any) => ({
+      setConstituencies((constituenciesData || []).map(c => ({
         id: c.id,
         name: c.name,
         county_name: c.counties?.name || '',
@@ -101,7 +101,7 @@ const WardSearchInterface = () => {
         .order('name', { ascending: true });
 
       if (countiesError) throw countiesError;
-      setCounties(((countiesData as any[]) || []).map((c: any) => ({
+      setCounties((countiesData || []).map(c => ({
         id: c.id,
         name: c.name,
         total_count: c.total_count || 0

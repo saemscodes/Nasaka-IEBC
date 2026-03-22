@@ -12,16 +12,6 @@ import LayerControlPanel from '@/components/IEBCOffice/LayerControlPanel';
 import OfficeBottomSheet from '@/components/IEBCOffice/OfficeBottomSheet';
 import OfficeListPanel from '@/components/IEBCOffice/OfficeListPanel';
 import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
-
-// Safe wrapper for LoadingSpinner to prevent ReferenceError in minified production bundles 
-const SafeLoadingSpinner = (props) => {
-  try {
-    if (typeof LoadingSpinner !== 'undefined') return <LoadingSpinner {...props} />;
-  } catch (e) {
-    console.warn("LoadingSpinner resolution failed, using fallback");
-  }
-  return <div className={`animate-spin rounded-full border-2 border-ios-gray-300 border-t-ios-blue ${props.size === 'large' ? 'w-8 h-8' : 'w-5 h-5'}`} />;
-};
 import ContributeLocationButton from '@/components/IEBCOffice/ContributeLocationButton';
 import OfflineRouteDownloader from '@/components/IEBCOffice/OfflineRouteDownloader';
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
@@ -752,7 +742,7 @@ const IEBCOfficeMap = () => {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background">
-        <SafeLoadingSpinner size="large" />
+        <LoadingSpinner size="large" />
         <p className="text-muted-foreground mt-4">{t('common.loading', 'Loading IEBC offices...')}</p>
       </div>
     );

@@ -31,32 +31,3 @@ declare module 'virtual:pwa-register' {
 
   export function registerSW(options?: RegisterSWOptions): (reloadPage?: boolean) => Promise<void>;
 }
-
-declare module '*.glb';
-declare module '*.png';
-
-declare module 'meshline' {
-  export const MeshLineGeometry: any;
-  export const MeshLineMaterial: any;
-}
-
-import * as React from 'react';
-import { ThreeElements } from '@react-three/fiber';
-
-declare module '@react-three/fiber' {
-  interface ThreeElements {
-    meshLineGeometry: any;
-    meshLineMaterial: any;
-  }
-}
-
-declare global {
-  namespace React {
-    namespace JSX {
-      interface IntrinsicElements extends ThreeElements {
-        meshLineGeometry: any;
-        meshLineMaterial: any;
-      }
-    }
-  }
-}
