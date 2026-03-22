@@ -18,7 +18,10 @@ export default defineConfig(({ mode }) => ({
         'masked-icon.svg',
         'logo_green.png',
         'logo_white.png',
-        'nasaka.svg'
+        'nasaka.svg',
+        'offline.html',
+        'illustrations/undraw_lost_teip.svg',
+        'illustrations/undraw_world_bdnk.svg'
       ],
       manifest: {
         name: 'Nasaka IEBC — Find IEBC Offices near You, anywhere across Kenya',

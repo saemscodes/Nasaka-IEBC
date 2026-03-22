@@ -70,9 +70,29 @@ export async function setCachedOffices(offices: any[]): Promise<void> {
 
     // Update storage estimate
     await updateStorageEstimate();
-  } catch (error) {
-    // Log removed for production
-
+  } catch (error: any) {
+    if (error.name === 'QuotaExceededError') {
+      console.warn('Offline storage quota exceeded. Attempting to clear old cache...');
+      try {
+        await clearOfficesCache();
+        // Retry once with a smaller subset if needed, or just regular
+        const retryData = {
+          data: offices.slice(0, Math.min(offices.length, Math.floor(CACHE_CONFIG.MAX_OFFICES / 2))),
+          timestamp: Date.now(),
+          version: CACHE_CONFIG.VERSION,
+          metadata: {
+            count: offices.length,
+            lastUpdated: new Date().toISOString()
+          }
+        };
+        await set(CACHE_CONFIG.IEBC_OFFICES, retryData);
+        await set(CACHE_CONFIG.IEBC_OFFICES_TIMESTAMP, Date.now());
+      } catch (retryError) {
+        console.error('Failed to set cache even after clearing:', retryError);
+      }
+    } else {
+      // Log removed for production
+    }
   }
 }
 

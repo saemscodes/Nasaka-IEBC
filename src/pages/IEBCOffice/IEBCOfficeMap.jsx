@@ -58,7 +58,7 @@ const IEBCOfficeMap = () => {
   // CRITICAL: Determine if we have location access
   const hasLocationAccess = !!userLocation;
 
-  const { offices, loading, error, isOffline, searchOffices, refetch } = useIEBCOffices();
+  const { offices, loading, error, offlineWarning, isOffline, searchOffices, refetch } = useIEBCOffices();
   const {
     mapCenter,
     mapZoom,
@@ -326,7 +326,7 @@ const IEBCOfficeMap = () => {
       try {
         const { data: fullOffice, error } = await supabase
           .from('iebc_offices')
-          .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, contact_phone, contact_email, opening_hours, created_at, updated_at')
+          .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
           .eq('id', office.id)
           .single();
 
@@ -748,7 +748,7 @@ const IEBCOfficeMap = () => {
     );
   }
 
-  if (error) {
+  if (error && offices.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background px-6">
         <div className="text-center max-w-md">
@@ -789,6 +789,33 @@ const IEBCOfficeMap = () => {
           onLocationSearch={handleLocationSearch}
           placeholder={t('search.placeholder', 'Search IEBC offices by county, constituency, or location...')}
         />
+
+        <AnimatePresence>
+          {offlineWarning && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="mx-4 mt-2 p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-3 shadow-sm"
+            >
+              <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-amber-900 truncate">{offlineWarning}</p>
+                <p className="text-[10px] text-amber-700 opacity-80">Some features may be limited while offline</p>
+              </div>
+              <button
+                onClick={() => refetch()}
+                className="px-3 py-1 bg-amber-100 hover:bg-amber-200 text-amber-700 text-[10px] font-bold rounded-lg transition-colors"
+              >
+                RETRY
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <div className="fixed-controls-container">

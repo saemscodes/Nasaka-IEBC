@@ -79,37 +79,37 @@ const LayerControlPanel = ({
       id: 'standard',
       name: 'Standard',
       description: 'Default street map',
-      image: '/C:/Users/Administrator/.gemini/antigravity/brain/6bf5f9ff-0c37-4aa8-bc81-5a2e933ba3aa/theme_standard_1774132359468.png'
+      image: 'https://abc.tile.openstreetmap.org/12/2405/1618.png'
     },
     {
       id: 'satellite',
       name: 'Satellite',
       description: 'Aerial imagery',
-      image: '/C:/Users/Administrator/.gemini/antigravity/brain/6bf5f9ff-0c37-4aa8-bc81-5a2e933ba3aa/theme_satellite_1774132412369.png'
+      image: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/12/1618/2405'
     },
     {
       id: 'dark',
       name: 'Black',
       description: 'Night vision',
-      image: '/C:/Users/Administrator/.gemini/antigravity/brain/6bf5f9ff-0c37-4aa8-bc81-5a2e933ba3aa/theme_black_1774132647633.png'
+      image: 'https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/12/2405/1618.png'
     },
     {
       id: 'blue',
       name: 'Blue',
       description: 'Oceanic focus',
-      image: '/C:/Users/Administrator/.gemini/antigravity/brain/6bf5f9ff-0c37-4aa8-bc81-5a2e933ba3aa/theme_blue_1774133423987.png'
+      image: 'https://cartodb-basemaps-a.global.ssl.fastly.net/rastertiles/voyager/12/2405/1618.png'
     },
     {
       id: 'green',
       name: 'Green',
       description: 'Terrain view',
-      image: '/C:/Users/Administrator/.gemini/antigravity/brain/6bf5f9ff-0c37-4aa8-bc81-5a2e933ba3aa/theme_green_1774132670340.png'
+      image: 'https://c.tile.opentopomap.org/12/2405/1618.png'
     },
     {
       id: 'retro',
       name: 'Retro',
       description: 'Vintage style',
-      image: '/C:/Users/Administrator/.gemini/antigravity/brain/6bf5f9ff-0c37-4aa8-bc81-5a2e933ba3aa/theme_standard_1774132359468.png', // Fallback
+      image: 'https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/12/2405/1618.png',
       isRetro: true
     }
   ];

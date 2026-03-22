@@ -32,7 +32,7 @@ const searchNearbyOffices = async (lat, lng, radius = 5000, onNearbyOfficesFound
     const [officesRes, diasporaRes] = await Promise.all([
       supabase
         .from('iebc_offices')
-        .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, contact_phone, contact_email, opening_hours, created_at, updated_at')
+        .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
         .eq('verified', true)
         .not('latitude', 'is', null)
         .not('longitude', 'is', null),
@@ -404,7 +404,7 @@ const GeoJSONLayerManager = ({
           if (feature.properties.id && feature.properties.type !== 'diaspora') {
             const { data, error } = await supabase
               .from('iebc_offices')
-              .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, contact_phone, contact_email, opening_hours, created_at, updated_at')
+              .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
               .eq('id', feature.properties.id)
               .single();
 

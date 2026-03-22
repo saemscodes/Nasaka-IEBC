@@ -154,6 +154,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
   const [offices, setOffices] = useState<Office[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [offlineWarning, setOfflineWarning] = useState<string | null>(null);
   const [fuse, setFuse] = useState<Fuse<Office> | null>(null);
   const loadingFailsafeRef = useRef<NodeJS.Timeout | null>(null);
   const hasFetchedRef = useRef(false);
@@ -229,6 +230,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     try {
       setLoading(true);
       setError(null);
+      setOfflineWarning(null);
 
       if (enableOfflineCache && !forceRefresh && !isOffline) {
         const cached = await getCachedOffices();
@@ -268,7 +270,8 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
       } else {
         setOffices(cached.data);
         setLastSyncTime(new Date(cached.timestamp));
-        setError('Using cached data - ' + (err.message || 'Network error'));
+        setError(null);
+        setOfflineWarning('Using cached data - ' + (err.message || 'Network error'));
       }
 
       return [];
@@ -296,7 +299,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
         Promise.all([
           client
             .from('iebc_offices')
-            .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, contact_phone, contact_email, opening_hours, created_at, updated_at')
+            .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
             .not('latitude', 'is', null)
             .not('longitude', 'is', null)
             .eq('verified', true)
@@ -834,6 +837,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     filteredOffices,
     loading,
     error,
+    offlineWarning,
     refetch: () => fetchOffices(true),
     searchQuery,
     searchResults,
