@@ -119,8 +119,9 @@ export default defineConfig(({ mode }) => ({
             options: {
               cacheName: 'supabase-api-cache',
               expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 24 * 60 * 60 // 24 hours
+                maxEntries: 50, // Reduced from 100
+                maxAgeSeconds: 24 * 60 * 60, // 24 hours
+                purgeOnQuotaError: true // AUTO-PURGE IF QUOTA HIT
               },
               cacheableResponse: {
                 statuses: [0, 200]
@@ -133,8 +134,9 @@ export default defineConfig(({ mode }) => ({
             options: {
               cacheName: 'geojson-cache',
               expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 7 * 24 * 60 * 60 // 7 days
+                maxEntries: 20, // Aggressive reduction
+                maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
+                purgeOnQuotaError: true // AUTO-PURGE IF QUOTA HIT
               }
             }
           },
@@ -143,10 +145,11 @@ export default defineConfig(({ mode }) => ({
             handler: 'NetworkFirst',
             options: {
               cacheName: 'nominatim-cache',
-              networkTimeoutSeconds: 10,
+              networkTimeoutSeconds: 15, // Increased timeout 
               expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
+                maxEntries: 20, // Aggressive reduction
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+                purgeOnQuotaError: true // AUTO-PURGE IF QUOTA HIT
               }
             }
           },
@@ -156,8 +159,9 @@ export default defineConfig(({ mode }) => ({
             options: {
               cacheName: 'images-cache',
               expiration: {
-                maxEntries: 200,
-                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
+                maxEntries: 50, // Aggressive reduction
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+                purgeOnQuotaError: true // AUTO-PURGE IF QUOTA HIT
               }
             }
           },
@@ -167,8 +171,9 @@ export default defineConfig(({ mode }) => ({
             options: {
               cacheName: 'static-resources-cache',
               expiration: {
-                maxEntries: 200,
-                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
+                maxEntries: 50, // Aggressive reduction
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+                purgeOnQuotaError: true // AUTO-PURGE IF QUOTA HIT
               }
             }
           },
@@ -179,8 +184,9 @@ export default defineConfig(({ mode }) => ({
             options: {
               cacheName: 'osm-tiles-cache',
               expiration: {
-                maxEntries: 200,
-                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
+                maxEntries: 20, // Absolute minimum for basic offline
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+                purgeOnQuotaError: true // AUTO-PURGE IF QUOTA HIT
               },
               cacheableResponse: {
                 statuses: [0, 200]
@@ -193,8 +199,9 @@ export default defineConfig(({ mode }) => ({
             options: {
               cacheName: 'satellite-tiles-cache',
               expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
+                maxEntries: 10, // Minimal for critical locations
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+                purgeOnQuotaError: true // AUTO-PURGE IF QUOTA HIT
               },
               cacheableResponse: {
                 statuses: [0, 200]
@@ -207,10 +214,11 @@ export default defineConfig(({ mode }) => ({
             handler: 'NetworkFirst',
             options: {
               cacheName: 'ors-routing-cache',
-              networkTimeoutSeconds: 10,
+              networkTimeoutSeconds: 15, // Increased timeout
               expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 24 * 60 * 60 // 24 hours
+                maxEntries: 10, // Minimal
+                maxAgeSeconds: 24 * 60 * 60, // 24 hours
+                purgeOnQuotaError: true // AUTO-PURGE IF QUOTA HIT
               },
               cacheableResponse: {
                 statuses: [0, 200]

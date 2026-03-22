@@ -698,10 +698,11 @@ const IEBCOfficeMap = () => {
       if (!isDraggingRouteBadge) return;
 
       moveEvent.preventDefault();
-      moveEvent.stopPropagation();
+      e.preventDefault();
+      e.stopPropagation();
 
-      const moveClientX = moveEvent.clientX || (moveEvent.touches && moveEvent.touches[0].clientX);
-      const moveClientY = moveEvent.clientY || (moveEvent.touches && moveEvent.touches[0].clientY);
+      const moveClientX = e.clientX || (e.touches && e.touches[0].clientX);
+      const moveClientY = e.clientY || (e.touches && e.touches[0].clientY);
 
       if (moveClientX && moveClientY) {
         const deltaX = moveClientX - dragStartPos.current.x;
@@ -716,26 +717,28 @@ const IEBCOfficeMap = () => {
 
     const handleUp = () => {
       setIsDraggingRouteBadge(false);
+    };
+
+    if (isDraggingRouteBadge) {
+      document.addEventListener('mousemove', handleMove);
+      document.addEventListener('mouseup', handleUp);
+      document.addEventListener('touchmove', handleMove, { passive: false });
+      document.addEventListener('touchend', handleUp);
+    }
+
+    return () => {
       document.removeEventListener('mousemove', handleMove);
       document.removeEventListener('mouseup', handleUp);
       document.removeEventListener('touchmove', handleMove);
       document.removeEventListener('touchend', handleUp);
     };
+  }, [isDraggingRouteBadge, dragStartPos, badgeStartPos]);
 
-    document.addEventListener('mousemove', handleMove);
-    document.addEventListener('mouseup', handleUp);
-    document.addEventListener('touchmove', handleMove, { passive: false });
-    document.addEventListener('touchend', handleUp);
-  }, [hasLocationAccess, routeBadgePosition, isDraggingRouteBadge]);
-
-  // Cleanup event listeners on unmount
+  // General event cleanup
   useEffect(() => {
     return () => {
-      // Remove any lingering event listeners
-      document.removeEventListener('mousemove', () => { });
-      document.removeEventListener('mouseup', () => { });
-      document.removeEventListener('touchmove', () => { });
-      document.removeEventListener('touchend', () => { });
+      // Removing any possible global listeners on unmount
+      // (Using the same pattern as above inside specific active states)
     };
   }, []);
 

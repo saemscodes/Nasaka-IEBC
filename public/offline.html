@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Offline | Nasaka IEBC</title>
+    <title>Status | Nasaka IEBC</title>
     <style>
         :root {
             --primary: #0b63c6;
@@ -14,6 +14,8 @@
             --text-muted: #666666;
             --kenya-red: #BB0000;
             --kenya-green: #006600;
+            --amber-bg: #fffbeb;
+            --amber-text: #92400e;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -21,6 +23,8 @@
                 --bg: #0f172a;
                 --text: #f8fafc;
                 --text-muted: #94a3b8;
+                --amber-bg: #451a03;
+                --amber-text: #fcd34d;
             }
         }
 
@@ -116,12 +120,7 @@
         .btn-primary {
             background-color: var(--primary);
             color: white;
-            box-shadow: 0 4px 6px -1px rgba(11, 99, 198, 0.2), 0 2px 4px -1px rgba(11, 99, 198, 0.1);
-        }
-
-        .btn-primary:hover {
-            background-color: var(--primary-dark);
-            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(11, 99, 198, 0.2);
         }
 
         .btn-outline {
@@ -130,12 +129,9 @@
             color: var(--primary);
         }
 
-        .btn-outline:hover {
-            background-color: rgba(11, 99, 198, 0.05);
-        }
-
-        .btn:active {
-            transform: scale(0.98);
+        .btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.9;
         }
 
         .brand {
@@ -171,7 +167,12 @@
             letter-spacing: 0.05em;
         }
 
-        svg#illustration-lost {
+        .hidden {
+            display: none;
+        }
+
+        #svg-lost,
+        #svg-quota {
             fill: var(--primary);
         }
     </style>
@@ -179,9 +180,9 @@
 
 <body>
     <div class="container">
-        <!-- Embedded SVG Illustration -->
-        <div class="illustration">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 885 708" id="illustration-lost">
+        <!-- Illustrations -->
+        <div id="illustration-lost" class="illustration hidden">
+            <svg viewBox="0 0 885 708" id="svg-lost">
                 <circle cx="565" cy="394" r="110" fill="currentColor" fill-opacity="0.1" />
                 <path d="M418 454l-29-11-33 4-38 15s8 108-4 133c0 0 10 14 51 10 0 0 40-5 41-18s1-37 1-37l14-48z"
                     fill="currentColor" />
@@ -195,13 +196,27 @@
             </svg>
         </div>
 
-        <h1>Lost in the connection?</h1>
-        <p>You're currently offline, but Nasaka has all your critical IEBC data saved. You can continue using the map
-            with previously loaded locations.</p>
+        <div id="illustration-quota" class="illustration hidden">
+            <svg viewBox="0 0 825 591" id="svg-quota">
+                <circle cx="412" cy="295" r="200" fill="currentColor" fill-opacity="0.1" />
+                <path
+                    d="M421 325c-1 3-1 7 0 10 1 3 4 5 6 6l7 4c2 1 5 2 7 1 3-1 5-6 4-10-1-5-3-8-6-10q-6-6-11-11l-2 3a28 28 0 0 0 0 7z"
+                    fill="currentColor" />
+                <path d="M909 745l-275 0a1 1 0 0 1 0-2l275 0a1 1 0 1 1 0 2z" transform="translate(-187 -154)"
+                    fill="#cacaca" />
+                <path d="M571 211a50 50 0 0 0-55 44c-3 27 11 87 37 111 12-47 56-75 61-100C621 240 598 214 571 211z"
+                    transform="translate(-187 -154)" fill="var(--kenya-red)" />
+            </svg>
+        </div>
+
+        <h1 id="title">Lost in the connection?</h1>
+        <p id="message">You're currently offline, but Nasaka has all your critical IEBC data saved. You can continue
+            using the map with previously loaded locations.</p>
 
         <div class="actions">
-            <button onclick="window.location.reload()" class="btn btn-primary btn-full">Retry Connection</button>
-            <a href="/map" class="btn btn-outline">Access Map Offline</a>
+            <button onclick="window.location.reload()" class="btn btn-primary btn-full" id="retry-btn">Retry
+                Connection</button>
+            <a href="/map" class="btn btn-outline" id="map-btn">Access Map Offline</a>
             <a href="/" class="btn btn-outline">Go to Home</a>
         </div>
 
@@ -212,6 +227,37 @@
             <span>NASAKA IEBC</span>
         </div>
     </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const reason = params.get('reason') || 'offline';
+
+        const content = {
+            offline: {
+                title: "Lost in the connection?",
+                message: "You're currently offline, but Nasaka has all your critical IEBC data saved. Continue to the map to use previously loaded locations.",
+                illu: "illustration-lost"
+            },
+            quota: {
+                title: "Storage is Full",
+                message: "Your browser's storage is full, which prevents us from saving more map data. You can still access the map, but new locations might not be saved.",
+                illu: "illustration-quota",
+                btn: "Continue to Map"
+            },
+            error: {
+                title: "Something Went Wrong",
+                message: "We encountered an unexpected error while loading the data. Our team is looking into it. In the meantime, you can try accessing the cached map.",
+                illu: "illustration-lost",
+                btn: "Try Map Anyway"
+            }
+        };
+
+        const state = content[reason] || content.offline;
+        document.getElementById('title').textContent = state.title;
+        document.getElementById('message').textContent = state.message;
+        document.getElementById(state.illu).classList.remove('hidden');
+        if (state.btn) document.getElementById('map-btn').textContent = state.btn;
+    </script>
 </body>
 
 </html>

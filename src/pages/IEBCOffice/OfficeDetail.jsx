@@ -88,7 +88,8 @@ const OfficeDetail = () => {
     }), []);
 
     // URL Sanitization
-    const sanitizeSlug = (slug) => slug?.toLowerCase().trim().replace(/[^\w-]/g, '');
+    // FIXED: Added truthy check for slug to prevent Uncaught TypeError: Cannot read properties of undefined (reading 'replace')
+    const sanitizeSlug = (slug) => slug ? slug.toLowerCase().trim().replace(/[^\w-]/g, '') : '';
     const countySlug = sanitizeSlug(rawCounty);
     const constituencySlug = sanitizeSlug(rawConstituency);
     const wardSlug = sanitizeSlug(rawWard);

@@ -198,6 +198,60 @@ async function updateStorageEstimate(): Promise<void> {
   }
 }
 
+/**
+ * Verifies if there is a real path to the internet (not just a Wi-Fi connection)
+ * Performs a lightweight HEAD request to a reliable endpoint.
+ */
+export async function verifyInternetPath(): Promise<boolean> {
+  if (!navigator.onLine) return false;
+
+  try {
+    // Using a reliable, CORS-friendly lightweight endpoint
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    const response = await fetch('https://www.google.com/favicon.ico', {
+      method: 'HEAD',
+      mode: 'no-cors',
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * Gets the timestamp of the current cached offices
+ */
+export async function getCacheTimestamp(): Promise<number | null> {
+  try {
+    const timestamp = await get(CACHE_CONFIG.IEBC_OFFICES_TIMESTAMP);
+    return timestamp || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Forces a complete clear of all application caches
+ * Useful for recovering from corrupted states or forced updates.
+ */
+export async function clearAllCaches(): Promise<void> {
+  try {
+    await clear(); // Clears all idb-keyval entries
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map(name => caches.delete(name)));
+    }
+    console.log("All caches cleared successfully");
+  } catch (error) {
+    console.error("Error clearing caches:", error);
+  }
+}
+
 // Network status
 export class NetworkStatus {
   private static instance: NetworkStatus;

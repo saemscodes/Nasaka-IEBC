@@ -12,6 +12,8 @@ import {
   getCachedOffices,
   setCachedOffices,
   clearOfficesCache,
+  getCacheTimestamp,
+  verifyInternetPath,
   networkStatus,
   addToSyncQueue
 } from '@/utils/offlineStorage';
@@ -211,6 +213,31 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     }
   }, [cacheDuration]);
 
+  /**
+   * Fetches only the latest updated_at timestamp to check for freshness
+   * Minimal data transfer, maximal insight.
+   */
+  const fetchRemoteTimestamp = useCallback(async () => {
+    try {
+      if (!navigator.onLine) return null;
+      const isActuallyOnline = await verifyInternetPath();
+      if (!isActuallyOnline) return null;
+
+      const { data, error } = await supabase
+        .from('iebc_offices')
+        .select('updated_at')
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      const officeData = data as any;
+      if (error || !officeData) return null;
+      return new Date(officeData.updated_at).getTime();
+    } catch {
+      return null;
+    }
+  }, []);
+
   const fetchOffices = useCallback(async (forceRefresh = false) => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -232,11 +259,22 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
       setError(null);
       setOfflineWarning(null);
 
-      if (enableOfflineCache && !forceRefresh && !isOffline) {
+      if (enableOfflineCache && !forceRefresh) {
         const cached = await getCachedOffices();
         if (cached?.data?.length > 0) {
           const cacheAge = Date.now() - cached.timestamp;
-          const isCacheValid = cacheAge < cacheDuration;
+
+          // PHASE 2: Check for remote updates if we are online
+          let isStaleByRemote = false;
+          if (!isOffline) {
+            const remoteTS = await fetchRemoteTimestamp();
+            if (remoteTS && remoteTS > cached.timestamp) {
+              console.log('[useIEBCOffices] Remote data is newer than cache. Triggering fresh fetch.');
+              isStaleByRemote = true;
+            }
+          }
+
+          const isCacheValid = !isStaleByRemote && cacheAge < cacheDuration;
 
           if (isCacheValid) {
             setOffices(cached.data);
@@ -245,15 +283,13 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
             if (loadingFailsafeRef.current) clearTimeout(loadingFailsafeRef.current);
             await updateCacheStatus();
 
-            // Background refresh — fire-and-forget but SAFELY
-            if (!isOffline) {
+            // Background refresh only if cache is aged but not explicitly stale by remote
+            if (!isOffline && cacheAge > (cacheDuration / 2)) {
               fetchFreshData().catch(bgErr => {
                 console.warn('[useIEBCOffices] Background refresh failed (non-blocking):', bgErr?.message);
               });
             }
             return cached.data;
-          } else {
-            await clearOfficesCache();
           }
         }
       }
