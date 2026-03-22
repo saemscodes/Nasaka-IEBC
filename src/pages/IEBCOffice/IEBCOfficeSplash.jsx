@@ -3,6 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import LoadingSpinner from '../../components/IEBCOffice/LoadingSpinner';
+
+// Safe wrapper for LoadingSpinner to prevent ReferenceError in minified production bundles
+const SafeLoadingSpinner = (props) => {
+    try {
+        if (typeof LoadingSpinner !== 'undefined') return <LoadingSpinner {...props} />;
+    } catch (e) { console.warn("LoadingSpinner resolution failed, using fallback"); }
+    return <div className={`animate-spin rounded-full border-2 border-ios-gray-300 border-t-ios-blue ${props.size === 'large' ? 'w-8 h-8' : 'w-5 h-5'}`} />;
+};
 import DonationWidget from '@/components/ui/DonationWidget';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
@@ -680,7 +688,7 @@ const IEBCOfficeSplash = () => {
                         >
                             {loading ? (
                                 <>
-                                    <LoadingSpinner size="small" />
+                                    <SafeLoadingSpinner size="small" />
                                     <span>{t('splash.locating', 'Getting your location...')}</span>
                                 </>
                             ) : (

@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unknown-property */
 'use client';
 import React, { useState, useRef, useEffect, useCallback, Suspense } from "react";
-import { createWorker } from 'tesseract.js';
+import Tesseract from 'tesseract.js';
 import html2canvas from 'html2canvas';
 import Lanyard from '../components/niko-kadi/Lanyard';
 
@@ -240,14 +240,18 @@ function NikoKadiContent() {
         return () => window.removeEventListener("resize", fn);
     }, []);
 
-    // Initialize Tesseract Worker
+    // Initialize Tesseract Worker with CDN fallbacks to avoid bundling glitches
     useEffect(() => {
         const initWorker = async () => {
             try {
-                const worker = await createWorker('eng');
+                const worker = await Tesseract.createWorker('eng', 1, {
+                    workerPath: 'https://unpkg.com/tesseract.js@v5.0.0/dist/worker.min.js',
+                    corePath: 'https://unpkg.com/tesseract.js-core@v5.0.0/tesseract-core.wasm.js',
+                    logger: m => console.log(m),
+                });
                 workerRef.current = worker;
             } catch (e) {
-                console.error("Tesseract Worker Init Error:", e);
+                console.error("Tesseract Worker Init Error (CDN Fallback):", e);
             }
         };
         initWorker();

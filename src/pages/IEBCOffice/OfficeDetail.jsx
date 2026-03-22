@@ -35,6 +35,14 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
 
+// Safe wrapper for LoadingSpinner to prevent ReferenceError in minified production bundles
+const SafeLoadingSpinner = (props) => {
+    try {
+        if (typeof LoadingSpinner !== 'undefined') return <LoadingSpinner {...props} />;
+    } catch (e) { console.warn("LoadingSpinner resolution failed, using fallback"); }
+    return <div className={`animate-spin rounded-full border-2 border-ios-gray-300 border-t-ios-blue ${props.size === 'large' ? 'w-8 h-8' : 'w-5 h-5'}`} />;
+};
+
 // Approximate distance function for radius visualization
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371; // Radius of the earth in km
@@ -303,7 +311,7 @@ const OfficeDetail = () => {
         }
     };
 
-    if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><LoadingSpinner /></div>;
+    if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><SafeLoadingSpinner /></div>;
 
     if (error || !office) {
         return (
