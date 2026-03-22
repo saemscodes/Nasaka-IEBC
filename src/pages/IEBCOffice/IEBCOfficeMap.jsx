@@ -73,6 +73,25 @@ const IEBCOfficeMap = () => {
     closeListPanel
   } = useMapControls();
 
+  // Enhanced state management
+  const [activeLayers, setActiveLayers] = useState(['iebc-offices']);
+  const [isLayerPanelOpen, setIsLayerPanelOpen] = useState(false);
+  const [currentRoute, setCurrentRoute] = useState(null);
+  const [nearbyOffices, setNearbyOffices] = useState([]);
+  const [isSearchingNearby, setIsSearchingNearby] = useState(false);
+  const [lastTapLocation, setLastTapLocation] = useState(null);
+  const [routingError, setRoutingError] = useState(null);
+  const [bottomSheetState, setBottomSheetState] = useState('peek');
+  const [isPanelBackdropVisible, setIsPanelBackdropVisible] = useState(false);
+  const [baseMap, setBaseMap] = useState('standard');
+  const [searchResults, setSearchResults] = useState([]);
+  const [accuracyCircle, setAccuracyCircle] = useState(null);
+  const [routeBadgePosition, setRouteBadgePosition] = useState({ x: 20, y: 140 });
+  const [isDraggingRouteBadge, setIsDraggingRouteBadge] = useState(false);
+  const [urlQueryProcessed, setUrlQueryProcessed] = useState(false);
+  const [travelInsights, setTravelInsights] = useState({});
+  const [showOfflineDownloader, setShowOfflineDownloader] = useState(false);
+
   // Handle URL query parameters from browser search bar
   useEffect(() => {
     if (urlQueryParam && !urlQueryProcessed && !loading) {
@@ -92,25 +111,6 @@ const IEBCOfficeMap = () => {
       }
     }
   }, [urlQueryParam, urlQueryProcessed, loading, searchOffices, setSearchQuery, flyToLocation]);
-
-  // Enhanced state management
-  const [activeLayers, setActiveLayers] = useState(['iebc-offices']);
-  const [isLayerPanelOpen, setIsLayerPanelOpen] = useState(false);
-  const [currentRoute, setCurrentRoute] = useState(null);
-  const [nearbyOffices, setNearbyOffices] = useState([]);
-  const [isSearchingNearby, setIsSearchingNearby] = useState(false);
-  const [lastTapLocation, setLastTapLocation] = useState(null);
-  const [routingError, setRoutingError] = useState(null);
-  const [bottomSheetState, setBottomSheetState] = useState('peek');
-  const [isPanelBackdropVisible, setIsPanelBackdropVisible] = useState(false);
-  const [baseMap, setBaseMap] = useState('standard');
-  const [searchResults, setSearchResults] = useState([]);
-  const [accuracyCircle, setAccuracyCircle] = useState(null);
-  const [routeBadgePosition, setRouteBadgePosition] = useState({ x: 20, y: 140 });
-  const [isDraggingRouteBadge, setIsDraggingRouteBadge] = useState(false);
-  const [urlQueryProcessed, setUrlQueryProcessed] = useState(false);
-  const [travelInsights, setTravelInsights] = useState({});
-  const [showOfflineDownloader, setShowOfflineDownloader] = useState(false);
 
   const offlineDownloaderRef = useRef(null);
 
