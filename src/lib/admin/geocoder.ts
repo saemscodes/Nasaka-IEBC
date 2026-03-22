@@ -520,8 +520,7 @@ async function logAudit(
     autoApplied: boolean,
     resolutionMethod: string
 ): Promise<string | undefined> {
-    const { data, error } = await supabase
-        .from("geocode_audit")
+    const { data, error } = await (supabase.from("geocode_audit") as any)
         .insert({
             office_id: office.id,
             constituency: office.constituency_name,
@@ -556,8 +555,7 @@ async function logAudit(
 }
 
 async function applyToSupabase(officeId: number, lat: number, lng: number, confidence: number): Promise<boolean> {
-    const { error } = await supabase
-        .from("iebc_offices")
+    const { error } = await (supabase.from("iebc_offices") as any)
         .update({
             latitude: lat,
             longitude: lng,
@@ -581,7 +579,7 @@ async function enqueueHITL(
     issueType: string,
     auditId?: string
 ): Promise<void> {
-    const { error } = await supabase.from("geocode_hitl_queue").insert({
+    const { error } = await (supabase.from("geocode_hitl_queue") as any).insert({
         office_id: office.id,
         audit_id: auditId ?? null,
         issue_type: issueType,
@@ -712,8 +710,8 @@ export async function resolveHITL(
     const applied = await applyToSupabase(officeId, approvedLat, approvedLng, 1.0);
     if (!applied) return false;
 
-    const { error } = await supabase
-        .from("geocode_hitl_queue")
+    const { error } = await (supabase
+        .from("geocode_hitl_queue") as any)
         .update({
             status: "approved",
             resolved_by: adminEmail,
@@ -735,8 +733,8 @@ export async function dismissHITL(
     adminEmail: string,
     reason: string
 ): Promise<boolean> {
-    const { error } = await supabase
-        .from("geocode_hitl_queue")
+    const { error } = await (supabase
+        .from("geocode_hitl_queue") as any)
         .update({
             status: "dismissed",
             resolved_by: adminEmail,
