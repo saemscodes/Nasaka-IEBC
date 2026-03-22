@@ -268,7 +268,7 @@ export async function geocodeGeonames(office: IEBCOffice): Promise<GeocoderResul
     const query = buildSearchQuery(office);
 
     try {
-        const url = `http://api.geonames.org/searchJSON?q=${encodeURIComponent(query)}&country=KE&maxRows=1&username=${username}`;
+        const url = `https://api.geonames.org/searchJSON?q=${encodeURIComponent(query)}&country=KE&maxRows=1&username=${username}`;
         const response = await fetch(url);
         if (!response.ok) return null;
         const data = await response.json();

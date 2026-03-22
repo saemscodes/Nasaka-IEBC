@@ -97,7 +97,7 @@ const WardSearchInterface = () => {
       // Fetch counties
       const { data: countiesData, error: countiesError } = await supabase
         .from('counties')
-        .select('*')
+        .select('id, name, total_count')
         .order('name', { ascending: true });
 
       if (countiesError) throw countiesError;

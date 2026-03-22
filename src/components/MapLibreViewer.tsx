@@ -121,7 +121,7 @@ const MapLibreViewer = () => {
       // Fetch counties data
       const { data: counties, error: countiesError } = await supabase
         .from('counties')
-        .select('*')
+        .select('id, name, total_count, registration_target, governor, senator')
         .order('name');
 
       if (countiesError) throw countiesError;
@@ -129,7 +129,7 @@ const MapLibreViewer = () => {
       // Fetch constituencies data
       const { data: constituencies, error: constituenciesError } = await supabase
         .from('constituencies')
-        .select('*')
+        .select('id, name, county_id, registration_target, member_of_parliament')
         .order('name');
 
       if (constituenciesError) throw constituenciesError;
@@ -142,7 +142,7 @@ const MapLibreViewer = () => {
 
       if (wardsError) throw wardsError;
 
-      const totalVoters = counties?.reduce((sum, county) =>
+      const totalVoters = (counties as County[] | null)?.reduce((sum, county) =>
         sum + (county.total_count || 0), 0) || 0;
 
       setMapStats({

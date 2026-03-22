@@ -23,7 +23,7 @@ export async function layer_geonames(
 
     try {
         const res = await fetch(
-            `http://api.geonames.org/searchJSON?${params}`
+            `https://api.geonames.org/searchJSON?${params}`
         );
         if (!res.ok) throw new Error("GeoNames failed");
 

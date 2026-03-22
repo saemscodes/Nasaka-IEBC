@@ -32,7 +32,7 @@ const OpenStreetMapViewer: React.FC<OpenStreetMapViewerProps> = ({ locations = [
       // Fetch counties data
       const { data: counties, error: countiesError } = await supabase
         .from('counties')
-        .select('*')
+        .select('id, name, total_count')
         .order('name');
 
       if (countiesError) throw countiesError;
@@ -40,7 +40,7 @@ const OpenStreetMapViewer: React.FC<OpenStreetMapViewerProps> = ({ locations = [
       // Fetch constituencies data
       const { data: constituencies, error: constituenciesError } = await supabase
         .from('constituencies')
-        .select('*')
+        .select('id, name, registration_target')
         .order('name');
 
       if (constituenciesError) throw constituenciesError;

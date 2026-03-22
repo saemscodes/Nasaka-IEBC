@@ -26,13 +26,14 @@ import { getTrafficInfo } from '@/utils/kenyaFareCalculator';
 import { getTravelInsights } from '@/services/travelService';
 import L from 'leaflet';
 import '@maplibre/maplibre-gl-leaflet';
-import { SEOHead } from '@/components/SEO/SEOHead';
+import { SEOHead, slugify, deslugify } from '@/components/SEO/SEOHead';
+import { resolveLocation } from '@/lib/geocoding/pipeline';
 import { debounce } from '@/lib/searchUtils';
 
 const IEBCOfficeMap = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
-  const { query: urlQueryParam } = useParams();
+  const { query: urlQueryParam, countySlug, constituencySlug, wardSlug } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const stateUserLocation = state?.userLocation;
   const manualEntry = state?.manualEntry;
@@ -134,77 +135,78 @@ const IEBCOfficeMap = () => {
 
   // Handle URL query parameter or state selection on component mount
   useEffect(() => {
-    // 1. Check for office passed via navigation state (e.g. from Splash)
-    if (state?.selectedOffice && offices.length > 0 && mapInstanceRef.current) {
-      handleOfficeSelect(state.selectedOffice);
-      return;
-    }
-
-    // 2. Check for URL query parameter
-    const query = searchParams.get('q');
-    if (query && !urlQueryProcessed && offices.length > 0 && mapInstanceRef.current) {
+    // 2. Check for URL query parameter /map/:query (flat search)
+    const query = urlQueryParam || searchParams.get('q');
+    if (query && !urlQueryProcessed && offices.length > 0) {
       handleUrlQuerySearch(query);
     }
-  }, [searchParams, offices, urlQueryProcessed, state?.selectedOffice]);
+  }, [searchParams, offices, urlQueryProcessed, state?.selectedOffice, urlQueryParam]);
+
+  // Handle Hierarchical Slugs (e.g. /map/nairobi/westlands)
+  useEffect(() => {
+    if (offices.length > 0 && (countySlug || constituencySlug || wardSlug)) {
+      console.info('[Nasaka] Handling hierarchical slugs:', { countySlug, constituencySlug, wardSlug });
+
+      const matchedOffice = offices.find(o => {
+        const cMatch = !countySlug || slugify(o.county) === countySlug;
+        const consMatch = !constituencySlug || slugify(o.constituency_name) === constituencySlug;
+        const wMatch = !wardSlug || (o.ward_name && slugify(o.ward_name) === wardSlug);
+        return cMatch && consMatch && wMatch;
+      });
+
+      if (matchedOffice) {
+        handleOfficeSelect(matchedOffice);
+
+        // If we have coordinates in the URL (original search point), visualize it
+        const urlLat = searchParams.get('lat');
+        const urlLng = searchParams.get('lng');
+        const originalQ = searchParams.get('q');
+
+        if (urlLat && urlLng && mapInstanceRef.current) {
+          const lat = parseFloat(urlLat);
+          const lng = parseFloat(urlLng);
+          setRadiusCenter([lat, lng]);
+          setRadiusKm(5);
+          setIsRadiusAnimating(true);
+
+          // Trigger routing if user location available
+          if (userLocation?.latitude && userLocation?.longitude) {
+            // Logic to start routing will be handled by RoutingSystem if selectedOffice is set
+          }
+        }
+      }
+    }
+  }, [offices, countySlug, constituencySlug, wardSlug, searchParams, userLocation]);
 
   // Function to handle URL query parameter search
   const handleUrlQuerySearch = async (query) => {
     if (!query.trim()) return;
 
     try {
-      // First try to find in existing offices
-      const officeResults = searchOffices(query);
-      if (officeResults.length > 0) {
-        // Found office in database - select it
-        handleOfficeSelect(officeResults[0]);
-        setUrlQueryProcessed(true);
-        return;
-      }
+      console.info('[Nasaka] Resolving search query:', query);
 
-      // If not found in database, geocode using Nominatim
-      const encodedQuery = encodeURIComponent(query);
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodedQuery}&limit=1`
-      );
+      // 1. Precise geocoding via pipeline
+      const location = await resolveLocation(query);
+      if (!location) throw new Error('Could not resolve location');
 
-      if (!response.ok) throw new Error('Geocoding failed');
+      const { lat, lon } = location;
 
-      const data = await response.json();
+      // 2. Find nearest office to this result
+      const nearest = findNearestOffice(lat, lon, offices);
 
-      if (data.length > 0) {
-        const result = data[0];
-        const lat = parseFloat(result.lat);
-        const lon = parseFloat(result.lon);
+      if (nearest) {
+        // 3. Construct canonical hierarchical path for /map
+        const county = slugify(nearest.county);
+        const constituency = slugify(nearest.constituency_name);
+        const ward = nearest.ward_name ? slugify(nearest.ward_name) : 'centre';
 
-        // Fly to the location
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.flyTo([lat, lon], 15, { duration: 2 });
-
-          // Create a temporary marker for the search result
-          const marker = L.marker([lat, lon])
-            .addTo(mapInstanceRef.current)
-            .bindPopup(`
-              <div class="p-2">
-                <h3 class="font-semibold">${t('search.searchResult', 'Search Result')}</h3>
-                <p class="text-sm">${result.display_name}</p>
-                <p class="text-xs text-gray-500">${t('search.query', 'Query')}: "${query}"</p>
-              </div>
-            `)
-            .openPopup();
-
-          // Remove marker after 10 seconds
-          setTimeout(() => {
-            if (marker && mapInstanceRef.current) {
-              mapInstanceRef.current.removeLayer(marker);
-            }
-          }, 10000);
-        }
+        // 4. Redirect to canonical path immediately
+        navigate(`/map/${county}/${constituency}/${ward}?lat=${lat}&lng=${lon}&q=${encodeURIComponent(query)}`, { replace: true });
       }
 
       setUrlQueryProcessed(true);
     } catch (error) {
-      // Log removed for production
-
+      console.warn('[Nasaka] URL Search failed:', error);
       setUrlQueryProcessed(true);
     }
   };
@@ -324,7 +326,7 @@ const IEBCOfficeMap = () => {
       try {
         const { data: fullOffice, error } = await supabase
           .from('iebc_offices')
-          .select('*')
+          .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, contact_phone, contact_email, opening_hours, created_at, updated_at')
           .eq('id', office.id)
           .single();
 

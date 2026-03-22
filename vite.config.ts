@@ -169,14 +169,14 @@ export default defineConfig(({ mode }) => ({
               }
             }
           },
-          // ── Map Tile Caching (FIFO via maxEntries) ──
+          // ── Map Tile Caching (Lowered limits to avoid QuotaExceededError) ──
           {
             urlPattern: /^https:\/\/.*\.?tile\.openstreetmap\.org\/.*/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'osm-tiles-cache',
               expiration: {
-                maxEntries: 1000,
+                maxEntries: 200,
                 maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
               },
               cacheableResponse: {
@@ -190,7 +190,7 @@ export default defineConfig(({ mode }) => ({
             options: {
               cacheName: 'satellite-tiles-cache',
               expiration: {
-                maxEntries: 500,
+                maxEntries: 100,
                 maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
               },
               cacheableResponse: {

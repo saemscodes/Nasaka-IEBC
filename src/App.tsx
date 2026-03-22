@@ -493,6 +493,9 @@ const AppContent = () => {
         <Route path="/" element={<IEBCOfficeSplash />} />
         <Route path="/map" element={<IEBCOfficeMap />} />
         <Route path="/map/:query" element={<IEBCOfficeMap />} />
+        <Route path="/map/:countySlug" element={<IEBCOfficeMap />} />
+        <Route path="/map/:countySlug/:constituencySlug" element={<IEBCOfficeMap />} />
+        <Route path="/map/:countySlug/:constituencySlug/:wardSlug" element={<IEBCOfficeMap />} />
 
         {/* Legacy Redirects to root counterparts */}
         <Route path="/iebc-office" element={<Navigate to="/" replace />} />
