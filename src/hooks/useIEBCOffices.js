@@ -154,9 +154,9 @@ export const useIEBCOffices = (options = {}) => {
 
     const { data, error: supabaseError } = await client
       .from('iebc_offices')
-      .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, contact_phone, contact_email, opening_hours, created_at, updated_at')
-      .not('latitude', 'is', null)
-      .not('longitude', 'is', null)
+      .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
+      .neq('latitude', null)
+      .neq('longitude', null)
       .eq('verified', true)
       .order('county')
       .order('constituency_name');
