@@ -4,7 +4,7 @@
 
 declare module 'virtual:pwa-register/react' {
   import type { Dispatch, SetStateAction } from 'react';
-  
+
   export interface RegisterSWOptions {
     immediate?: boolean;
     onNeedRefresh?: () => void;
@@ -30,4 +30,21 @@ declare module 'virtual:pwa-register' {
   }
 
   export function registerSW(options?: RegisterSWOptions): (reloadPage?: boolean) => Promise<void>;
+}
+
+declare module '*.glb';
+declare module '*.png';
+
+declare module 'meshline' {
+  export const MeshLineGeometry: any;
+  export const MeshLineMaterial: any;
+}
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      meshLineGeometry: any;
+      meshLineMaterial: any;
+    }
+  }
 }
