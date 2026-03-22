@@ -23,14 +23,19 @@ export const PWAInstallBanner: React.FC = () => {
     const isIOSDevice = /iphone|ipad|ipod/.test(userAgent);
     setIsIOS(isIOSDevice);
 
+    // Check for dismissal cooldown (e.g., 14 days)
+    const lastDismissed = localStorage.getItem('pwa-banner-dismissed-at');
+    const isCooldownActive = lastDismissed &&
+      (Date.now() - parseInt(lastDismissed)) < (14 * 24 * 60 * 60 * 1000);
+
     // Handle beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
 
-      // Show banner after 5 seconds on page
+      // Show banner after 5 seconds on page if not in cooldown
       setTimeout(() => {
-        if (!isStandaloneMode) {
+        if (!isStandaloneMode && !isCooldownActive) {
           setIsVisible(true);
         }
       }, 5000);
@@ -44,12 +49,9 @@ export const PWAInstallBanner: React.FC = () => {
     // Listen for install prompt
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // For iOS, show custom instructions
-    if (isIOSDevice && !isStandaloneMode) {
-      const hasSeenBanner = localStorage.getItem('pwa-ios-banner-seen');
-      if (!hasSeenBanner) {
-        setTimeout(() => setIsVisible(true), 3000);
-      }
+    // For iOS, show custom instructions if not in cooldown
+    if (isIOSDevice && !isStandaloneMode && !isCooldownActive) {
+      setTimeout(() => setIsVisible(true), 3000);
     }
 
     return () => {
@@ -65,6 +67,9 @@ export const PWAInstallBanner: React.FC = () => {
       if (outcome === 'accepted') {
         console.log('User accepted the install prompt');
         localStorage.setItem('pwa-install-accepted', 'true');
+      } else {
+        // If they dismiss the system prompt, still put them on cooldown
+        localStorage.setItem('pwa-banner-dismissed-at', Date.now().toString());
       }
 
       setDeferredPrompt(null);
@@ -73,7 +78,7 @@ export const PWAInstallBanner: React.FC = () => {
   };
 
   const handleIOSInstructions = () => {
-    localStorage.setItem('pwa-ios-banner-seen', 'true');
+    localStorage.setItem('pwa-banner-dismissed-at', Date.now().toString());
     setIsVisible(false);
     // You could open a modal with iOS-specific instructions here
     alert('To install this app:\n1. Tap the Share button\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add" in the top right');
@@ -81,9 +86,7 @@ export const PWAInstallBanner: React.FC = () => {
 
   const handleDismiss = () => {
     setIsVisible(false);
-    if (isIOS) {
-      localStorage.setItem('pwa-ios-banner-seen', 'true');
-    }
+    localStorage.setItem('pwa-banner-dismissed-at', Date.now().toString());
   };
 
   if (!isVisible || isStandalone) return null;
