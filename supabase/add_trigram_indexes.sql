@@ -1,4 +1,4 @@
--- PHASE 2: Performance Optimization for Nasaka IEBC
+`-- PHASE 2: Performance Optimization for Nasaka IEBC
 -- Enables fuzzy search indexing for Counties, Constituencies, and Wards
 -- Run this in the Supabase SQL Editor
 
@@ -20,3 +20,4 @@ CREATE INDEX IF NOT EXISTS idx_diaspora_city_trgm ON diaspora_registration_centr
 
 -- 4. Verification queries (optional)
 -- EXPLAIN ANALYZE SELECT * FROM iebc_offices WHERE constituency_name ILIKE '%roysambu%';
+`
