@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unknown-property */
 'use client';
-import { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, Suspense } from "react";
 import { createWorker } from 'tesseract.js';
 import html2canvas from 'html2canvas';
 import Lanyard from '../components/niko-kadi/Lanyard';
@@ -86,7 +86,7 @@ function CardFace({ voter, vis, onToggle, faceRef }: { voter: VoterDataRecord; v
     const has = FIELDS.some(f => voter[f.key]);
     const name = [
         vis.firstName && voter.firstName ? voter.firstName : "",
-        vis.surname && voter.surname ? voter.surname[0].toUpperCase() + "." : "",
+        vis.surname && voter.surname && voter.surname.length > 0 ? voter.surname[0].toUpperCase() + "." : "",
     ].filter(Boolean).join(" ") || null;
 
     const con = vis.constituency && voter.constituency ? voter.constituency : null;
@@ -125,7 +125,7 @@ function CardFace({ voter, vis, onToggle, faceRef }: { voter: VoterDataRecord; v
             {/* Header */}
             <div style={{
                 position: "absolute", top: 11, left: 13, right: 13, zIndex: 1,
-                display: "flex", justifyBetween: "space-between", alignItems: "center",
+                display: "flex", justifyContent: "space-between", alignItems: "center",
             } as any}>
                 <span style={{ fontSize: 7.5, fontWeight: 700, letterSpacing: ".26em", color: "rgba(255,255,255,.36)" }}>IEBC · KENYA</span>
                 <span style={{ fontSize: 7.5, color: "rgba(255,255,255,.2)", letterSpacing: ".05em" }}>{new Date().getFullYear()}</span>
@@ -200,9 +200,28 @@ function CardFace({ voter, vis, onToggle, faceRef }: { voter: VoterDataRecord; v
     );
 }
 
+// ─── Error Boundary ──────────────────────────────────────────────────────────
+class NikoKadiErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: any }> {
+    constructor(props: any) { super(props); this.state = { hasError: false, error: null }; }
+    static getDerivedStateFromError(error: any) { return { hasError: true, error }; }
+    componentDidCatch(error: any, info: any) { console.error("NikoKadi Error:", error, info); }
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div style={{ padding: 40, background: "#060a07", color: "#fff", height: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+                    <h2 style={{ color: "#ef4444", marginBottom: 10 }}>Something went wrong</h2>
+                    <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, maxWidth: 400 }}>{this.state.error?.message || "Unknown Error"}</p>
+                    <button onClick={() => window.location.reload()} style={{ marginTop: 20, padding: "10px 20px", background: "#1c6638", border: "none", color: "#fff", borderRadius: 8, cursor: "pointer" }}>Reload Application</button>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
+
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
-export default function NikoKadi() {
+function NikoKadiContent() {
     const [voter, setVoter] = useState<VoterDataRecord>(EMPTY);
     const [vis, setVis] = useState<Record<string, boolean>>(DEF_VIS);
     const [mode, setMode] = useState<"upload" | "manual">("upload");
@@ -224,8 +243,12 @@ export default function NikoKadi() {
     // Initialize Tesseract Worker
     useEffect(() => {
         const initWorker = async () => {
-            const worker = await createWorker('eng');
-            workerRef.current = worker;
+            try {
+                const worker = await createWorker('eng');
+                workerRef.current = worker;
+            } catch (e) {
+                console.error("Tesseract Worker Init Error:", e);
+            }
         };
         initWorker();
         return () => {
@@ -439,7 +462,17 @@ export default function NikoKadi() {
 
             {/* Right Canvas / 3D Scene */}
             <div style={{ flex: 1, position: "relative", background: "#050908" }}>
-                <Lanyard />
+                <Suspense fallback={
+                    <div style={{
+                        position: "absolute", inset: 0, display: "flex",
+                        alignItems: "center", justifyContent: "center",
+                        color: "rgba(255,255,255,0.1)", fontSize: 10, letterSpacing: ".3em"
+                    }}>
+                        INITIALIZING 3D ENGINE...
+                    </div>
+                }>
+                    <Lanyard />
+                </Suspense>
                 {/* Overlay CardFace over the 3D Canvas */}
                 <div style={{
                     position: "absolute",
@@ -465,5 +498,13 @@ export default function NikoKadi() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function NikoKadi() {
+    return (
+        <NikoKadiErrorBoundary>
+            <NikoKadiContent />
+        </NikoKadiErrorBoundary>
     );
 }
