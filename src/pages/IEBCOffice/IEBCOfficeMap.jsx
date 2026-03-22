@@ -133,6 +133,34 @@ const IEBCOfficeMap = () => {
   // Map mode: domestic (Kenya IEBC offices) vs diaspora (global missions)
   const [mapMode, setMapMode] = useState('domestic');
 
+  const stateOfficeProcessed = useRef(false);
+
+  // 1. Handle explicit selection passed via React Router state (Priority 1) ✊🏽🇰🇪
+  useEffect(() => {
+    if (state?.selectedOffice && !stateOfficeProcessed.current && offices.length > 0) {
+      console.info('[Nasaka] Handling context-preserved office selection from state:', state.selectedOffice.constituency_name);
+      handleOfficeSelect(state.selectedOffice);
+      stateOfficeProcessed.current = true;
+    }
+  }, [state, offices, handleOfficeSelect]);
+
+  // Utility to navigate to office detail page ✊🏽🇰🇪
+  const navigateToArea = useCallback((office) => {
+    if (!office) return;
+    const countySlug = slugify(office.county || 'kenya');
+    let areaSlug = slugify(office.constituency_name || office.city || '');
+    const wardSlug = office.ward_name ? slugify(office.ward_name) : null;
+
+    if (wardSlug && areaSlug) {
+      navigate(`/${countySlug}/${areaSlug}/${wardSlug}`);
+    } else if (areaSlug) {
+      if (areaSlug === countySlug) areaSlug = `${areaSlug}-town`;
+      navigate(`/${countySlug}/${areaSlug}`);
+    } else {
+      navigate(`/${countySlug}`);
+    }
+  }, [navigate, slugify]);
+
   // Handle URL query parameter or state selection on component mount
   useEffect(() => {
     // 2. Check for URL query parameter /map/:query (flat search)
@@ -477,11 +505,12 @@ const IEBCOfficeMap = () => {
 
   // Set nearest office as selected - ONLY IF WE HAVE LOCATION ACCESS
   useEffect(() => {
-    if (nearestOffice && !selectedOffice && !manualEntry && hasLocationAccess) {
+    // Priority: If state.selectedOffice exists, let the state-handler manage it and skip nearest-snapping ✊🏽🇰🇪
+    if (nearestOffice && !selectedOffice && !manualEntry && hasLocationAccess && !state?.selectedOffice) {
       setSelectedOffice(nearestOffice);
       setBottomSheetState('peek');
     }
-  }, [nearestOffice, selectedOffice, manualEntry, hasLocationAccess, setSelectedOffice]);
+  }, [nearestOffice, selectedOffice, manualEntry, hasLocationAccess, setSelectedOffice, state?.selectedOffice]);
 
   // Get offices for list panel
   const listPanelOffices = useMemo(() => {
@@ -1051,6 +1080,51 @@ const IEBCOfficeMap = () => {
             )}
             {/* Drag handle indicator */}
             <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-1 bg-gray-400 rounded-full opacity-60 transition-opacity duration-200 hover:opacity-80"></div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Floating Shortcut Card - Pops in right under the Route Badge ✊🏽🇰🇪 */}
+      <AnimatePresence>
+        {selectedOffice && currentRoute && (
+          <motion.div
+            initial={{ opacity: 0, x: -20, y: routeBadgePosition.y + 110 }}
+            animate={{
+              opacity: 1,
+              x: routeBadgePosition.x,
+              y: routeBadgePosition.y + 105,
+              scale: isDraggingRouteBadge ? 0.95 : 1
+            }}
+            exit={{ opacity: 0, scale: 0.8, x: -20 }}
+            transition={{
+              type: "spring",
+              stiffness: 400,
+              damping: 30,
+              delay: 0.2 // Subtly pop in after the route badge
+            }}
+            className="fixed z-[1001] cursor-pointer active:scale-95 transition-transform"
+            onClick={() => navigateToArea(selectedOffice)}
+            title={`View more about ${selectedOffice.constituency_name || selectedOffice.county}`}
+          >
+            <div className={`px-4 py-3 rounded-2xl shadow-xl backdrop-blur-xl flex items-center space-x-3 border ${isDark
+                ? 'bg-ios-blue-600/90 border-white/20 text-white'
+                : 'bg-ios-blue/90 border-ios-blue/30 text-white'
+              }`}>
+              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center shrink-0 shadow-inner border border-white/10">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex flex-col min-w-0 pr-1">
+                <span className="text-[10px] font-black uppercase tracking-widest opacity-80 leading-none mb-0.5">Explore Area</span>
+                <span className="text-sm font-black truncate max-w-[140px] leading-tight">
+                  {selectedOffice.constituency_name || selectedOffice.county || 'This Area'}
+                </span>
+              </div>
+              <div className="bg-white/10 rounded-lg p-1">
+                <ChevronRight className="w-4 h-4 text-white" strokeWidth={3} />
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

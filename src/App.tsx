@@ -16,7 +16,9 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
 // import VerifySignature from "./pages/VerifySignature";
 // import VoterRegistrationPage from "@/pages/VoterRegistration";
-import { IEBCOfficeSplash, IEBCOfficeMap } from './pages/IEBCOffice';
+// import { IEBCOfficeSplash, IEBCOfficeMap } from './pages/IEBCOffice';
+const IEBCOfficeSplash = React.lazy(() => import('./pages/IEBCOffice/IEBCOfficeSplash'));
+const IEBCOfficeMap = React.lazy(() => import('./pages/IEBCOffice/IEBCOfficeMap'));
 import Privacy from './pages/IEBCOffice/Privacy';
 import Terms from './pages/IEBCOffice/Terms';
 import { HelmetProvider } from 'react-helmet-async';
@@ -490,12 +492,12 @@ const AppContent = () => {
         <Route path="/dashboard" element={<Navigate to="/admin/" replace />} />
 
         {/* ✅ ACTIVE IEBC OFFICE FINDER ROUTES */}
-        <Route path="/" element={<IEBCOfficeSplash />} />
-        <Route path="/map" element={<IEBCOfficeMap />} />
-        <Route path="/map/:query" element={<IEBCOfficeMap />} />
-        <Route path="/map/:countySlug" element={<IEBCOfficeMap />} />
-        <Route path="/map/:countySlug/:constituencySlug" element={<IEBCOfficeMap />} />
-        <Route path="/map/:countySlug/:constituencySlug/:wardSlug" element={<IEBCOfficeMap />} />
+        <Route path="/" element={<React.Suspense fallback={<LoadingState />}><IEBCOfficeSplash /></React.Suspense>} />
+        <Route path="/map" element={<React.Suspense fallback={<LoadingState />}><IEBCOfficeMap /></React.Suspense>} />
+        <Route path="/map/:query" element={<React.Suspense fallback={<LoadingState />}><IEBCOfficeMap /></React.Suspense>} />
+        <Route path="/map/:countySlug" element={<React.Suspense fallback={<LoadingState />}><IEBCOfficeMap /></React.Suspense>} />
+        <Route path="/map/:countySlug/:constituencySlug" element={<React.Suspense fallback={<LoadingState />}><IEBCOfficeMap /></React.Suspense>} />
+        <Route path="/map/:countySlug/:constituencySlug/:wardSlug" element={<React.Suspense fallback={<LoadingState />}><IEBCOfficeMap /></React.Suspense>} />
 
         {/* Legacy Redirects to root counterparts */}
         <Route path="/iebc-office" element={<Navigate to="/" replace />} />

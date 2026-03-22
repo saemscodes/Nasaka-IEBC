@@ -1019,7 +1019,7 @@ const OfficeBottomSheet = ({
                       {t('bottomSheet.navigationOptions', 'Get There')}
                     </h4>
 
-                    {/* ✅ View Full Details Link (Full Ham) */}
+                    {/* ✅ View Full Details Link (Full Ham) ✊🏽🇰🇪 */}
                     <button
                       onClick={() => {
                         const countySlug = slugify(office.county || 'kenya');
@@ -1035,12 +1035,15 @@ const OfficeBottomSheet = ({
                           navigate(`/${countySlug}`);
                         }
                       }}
-                      className={`w-full mb-4 font-semibold py-4 px-6 rounded-2xl flex items-center justify-center space-x-2 transition-all active:scale-95 duration-300 shadow-lg ${isDark
-                        ? 'bg-ios-blue-600 text-white shadow-ios-blue/30'
-                        : 'bg-ios-blue text-white shadow-ios-blue/20'
+                      className={`w-full mb-4 font-black py-4.5 px-6 rounded-2xl flex items-center justify-center space-x-3 transition-all active:scale-95 duration-400 shadow-2xl overflow-hidden group relative ${isDark
+                        ? 'bg-ios-blue text-white shadow-ios-blue/40 border border-white/20'
+                        : 'bg-ios-blue text-white shadow-ios-blue/30 border border-ios-blue/20'
                         }`}
                     >
-                      <span className="text-center">
+                      {/* Subtle gloss effect for premium feel */}
+                      <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                      <span className="text-center text-sm md:text-base tracking-tight z-10">
                         {(() => {
                           const { county, constituency_name, ward_name, type, mission_name, country } = office;
                           let area = '';
@@ -1048,28 +1051,26 @@ const OfficeBottomSheet = ({
                           if (type === 'diaspora') {
                             area = mission_name && country ? `${mission_name}, ${country}` : (mission_name || country || office.city);
                           } else if (constituency_name && county) {
-                            area = `${constituency_name}, ${county}`; // i
+                            area = `${constituency_name}, ${county}`;
                           } else if (county) {
-                            area = county; // ii
+                            area = county;
                           } else if (ward_name && constituency_name) {
-                            area = `${ward_name}, ${constituency_name}`; // iii
+                            area = `${ward_name}, ${constituency_name}`;
                           } else if (ward_name && county) {
-                            area = `${ward_name}, ${county}`; // iv
+                            area = `${ward_name}, ${county}`;
                           } else if (constituency_name) {
-                            area = constituency_name; // v
-                          } else if (ward_name && constituency_name && county) {
-                            area = `${ward_name}, ${constituency_name}, ${county}`; // vi
+                            area = constituency_name;
                           } else if (ward_name) {
-                            area = ward_name; // vii
+                            area = ward_name;
                           } else {
-                            area = office.city || office.country || t('common.thisArea', 'this area');
+                            area = office.city || office.country || t('common.thisArea', 'this Area');
                           }
 
-                          return t('bottomSheet.moreAboutArea', { area });
+                          return t('bottomSheet.moreAboutArea', { area: area.toUpperCase() }) || `MORE ABOUT ${area.toUpperCase()}`;
                         })()}
                       </span>
-                      <svg className="w-5 h-5 ml-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      <svg className="w-5 h-5 shrink-0 transform group-hover:translate-x-1 transition-transform duration-300 z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                       </svg>
                     </button>
 
