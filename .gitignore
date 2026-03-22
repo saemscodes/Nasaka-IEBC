@@ -54,3 +54,7 @@ firebase-config.json
 # Temporary files
 *.tmp
 *.temp
+
+# Local context and network reports (contains secrets)
+context/
+*.har
