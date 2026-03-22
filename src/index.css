@@ -6,9 +6,9 @@
 /* Import OpenLayers CSS for MapTiler */
 @import 'ol/ol.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 /* ===== NASAKA TYPOGRAPHY SYSTEM ===== */
 :root {

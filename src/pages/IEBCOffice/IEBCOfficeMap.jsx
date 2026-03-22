@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useCallback, useState, useRef } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -32,6 +32,7 @@ import { debounce } from '@/lib/searchUtils';
 const IEBCOfficeMap = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
+  const { query: urlQueryParam } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const stateUserLocation = state?.userLocation;
   const manualEntry = state?.manualEntry;
@@ -71,6 +72,26 @@ const IEBCOfficeMap = () => {
     openListPanel,
     closeListPanel
   } = useMapControls();
+
+  // Handle URL query parameters from browser search bar
+  useEffect(() => {
+    if (urlQueryParam && !urlQueryProcessed && !loading) {
+      console.info('[Nasaka] Processing browser URL search query:', urlQueryParam);
+      setSearchQuery(urlQueryParam);
+      setUrlQueryProcessed(true);
+
+      // Auto-trigger search optimization
+      const results = searchOffices(urlQueryParam);
+      if (results && results.length > 0) {
+        setSearchResults(results);
+        // If exact match (e.g. county name), zoom to first result
+        const first = results[0];
+        if (first.latitude && first.longitude) {
+          flyToLocation(first.latitude, first.longitude, 12);
+        }
+      }
+    }
+  }, [urlQueryParam, urlQueryProcessed, loading, searchOffices, setSearchQuery, flyToLocation]);
 
   // Enhanced state management
   const [activeLayers, setActiveLayers] = useState(['iebc-offices']);
@@ -217,7 +238,7 @@ const IEBCOfficeMap = () => {
     // Dark view (Black)
     // @ts-ignore
     tileLayersRef.current.dark = L.maplibreGL({
-      style: 'https://tiles.openfreemap.org/styles/dark',
+      style: 'https://tiles.openfreemap.org/styles/dark-matter',
       attribution: '&copy; <a href="https://openfreemap.org/">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     });
 

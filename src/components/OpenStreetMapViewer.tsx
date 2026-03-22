@@ -17,7 +17,7 @@ const OpenStreetMapViewer: React.FC<OpenStreetMapViewerProps> = ({ locations = [
     totalConstituencies: 0,
     totalVoters: 0
   });
-  
+
   const [layers, setLayers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -28,7 +28,7 @@ const OpenStreetMapViewer: React.FC<OpenStreetMapViewerProps> = ({ locations = [
   const fetchMapData = async () => {
     try {
       setIsLoading(true);
-      
+
       // Fetch counties data
       const { data: counties, error: countiesError } = await supabase
         .from('counties')
@@ -48,16 +48,17 @@ const OpenStreetMapViewer: React.FC<OpenStreetMapViewerProps> = ({ locations = [
       // Fetch wards data
       const { data: wards, error: wardsError } = await supabase
         .from('wards')
-        .select('*')
+        .select('id,ward_name,constituency,county')
         .order('ward_name');
 
       if (wardsError) throw wardsError;
 
-      const totalVoters = counties?.reduce((sum, county) => 
+      const countiesData = (counties as any[]) || [];
+      const totalVoters = countiesData.reduce((sum, county) =>
         sum + (county.total_count || 0), 0) || 0;
 
       setMapStats({
-        totalCounties: counties?.length || 0,
+        totalCounties: countiesData.length,
         totalConstituencies: constituencies?.length || 0,
         totalVoters
       });
@@ -99,8 +100,8 @@ const OpenStreetMapViewer: React.FC<OpenStreetMapViewerProps> = ({ locations = [
   };
 
   const toggleLayerVisibility = (layerId: string) => {
-    setLayers(prev => prev.map(layer => 
-      layer.id === layerId 
+    setLayers(prev => prev.map(layer =>
+      layer.id === layerId
         ? { ...layer, visible: !layer.visible }
         : layer
     ));
@@ -114,7 +115,7 @@ const OpenStreetMapViewer: React.FC<OpenStreetMapViewerProps> = ({ locations = [
     reader.onload = (e) => {
       try {
         const content = e.target?.result as string;
-        
+
         if (file.name.endsWith('.json')) {
           const jsonData = JSON.parse(content);
           const newLayer = {
@@ -199,7 +200,7 @@ const OpenStreetMapViewer: React.FC<OpenStreetMapViewerProps> = ({ locations = [
                   {layers.map(layer => (
                     <div key={layer.id} className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <div 
+                        <div
                           className="w-3 h-3 rounded-full border-2 border-white"
                           style={{ backgroundColor: layer.color }}
                         ></div>

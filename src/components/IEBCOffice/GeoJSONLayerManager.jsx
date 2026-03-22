@@ -3,6 +3,7 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { GeoJSON, useMap, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
+import { buildDiasporaMarkerIcon, buildDiasporaPopup } from '@/lib/diaspora-markers';
 import { supabase } from '@/integrations/supabase/client';
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -168,46 +169,7 @@ const GeoJSONLayerManager = ({
   };
 
   const createDiasporaIcon = (properties, isSelected = false) => {
-    const state = properties.designation_state || 'embassy_only';
-    const config = DIASPORA_COLOURS[state] || DIASPORA_COLOURS.embassy_only;
-
-    // Nasaka Logo SVG Path (Approx flattened/optimized for marker)
-    const nasakaPath = "M513.5 922.3 C457.6 917.4 404.3 896.3 358 860.7 C346.3 851.7 319.6 825.6 310.3 814.7 C281.3 778.7 260.3 734.4 251 689.7 C243.8 654.6 243.1 615.6 249.1 580.8 C259.5 520.4 292 454.7 344 388.6 C354.3 375.4 539.1 144.5 539.9 144.6 C540.6 144.6 711.8 349.7 725.3 366.5 C781.3 436.6 815.2 499.7 827.9 557 C832.9 579.7 833.5 585.8 833.5 615 C833.5 644.4 832.8 652 828.3 674.5 C802.9 801.2 696.5 897.3 568.2 909.5 C558.4 910.4 522.9 910.6 513.5 909.8";
-
-    let innerIcon = '';
-    if (state === 'embassy_only') {
-      innerIcon = '<path d="M12 2L2 7v15h20V7L12 2zm0 2.8L19.2 8v11.2H4.8V8L12 4.8zM7.2 16h2.4v2.4H7.2V16zm4.8 0h2.4v2.4h-2.4V16zm4.8 0h2.4v2.4h-2.4V16zM7.2 12h2.4v2.4H7.2V12zm4.8 0h2.4v2.4h-2.4V12zm4.8 0h2.4v2.4h-2.4V12zM7.2 8h2.4v2.4H7.2V8zm4.8 0h2.4v2.4h-2.4V8zm4.8 0h2.4v2.4h-2.4V8z"/>';
-    } else if (state === 'embassy_probable') {
-      innerIcon = '<circle cx="12" cy="12" r="6"/>';
-    } else {
-      innerIcon = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />';
-    }
-
-    return L.divIcon({
-      html: `
-        <div class="relative diaspora-marker ${isSelected ? 'selected' : ''}">
-          <svg viewBox="0 0 1080 1080" class="w-10 h-10 drop-shadow-xl overflow-visible" style="filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3))">
-            <path d="${nasakaPath}" fill="${config.fill}" fill-opacity="${config.opacity}" stroke="white" stroke-width="20" />
-            <circle cx="540" cy="620" r="180" fill="white" />
-            <g transform="translate(420, 500) scale(10)">
-              <svg viewBox="0 0 24 24" width="24" height="24">
-                <g fill="${config.fill}" stroke="${state === 'iebc_confirmed' ? 'white' : 'none'}">
-                  ${innerIcon}
-                </g>
-              </svg>
-            </g>
-          </svg>
-          <div class="absolute -top-1 -right-6 px-1.5 py-0.5 rounded-full text-[8px] font-bold shadow-sm whitespace-nowrap" 
-               style="background: ${config.badge}; color: ${config.badgeText}; border: 1px solid ${config.fill}40">
-            ${config.label}
-          </div>
-          ${isSelected ? '<div class="absolute inset-0 rounded-full scale-150 bg-primary animate-ping opacity-20 -z-10"></div>' : ''}
-        </div>
-      `,
-      className: 'diaspora-marker-container',
-      iconSize: [40, 40],
-      iconAnchor: [20, 36]
-    });
+    return buildDiasporaMarkerIcon(properties.designation_state || 'embassy_only');
   };
 
   const validateGeoJSON = (geojson) => {
@@ -439,7 +401,7 @@ const GeoJSONLayerManager = ({
         try {
           let office;
 
-          if (feature.properties.id) {
+          if (feature.properties.id && feature.properties.type !== 'diaspora') {
             const { data, error } = await supabase
               .from('iebc_offices')
               .select('*')
@@ -447,6 +409,11 @@ const GeoJSONLayerManager = ({
               .single();
 
             if (!error) office = data;
+          }
+
+          if (!office && feature.properties.type === 'diaspora') {
+            // Use properties directly for Diaspora
+            office = { ...feature.properties };
           }
 
           if (!office && feature.geometry && feature.geometry.coordinates) {
@@ -596,6 +563,9 @@ const GeoJSONLayerManager = ({
   }, [selectedOffice, map, isModalMap]);
 
   const createPopupContent = (properties, geometryCoords = null) => {
+    if (properties.type === 'diaspora') {
+      return buildDiasporaPopup(properties);
+    }
     const lat = properties.latitude || (geometryCoords ? geometryCoords[1] : null);
     const lng = properties.longitude || (geometryCoords ? geometryCoords[0] : null);
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     MapPin,
@@ -29,10 +29,22 @@ import {
     slugify,
     deslugify
 } from '@/components/SEO/SEOHead';
-import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import RadiusCircle from '@/components/map/RadiusCircle';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+
+// Approximate distance function for radius visualization
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+};
 
 const OfficeDetail = () => {
     const { county: rawCounty, constituency: rawConstituency, ward: rawWard } = useParams();
@@ -179,7 +191,7 @@ const OfficeDetail = () => {
                             .from('iebc_offices')
                             .select('*')
                             .eq('ward_name', w.ward_name)
-                            .ilike('constituency_name', w.constituency)
+                            .ilike('constituency', w.constituency)
                             .limit(1)
                             .maybeSingle();
 
@@ -231,7 +243,7 @@ const OfficeDetail = () => {
         } finally {
             setLoading(false);
         }
-    }, [countySlug, areaSlug, navigate]);
+    }, [countySlug, constituencySlug, navigate]);
 
     useEffect(() => {
         if (countySlug) {
@@ -459,22 +471,29 @@ const OfficeDetail = () => {
                                 </Marker>
 
                                 {overrideLat && overrideLng && (
-                                    <Marker
-                                        position={[overrideLat, overrideLng]}
-                                        icon={L.divIcon({
-                                            html: `<div style="width:24px;height:24px;background:#059669;border-radius:50%;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center">
-                                                <div style="width:8px;height:8px;background:white;border-radius:50%"></div>
-                                            </div>`,
-                                            className: '',
-                                            iconSize: [24, 24],
-                                            iconAnchor: [12, 12]
-                                        })}
-                                    >
-                                        <Popup>
-                                            <div className="text-sm font-bold">Search Location: {originalSearch || 'Resolved Landmark'}</div>
-                                            <div className="text-xs">Nearest IEBC Office is {officeName}</div>
-                                        </Popup>
-                                    </Marker>
+                                    <>
+                                        <RadiusCircle
+                                            center={[overrideLat, overrideLng]}
+                                            radiusKm={calculateDistance(overrideLat, overrideLng, office.latitude, office.longitude)}
+                                            animating={true}
+                                        />
+                                        <Marker
+                                            position={[overrideLat, overrideLng]}
+                                            icon={L.divIcon({
+                                                html: `<div style="width:24px;height:24px;background:#059669;border-radius:50%;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center">
+                                                        <div style="width:8px;height:8px;background:white;border-radius:50%"></div>
+                                                    </div>`,
+                                                className: '',
+                                                iconSize: [24, 24],
+                                                iconAnchor: [12, 12]
+                                            })}
+                                        >
+                                            <Popup>
+                                                <div className="text-sm font-bold">Search Location: {originalSearch || 'Resolved Landmark'}</div>
+                                                <div className="text-xs">Nearest IEBC Office is {officeName}</div>
+                                            </Popup>
+                                        </Marker>
+                                    </>
                                 )}
                             </MapContainer>
                         </div>

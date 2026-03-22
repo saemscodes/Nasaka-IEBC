@@ -49,7 +49,7 @@ const WardSearchInterface = () => {
   const [selectedConstituency, setSelectedConstituency] = useState('');
   const [signatureResult, setSignatureResult] = useState<SignatureRequirement | null>(null);
   const [loading, setLoading] = useState(false);
-  
+
   const [calcCounty, setCalcCounty] = useState("");
   const [calcConstituency, setCalcConstituency] = useState("");
   const [calcWard, setCalcWard] = useState("");
@@ -68,7 +68,7 @@ const WardSearchInterface = () => {
       // Fetch wards
       const { data: wardsData, error: wardsError } = await supabase
         .from('wards')
-        .select('*')
+        .select('id,ward_name,constituency,county')
         .order('county', { ascending: true });
 
       if (wardsError) throw wardsError;
@@ -93,7 +93,7 @@ const WardSearchInterface = () => {
         county_name: c.counties?.name || '',
         registration_target: c.registration_target || 0
       })));
-      
+
       // Fetch counties
       const { data: countiesData, error: countiesError } = await supabase
         .from('counties')
@@ -139,10 +139,10 @@ const WardSearchInterface = () => {
 
   const searchWards = async (query: string) => {
     if (!query || query.length < 2) return [];
-    
+
     const { data, error } = await supabase
       .from('wards')
-      .select('*')
+      .select('id,ward_name,constituency,county')
       .or(`ward_name.ilike.%${query}%,constituency.ilike.%${query}%,county.ilike.%${query}%`)
       .limit(10);
 
@@ -163,11 +163,11 @@ const WardSearchInterface = () => {
   const searchConstituencies = async (query: string) => {
     if (!query || query.length < 2) return [];
     let filtered = constituencies;
-    
+
     if (calcCounty) {
       filtered = constituencies.filter(c => c.county_name === calcCounty);
     }
-    
+
     return filtered
       .filter(c => c.name.toLowerCase().includes(query.toLowerCase()))
       .slice(0, 10);
@@ -178,10 +178,10 @@ const WardSearchInterface = () => {
       toast.error('Please select county, constituency, and ward');
       return;
     }
-    
-    const selectedWard = wards.find(w => 
-      w.county === calcCounty && 
-      w.constituency === calcConstituency && 
+
+    const selectedWard = wards.find(w =>
+      w.county === calcCounty &&
+      w.constituency === calcConstituency &&
       w.ward_name.toLowerCase() === calcWard.toLowerCase()
     );
 
@@ -256,8 +256,8 @@ const WardSearchInterface = () => {
               </SelectContent>
             </Select>
 
-            <Select 
-              value={selectedConstituency} 
+            <Select
+              value={selectedConstituency}
               onValueChange={setSelectedConstituency}
               disabled={!selectedCounty || selectedCounty === 'all'}
             >
@@ -266,7 +266,7 @@ const WardSearchInterface = () => {
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-gray-800 border-green-200 dark:border-green-700">
                 <SelectItem value="all">All Constituencies</SelectItem>
-                {selectedCounty && selectedCounty !== 'all' && 
+                {selectedCounty && selectedCounty !== 'all' &&
                   getConstituenciesByCounty(selectedCounty).map(constituency => (
                     <SelectItem key={constituency} value={constituency}>
                       {constituency}
@@ -324,7 +324,7 @@ const WardSearchInterface = () => {
             />
           </div>
 
-          <Button 
+          <Button
             onClick={calculateSignatureRequirement}
             disabled={!calcCounty || !calcConstituency || !calcWard}
             className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white mb-4"

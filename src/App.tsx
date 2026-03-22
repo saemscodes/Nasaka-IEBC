@@ -492,6 +492,7 @@ const AppContent = () => {
         {/* ✅ ACTIVE IEBC OFFICE FINDER ROUTES */}
         <Route path="/" element={<IEBCOfficeSplash />} />
         <Route path="/map" element={<IEBCOfficeMap />} />
+        <Route path="/map/:query" element={<IEBCOfficeMap />} />
 
         {/* Legacy Redirects to root counterparts */}
         <Route path="/iebc-office" element={<Navigate to="/" replace />} />

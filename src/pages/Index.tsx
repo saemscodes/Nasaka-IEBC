@@ -104,7 +104,7 @@ const Index = () => {
 
       const { data: wards, error: wardsError } = await supabase
         .from('wards')
-        .select('*');
+        .select('id,ward_name,constituency,county');
 
       if (wardsError) throw wardsError;
 
@@ -174,8 +174,8 @@ const Index = () => {
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${darkMode
-        ? 'dark bg-gray-900'
-        : 'bg-gradient-to-br from-green-50/30 to-white'
+      ? 'dark bg-gray-900'
+      : 'bg-gradient-to-br from-green-50/30 to-white'
       }`}>
       <ModernHeader
         darkMode={darkMode}
@@ -214,8 +214,8 @@ const Index = () => {
 
       {/* Original Hero Section - Mobile Only */}
       <section className={`py-16 transition-colors duration-300 md:hidden ${darkMode
-          ? 'bg-gray-800'
-          : 'bg-gradient-to-br from-green-50/40 via-white to-green-50/20'
+        ? 'bg-gray-800'
+        : 'bg-gradient-to-br from-green-50/40 via-white to-green-50/20'
         }`}>
         <div className="container mx-auto px-4 text-center max-w-4xl pt-16">
           {/* Container 1: Search + Buttons */}
@@ -260,12 +260,12 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {/* Left Card - Registered Voters */}
             <Card className={`relative overflow-hidden transition-colors duration-300 h-full ${darkMode
-                ? 'border-gray-700'
-                : 'border-green-200/50'
+              ? 'border-gray-700'
+              : 'border-green-200/50'
               }`}>
               <div className={`absolute inset-0 bg-cover bg-center z-0 ${darkMode
-                  ? 'bg-gradient-to-br from-green-900/70 to-gray-800/70'
-                  : 'bg-gradient-to-br from-green-50/70 to-green-100/70'
+                ? 'bg-gradient-to-br from-green-900/70 to-gray-800/70'
+                : 'bg-gradient-to-br from-green-50/70 to-green-100/70'
                 }`} style={{
                   backgroundImage: darkMode
                     ? "linear-gradient(rgba(3, 46, 21, 0.7), url('https://images.unsplash.com/photo-1546521343-4eb2c01aa44b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
@@ -276,8 +276,8 @@ const Index = () => {
               <CardContent className="p-6 flex flex-col h-full relative z-10">
                 <div className="flex items-center mb-4">
                   <div className={`p-2 rounded-full mr-3 ${darkMode
-                      ? 'bg-green-800/50 text-green-300'
-                      : 'bg-green-100 text-green-700'
+                    ? 'bg-green-800/50 text-green-300'
+                    : 'bg-green-100 text-green-700'
                     }`}>
                     <UserCheck className="w-6 h-6" />
                   </div>
@@ -297,8 +297,8 @@ const Index = () => {
                 <Button
                   asChild
                   className={`mt-auto ${darkMode
-                      ? 'bg-green-700 hover:bg-green-600'
-                      : 'bg-green-600 hover:bg-green-700'
+                    ? 'bg-green-700 hover:bg-green-600'
+                    : 'bg-green-600 hover:bg-green-700'
                     }`}
                 >
                   <a
@@ -315,12 +315,12 @@ const Index = () => {
 
             {/* Right Card - New Voters */}
             <Card className={`relative overflow-hidden transition-colors duration-300 h-full ${darkMode
-                ? 'border-gray-700'
-                : 'border-green-200/50'
+              ? 'border-gray-700'
+              : 'border-green-200/50'
               }`}>
               <div className={`absolute inset-0 bg-cover bg-center z-0 ${darkMode
-                  ? 'bg-gradient-to-br from-green-900/70 to-gray-800/70'
-                  : 'bg-gradient-to-br from-green-50/70 to-green-100/70'
+                ? 'bg-gradient-to-br from-green-900/70 to-gray-800/70'
+                : 'bg-gradient-to-br from-green-50/70 to-green-100/70'
                 }`} style={{
                   backgroundImage: darkMode
                     ? "linear-gradient(rgba(2, 44, 34, 0.7), url('https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
@@ -331,8 +331,8 @@ const Index = () => {
               <CardContent className="p-6 flex flex-col h-full relative z-10">
                 <div className="flex items-center mb-4">
                   <div className={`p-2 rounded-full mr-3 ${darkMode
-                      ? 'bg-green-800/50 text-green-300'
-                      : 'bg-green-100 text-green-700'
+                    ? 'bg-green-800/50 text-green-300'
+                    : 'bg-green-100 text-green-700'
                     }`}>
                     <UserPlus className="w-6 h-6" />
                   </div>
@@ -352,8 +352,8 @@ const Index = () => {
                 <Button
                   asChild
                   className={`mt-auto ${darkMode
-                      ? 'bg-green-700 hover:bg-green-600'
-                      : 'bg-green-600 hover:bg-green-700'
+                    ? 'bg-green-700 hover:bg-green-600'
+                    : 'bg-green-600 hover:bg-green-700'
                     }`}
                 >
                   <a
@@ -373,8 +373,8 @@ const Index = () => {
 
       {/* Search Section - Desktop and Tablet only (Mobile has it in hero) */}
       <section className={`py-16 transition-colors duration-300 hidden md:block ${darkMode
-          ? 'bg-gray-900/50'
-          : 'bg-gradient-to-br from-green-50/40 via-white to-green-50/20'
+        ? 'bg-gray-900/50'
+        : 'bg-gradient-to-br from-green-50/40 via-white to-green-50/20'
         }`}>
         <div className="container mx-auto px-4 text-center max-w-4xl">
           {/* Container 1: Search + Buttons */}
@@ -419,12 +419,12 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {/* Left Card - Registered Voters */}
             <Card className={`relative overflow-hidden transition-colors duration-300 h-full ${darkMode
-                ? 'border-gray-700'
-                : 'border-green-200/50'
+              ? 'border-gray-700'
+              : 'border-green-200/50'
               }`}>
               <div className={`absolute inset-0 bg-cover bg-center z-0 ${darkMode
-                  ? 'bg-gradient-to-br from-green-900/70 to-gray-800/70'
-                  : 'bg-gradient-to-br from-green-50/70 to-green-100/70'
+                ? 'bg-gradient-to-br from-green-900/70 to-gray-800/70'
+                : 'bg-gradient-to-br from-green-50/70 to-green-100/70'
                 }`} style={{
                   backgroundImage: darkMode
                     ? "linear-gradient(rgba(3, 46, 21, 0.7), url('https://images.unsplash.com/photo-1546521343-4eb2c01aa44b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
@@ -435,8 +435,8 @@ const Index = () => {
               <CardContent className="p-6 flex flex-col h-full relative z-10">
                 <div className="flex items-center mb-4">
                   <div className={`p-2 rounded-full mr-3 ${darkMode
-                      ? 'bg-green-800/50 text-green-300'
-                      : 'bg-green-100 text-green-700'
+                    ? 'bg-green-800/50 text-green-300'
+                    : 'bg-green-100 text-green-700'
                     }`}>
                     <UserCheck className="w-6 h-6" />
                   </div>
@@ -456,8 +456,8 @@ const Index = () => {
                 <Button
                   asChild
                   className={`mt-auto ${darkMode
-                      ? 'bg-green-700 hover:bg-green-600'
-                      : 'bg-green-600 hover:bg-green-700'
+                    ? 'bg-green-700 hover:bg-green-600'
+                    : 'bg-green-600 hover:bg-green-700'
                     }`}
                 >
                   <a
@@ -473,12 +473,12 @@ const Index = () => {
             </Card>
 
             <Card className={`relative overflow-hidden transition-colors duration-300 h-full ${darkMode
-                ? 'border-gray-700'
-                : 'border-emerald-200/50'
+              ? 'border-gray-700'
+              : 'border-emerald-200/50'
               }`}>
               <div className={`absolute inset-0 bg-cover bg-center z-0 ${darkMode
-                  ? 'bg-gradient-to-br from-emerald-900/70 to-gray-800/70'
-                  : 'bg-gradient-to-br from-emerald-50/70 to-emerald-100/70'
+                ? 'bg-gradient-to-br from-emerald-900/70 to-gray-800/70'
+                : 'bg-gradient-to-br from-emerald-50/70 to-emerald-100/70'
                 }`} style={{
                   backgroundImage: darkMode
                     ? "linear-gradient(rgba(2, 44, 34, 0.7), url('https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80'))"
@@ -489,8 +489,8 @@ const Index = () => {
               <CardContent className="p-6 flex flex-col h-full relative z-10">
                 <div className="flex items-center mb-4">
                   <div className={`p-2 rounded-full mr-3 ${darkMode
-                      ? 'bg-emerald-800/50 text-emerald-300'
-                      : 'bg-emerald-100 text-emerald-700'
+                    ? 'bg-emerald-800/50 text-emerald-300'
+                    : 'bg-emerald-100 text-emerald-700'
                     }`}>
                     <UserPlus className="w-6 h-6" />
                   </div>
@@ -510,8 +510,8 @@ const Index = () => {
                 <Button
                   asChild
                   className={`mt-auto ${darkMode
-                      ? 'bg-emerald-700 hover:bg-emerald-600'
-                      : 'bg-emerald-600 hover:bg-emerald-700'
+                    ? 'bg-emerald-700 hover:bg-emerald-600'
+                    : 'bg-emerald-600 hover:bg-emerald-700'
                     }`}
                 >
                   <a
@@ -531,8 +531,8 @@ const Index = () => {
 
       {/* Live Statistics */}
       <section className={`py-6 border-y transition-colors duration-300 ${darkMode
-          ? 'bg-gray-900/50 border-gray-600'
-          : 'bg-white/50 border-green-100'
+        ? 'bg-gray-900/50 border-gray-600'
+        : 'bg-white/50 border-green-100'
         }`}>
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -544,8 +544,8 @@ const Index = () => {
               { icon: TrendingUp, value: petitionStats.activePetitions, label: 'Active' }
             ].map((stat, index) => (
               <Card key={index} className={`transition-colors duration-300 ${darkMode
-                  ? 'bg-gray-800 border-gray-600'
-                  : 'border-green-200/50 bg-gradient-to-br from-green-50/30 to-white'
+                ? 'bg-gray-800 border-gray-600'
+                : 'border-green-200/50 bg-gradient-to-br from-green-50/30 to-white'
                 }`}>
                 <CardContent className="p-3 text-center">
                   <div className="flex items-center justify-center mb-1">
@@ -607,11 +607,11 @@ const Index = () => {
                 variant={activeTab === item.id ? "default" : "ghost"}
                 onClick={() => scrollToTab(item.id)}
                 className={`flex items-center space-x-2 transition-all duration-300 ${activeTab === item.id
-                    ? 'bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white shadow-md'
-                    : `${darkMode
-                      ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                      : 'text-green-700 hover:bg-green-50 hover:text-green-800'
-                    }`
+                  ? 'bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white shadow-md'
+                  : `${darkMode
+                    ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    : 'text-green-700 hover:bg-green-50 hover:text-green-800'
+                  }`
                   }`}
               >
                 <item.icon className="w-4 h-4" />
@@ -662,14 +662,14 @@ const Index = () => {
               <div className="max-w-4xl mx-auto">
                 {/* iOS-Inspired IEBC Office Finder Section */}
                 <Card className={`relative overflow-hidden transition-all duration-300 border-0 shadow-2xl ${darkMode
-                    ? 'bg-gradient-to-br from-gray-800 via-gray-800 to-gray-900'
-                    : 'bg-gradient-to-br from-white via-green-50/30 to-white'
+                  ? 'bg-gradient-to-br from-gray-800 via-gray-800 to-gray-900'
+                  : 'bg-gradient-to-br from-white via-green-50/30 to-white'
                   }`}>
                   <CardContent className="p-12 text-center">
                     {/* Icon */}
                     <div className={`inline-flex p-6 rounded-3xl mb-6 transition-colors duration-300 ${darkMode
-                        ? 'bg-green-900/30'
-                        : 'bg-green-100'
+                      ? 'bg-green-900/30'
+                      : 'bg-green-100'
                       }`}>
                       <MapPin className={`w-16 h-16 ${darkMode ? 'text-green-400' : 'text-green-600'
                         }`} />
@@ -692,8 +692,8 @@ const Index = () => {
                     <Button
                       onClick={() => navigate('/')}
                       className={`px-8 py-6 text-lg font-semibold rounded-2xl shadow-lg transition-all duration-300 hover:scale-105 ${darkMode
-                          ? 'bg-green-600 hover:bg-green-500 text-white'
-                          : 'bg-green-600 hover:bg-green-700 text-white'
+                        ? 'bg-green-600 hover:bg-green-500 text-white'
+                        : 'bg-green-600 hover:bg-green-700 text-white'
                         }`}
                     >
                       <span className="flex items-center gap-3">
@@ -714,14 +714,14 @@ const Index = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Verify Registration Card */}
                     <Card className={`relative overflow-hidden transition-all duration-300 hover:shadow-xl ${darkMode
-                        ? 'bg-gray-800 border-gray-700'
-                        : 'bg-white border-green-200/50'
+                      ? 'bg-gray-800 border-gray-700'
+                      : 'bg-white border-green-200/50'
                       }`}>
                       <CardContent className="p-6">
                         <div className="flex items-center mb-4">
                           <div className={`p-3 rounded-2xl mr-4 ${darkMode
-                              ? 'bg-green-900/30 text-green-400'
-                              : 'bg-green-100 text-green-600'
+                            ? 'bg-green-900/30 text-green-400'
+                            : 'bg-green-100 text-green-600'
                             }`}>
                             <UserCheck className="w-6 h-6" />
                           </div>
@@ -739,8 +739,8 @@ const Index = () => {
                         <Button
                           asChild
                           className={`w-full rounded-xl transition-all duration-300 ${darkMode
-                              ? 'bg-green-700 hover:bg-green-600'
-                              : 'bg-green-600 hover:bg-green-700'
+                            ? 'bg-green-700 hover:bg-green-600'
+                            : 'bg-green-600 hover:bg-green-700'
                             }`}
                         >
                           <a
@@ -757,14 +757,14 @@ const Index = () => {
 
                     {/* How To Register Card */}
                     <Card className={`relative overflow-hidden transition-all duration-300 hover:shadow-xl ${darkMode
-                        ? 'bg-gray-800 border-gray-700'
-                        : 'bg-white border-green-200/50'
+                      ? 'bg-gray-800 border-gray-700'
+                      : 'bg-white border-green-200/50'
                       }`}>
                       <CardContent className="p-6">
                         <div className="flex items-center mb-4">
                           <div className={`p-3 rounded-2xl mr-4 ${darkMode
-                              ? 'bg-green-900/30 text-green-400'
-                              : 'bg-green-100 text-green-600'
+                            ? 'bg-green-900/30 text-green-400'
+                            : 'bg-green-100 text-green-600'
                             }`}>
                             <UserPlus className="w-6 h-6" />
                           </div>
@@ -782,8 +782,8 @@ const Index = () => {
                         <Button
                           asChild
                           className={`w-full rounded-xl transition-all duration-300 ${darkMode
-                              ? 'bg-green-700 hover:bg-green-600'
-                              : 'bg-green-600 hover:bg-green-700'
+                            ? 'bg-green-700 hover:bg-green-600'
+                            : 'bg-green-600 hover:bg-green-700'
                             }`}
                         >
                           <a

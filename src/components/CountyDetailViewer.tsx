@@ -58,7 +58,7 @@ const CountyDetailViewer: React.FC<CountyDetailViewerProps> = ({
 
   const fetchConstituencies = async () => {
     if (!county) return;
-    
+
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -81,7 +81,7 @@ const CountyDetailViewer: React.FC<CountyDetailViewerProps> = ({
     try {
       const { data, error } = await supabase
         .from('wards')
-        .select('*')
+        .select('id,ward_name,constituency,county,registration_target')
         .eq('constituency', constituency.name)
         .order('ward_name');
 
@@ -136,7 +136,7 @@ const CountyDetailViewer: React.FC<CountyDetailViewerProps> = ({
         ) : (
           <div className="grid gap-2 sm:gap-3 max-h-48 sm:max-h-64 overflow-y-auto green-scrollbar">
             {constituencies.map((constituency) => (
-              <Card 
+              <Card
                 key={constituency.id}
                 className="cursor-pointer hover:bg-green-50 dark:hover:bg-green-950/20 transition-colors border-green-200 dark:border-green-800"
                 onClick={() => fetchWards(constituency)}
@@ -219,7 +219,7 @@ const CountyDetailViewer: React.FC<CountyDetailViewerProps> = ({
         ) : (
           <div className="grid gap-2 sm:gap-3 max-h-48 sm:max-h-64 overflow-y-auto green-scrollbar">
             {wards.map((ward) => (
-              <Card 
+              <Card
                 key={ward.id}
                 className="border-green-200 dark:border-green-800 hover:bg-green-50 dark:hover:bg-green-950/20 transition-colors"
               >

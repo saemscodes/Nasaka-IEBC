@@ -65,6 +65,7 @@ async function handleAiProxy(req: Request, headers: any, env?: any) {
             proxyHeaders['Authorization'] = `Bearer ${getEnv('VITE_GROQ_API_KEY', env)}`;
             break;
         case 'gemini':
+        case 'gemini_ground':
             url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${getEnv('VITE_GEMINI_API_KEY', env)}`;
             break;
         case 'ipapi':

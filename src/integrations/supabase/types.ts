@@ -211,11 +211,102 @@ export interface GeocodingServiceLog {
     created_at: string;
 }
 
+export interface DiasporaRegistrationCentre {
+    id: string; // Mnemonic ID now
+    mission_name: string;
+    mission_type?: string;
+    city: string;
+    country: string;
+    country_code?: string;
+    continent?: string;
+    region?: string;
+    latitude: number;
+    longitude: number;
+    address?: string;
+    google_maps_url?: string;
+    phone?: string;
+    email?: string;
+    website_url?: string;
+    whatsapp?: string;
+    designation_state: 'embassy_only' | 'embassy_probable' | 'iebc_confirmed';
+    designated_2017: boolean;
+    designated_2022: boolean;
+    designation_count: number;
+    is_iebc_confirmed_2027: boolean;
+    confirmed_2027_source_url?: string;
+    confirmed_2027_gazette_ref?: string;
+    services_2027?: string[];
+    registration_opens_at?: string;
+    registration_closes_at?: string;
+    voting_date?: string;
+    registration_requirements?: string[];
+    inquiry_contact_name?: string;
+    inquiry_contact_email?: string;
+    inquiry_notes?: string;
+    verified_at?: string;
+    verification_source?: string;
+    last_checked_at?: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    geocode_status: 'precise' | 'approximate' | 'manual' | 'failed';
+    geocode_method?: string;
+    geocode_confidence?: number;
+    formatted_address?: string;
+}
+
+export interface Signature {
+    id: string;
+    petition_id: string;
+    voter_id: string;
+    voter_name: string;
+    constituency: string;
+    ward: string;
+    polling_station?: string;
+    csp_provider?: string;
+    signature_certificate?: any;
+    verification_status?: any;
+    device_fingerprint?: any;
+    signature_timestamp: string;
+    blockchain_hash?: string;
+    created_at: string;
+}
+
+export interface Petition {
+    id: string;
+    mp_name: string;
+    constituency: string;
+    county: string;
+    description: string;
+    grounds: string[];
+    signature_target: number;
+    ward_target: number;
+    deadline: string;
+    status: 'active' | 'completed' | 'closed';
+    created_by?: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface AuditTrail {
+    id: number;
+    action_type: string;
+    petition_id?: string;
+    signature_id?: string;
+    action_details: any;
+    created_at: string;
+}
+
 // Database type map for Supabase client usage
 export type Database = {
     public: {
         Tables: {
             iebc_offices: { Row: IEBCOffice; Insert: Partial<IEBCOffice>; Update: Partial<IEBCOffice> };
+            diaspora_registration_centres: { Row: DiasporaRegistrationCentre; Insert: Partial<DiasporaRegistrationCentre>; Update: Partial<DiasporaRegistrationCentre> };
+            wards: { Row: Ward; Insert: Partial<Ward>; Update: Partial<Ward> };
+            signatures: { Row: Signature; Insert: Partial<Signature>; Update: Partial<Signature> };
+            petitions: { Row: Petition; Insert: Partial<Petition>; Update: Partial<Petition> };
+            audit_trail: { Row: AuditTrail; Insert: Partial<AuditTrail>; Update: Partial<AuditTrail> };
             api_keys: { Row: ApiKey; Insert: Partial<ApiKey>; Update: Partial<ApiKey> };
             nasaka_profiles: { Row: NasakaProfile; Insert: Partial<NasakaProfile>; Update: Partial<NasakaProfile> };
             nasaka_usage_log: { Row: NasakaUsageLog; Insert: Partial<NasakaUsageLog>; Update: Partial<NasakaUsageLog> };
@@ -228,7 +319,6 @@ export type Database = {
             admin_tasks: { Row: AdminTask; Insert: Partial<AdminTask>; Update: Partial<AdminTask> };
             admin_task_logs: { Row: AdminTaskLog; Insert: Partial<AdminTaskLog>; Update: Partial<AdminTaskLog> };
             geocoding_service_log: { Row: GeocodingServiceLog; Insert: Partial<GeocodingServiceLog>; Update: Partial<GeocodingServiceLog> };
-            wards: { Row: Ward; Insert: Partial<Ward>; Update: Partial<Ward> };
         };
         Functions: {
             validate_api_key: {

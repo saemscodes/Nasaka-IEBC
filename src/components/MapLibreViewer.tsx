@@ -50,7 +50,7 @@ const MapLibreViewer = () => {
     totalConstituencies: 0,
     totalVoters: 0
   });
-  
+
   const [layers, setLayers] = useState<MapLayer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -137,12 +137,12 @@ const MapLibreViewer = () => {
       // Fetch wards data
       const { data: wards, error: wardsError } = await supabase
         .from('wards')
-        .select('*')
+        .select('id,ward_name,constituency,county')
         .order('ward_name');
 
       if (wardsError) throw wardsError;
 
-      const totalVoters = counties?.reduce((sum, county) => 
+      const totalVoters = counties?.reduce((sum, county) =>
         sum + (county.total_count || 0), 0) || 0;
 
       setMapStats({
@@ -204,10 +204,10 @@ const MapLibreViewer = () => {
         // Create GeoJSON features
         const features = layer.data.map((item, index) => {
           const coords = generateMockCoordinates(
-            item.name || item.ward_name || 'Unknown', 
+            item.name || item.ward_name || 'Unknown',
             index
           );
-          
+
           return {
             type: 'Feature' as const,
             geometry: {
@@ -252,7 +252,7 @@ const MapLibreViewer = () => {
           if (e.features && e.features[0]) {
             const feature = e.features[0];
             const properties = feature.properties;
-            
+
             let popupContent = `<div class="p-3">
               <h4 class="font-bold text-lg mb-2">${properties.name || 'Unknown Location'}</h4>`;
 
@@ -307,8 +307,8 @@ const MapLibreViewer = () => {
   };
 
   const toggleLayerVisibility = (layerId: string) => {
-    setLayers(prev => prev.map(layer => 
-      layer.id === layerId 
+    setLayers(prev => prev.map(layer =>
+      layer.id === layerId
         ? { ...layer, visible: !layer.visible }
         : layer
     ));
@@ -327,7 +327,7 @@ const MapLibreViewer = () => {
     }
 
     return (
-      <div 
+      <div
         ref={mapContainer}
         className="w-full h-[500px] rounded-lg overflow-hidden border border-green-200 dark:border-green-700"
         style={{ height: '500px' }}
@@ -364,7 +364,7 @@ const MapLibreViewer = () => {
                   {layers.map(layer => (
                     <div key={layer.id} className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <div 
+                        <div
                           className="w-3 h-3 rounded-full border-2 border-white"
                           style={{ backgroundColor: layer.color }}
                         ></div>

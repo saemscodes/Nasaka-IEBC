@@ -78,38 +78,39 @@ const LayerControlPanel = ({
     {
       id: 'standard',
       name: 'Standard',
-      description: 'Default street map view',
-      preview: 'M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3'
+      description: 'Default street map',
+      image: '/C:/Users/Administrator/.gemini/antigravity/brain/6bf5f9ff-0c37-4aa8-bc81-5a2e933ba3aa/theme_standard_1774132359468.png'
     },
     {
       id: 'satellite',
       name: 'Satellite',
-      description: 'Aerial imagery view',
-      preview: 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+      description: 'Aerial imagery',
+      image: '/C:/Users/Administrator/.gemini/antigravity/brain/6bf5f9ff-0c37-4aa8-bc81-5a2e933ba3aa/theme_satellite_1774132412369.png'
     },
     {
       id: 'dark',
       name: 'Black',
-      description: 'High-contrast dark view',
-      preview: 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'
-    },
-    {
-      id: 'green',
-      name: 'Green',
-      description: 'Bright terrain view',
-      preview: 'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z'
-    },
-    {
-      id: 'retro',
-      name: 'Retro',
-      description: 'Vintage map style',
-      preview: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
+      description: 'Night vision',
+      image: '/C:/Users/Administrator/.gemini/antigravity/brain/6bf5f9ff-0c37-4aa8-bc81-5a2e933ba3aa/theme_black_1774132647633.png'
     },
     {
       id: 'blue',
       name: 'Blue',
-      description: 'Ocean and water focus',
-      preview: 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9'
+      description: 'Oceanic focus',
+      image: '/C:/Users/Administrator/.gemini/antigravity/brain/6bf5f9ff-0c37-4aa8-bc81-5a2e933ba3aa/theme_blue_1774133423987.png'
+    },
+    {
+      id: 'green',
+      name: 'Green',
+      description: 'Terrain view',
+      image: '/C:/Users/Administrator/.gemini/antigravity/brain/6bf5f9ff-0c37-4aa8-bc81-5a2e933ba3aa/theme_green_1774132670340.png'
+    },
+    {
+      id: 'retro',
+      name: 'Retro',
+      description: 'Vintage style',
+      image: '/C:/Users/Administrator/.gemini/antigravity/brain/6bf5f9ff-0c37-4aa8-bc81-5a2e933ba3aa/theme_standard_1774132359468.png', // Fallback
+      isRetro: true
     }
   ];
 
@@ -157,41 +158,48 @@ const LayerControlPanel = ({
           <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
             Base Map
           </h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             {baseMapOptions.map((option) => (
               <button
                 key={option.id}
                 onClick={() => handleBaseMapChange(option.id)}
-                className={`relative p-4 rounded-xl border-2 transition-all ${baseMap === option.id
-                  ? 'border-primary bg-primary/10'
-                  : 'border-border bg-background hover:border-muted-foreground'
+                className={`group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 ${baseMap === option.id
+                  ? 'border-primary ring-4 ring-primary/20'
+                  : 'border-transparent bg-muted/30 hover:bg-muted/50'
                   }`}
               >
-                <div className="flex flex-col items-center text-center">
-                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-2 ${baseMap === option.id ? 'bg-primary/20' : 'bg-muted'
-                    }`}>
-                    <svg className={`w-6 h-6 ${baseMap === option.id ? 'text-primary' : 'text-muted-foreground'
-                      }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={option.preview} />
-                    </svg>
+                <div className="aspect-[4/3] relative">
+                  <img
+                    src={option.image}
+                    alt={option.name}
+                    className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${option.isRetro ? 'sepia-[0.6] brightness-[0.9] contrast-[1.1]' : ''
+                      } ${baseMap === option.id ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'}`}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                  <div className="absolute bottom-3 left-3 right-3 text-left">
+                    <span className="block text-sm font-bold text-white mb-0.5">
+                      {option.name}
+                    </span>
+                    <span className="block text-[10px] text-gray-300 line-clamp-1 leading-tight">
+                      {option.description}
+                    </span>
                   </div>
-                  <span className={`text-sm font-medium ${baseMap === option.id ? 'text-primary' : 'text-foreground'
-                    }`}>
-                    {option.name}
-                  </span>
-                  <span className="text-xs text-muted-foreground mt-1">
-                    {option.description}
-                  </span>
-                </div>
-                {baseMap === option.id && (
-                  <div className="absolute top-2 right-2">
-                    <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
-                      <svg className="w-3 h-3 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
+
+                  {baseMap === option.id && (
+                    <div className="absolute top-2 right-2">
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-lg border-2 border-white/20"
+                      >
+                        <svg className="w-3.5 h-3.5 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </motion.div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </button>
             ))}
           </div>

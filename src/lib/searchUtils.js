@@ -533,7 +533,7 @@ export function generateSearchSuggestions(query, data = [], options = {}) {
   const {
     maxSuggestions = 5,
     minScore = 0.1,
-    fields = ['name', 'county', 'constituency_name', 'office_location'],
+    fields = ['name', 'county', 'constituency_name', 'constituency', 'office_location'],
     includeQuerySuggestions = true
   } = options;
 
@@ -603,7 +603,7 @@ export function batchSearch(items, query, options = {}) {
   if (!query || !items || !items.length) return [];
 
   const {
-    fields = ['county', 'constituency_name', 'office_location', 'formatted_address'],
+    fields = ['county', 'constituency_name', 'constituency', 'office_location', 'formatted_address'],
     minScore = 0.1,
     maxResults = 50,
     scoreThreshold = 0.3

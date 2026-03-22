@@ -412,7 +412,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
           ...result.item,
           matches: result.matches,
           score: result.score,
-          type: 'office',
+          type: result.item.type || 'office',
           isCached: result.item.isCached || false
         }));
       } else if (useCache) {
@@ -423,11 +423,14 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
             .filter(office =>
               office.county?.toLowerCase().includes(lowercaseQuery) ||
               office.constituency_name?.toLowerCase().includes(lowercaseQuery) ||
-              office.office_location?.toLowerCase().includes(lowercaseQuery)
+              office.office_location?.toLowerCase().includes(lowercaseQuery) ||
+              office.mission_name?.toLowerCase().includes(lowercaseQuery) ||
+              office.city?.toLowerCase().includes(lowercaseQuery) ||
+              office.country?.toLowerCase().includes(lowercaseQuery)
             )
             .map(office => ({
               ...office,
-              type: 'office',
+              type: office.type || 'office',
               isCached: true,
               score: 0.5
             }));
@@ -494,7 +497,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
           ...result.item,
           matches: result.matches,
           score: result.score,
-          type: 'office'
+          type: result.item.type || 'office'
         }));
       }
 
@@ -502,10 +505,13 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
       return offices.filter(office =>
         office.county?.toLowerCase().includes(lowercaseQuery) ||
         office.constituency_name?.toLowerCase().includes(lowercaseQuery) ||
-        office.office_location?.toLowerCase().includes(lowercaseQuery)
+        office.office_location?.toLowerCase().includes(lowercaseQuery) ||
+        office.mission_name?.toLowerCase().includes(lowercaseQuery) ||
+        office.city?.toLowerCase().includes(lowercaseQuery) ||
+        office.country?.toLowerCase().includes(lowercaseQuery)
       ).map(office => ({
         ...office,
-        type: 'office',
+        type: office.type || 'office',
         score: 0.5
       }));
     } catch (error) {

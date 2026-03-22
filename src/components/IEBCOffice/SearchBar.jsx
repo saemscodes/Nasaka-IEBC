@@ -85,33 +85,39 @@ const SearchBar = ({
           .not('longitude', 'is', null),
         supabase
           .from('wards')
-          .select('id,ward_name,constituency_name,county,latitude,longitude')
-          .not('latitude', 'is', null)
-          .not('longitude', 'is', null)
+          .select('id,ward_name,constituency,county')
+          .not('id', 'is', null)
       ]);
 
-      if (iebcRes.error) throw iebcRes.error;
-      if (diasporaRes.error) throw diasporaRes.error;
-      if (wardsRes.error) throw wardsRes.error;
+      // RESILIENCE: Log errors but continue if we have some data
+      if (iebcRes.error) console.warn('IEBC offices fetch failed:', iebcRes.error);
+      if (diasporaRes.error) console.warn('Diaspora fetch failed:', diasporaRes.error);
+      if (wardsRes.error) console.warn('Wards fetch failed (likely schema mismatch):', wardsRes.error);
 
       const iebcData = (iebcRes.data || []).map(o => ({ ...o, type: 'office' }));
       const diasporaData = (diasporaRes.data || []).map(o => ({ ...o, type: 'diaspora' }));
+
+      // Handle wards safely: set lat/long to null since they aren't in this table
       const wardData = (wardsRes.data || []).map(w => ({
         ...w,
         type: 'ward',
-        office_location: w.ward_name, // Map for Fuse
-        constituency_name: w.constituency_name,
-        county: w.county
+        office_location: w.ward_name,
+        constituency_name: w.constituency,
+        county: w.county,
+        latitude: null,
+        longitude: null
       }));
 
       const combined = [...iebcData, ...diasporaData, ...wardData];
 
-      setAllOffices(combined);
+      if (combined.length === 0) {
+        console.warn('No locations loaded for search index');
+        return;
+      }
 
-      // Feed data into the geocoding pipeline's local layer
+      setAllOffices(combined);
       setLocalOffices(combined);
 
-      // Initialize Fuse.js for fuzzy search
       const fuseOptions = {
         keys: [
           'county',
@@ -135,7 +141,7 @@ const SearchBar = ({
 
       setFuse(new Fuse(combined, fuseOptions));
     } catch (error) {
-      console.error('Error loading offices for search:', error);
+      console.error('Critical search index error:', error);
     }
   };
 
@@ -159,7 +165,7 @@ const SearchBar = ({
 
     try {
       // ── Tier 1: Fuse.js (local, instant) ─────────────────────────────────
-      const results = fuse.search(searchTerm).slice(0, 8);
+      const results = fuse.search(normalized).slice(0, 8);
       let formattedSuggestions = results.map(result => ({
         ...result.item,
         matches: result.matches,
@@ -170,7 +176,7 @@ const SearchBar = ({
       // ── Re-rank with searchUtils relevance scoring ──────────────────────
       if (formattedSuggestions.length > 1) {
         formattedSuggestions = sortByRelevance(formattedSuggestions, searchTerm)
-          .map(item => ({ ...item, type: 'office' }))
+          .map(item => ({ ...item, type: item.type || 'office' }))
           .slice(0, 8);
       }
 
@@ -255,8 +261,13 @@ const SearchBar = ({
   }, [value, performSearch]);
 
   const handleInputChange = (e) => {
-    onChange(e.target.value);
-    if (e.target.value.trim()) {
+    const rawVal = e.target.value;
+    // Restore slugify logic: transform input to URL-friendly lowercase with hyphens 
+    // unless the user is intentionally typing spaces for a search.
+    // Actually, user explicitly said RESTORE SLUGIFY ON SEARCH BAR.
+    const val = rawVal.includes(' ') ? rawVal : slugify(rawVal);
+    onChange(val);
+    if (val.trim()) {
       setIsExpanded(true);
     }
   };
