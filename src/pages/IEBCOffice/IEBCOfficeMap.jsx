@@ -113,131 +113,19 @@ const IEBCOfficeMap = () => {
     }
   }, [urlQueryParam, urlQueryProcessed, loading, searchOffices, setSearchQuery, flyToLocation]);
 
-  const offlineDownloaderRef = useRef(null);
+  // Uber-style state machine for map zoom transitions
+  const { mapState, dispatchMap } = useMapStateMachine();
 
+  const offlineDownloaderRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const tileLayersRef = useRef({});
   const accuracyCircleRef = useRef(null);
   const routeBadgeRef = useRef(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const badgeStartPos = useRef({ x: 0, y: 0 });
-
-  // Uber-style state machine for map zoom transitions
-  const { mapState, dispatchMap } = useMapStateMachine();
-
-  // Radius circle state for place search visualisation
-  const [radiusCenter, setRadiusCenter] = useState(null);
-  const [radiusKm, setRadiusKm] = useState(15);
-  const [isRadiusAnimating, setIsRadiusAnimating] = useState(false);
-
-  // Map mode: domestic (Kenya IEBC offices) vs diaspora (global missions)
-  const [mapMode, setMapMode] = useState('domestic');
-
   const stateOfficeProcessed = useRef(false);
 
-  // 1. Handle explicit selection passed via React Router state (Priority 1) ✊🏽🇰🇪
-  useEffect(() => {
-    if (state?.selectedOffice && !stateOfficeProcessed.current && offices.length > 0) {
-      console.info('[Nasaka] Handling context-preserved office selection from state:', state.selectedOffice.constituency_name);
-      handleOfficeSelect(state.selectedOffice);
-      stateOfficeProcessed.current = true;
-    }
-  }, [state, offices, handleOfficeSelect]);
-
-  // Utility to navigate to office detail page ✊🏽🇰🇪
-  const navigateToArea = useCallback((office) => {
-    if (!office) return;
-    const countySlug = slugify(office.county || 'kenya');
-    let areaSlug = slugify(office.constituency_name || office.city || '');
-    const wardSlug = office.ward_name ? slugify(office.ward_name) : null;
-
-    if (wardSlug && areaSlug) {
-      navigate(`/${countySlug}/${areaSlug}/${wardSlug}`);
-    } else if (areaSlug) {
-      if (areaSlug === countySlug) areaSlug = `${areaSlug}-town`;
-      navigate(`/${countySlug}/${areaSlug}`);
-    } else {
-      navigate(`/${countySlug}`);
-    }
-  }, [navigate, slugify]);
-
-  // Handle URL query parameter or state selection on component mount
-  useEffect(() => {
-    // 2. Check for URL query parameter /map/:query (flat search)
-    const query = urlQueryParam || searchParams.get('q');
-    if (query && !urlQueryProcessed && offices.length > 0) {
-      handleUrlQuerySearch(query);
-    }
-  }, [searchParams, offices, urlQueryProcessed, state?.selectedOffice, urlQueryParam]);
-
-  // Handle Hierarchical Slugs (e.g. /map/nairobi/westlands)
-  useEffect(() => {
-    if (offices.length > 0 && (countySlug || constituencySlug || wardSlug)) {
-      console.info('[Nasaka] Handling hierarchical slugs:', { countySlug, constituencySlug, wardSlug });
-
-      const matchedOffice = offices.find(o => {
-        const cMatch = !countySlug || slugify(o.county) === countySlug;
-        const consMatch = !constituencySlug || slugify(o.constituency_name) === constituencySlug;
-        const wMatch = !wardSlug || (o.ward_name && slugify(o.ward_name) === wardSlug);
-        return cMatch && consMatch && wMatch;
-      });
-
-      if (matchedOffice) {
-        handleOfficeSelect(matchedOffice);
-
-        // If we have coordinates in the URL (original search point), visualize it
-        const urlLat = searchParams.get('lat');
-        const urlLng = searchParams.get('lng');
-        const originalQ = searchParams.get('q');
-
-        if (urlLat && urlLng && mapInstanceRef.current) {
-          const lat = parseFloat(urlLat);
-          const lng = parseFloat(urlLng);
-          setRadiusCenter([lat, lng]);
-          setRadiusKm(5);
-          setIsRadiusAnimating(true);
-
-          // Trigger routing if user location available
-          if (userLocation?.latitude && userLocation?.longitude) {
-            // Logic to start routing will be handled by RoutingSystem if selectedOffice is set
-          }
-        }
-      }
-    }
-  }, [offices, countySlug, constituencySlug, wardSlug, searchParams, userLocation]);
-
-  // Function to handle URL query parameter search
-  const handleUrlQuerySearch = async (query) => {
-    if (!query.trim()) return;
-
-    try {
-      console.info('[Nasaka] Resolving search query:', query);
-
-      // 1. Precise geocoding via pipeline
-      const location = await resolveLocation(query);
-      if (!location) throw new Error('Could not resolve location');
-
-      const { lat, lon } = location;
-
-      // 2. Find nearest office to this result
-      const nearest = findNearestOffice(lat, lon, offices);
-
-      if (nearest) {
-        // 3. Construct canonical hierarchical path for /map
-        const county = slugify(nearest.county);
-        const constituency = slugify(nearest.constituency_name);
-        const ward = nearest.ward_name ? slugify(nearest.ward_name) : 'centre';
-
-        // 4. Redirect to canonical path immediately
-        navigate(`/map/${county}/${constituency}/${ward}?lat=${lat}&lng=${lon}&q=${encodeURIComponent(query)}`, { replace: true });
-      }
-
-      setUrlQueryProcessed(true);
-    } catch (error) {
-      console.warn('[Nasaka] URL Search failed:', error);
-      setUrlQueryProcessed(true);
-    }
-  };
+  // ─── Logic Functions (useCallback) ──────────────────────────────────────────
 
   // Initialize map reference
   const handleMapReady = useCallback((map) => {
@@ -272,21 +160,18 @@ const IEBCOfficeMap = () => {
       attribution: '&copy; <a href="https://openfreemap.org/">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     });
 
-    // Green view (Bright)
     // @ts-ignore
     tileLayersRef.current.green = L.maplibreGL({
       style: 'https://tiles.openfreemap.org/styles/bright',
       attribution: '&copy; <a href="https://openfreemap.org/">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     });
 
-    // Retro view
     // @ts-ignore
     tileLayersRef.current.retro = L.maplibreGL({
       style: 'https://tiles.openfreemap.org/styles/liberty',
       attribution: '&copy; <a href="https://openfreemap.org/">OpenFreeMap</a>'
     });
 
-    // Blue view
     // @ts-ignore
     tileLayersRef.current.blue = L.maplibreGL({
       style: 'https://tiles.openfreemap.org/styles/positron',
@@ -296,55 +181,6 @@ const IEBCOfficeMap = () => {
     // Add default base map
     tileLayersRef.current.standard.addTo(map);
   }, []);
-
-  // Handle base map changes
-  useEffect(() => {
-    if (!mapInstanceRef.current || !tileLayersRef.current.standard) return;
-
-    // Remove all tile layers
-    Object.values(tileLayersRef.current).forEach(layer => {
-      if (mapInstanceRef.current.hasLayer(layer)) {
-        mapInstanceRef.current.removeLayer(layer);
-      }
-    });
-
-    // Add selected base map
-    if (tileLayersRef.current[baseMap]) {
-      tileLayersRef.current[baseMap].addTo(mapInstanceRef.current);
-    }
-  }, [baseMap]);
-
-  // Set initial map center and create accuracy circle - ONLY IF WE HAVE LOCATION ACCESS
-  useEffect(() => {
-    if (hasLocationAccess && userLocation?.latitude && userLocation?.longitude) {
-      flyToLocation(userLocation.latitude, userLocation.longitude, 14);
-
-      // Create accuracy circle if accuracy data is available
-      if (userLocation.accuracy && mapInstanceRef.current) {
-        // Remove existing accuracy circle
-        if (accuracyCircleRef.current) {
-          mapInstanceRef.current.removeLayer(accuracyCircleRef.current);
-        }
-
-        // Create new accuracy circle
-        accuracyCircleRef.current = L.circle([userLocation.latitude, userLocation.longitude], {
-          radius: userLocation.accuracy,
-          color: '#007AFF',
-          fillColor: '#007AFF',
-          fillOpacity: 0.1,
-          weight: 1,
-          opacity: 0.6
-        }).addTo(mapInstanceRef.current);
-      }
-    }
-
-    // Cleanup function to remove accuracy circle
-    return () => {
-      if (accuracyCircleRef.current && mapInstanceRef.current) {
-        mapInstanceRef.current.removeLayer(accuracyCircleRef.current);
-      }
-    };
-  }, [hasLocationAccess, userLocation, flyToLocation]);
 
   // Enhanced office selection
   const handleOfficeSelect = useCallback(async (office) => {
@@ -363,7 +199,6 @@ const IEBCOfficeMap = () => {
         }
       } catch (err) {
         // Log removed for production
-
       }
     }
 
@@ -374,33 +209,79 @@ const IEBCOfficeMap = () => {
     setRoutingError(null);
   }, [setSelectedOffice, flyToOffice, closeListPanel]);
 
+  // Utility to navigate to office detail page ✊🏽🇰🇪
+  const navigateToArea = useCallback((office) => {
+    if (!office) return;
+    const countySlug = slugify(office.county || 'kenya');
+    let areaSlug = slugify(office.constituency_name || office.city || '');
+    const wardSlug = office.ward_name ? slugify(office.ward_name) : null;
+
+    if (wardSlug && areaSlug) {
+      navigate(`/${countySlug}/${areaSlug}/${wardSlug}`);
+    } else if (areaSlug) {
+      if (areaSlug === countySlug) areaSlug = `${areaSlug}-town`;
+      navigate(`/${countySlug}/${areaSlug}`);
+    } else {
+      navigate(`/${countySlug}`);
+    }
+  }, [navigate, slugify]);
+
+  // Function to handle URL query parameter search
+  const handleUrlQuerySearch = async (query) => {
+    if (!query.trim()) return;
+
+    try {
+      console.info('[Nasaka] Resolving search query:', query);
+
+      // 1. Precise geocoding via pipeline
+      const location = await resolveLocation(query);
+      if (!location) throw new Error('Could not resolve location');
+
+      const { lat, lon } = location;
+
+      // 2. Find nearest office to this result
+      const nearest = findNearestOffice(lat, lon, offices);
+
+      if (nearest) {
+        // 3. Construct canonical hierarchical path for /map
+        const county = slugify(nearest.county);
+        const constituency = slugify(nearest.constituency_name);
+        const ward = nearest.ward_name ? slugify(nearest.ward_name) : 'centre';
+
+        // 4. Redirect to canonical path immediately
+        navigate(`/map/${county}/${constituency}/${ward}?lat=${lat}&lng=${lon}&q=${encodeURIComponent(query)}`, { replace: true });
+      }
+
+      setUrlQueryProcessed(true);
+    } catch (error) {
+      console.warn('[Nasaka] URL Search failed:', error);
+      setUrlQueryProcessed(true);
+    }
+  };
+
   // Enhanced search handler
   const handleSearch = useCallback(async (result) => {
     if (result.searchQuery) {
-      // Perform full search with the query using the correct function
       const results = searchOffices(result.searchQuery);
       setSearchResults(results);
       setNearbyOffices(results);
       openListPanel();
       setIsPanelBackdropVisible(true);
 
-      // State machine: if results have coordinates, drive zoom
       if (results.length > 0 && results[0].latitude && results[0].longitude) {
         dispatchMap({ type: 'OFFICES_FOUND', offices: results, radiusKm: 50 }, mapInstanceRef.current);
       }
     } else if (result.latitude && result.longitude) {
-      // Office object selected
       handleOfficeSelect(result);
       dispatchMap({ type: 'OFFICE_SELECTED', officeId: result.id }, mapInstanceRef.current);
     } else {
-      // Other result type
       handleOfficeSelect(result);
     }
   }, [searchOffices, handleOfficeSelect, openListPanel, dispatchMap]);
 
-  // Double-tap handler for area search - ONLY IF WE HAVE LOCATION ACCESS
+  // Double-tap handler for area search
   const handleDoubleTap = useCallback(async (latlng) => {
-    if (!hasLocationAccess) return; // Don't allow area search without location access
+    if (!hasLocationAccess) return;
 
     setIsSearchingNearby(true);
     setLastTapLocation(latlng);
@@ -416,7 +297,6 @@ const IEBCOfficeMap = () => {
         });
       }
 
-      // Radius visualisation for double-tap area search
       setRadiusCenter([latlng.lat, latlng.lng]);
       setRadiusKm(5);
       setIsRadiusAnimating(true);
@@ -429,19 +309,16 @@ const IEBCOfficeMap = () => {
         setLastTapLocation(null);
       }, 3000);
     } catch (error) {
-      // Log removed for production
-
     } finally {
       setIsSearchingNearby(false);
     }
   }, [hasLocationAccess, openListPanel]);
 
-  // Handle route found event - ONLY IF WE HAVE LOCATION ACCESS
+  // Handle route found event
   const handleRouteFound = useCallback(async (routes) => {
     setCurrentRoute(routes);
     setRoutingError(null);
 
-    // Build travel insights from route + traffic data
     if (routes?.[0] && userLocation?.latitude && userLocation?.longitude && selectedOffice?.latitude && selectedOffice?.longitude) {
       try {
         const insights = await getTravelInsights(
@@ -449,7 +326,6 @@ const IEBCOfficeMap = () => {
           [selectedOffice.latitude, selectedOffice.longitude]
         );
 
-        // Merge with existing logic if needed & Map service insights to UI properties
         setTravelInsights({
           ...insights,
           trafficCondition: insights.severity === 'low' ? 'Smooth traffic' :
@@ -461,7 +337,6 @@ const IEBCOfficeMap = () => {
           routeTime: insights.timeMins
         });
       } catch (err) {
-        console.error('[IEBCOfficeMap] Rich insights failed, falling back to basic:', err);
         const trafficInfo = getTrafficInfo();
         setTravelInsights({
           trafficCondition: trafficInfo?.description || 'Normal traffic',
@@ -487,49 +362,11 @@ const IEBCOfficeMap = () => {
     }
   }, [userLocation, selectedOffice]);
 
-  // Handle route error - ONLY IF WE HAVE LOCATION ACCESS
+  // Handle route error
   const handleRouteError = useCallback((error) => {
-    // Log removed for production
-
     setRoutingError(error?.message || t('bottomSheet.routingError', 'Failed to calculate route'));
     setCurrentRoute(null);
   }, [t]);
-
-  // Find nearest office - ONLY IF WE HAVE LOCATION ACCESS
-  const nearestOffice = useMemo(() => {
-    if (!hasLocationAccess || !userLocation?.latitude || !userLocation?.longitude || offices.length === 0) {
-      return null;
-    }
-    return findNearestOffice(userLocation.latitude, userLocation.longitude, offices);
-  }, [hasLocationAccess, userLocation, offices]);
-
-  // Set nearest office as selected - ONLY IF WE HAVE LOCATION ACCESS
-  useEffect(() => {
-    // Priority: If state.selectedOffice exists, let the state-handler manage it and skip nearest-snapping ✊🏽🇰🇪
-    if (nearestOffice && !selectedOffice && !manualEntry && hasLocationAccess && !state?.selectedOffice) {
-      setSelectedOffice(nearestOffice);
-      setBottomSheetState('peek');
-    }
-  }, [nearestOffice, selectedOffice, manualEntry, hasLocationAccess, setSelectedOffice, state?.selectedOffice]);
-
-  // Get offices for list panel
-  const listPanelOffices = useMemo(() => {
-    if (searchResults.length > 0) {
-      return searchResults;
-    }
-    if (nearbyOffices.length > 0) {
-      return nearbyOffices;
-    }
-    if (hasLocationAccess && userLocation?.latitude && userLocation?.longitude) {
-      return findNearestOffices(
-        userLocation.latitude,
-        userLocation.longitude,
-        offices,
-        20
-      );
-    }
-    return offices.slice(0, 20);
-  }, [hasLocationAccess, searchResults, nearbyOffices, userLocation, offices]);
 
   // Toggle layer visibility
   const toggleLayer = useCallback((layerId) => {
@@ -555,30 +392,23 @@ const IEBCOfficeMap = () => {
   const handleRetryLocation = () => navigate('/', { replace: true });
 
   // Uber-style: handle place search from SearchBar
-  // Receives { latitude, longitude, name, county, boundingBox } from place suggestion
-  // or no args when user taps the "Use my location" button
   const handleLocationSearch = useCallback(async (placeData) => {
     if (!placeData || (!placeData.latitude && !placeData.longitude)) {
-      // No place data — existing behaviour: go home to re-enter with fresh location
       navigate('/', { replace: true });
       return;
     }
 
-    const { latitude, longitude, name } = placeData;
+    const { latitude, longitude } = placeData;
     const searchRadiusKm = 15;
 
-    // State machine: start search phase
     dispatchMap({ type: 'SEARCH_STARTED', lat: latitude, lng: longitude }, mapInstanceRef.current);
 
-    // Show radius circle with sonar animation
     setRadiusCenter([latitude, longitude]);
     setRadiusKm(searchRadiusKm);
     setIsRadiusAnimating(true);
-
     setIsSearchingNearby(true);
 
     try {
-      // Try Supabase RPC first (bounding box + Haversine)
       const { data: rpcResults, error: rpcError } = await supabase.rpc('find_offices_near_place', {
         search_lat: latitude,
         search_lng: longitude,
@@ -590,24 +420,16 @@ const IEBCOfficeMap = () => {
       if (!rpcError && rpcResults && rpcResults.length > 0) {
         nearby = rpcResults;
       } else {
-        // Fallback: client-side search from loaded offices
         nearby = await searchNearbyOffices(latitude, longitude, searchRadiusKm * 1000);
       }
 
       setNearbyOffices(nearby);
       setSearchResults(nearby);
-
-      // State machine: offices found — auto-zoom to fit
       dispatchMap({ type: 'OFFICES_FOUND', offices: nearby, radiusKm: searchRadiusKm }, mapInstanceRef.current);
-
-      // Stop sonar pulse after results arrive
       setTimeout(() => setIsRadiusAnimating(false), 2000);
-
       openListPanel();
       setIsPanelBackdropVisible(true);
     } catch (err) {
-      console.error('[IEBCOfficeMap] Place search failed:', err);
-      // Fallback: just fly to the place
       if (mapInstanceRef.current) {
         mapInstanceRef.current.flyTo([latitude, longitude], 13, { duration: 1.0 });
       }
@@ -615,20 +437,18 @@ const IEBCOfficeMap = () => {
     } finally {
       setIsSearchingNearby(false);
     }
-  }, [dispatchMap, openListPanel, navigate, offices]);
+  }, [dispatchMap, openListPanel, navigate]);
 
-  // Map mode change handler — smooth easeInOut zoom transitions
+  // Map mode change handler
   const handleMapModeChange = useCallback((newMode) => {
     setMapMode(newMode);
     if (mapInstanceRef.current) {
       if (newMode === 'diaspora') {
-        // World view for diaspora — longer duration for smooth zoom-out
         mapInstanceRef.current.flyTo([10, 20], 2, {
           duration: 2.5,
           easeLinearity: 0.15,
         });
       } else {
-        // Kenya view for domestic — smooth return
         if (userLocation?.latitude && userLocation?.longitude) {
           mapInstanceRef.current.flyTo([userLocation.latitude, userLocation.longitude], 13, {
             duration: 2.0,
@@ -642,7 +462,6 @@ const IEBCOfficeMap = () => {
         }
       }
     }
-    // Clear radius circle when switching modes
     setRadiusCenter(null);
     setIsRadiusAnimating(false);
   }, [userLocation]);
@@ -678,36 +497,14 @@ const IEBCOfficeMap = () => {
     setSelectedOffice(null);
   };
 
-  // Clear routing error after delay
-  useEffect(() => {
-    if (routingError) {
-      const timer = setTimeout(() => {
-        setRoutingError(null);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [routingError]);
-
-  // Handle panel backdrop visibility
-  const isDiaspora = selectedOffice?.type === 'diaspora';
-
-  useEffect(() => {
-    if (!isListPanelOpen && !isLayerPanelOpen) {
-      setIsPanelBackdropVisible(false);
-    }
-  }, [isListPanelOpen, isLayerPanelOpen]);
-
   // Handle contribution success
   const handleContributionSuccess = useCallback((result) => {
-    // Log removed for production
-
-    // Refresh offices to include new contribution
     refetch();
   }, [refetch]);
 
-  // Route badge drag handlers - ONLY IF WE HAVE LOCATION ACCESS
+  // Route badge drag handlers
   const handleRouteBadgeMouseDown = useCallback((e) => {
-    if (!hasLocationAccess) return; // Don't allow dragging without location access
+    if (!hasLocationAccess) return;
 
     e.preventDefault();
     e.stopPropagation();
@@ -727,11 +524,9 @@ const IEBCOfficeMap = () => {
       if (!isDraggingRouteBadge) return;
 
       moveEvent.preventDefault();
-      e.preventDefault();
-      e.stopPropagation();
 
-      const moveClientX = e.clientX || (e.touches && e.touches[0].clientX);
-      const moveClientY = e.clientY || (e.touches && e.touches[0].clientY);
+      const moveClientX = moveEvent.clientX || (moveEvent.touches && moveEvent.touches[0].clientX);
+      const moveClientY = moveEvent.clientY || (moveEvent.touches && moveEvent.touches[0].clientY);
 
       if (moveClientX && moveClientY) {
         const deltaX = moveClientX - dragStartPos.current.x;
@@ -748,12 +543,10 @@ const IEBCOfficeMap = () => {
       setIsDraggingRouteBadge(false);
     };
 
-    if (isDraggingRouteBadge) {
-      document.addEventListener('mousemove', handleMove);
-      document.addEventListener('mouseup', handleUp);
-      document.addEventListener('touchmove', handleMove, { passive: false });
-      document.addEventListener('touchend', handleUp);
-    }
+    document.addEventListener('mousemove', handleMove);
+    document.addEventListener('mouseup', handleUp);
+    document.addEventListener('touchmove', handleMove, { passive: false });
+    document.addEventListener('touchend', handleUp);
 
     return () => {
       document.removeEventListener('mousemove', handleMove);
@@ -761,7 +554,173 @@ const IEBCOfficeMap = () => {
       document.removeEventListener('touchmove', handleMove);
       document.removeEventListener('touchend', handleUp);
     };
-  }, [isDraggingRouteBadge, dragStartPos, badgeStartPos]);
+  }, [hasLocationAccess, isDraggingRouteBadge, routeBadgePosition]);
+
+  // ─── Computational Hooks (useMemo) ──────────────────────────────────────────
+
+  // Find nearest office
+  const nearestOffice = useMemo(() => {
+    if (!hasLocationAccess || !userLocation?.latitude || !userLocation?.longitude || offices.length === 0) {
+      return null;
+    }
+    return findNearestOffice(userLocation.latitude, userLocation.longitude, offices);
+  }, [hasLocationAccess, userLocation, offices]);
+
+  // Get offices for list panel
+  const listPanelOffices = useMemo(() => {
+    if (searchResults.length > 0) {
+      return searchResults;
+    }
+    if (nearbyOffices.length > 0) {
+      return nearbyOffices;
+    }
+    if (hasLocationAccess && userLocation?.latitude && userLocation?.longitude) {
+      return findNearestOffices(
+        userLocation.latitude,
+        userLocation.longitude,
+        offices,
+        20
+      );
+    }
+    return offices.slice(0, 20);
+  }, [hasLocationAccess, searchResults, nearbyOffices, userLocation, offices]);
+
+
+  // ─── Side Effects (useEffect) ───────────────────────────────────────────────
+
+  // 1. Handle explicit selection passed via React Router state (Priority 1) ✊🏽🇰🇪
+  useEffect(() => {
+    if (state?.selectedOffice && !stateOfficeProcessed.current && offices.length > 0) {
+      console.info('[Nasaka] Handling context-preserved office selection from state:', state.selectedOffice.constituency_name);
+      handleOfficeSelect(state.selectedOffice);
+      stateOfficeProcessed.current = true;
+    }
+  }, [state, offices, handleOfficeSelect]);
+
+  // Handle URL query parameters from browser search bar
+  useEffect(() => {
+    if (urlQueryParam && !urlQueryProcessed && !loading) {
+      console.info('[Nasaka] Processing browser URL search query:', urlQueryParam);
+      setSearchQuery(urlQueryParam);
+      setUrlQueryProcessed(true);
+
+      const results = searchOffices(urlQueryParam);
+      if (results && results.length > 0) {
+        setSearchResults(results);
+        const first = results[0];
+        if (first.latitude && first.longitude) {
+          flyToLocation(first.latitude, first.longitude, 12);
+        }
+      }
+    }
+  }, [urlQueryParam, urlQueryProcessed, loading, searchOffices, setSearchQuery, flyToLocation]);
+
+  // Handle URL query parameter or state selection on component mount
+  useEffect(() => {
+    const query = urlQueryParam || searchParams.get('q');
+    if (query && !urlQueryProcessed && offices.length > 0) {
+      handleUrlQuerySearch(query);
+    }
+  }, [searchParams, offices, urlQueryProcessed, state?.selectedOffice, urlQueryParam, handleUrlQuerySearch]);
+
+  // Handle Hierarchical Slugs (e.g. /map/nairobi/westlands)
+  useEffect(() => {
+    if (offices.length > 0 && (countySlug || constituencySlug || wardSlug)) {
+      console.info('[Nasaka] Handling hierarchical slugs:', { countySlug, constituencySlug, wardSlug });
+
+      const matchedOffice = offices.find(o => {
+        const cMatch = !countySlug || slugify(o.county) === countySlug;
+        const consMatch = !constituencySlug || slugify(o.constituency_name) === constituencySlug;
+        const wMatch = !wardSlug || (o.ward_name && slugify(o.ward_name) === wardSlug);
+        return cMatch && consMatch && wMatch;
+      });
+
+      if (matchedOffice) {
+        handleOfficeSelect(matchedOffice);
+
+        const urlLat = searchParams.get('lat');
+        const urlLng = searchParams.get('lng');
+
+        if (urlLat && urlLng && mapInstanceRef.current) {
+          const lat = parseFloat(urlLat);
+          const lng = parseFloat(urlLng);
+          setRadiusCenter([lat, lng]);
+          setRadiusKm(5);
+          setIsRadiusAnimating(true);
+        }
+      }
+    }
+  }, [offices, countySlug, constituencySlug, wardSlug, searchParams, userLocation, handleOfficeSelect]);
+
+  // Set initial map center and create accuracy circle
+  useEffect(() => {
+    if (hasLocationAccess && userLocation?.latitude && userLocation?.longitude) {
+      flyToLocation(userLocation.latitude, userLocation.longitude, 14);
+
+      if (userLocation.accuracy && mapInstanceRef.current) {
+        if (accuracyCircleRef.current) {
+          mapInstanceRef.current.removeLayer(accuracyCircleRef.current);
+        }
+
+        accuracyCircleRef.current = L.circle([userLocation.latitude, userLocation.longitude], {
+          radius: userLocation.accuracy,
+          color: '#007AFF',
+          fillColor: '#007AFF',
+          fillOpacity: 0.1,
+          weight: 1,
+          opacity: 0.6
+        }).addTo(mapInstanceRef.current);
+      }
+    }
+
+    return () => {
+      if (accuracyCircleRef.current && mapInstanceRef.current) {
+        mapInstanceRef.current.removeLayer(accuracyCircleRef.current);
+      }
+    };
+  }, [hasLocationAccess, userLocation, flyToLocation]);
+
+  // Set nearest office as selected
+  useEffect(() => {
+    if (nearestOffice && !selectedOffice && !manualEntry && hasLocationAccess && !state?.selectedOffice) {
+      setSelectedOffice(nearestOffice);
+      setBottomSheetState('peek');
+    }
+  }, [nearestOffice, selectedOffice, manualEntry, hasLocationAccess, setSelectedOffice, state?.selectedOffice]);
+
+  // Handle base map changes
+  useEffect(() => {
+    if (!mapInstanceRef.current || !tileLayersRef.current.standard) return;
+
+    Object.values(tileLayersRef.current).forEach(layer => {
+      if (mapInstanceRef.current.hasLayer(layer)) {
+        mapInstanceRef.current.removeLayer(layer);
+      }
+    });
+
+    if (tileLayersRef.current[baseMap]) {
+      tileLayersRef.current[baseMap].addTo(mapInstanceRef.current);
+    }
+  }, [baseMap]);
+
+  // Clear routing error after delay
+  useEffect(() => {
+    if (routingError) {
+      const timer = setTimeout(() => {
+        setRoutingError(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [routingError]);
+
+  // Handle panel backdrop visibility
+  useEffect(() => {
+    if (!isListPanelOpen && !isLayerPanelOpen) {
+      setIsPanelBackdropVisible(false);
+    }
+  }, [isListPanelOpen, isLayerPanelOpen]);
+
+  const isDiaspora = selectedOffice?.type === 'diaspora';
 
   // General event cleanup
   useEffect(() => {
@@ -1107,8 +1066,8 @@ const IEBCOfficeMap = () => {
             title={`View more about ${selectedOffice.constituency_name || selectedOffice.county}`}
           >
             <div className={`px-4 py-3 rounded-2xl shadow-xl backdrop-blur-xl flex items-center space-x-3 border ${isDark
-                ? 'bg-ios-blue-600/90 border-white/20 text-white'
-                : 'bg-ios-blue/90 border-ios-blue/30 text-white'
+              ? 'bg-ios-blue-600/90 border-white/20 text-white'
+              : 'bg-ios-blue/90 border-ios-blue/30 text-white'
               }`}>
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center shrink-0 shadow-inner border border-white/10">
                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
