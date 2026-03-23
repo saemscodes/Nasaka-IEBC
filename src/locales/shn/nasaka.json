@@ -57,7 +57,9 @@
     "far": "Manze ni kadistance",
     "location": "Location",
     "locationUnavailable": "Location imekosekana",
-    "officeName": "Office ya IEBC"
+    "officeName": "Office ya IEBC",
+    "diasporaTitle": "Diaspora Centre",
+    "diasporaBadge": "Diaspora Registration Centre"
   },
   "bottomSheet": {
     "locationAccessRequired": "Itabidi tupate hiyo access ya location",
@@ -118,7 +120,8 @@
     "trafficSurchargeIncluded": "Cost plus ukiongeza za kabej [jam]",
     "coordinatesCopied": "Coordinates zimecopy kwa clipboard!",
     "copyCoordinatesPrompt": "Copy coordinates:",
-    "moreOnOffice": "Mambo zaidi kuhusu {{officeName}}"
+    "moreOnOffice": "Mambo mwecheche kuhusu {{officeName}}",
+    "moreAboutArea": "MAMBO MWECHECHE KUHUSU {{area}}"
   },
   "officeList": {
     "searchResults": "Si tumepata hivi",

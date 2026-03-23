@@ -37,7 +37,9 @@
     "far": "Mbali",
     "location": "Eneo",
     "locationUnavailable": "Eneo Halipo",
-    "officeName": "Ofisi ya IEBC"
+    "officeName": "Ofisi ya IEBC",
+    "diasporaTitle": "Kituo cha Diaspora",
+    "diasporaBadge": "Kituo cha Usajili wa Diaspora"
   },
   "bottomSheet": {
     "locationAccessRequired": "Ufikiaji wa Eneo Unahitajika",
@@ -89,7 +91,8 @@
     "distanceAway": "Uko mita {{distance}} mbali. Tafadhali sogea ndani ya mita {{maxDistance}} kutoka ofisi ili kuthibitisha.",
     "confirmationFailed": "Imeshindwa kuwasilisha uthibitisho. Tafadhali jaribu tena.",
     "locationPermissionRequired": "Ruhusa ya eneo inahitajika kuthibitisha. Tafadhali wezesha ufikiaji wa eneo na ujaribu tena.",
-    "moreOnOffice": "Zaidi kuhusu {{officeName}}"
+    "moreOnOffice": "Zaidi kuhusu {{officeName}}",
+    "moreAboutArea": "ZAIDI KUHUSU {{area}}"
   },
   "officeList": {
     "searchResults": "Matokeo ya Utafutaji",

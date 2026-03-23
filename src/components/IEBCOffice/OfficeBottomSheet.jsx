@@ -1049,7 +1049,7 @@ const OfficeBottomSheet = ({
                           let area = '';
 
                           if (type === 'diaspora') {
-                            area = mission_name && country ? `${mission_name}, ${country}` : (mission_name || country || office.city);
+                            area = mission_name && country ? `${mission_name}, ${country}` : (mission_name || country || office.city || 'Diaspora Office');
                           } else if (constituency_name && county) {
                             area = `${constituency_name}, ${county}`;
                           } else if (county) {
@@ -1066,7 +1066,7 @@ const OfficeBottomSheet = ({
                             area = office.city || office.country || t('common.thisArea', 'this Area');
                           }
 
-                          return t('bottomSheet.moreAboutArea', { area: area.toUpperCase() }) || `MORE ABOUT ${area.toUpperCase()}`;
+                          return t('bottomSheet.moreAboutArea', { area: (area || '').toUpperCase() }) || `MORE ABOUT ${(area || '').toUpperCase()}`;
                         })()}
                       </span>
                       <svg className="w-5 h-5 shrink-0 transform group-hover:translate-x-1 transition-transform duration-300 z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -92,7 +92,9 @@ const resources: LanguageResources = {
         far: "Far",
         location: "Location",
         locationUnavailable: "Location Unavailable",
-        officeName: "IEBC Office"
+        officeName: "IEBC Office",
+        diasporaTitle: "Diaspora Centre",
+        diasporaBadge: "Diaspora Registration Centre"
       },
       bottomSheet: {
         locationAccessRequired: "Location Access Required",
@@ -133,9 +135,11 @@ const resources: LanguageResources = {
         helpVerify: "Help verify this office",
         confirmThis: "Confirm This Office Is Real",
         youConfirmed: "You've confirmed this location",
-        peopleConfirmed_one: "{{count}} person has confirmed this location",
-        peopleConfirmed_other: "{{count}} people have confirmed this location",
-        within500m: "You must be within 500m of the office",
+        confirmations: "{{count}} confirmations",
+        confirmations_one: "{{count}} confirmation",
+        confirmations_other: "{{count}} confirmations",
+        confirmAccuracy: "Confirm Office Accuracy",
+        confirmAccuracyDesc: "Help verify this office location is accurate",
         locationNotStored: "Your exact location is not stored",
         oneConfirmation: "Only one confirmation per device",
         startNavigation: "Start Navigation",
@@ -151,7 +155,8 @@ const resources: LanguageResources = {
         trafficSurchargeIncluded: "Prices include traffic surcharge",
         coordinatesCopied: "Coordinates copied to clipboard!",
         copyCoordinatesPrompt: "Copy coordinates:",
-        moreOnOffice: "More on {{officeName}}"
+        moreOnOffice: "More on {{officeName}}",
+        moreAboutArea: "MORE ABOUT {{area}}"
       },
       officeList: {
         searchResults: "Search Results",
