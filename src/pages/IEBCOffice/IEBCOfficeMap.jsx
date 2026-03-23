@@ -139,7 +139,8 @@ const IEBCOfficeMap = () => {
     // @ts-ignore
     tileLayersRef.current.standard = L.maplibreGL({
       style: 'https://tiles.openfreemap.org/styles/liberty',
-      attribution: '&copy; <a href="https://openfreemap.org/">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      attribution: '&copy; <a href="https://openfreemap.org/">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      crossOrigin: true
     });
 
     // Satellite view
@@ -149,7 +150,8 @@ const IEBCOfficeMap = () => {
         attribution: '&copy; <a href="https://www.esri.com/">Esri</a>',
         maxZoom: 19,
         updateWhenIdle: true,
-        keepBuffer: 2
+        keepBuffer: 2,
+        crossOrigin: true
       }
     );
 
@@ -157,7 +159,8 @@ const IEBCOfficeMap = () => {
     // @ts-ignore
     tileLayersRef.current.dark = L.maplibreGL({
       style: 'https://tiles.openfreemap.org/styles/dark-matter',
-      attribution: '&copy; <a href="https://openfreemap.org/">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      attribution: '&copy; <a href="https://openfreemap.org/">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      crossOrigin: true
     });
 
     // @ts-ignore
