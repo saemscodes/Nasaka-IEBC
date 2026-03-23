@@ -28,7 +28,7 @@ export const PWARegistration: React.FC<PWARegistrationProps> = ({
       console.log('SW Registered:', registration);
       setRegistrationComplete(true);
       onRegistered?.();
-      
+
       // Check for updates periodically
       if (registration) {
         setInterval(() => {
@@ -43,7 +43,7 @@ export const PWARegistration: React.FC<PWARegistrationProps> = ({
       console.log('App ready for offline use');
       setOfflineReady(true);
       onOfflineReady?.();
-      
+
       toast.success('App ready for offline use', {
         description: 'IEBC offices data has been cached locally',
         duration: 4000,
@@ -58,30 +58,48 @@ export const PWARegistration: React.FC<PWARegistrationProps> = ({
     }
   });
 
-  // Network status monitoring
+  // Network status monitoring with stable debounce logic
   useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      toast.success('Back online', {
-        description: 'Syncing latest data...',
-        icon: <Wifi className="w-4 h-4 text-green-500" />
-      });
+    let timeoutId: NodeJS.Timeout | null = null;
+    let lastKnownOnline = navigator.onLine;
+
+    const notifyStatusChange = (online: boolean) => {
+      if (online === lastKnownOnline) return;
+      lastKnownOnline = online;
+      setIsOnline(online);
+
+      if (online) {
+        toast.success('Back online', {
+          description: 'Syncing latest data...',
+          icon: <Wifi className="w-4 h-4 text-green-500" />
+        });
+      } else {
+        toast.warning('You are offline', {
+          description: 'Using cached data',
+          icon: <WifiOff className="w-4 h-4 text-amber-500" />
+        });
+      }
     };
 
-    const handleOffline = () => {
-      setIsOnline(false);
-      toast.warning('You are offline', {
-        description: 'Using cached data',
-        icon: <WifiOff className="w-4 h-4 text-amber-500" />
-      });
+    const handleNetworkChange = () => {
+      const isCurrentlyOnline = navigator.onLine;
+
+      // Clear existing timer if any
+      if (timeoutId) clearTimeout(timeoutId);
+
+      // Debounce for 2 seconds to filter out transient flickers
+      timeoutId = setTimeout(() => {
+        notifyStatusChange(isCurrentlyOnline);
+      }, 2000);
     };
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleNetworkChange);
+    window.addEventListener('offline', handleNetworkChange);
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      if (timeoutId) clearTimeout(timeoutId);
+      window.removeEventListener('online', handleNetworkChange);
+      window.removeEventListener('offline', handleNetworkChange);
     };
   }, []);
 
@@ -169,7 +187,7 @@ export const usePWAInstall = () => {
     try {
       await installPrompt.prompt();
       const { outcome } = await installPrompt.userChoice;
-      
+
       if (outcome === 'accepted') {
         setInstallPrompt(null);
         setCanInstall(false);

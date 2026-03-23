@@ -283,10 +283,15 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
             if (loadingFailsafeRef.current) clearTimeout(loadingFailsafeRef.current);
             await updateCacheStatus();
 
-            // Background refresh only if cache is aged but not explicitly stale by remote
+            // Background refresh only if cache is aged and we are CERTAINLY online
             if (!isOffline && cacheAge > (cacheDuration / 2)) {
-              fetchFreshData().catch(bgErr => {
-                console.warn('[useIEBCOffices] Background refresh failed (non-blocking):', bgErr?.message);
+              // Verify real internet path before background fetch to avoid "ghost" online states
+              verifyInternetPath().then(isReallyOnline => {
+                if (isReallyOnline) {
+                  fetchFreshData().catch(bgErr => {
+                    console.warn('[useIEBCOffices] Background refresh failed:', bgErr?.message);
+                  });
+                }
               });
             }
             return cached.data;
@@ -302,12 +307,14 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
 
       const cached = await getCachedOffices();
       if (!cached?.data?.length) {
-        setError(err.message || 'Failed to load IEBC offices');
+        // If NO cache and network failed, we MUST show an error
+        setError('Your internet appears to be down. Please check your connection to load the latest IEBC offices.');
       } else {
+        // If we have cache, use it and don't show a blocking error
         setOffices(cached.data);
         setLastSyncTime(new Date(cached.timestamp));
         setError(null);
-        setOfflineWarning('Using cached data - ' + (err.message || 'Network error'));
+        setOfflineWarning('Offline Mode: Using cached data from ' + new Date(cached.timestamp).toLocaleTimeString());
       }
 
       return [];
@@ -319,8 +326,16 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
   }, [enableOfflineCache, cacheDuration, isOffline, updateCacheStatus]);
 
   const fetchFreshData = async () => {
+    // SECONDARY GUARD: If we are offline, don't even try and don't throw an aggressive error
     if (isOffline) {
-      throw new Error('Device is offline - using cached data');
+      return null;
+    }
+
+    try {
+      const isReallyOnline = await verifyInternetPath();
+      if (!isReallyOnline) return null;
+    } catch {
+      return null;
     }
 
     const client = window.location.pathname.includes('/admin') ? supabaseCustom : supabase;
