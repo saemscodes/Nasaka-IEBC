@@ -81,7 +81,7 @@ const MapTilerViewer: React.FC<MapTilerViewerProps> = ({ className }) => {
 
       // Load GeoJSON data
       await loadGeoJsonLayer();
-      
+
       setLoading(false);
       toast({
         title: "Map Loaded",
@@ -128,7 +128,7 @@ const MapTilerViewer: React.FC<MapTilerViewerProps> = ({ className }) => {
           const feature = features[0];
           const properties = feature.getProperties();
           console.log('County clicked:', properties);
-          
+
           toast({
             title: "County Selected",
             description: `Clicked on: ${properties.name || 'Unknown County'}`,
@@ -205,12 +205,12 @@ const MapTilerViewer: React.FC<MapTilerViewerProps> = ({ className }) => {
             </div>
           ) : (
             <div className="relative">
-              <div 
-                ref={mapRef} 
+              <div
+                ref={mapRef}
                 className="w-full h-96"
                 style={{ height: '500px' }}
               />
-              
+
               {loading && (
                 <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 flex items-center justify-center">
                   <div className="text-center">
@@ -219,7 +219,7 @@ const MapTilerViewer: React.FC<MapTilerViewerProps> = ({ className }) => {
                   </div>
                 </div>
               )}
-              
+
               <div className="absolute top-4 right-4 z-10">
                 <Button
                   onClick={refreshMap}
@@ -232,7 +232,7 @@ const MapTilerViewer: React.FC<MapTilerViewerProps> = ({ className }) => {
               </div>
             </div>
           )}
-          
+
           <div className="p-6">
             <div className="bg-purple-50 dark:bg-purple-900/30 p-4 rounded-lg border border-purple-200 dark:border-purple-700">
               <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-2">
