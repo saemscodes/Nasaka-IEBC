@@ -261,6 +261,7 @@ export default defineConfig(({ mode }) => ({
         sourcemap: false,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
         navigateFallback: '/index.html',
+        navigateFallbackAllowlist: [/^\//],
         navigateFallbackDenylist: [/^\/_next/, /^\/static/, /^\/api\//, /^\/assets\//]
       },
       devOptions: {

@@ -38,6 +38,11 @@ CREATE TABLE IF NOT EXISTS public.operational_status_history (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
+-- If Supabase already has `operational_status_history` but it was created
+-- without `reported_at`, `CREATE TABLE IF NOT EXISTS` won't add it.
+ALTER TABLE public.operational_status_history
+ADD COLUMN IF NOT EXISTS reported_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now();
+
 CREATE INDEX IF NOT EXISTS idx_operational_status_office_id ON public.operational_status_history(office_id);
 CREATE INDEX IF NOT EXISTS idx_operational_status_reported_at ON public.operational_status_history(reported_at DESC);
 CREATE INDEX IF NOT EXISTS idx_operational_status_status ON public.operational_status_history(status);

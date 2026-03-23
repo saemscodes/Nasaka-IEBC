@@ -148,9 +148,19 @@ CREATE POLICY "Authenticated users can insert office contribution links"
 -- 5. ENSURE OPERATIONAL_STATUS_HISTORY EXISTS (Our new table)
 -- ============================================================================
 -- Add missing columns if table already exists from another migration
-ALTER TABLE public.operational_status_history
-  ADD COLUMN IF NOT EXISTS reported_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT now();
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.tables
+    WHERE table_schema = 'public'
+      AND table_name = 'operational_status_history'
+  ) THEN
+    ALTER TABLE public.operational_status_history
+      ADD COLUMN IF NOT EXISTS reported_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+      ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT now();
+  END IF;
+END $$;
 
 -- Already created in 20240215_iebc_complete_schema.sql, but ensure it exists
 CREATE TABLE IF NOT EXISTS public.operational_status_history (

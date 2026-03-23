@@ -3,8 +3,21 @@
 -- ============================================================================
 -- 1. NEARBY OFFICES FUNCTION (Geospatial query)
 -- ============================================================================
--- Drop function if it exists with different signature
-DROP FUNCTION IF EXISTS public.nearby_offices(DECIMAL, DECIMAL, DECIMAL);
+-- Drop function overloads deterministically (avoid "function name ... is not unique")
+DO $$
+DECLARE
+  r RECORD;
+BEGIN
+  FOR r IN
+    SELECT pg_get_function_identity_arguments(p.oid) AS args
+    FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public'
+      AND p.proname = 'nearby_offices'
+  LOOP
+    EXECUTE 'DROP FUNCTION IF EXISTS public.nearby_offices(' || r.args || ');';
+  END LOOP;
+END $$;
 
 CREATE OR REPLACE FUNCTION public.nearby_offices(
   user_lat DECIMAL,

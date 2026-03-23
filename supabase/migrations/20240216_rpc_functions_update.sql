@@ -65,8 +65,21 @@ CREATE INDEX idx_office_verification_stats_county ON public.office_verification_
 -- ============================================================================
 -- 3. NEW FUNCTION: GET ARCHIVED CONTRIBUTIONS
 -- ============================================================================
--- Drop function if it exists with different signature
-DROP FUNCTION IF EXISTS public.get_archived_contributions(TEXT, INTEGER, INTEGER);
+-- Drop function overloads deterministically (avoid "function name ... is not unique")
+DO $$
+DECLARE
+  r RECORD;
+BEGIN
+  FOR r IN
+    SELECT pg_get_function_identity_arguments(p.oid) AS args
+    FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public'
+      AND p.proname = 'get_archived_contributions'
+  LOOP
+    EXECUTE 'DROP FUNCTION IF EXISTS public.get_archived_contributions(' || r.args || ');';
+  END LOOP;
+END $$;
 
 CREATE OR REPLACE FUNCTION public.get_archived_contributions(
   p_action_type TEXT DEFAULT NULL,
