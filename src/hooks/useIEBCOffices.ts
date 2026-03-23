@@ -351,16 +351,16 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
           client
             .from('iebc_offices')
             .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
-            .neq('latitude', null)
-            .neq('longitude', null)
+            .not('latitude', 'is', null)
+            .not('longitude', 'is', null)
             .eq('verified', true)
             .order('county')
             .order('constituency_name'),
           client
             .from('diaspora_registration_centres')
             .select('id, mission_name, mission_type, city, country, country_code, continent, region, latitude, longitude, address, google_maps_url, phone, email, website_url, whatsapp, designation_state, designated_2017, designated_2022, designation_count, is_iebc_confirmed_2027, confirmed_2027_source_url, confirmed_2027_gazette_ref, services_2027, registration_opens_at, registration_closes_at, voting_date, registration_requirements, inquiry_contact_name, inquiry_contact_email, inquiry_notes, verified_at, verification_source, last_checked_at, is_active, created_at, updated_at, geocode_status, geocode_method, geocode_confidence, formatted_address')
-            .neq('latitude', null)
-            .neq('longitude', null)
+            .not('latitude', 'is', null)
+            .not('longitude', 'is', null)
             .order('country')
             .order('mission_name')
         ]),

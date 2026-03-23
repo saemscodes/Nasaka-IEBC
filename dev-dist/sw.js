@@ -82,7 +82,7 @@ define(['./workbox-237f2c1f'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "/index.html",
-    "revision": "0.t0hvfegc2q8"
+    "revision": "0.ghl9h3bmkhg"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("/index.html"), {
@@ -92,8 +92,9 @@ define(['./workbox-237f2c1f'], (function (workbox) { 'use strict';
   workbox.registerRoute(/^https:\/\/ftswzvqwxdwgkvfbwfpx\.supabase\.co\/rest\/v1\/.*/, new workbox.NetworkFirst({
     "cacheName": "supabase-api-cache",
     plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 100,
-      maxAgeSeconds: 86400
+      maxEntries: 50,
+      maxAgeSeconds: 86400,
+      purgeOnQuotaError: true
     }), new workbox.CacheableResponsePlugin({
       statuses: [0, 200]
     })]
@@ -101,37 +102,42 @@ define(['./workbox-237f2c1f'], (function (workbox) { 'use strict';
   workbox.registerRoute(/^https:\/\/ftswzvqwxdwgkvfbwfpx\.supabase\.co\/storage\/v1\/object\/.*\.(geojson|json)/, new workbox.CacheFirst({
     "cacheName": "geojson-cache",
     plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 50,
-      maxAgeSeconds: 604800
+      maxEntries: 20,
+      maxAgeSeconds: 604800,
+      purgeOnQuotaError: true
     })]
   }), 'GET');
   workbox.registerRoute(/^https:\/\/nominatim\.openstreetmap\.org\/.*/, new workbox.NetworkFirst({
     "cacheName": "nominatim-cache",
-    "networkTimeoutSeconds": 10,
+    "networkTimeoutSeconds": 15,
     plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 100,
-      maxAgeSeconds: 2592000
+      maxEntries: 20,
+      maxAgeSeconds: 2592000,
+      purgeOnQuotaError: true
     })]
   }), 'GET');
   workbox.registerRoute(/\.(?:png|jpg|jpeg|svg|gif|webp)$/, new workbox.CacheFirst({
     "cacheName": "images-cache",
     plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 200,
-      maxAgeSeconds: 2592000
+      maxEntries: 50,
+      maxAgeSeconds: 2592000,
+      purgeOnQuotaError: true
     })]
   }), 'GET');
   workbox.registerRoute(/\.(?:js|css)$/, new workbox.StaleWhileRevalidate({
     "cacheName": "static-resources-cache",
     plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 200,
-      maxAgeSeconds: 2592000
+      maxEntries: 50,
+      maxAgeSeconds: 2592000,
+      purgeOnQuotaError: true
     })]
   }), 'GET');
   workbox.registerRoute(/^https:\/\/.*\.?tile\.openstreetmap\.org\/.*/, new workbox.CacheFirst({
     "cacheName": "osm-tiles-cache",
     plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 200,
-      maxAgeSeconds: 2592000
+      maxEntries: 20,
+      maxAgeSeconds: 2592000,
+      purgeOnQuotaError: true
     }), new workbox.CacheableResponsePlugin({
       statuses: [0, 200]
     })]
@@ -139,18 +145,20 @@ define(['./workbox-237f2c1f'], (function (workbox) { 'use strict';
   workbox.registerRoute(/^https:\/\/server\.arcgisonline\.com\/ArcGIS\/rest\/services\/World_Imagery\/MapServer\/tile\/.*/, new workbox.CacheFirst({
     "cacheName": "satellite-tiles-cache",
     plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 100,
-      maxAgeSeconds: 2592000
+      maxEntries: 10,
+      maxAgeSeconds: 2592000,
+      purgeOnQuotaError: true
     }), new workbox.CacheableResponsePlugin({
       statuses: [0, 200]
     })]
   }), 'GET');
   workbox.registerRoute(/^https:\/\/api\.openrouteservice\.org\/.*/, new workbox.NetworkFirst({
     "cacheName": "ors-routing-cache",
-    "networkTimeoutSeconds": 10,
+    "networkTimeoutSeconds": 15,
     plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 50,
-      maxAgeSeconds: 86400
+      maxEntries: 10,
+      maxAgeSeconds: 86400,
+      purgeOnQuotaError: true
     }), new workbox.CacheableResponsePlugin({
       statuses: [0, 200]
     })]
