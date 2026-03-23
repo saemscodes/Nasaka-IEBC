@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useSearchParams, useParams } from 'react-rout
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '@/contexts/ThemeContext';
 import MapContainer from '@/components/IEBCOffice/MapContainer';
 import SearchBar from '@/components/IEBCOffice/SearchBar';
 import GeoJSONLayerManager, { searchNearbyOffices } from '@/components/IEBCOffice/GeoJSONLayerManager';
@@ -38,6 +39,9 @@ const IEBCOfficeMap = () => {
   const stateUserLocation = state?.userLocation;
   const manualEntry = state?.manualEntry;
   const { t } = useTranslation('nasaka');
+  const { theme } = useTheme();
+
+  const isDark = theme === 'dark';
 
   // Fix 5: Recover userLocation from sessionStorage if not in navigation state
   const userLocation = useMemo(() => {
