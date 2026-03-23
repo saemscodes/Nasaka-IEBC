@@ -639,7 +639,7 @@ const SearchBar = ({
       </div>
 
       {/* Enhanced CSS for better glassmorphism and contrast */}
-      <style jsx>{`
+      <style>{`
         /* Enhanced glassmorphism with better backdrop support */
         .backdrop-blur-3xl {
           backdrop-filter: blur(48px);

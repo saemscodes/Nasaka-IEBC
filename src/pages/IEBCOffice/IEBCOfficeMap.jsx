@@ -93,6 +93,9 @@ const IEBCOfficeMap = () => {
   const [travelInsights, setTravelInsights] = useState({});
   const [showOfflineDownloader, setShowOfflineDownloader] = useState(false);
   const [mapMode, setMapMode] = useState('kenya');
+  const [radiusCenter, setRadiusCenter] = useState(null);
+  const [radiusKm, setRadiusKm] = useState(5);
+  const [isRadiusAnimating, setIsRadiusAnimating] = useState(false);
 
   // Handle URL query parameters from browser search bar
   useEffect(() => {
