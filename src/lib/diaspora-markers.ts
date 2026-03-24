@@ -7,30 +7,30 @@ import L from 'leaflet';
 export type DiasporaState = 'embassy_only' | 'embassy_probable' | 'iebc_confirmed';
 
 const MARKER_CONFIGS: Record<DiasporaState, { color: string; opacity: number; label: string; badgeText: string }> = {
-    embassy_only: {
-        color: '#007AFF',
-        opacity: 0.7,
-        label: 'Kenyan Mission',
-        badgeText: 'Embassy',
-    },
-    embassy_probable: {
-        color: '#D97706',
-        opacity: 0.9,
-        label: 'Likely IEBC Centre',
-        badgeText: 'Probable',
-    },
-    iebc_confirmed: {
-        color: '#16A34A',
-        opacity: 1.0,
-        label: 'IEBC Registration Centre',
-        badgeText: 'Confirmed',
-    },
+  embassy_only: {
+    color: '#16A34A',
+    opacity: 0.7,
+    label: 'Kenyan Mission',
+    badgeText: 'Embassy',
+  },
+  embassy_probable: {
+    color: '#D97706',
+    opacity: 0.9,
+    label: 'Likely IEBC Centre',
+    badgeText: 'Probable',
+  },
+  iebc_confirmed: {
+    color: '#1E6BFF',
+    opacity: 1.0,
+    label: 'IEBC Registration Centre',
+    badgeText: 'Confirmed',
+  },
 };
 
 export function buildDiasporaMarkerIcon(state: DiasporaState): L.DivIcon {
-    const config = MARKER_CONFIGS[state];
+  const config = MARKER_CONFIGS[state];
 
-    const svg = `
+  const svg = `
     <svg width="32" height="40" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <filter id="dshadow-${state}" x="-20%" y="-20%" width="140%" height="140%">
@@ -58,50 +58,50 @@ export function buildDiasporaMarkerIcon(state: DiasporaState): L.DivIcon {
     </svg>
   `;
 
-    return L.divIcon({
-        html: svg,
-        iconSize: [32, 40],
-        iconAnchor: [16, 40],
-        popupAnchor: [0, -40],
-        className: '',
-    });
+  return L.divIcon({
+    html: svg,
+    iconSize: [32, 40],
+    iconAnchor: [16, 40],
+    popupAnchor: [0, -40],
+    className: '',
+  });
 }
 
 export function buildDiasporaPopup(mission: any): string {
-    const state = (mission.designation_state || 'embassy_only') as DiasporaState;
-    const config = MARKER_CONFIGS[state];
-    const isConfirmed = state === 'iebc_confirmed';
-    const isProbable = state === 'embassy_probable';
+  const state = (mission.designation_state || 'embassy_only') as DiasporaState;
+  const config = MARKER_CONFIGS[state];
+  const isConfirmed = state === 'iebc_confirmed';
+  const isProbable = state === 'embassy_probable';
 
-    const historicalBadges = [
-        mission.designated_2017 ? '<span style="background:#EFF4FF;color:#007AFF;font-size:9px;font-weight:700;padding:2px 6px;border-radius:99px;">2017</span>' : '',
-        mission.designated_2022 ? '<span style="background:#EFF4FF;color:#007AFF;font-size:9px;font-weight:700;padding:2px 6px;border-radius:99px;">2022</span>' : '',
-    ].filter(Boolean).join(' ');
+  const historicalBadges = [
+    mission.designated_2017 ? '<span style="background:#EFF4FF;color:#007AFF;font-size:9px;font-weight:700;padding:2px 6px;border-radius:99px;">2017</span>' : '',
+    mission.designated_2022 ? '<span style="background:#EFF4FF;color:#007AFF;font-size:9px;font-weight:700;padding:2px 6px;border-radius:99px;">2022</span>' : '',
+  ].filter(Boolean).join(' ');
 
-    const registrationWindow = isConfirmed && mission.registration_opens_at
-        ? `<div style="margin-top:8px;padding:8px;background:#F0FDF4;border-radius:8px;font-size:11px;color:#166534;">
+  const registrationWindow = isConfirmed && mission.registration_opens_at
+    ? `<div style="margin-top:8px;padding:8px;background:#F0FDF4;border-radius:8px;font-size:11px;color:#166534;">
         <strong>Registration:</strong><br>
         ${new Date(mission.registration_opens_at).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' })}
         →
         ${mission.registration_closes_at ? new Date(mission.registration_closes_at).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' }) : 'TBD'}
        </div>`
-        : '';
+    : '';
 
-    const probableNote = isProbable
-        ? `<div style="margin-top:8px;padding:8px;background:#FFFBEB;border-radius:8px;font-size:11px;color:#92400E;">
+  const probableNote = isProbable
+    ? `<div style="margin-top:8px;padding:8px;background:#FFFBEB;border-radius:8px;font-size:11px;color:#92400E;">
         <strong>⏳ Awaiting IEBC Confirmation</strong><br>
         Designated in ${mission.designation_count || 0} previous election${(mission.designation_count || 0) > 1 ? 's' : ''}. Likely to be confirmed for 2027.
        </div>`
-        : '';
+    : '';
 
-    const embassyOnlyNote = !isConfirmed && !isProbable
-        ? `<div style="margin-top:8px;padding:8px;background:#EFF4FF;border-radius:8px;font-size:11px;color:#1E40AF;">
+  const embassyOnlyNote = !isConfirmed && !isProbable
+    ? `<div style="margin-top:8px;padding:8px;background:#EFF4FF;border-radius:8px;font-size:11px;color:#1E40AF;">
         <strong>📋 Inquiry Centre</strong><br>
         Not yet designated as an IEBC registration centre. Contact for diaspora voter queries.
        </div>`
-        : '';
+    : '';
 
-    return `
+  return `
     <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-width:220px;max-width:280px;">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
         <span style="background:${config.color};color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;text-transform:uppercase;letter-spacing:0.05em;">

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Heart, X, Gift, Copy, ExternalLink, ZoomIn } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Heart, X, Gift, ExternalLink, ZoomIn } from 'lucide-react';
 
 type DonationOptionBase = {
   id: string;
@@ -25,13 +24,13 @@ type DonationOptionBase = {
 const DONATION_OPTIONS: DonationOptionBase[] = [
   {
     id: 'mpesa_paybill',
-    name: 'M-Pesa Paybill',
+    name: 'M-Pesa, Airtel Money or Card transaction',
     type: 'paybill',
     icon: '🏦',
     description: 'Donate via Paybill (scan QR code below)',
     paybillNumber: '4573966',
     accountNumber: '39928',
-    qrImageSrc: '/assets/qr-code-donations.png',
+    qrImageSrc: '/assets/QR-CEKA.png',
     extraActions: [
       {
         label: 'Copy Details',
@@ -72,19 +71,11 @@ interface DonationWidgetProps {
   onClose?: () => void;
 }
 
-const safeCopy = async (text: string, toast: any) => {
+const safeCopy = async (text: string) => {
   try {
     await navigator.clipboard.writeText(text);
-    toast?.({
-      title: 'Copied',
-      description: 'Copied to clipboard',
-      duration: 2500
-    });
   } catch (err) {
-    const fallback = window.prompt('Copy this text:', text);
-    if (fallback !== null && toast) {
-      toast({ title: 'Copied', description: 'Copied to clipboard (fallback)', duration: 2500 });
-    }
+    window.prompt('Copy this text:', text);
   }
 };
 
@@ -94,10 +85,10 @@ const safeOpen = (href?: string) => {
 };
 
 // QR Modal Component
-const QRModal = ({ isOpen, onClose, qrImageSrc, title }: { 
-  isOpen: boolean; 
-  onClose: () => void; 
-  qrImageSrc: string; 
+const QRModal = ({ isOpen, onClose, qrImageSrc, title }: {
+  isOpen: boolean;
+  onClose: () => void;
+  qrImageSrc: string;
   title: string;
 }) => {
   if (!isOpen) return null;
@@ -105,11 +96,11 @@ const QRModal = ({ isOpen, onClose, qrImageSrc, title }: {
   return (
     <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4">
       {/* Backdrop with strong contrast for QR readability */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity duration-300"
         onClick={onClose}
       />
-      
+
       {/* Modal Container */}
       <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-white/20 dark:border-gray-700/20 p-6 max-w-sm w-full mx-auto">
         {/* Header */}
@@ -128,8 +119,8 @@ const QRModal = ({ isOpen, onClose, qrImageSrc, title }: {
 
         {/* QR Code Image */}
         <div className="bg-white p-4 rounded-xl border border-gray-200 dark:border-gray-700 mb-4">
-          <img 
-            src={qrImageSrc} 
+          <img
+            src={qrImageSrc}
             alt={`${title} QR Code`}
             className="w-full h-auto object-contain rounded-lg"
           />
@@ -157,11 +148,11 @@ const QRModal = ({ isOpen, onClose, qrImageSrc, title }: {
   );
 };
 
-const DonationWidget: React.FC<DonationWidgetProps> = ({ 
-  onTimedOut, 
-  isVisible: controlledVisibility, 
-  offsetY = 140, 
-  onClose 
+const DonationWidget: React.FC<DonationWidgetProps> = ({
+  onTimedOut,
+  isVisible: controlledVisibility,
+  offsetY = 140,
+  onClose
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -171,13 +162,17 @@ const DonationWidget: React.FC<DonationWidgetProps> = ({
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [currentQrImage, setCurrentQrImage] = useState('');
   const [currentQrTitle, setCurrentQrTitle] = useState('');
-  
+
+  // Copy states
+  const [copyStateAll, setCopyStateAll] = useState<'default' | 'loading' | 'success'>('default');
+  const [copyStatePaybill, setCopyStatePaybill] = useState<'default' | 'loading' | 'success'>('default');
+  const [copyStateAccount, setCopyStateAccount] = useState<'default' | 'loading' | 'success'>('default');
+
   const widgetMountTimeRef = useRef<number>(Date.now());
   const visibilityTimerRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hoverInactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
   const opacityTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const { toast } = useToast();
 
   const clearTimers = () => {
     [visibilityTimerRef, timeoutTimerRef, hoverInactivityTimerRef, opacityTimerRef].forEach(timerRef => {
@@ -239,7 +234,7 @@ const DonationWidget: React.FC<DonationWidgetProps> = ({
     visibilityTimerRef.current = setTimeout(() => {
       setIsVisible(true);
     }, 5000);
-    
+
     timeoutTimerRef.current = setTimeout(() => {
       if (!isExpanded) {
         setIsVisible(false);
@@ -247,7 +242,7 @@ const DonationWidget: React.FC<DonationWidgetProps> = ({
         if (onTimedOut) onTimedOut();
       }
     }, MAX_WIDGET_DISPLAY_TIME);
-    
+
     return clearTimers;
   }, [isExpanded, onTimedOut, controlledVisibility]);
 
@@ -261,6 +256,28 @@ const DonationWidget: React.FC<DonationWidgetProps> = ({
       onClose();
     }
   };
+
+  // Copy Handlers
+  const handleCopyDetails = async (text: string, setState: React.Dispatch<React.SetStateAction<'default' | 'loading' | 'success'>>) => {
+    setState('loading');
+    await safeCopy(text);
+
+    // Artificial delay for UI satisfaction
+    setTimeout(() => {
+      setState('success');
+
+      // Revert after showing tick
+      setTimeout(() => {
+        setState('default');
+      }, 2000);
+    }, 400);
+  };
+
+  // Extract paybill data from DONATION_OPTIONS
+  const paybillOption = DONATION_OPTIONS.find(opt => opt.id === 'mpesa_paybill');
+  const qrImageSrc = paybillOption?.qrImageSrc || '';
+  const paybillNumber = paybillOption?.paybillNumber || '';
+  const accountNumber = paybillOption?.accountNumber || '';
 
   if (hasTimedOut || !isVisible) return null;
 
@@ -291,51 +308,45 @@ const DonationWidget: React.FC<DonationWidgetProps> = ({
             onClick={handleExpand}
           >
             <div className="relative w-40 h-10 flex items-center">
-              <div 
-                className={`absolute right-10 top-0 h-10 flex items-center transition-all duration-500 ease-out ${
-                  isHovering 
-                    ? 'opacity-100 translate-x-0' 
-                    : 'opacity-0 translate-x-4 pointer-events-none'
-                }`}
-              >
-                <div 
-                  className={`absolute inset-0 rounded-full transition-all duration-500 ease-out ${
-                    isHovering 
-                      ? 'bg-black/20 backdrop-blur-sm scale-100' 
-                      : 'bg-black/0 backdrop-blur-none scale-75'
-                  }`} 
-                />
-                <span 
-                  className={`relative px-3 py-1 text-white font-semibold text-xs whitespace-nowrap transition-all duration-500 ease-out drop-shadow-lg ${
-                    isHovering 
-                      ? 'opacity-100 scale-100' 
-                      : 'opacity-0 scale-90'
+              <div
+                className={`absolute right-10 top-0 h-10 flex items-center transition-all duration-500 ease-out ${isHovering
+                  ? 'opacity-100 translate-x-0'
+                  : 'opacity-0 translate-x-4 pointer-events-none'
                   }`}
+              >
+                <div
+                  className={`absolute inset-0 rounded-full transition-all duration-500 ease-out ${isHovering
+                    ? 'bg-black/20 backdrop-blur-sm scale-100'
+                    : 'bg-black/0 backdrop-blur-none scale-75'
+                    }`}
+                />
+                <span
+                  className={`relative px-3 py-1 text-white font-semibold text-xs whitespace-nowrap transition-all duration-500 ease-out drop-shadow-lg ${isHovering
+                    ? 'opacity-100 scale-100'
+                    : 'opacity-0 scale-90'
+                    }`}
                 >
                   Support Us
                 </span>
               </div>
-              <div 
-                className={`absolute right-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ease-out shadow-2xl ${
-                  isHovering
-                    ? 'bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 shadow-blue-500/50 scale-110'
-                    : 'bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 shadow-blue-600/40 scale-100'
-                }`}
+              <div
+                className={`absolute right-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ease-out shadow-2xl ${isHovering
+                  ? 'bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 shadow-blue-500/50 scale-110'
+                  : 'bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 shadow-blue-600/40 scale-100'
+                  }`}
               >
                 <div className="absolute inset-1 rounded-full bg-gradient-to-br from-blue-300/30 to-transparent" />
-                <Heart 
-                  className={`relative z-10 transition-all duration-300 ease-out ${
-                    isHovering 
-                      ? 'h-5 w-5 text-white drop-shadow-lg' 
-                      : 'h-4 w-4 text-white/90'
-                  }`} 
+                <Heart
+                  className={`relative z-10 transition-all duration-300 ease-out ${isHovering
+                    ? 'h-5 w-5 text-white drop-shadow-lg'
+                    : 'h-4 w-4 text-white/90'
+                    }`}
                 />
-                <div 
-                  className={`absolute inset-0 rounded-full bg-blue-400 transition-all duration-1000 ease-out ${
-                    isHovering 
-                      ? 'animate-ping opacity-20' 
-                      : 'opacity-0'
-                  }`} 
+                <div
+                  className={`absolute inset-0 rounded-full bg-blue-400 transition-all duration-1000 ease-out ${isHovering
+                    ? 'animate-ping opacity-20'
+                    : 'opacity-0'
+                    }`}
                 />
               </div>
             </div>
@@ -368,102 +379,132 @@ const DonationWidget: React.FC<DonationWidgetProps> = ({
               </div>
             </div>
             <div className="p-3">
-              <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 leading-relaxed">
-                Your support helps us continue our mission of civic education in Kenya & advances across the globe.
-              </p>
-              
-              <div className="space-y-3">
-                {DONATION_OPTIONS.map((option, index) => (
-                  <div
-                    key={option.id}
-                    className="group relative p-3 rounded-lg flex flex-col hover:bg-white/10 dark:hover:bg-gray-800/10 transition-all duration-300 border border-white/10 dark:border-gray-700/10 backdrop-blur-sm"
-                    style={{ animationDelay: `${index * 80}ms` }}
-                    aria-label={option.name}
-                  >
-                    <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-white/5 dark:via-gray-700/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    
-                    <div className="flex items-start justify-between relative z-10 mb-2">
-                      <div className="flex items-start space-x-2 flex-1 min-w-0">
-                        <div className="text-xl mt-0.5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" aria-hidden>
-                          {option.icon}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-xs text-gray-900 dark:text-white truncate">{option.name}</p>
-                          {option.description && (
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                              {option.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {option.type === 'link' && option.url && (
-                        <a
-                          href={option.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-shrink-0 px-3 py-1.5 text-xs rounded-lg flex items-center bg-white/10 dark:bg-gray-800/10 hover:bg-white/20 dark:hover:bg-gray-700/20 transition-all duration-300 text-gray-700 dark:text-gray-300 shadow ml-2"
-                        >
-                          <span>Donate</span>
-                          <ExternalLink className="h-2.5 w-2.5 ml-1" />
-                        </a>
-                      )}
-                    </div>
-
-                    {option.type === 'paybill' && (
-                      <div className="relative z-10 space-y-2">
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div className="space-y-1">
-                            <div className="font-semibold text-gray-900 dark:text-white">Paybill</div>
-                            <div className="text-gray-700 dark:text-gray-300 font-mono">{option.paybillNumber}</div>
-                          </div>
-                          <div className="space-y-1">
-                            <div className="font-semibold text-gray-900 dark:text-white">Account</div>
-                            <div className="text-gray-700 dark:text-gray-300 font-mono">{option.accountNumber}</div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between space-x-2">
-                          {option.qrImageSrc && (
-                            <div className="flex-shrink-0 relative">
-                              <img 
-                                src={option.qrImageSrc} 
-                                alt={`${option.name} QR Code`} 
-                                className="w-14 h-14 object-contain rounded border border-gray-200 dark:border-gray-700 cursor-pointer hover:scale-105 transition-transform duration-200"
-                                onClick={() => openQrModal(option.qrImageSrc!, option.name)}
-                              />
-                              <div className="absolute -top-1 -right-1 bg-blue-500 rounded-full p-0.5">
-                                <ZoomIn className="h-2.5 w-2.5 text-white" />
-                              </div>
-                            </div>
-                          )}
-                          
-                          <div className="flex-1 flex flex-col space-y-1">
-                            {Array.isArray(option.extraActions) && option.extraActions.map((act, i) => (
-                              <button
-                                key={i}
-                                onClick={() => {
-                                  if (act.onClickAction === 'copy' && act.value) safeCopy(act.value, toast);
-                                  else if (act.onClickAction === 'tel' && act.value) window.location.href = `tel:${act.value}`;
-                                  else if (act.href) safeOpen(act.href);
-                                }}
-                                className="w-full px-2 py-1.5 text-xs rounded flex items-center justify-center bg-white/10 dark:bg-gray-800/10 hover:bg-white/20 dark:hover:bg-gray-700/20 transition-all duration-300 text-gray-700 dark:text-gray-300 shadow"
-                                aria-label={act.label || `${option.name} action`}
-                              >
-                                {act.onClickAction === 'copy' && <Copy className="h-2.5 w-2.5 mr-1" />}
-                                <span>{act.label}</span>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+              {/* Large QR Code Container */}
+              <div className="mb-5 px-2">
+                <div
+                  className="w-full bg-white/5 dark:bg-gray-800/5 rounded-xl p-4 border border-white/20 dark:border-gray-700/20 cursor-pointer hover:scale-[1.02] transition-transform duration-200"
+                  onClick={() => openQrModal(qrImageSrc, 'M-Pesa, Airtel Money or Card transactions')}
+                >
+                  <img
+                    src={qrImageSrc}
+                    alt="Donation QR Code"
+                    className="w-full h-auto object-contain rounded-lg"
+                  />
+                </div>
               </div>
-              
+
+              {/* Paybill & Account Numbers */}
+              <div className="space-y-3 mb-5">
+                <div className="text-center">
+                  <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Paybill Number</div>
+                  <button
+                    onClick={() => handleCopyDetails(paybillNumber, setCopyStatePaybill)}
+                    disabled={copyStatePaybill !== 'default'}
+                    className="group relative text-2xl font-mono font-bold text-gray-900 dark:text-white tracking-wider bg-white/10 dark:bg-gray-800/10 inline-flex items-center justify-center min-w-[140px] h-[44px] px-4 rounded-lg hover:shadow-[0_0_20px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_0_20px_rgba(255,255,255,0.25)] hover:bg-white/20 dark:hover:bg-gray-700/30 hover:scale-[1.02] transition-all duration-500 ease-out overflow-hidden"
+                  >
+                    <div className="relative flex items-center justify-center w-full h-full">
+                      <span
+                        className={`absolute transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${copyStatePaybill === 'default'
+                          ? 'opacity-100 scale-100 transform-none group-hover:text-gray-700 dark:group-hover:text-gray-200'
+                          : 'opacity-0 scale-90 pointer-events-none'
+                          }`}
+                      >
+                        {paybillNumber}
+                      </span>
+                      <img
+                        src="/icons/loading-2.1-svgrepo-com.svg"
+                        className={`absolute h-6 w-6 dark:invert transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${copyStatePaybill === 'loading'
+                          ? 'opacity-70 scale-100 animate-spin'
+                          : 'opacity-0 scale-50 pointer-events-none'
+                          }`}
+                        alt="Loading"
+                      />
+                      <img
+                        src="/icons/tick-circle-svgrepo-com.svg"
+                        className={`absolute h-7 w-7 dark:invert transition-all duration-500 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] ${copyStatePaybill === 'success'
+                          ? 'opacity-100 scale-110 drop-shadow-[0_0_8px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]'
+                          : 'opacity-0 scale-50 pointer-events-none'
+                          }`}
+                        alt="Success"
+                      />
+                    </div>
+                  </button>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Account Number</div>
+                  <button
+                    onClick={() => handleCopyDetails(accountNumber, setCopyStateAccount)}
+                    disabled={copyStateAccount !== 'default'}
+                    className="group relative text-2xl font-mono font-bold text-gray-900 dark:text-white tracking-wider bg-white/10 dark:bg-gray-800/10 inline-flex items-center justify-center min-w-[140px] h-[44px] px-4 rounded-lg hover:shadow-[0_0_20px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_0_20px_rgba(255,255,255,0.25)] hover:bg-white/20 dark:hover:bg-gray-700/30 hover:scale-[1.02] transition-all duration-500 ease-out overflow-hidden"
+                  >
+                    <div className="relative flex items-center justify-center w-full h-full">
+                      <span
+                        className={`absolute transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${copyStateAccount === 'default'
+                          ? 'opacity-100 scale-100 transform-none group-hover:text-gray-700 dark:group-hover:text-gray-200'
+                          : 'opacity-0 scale-90 pointer-events-none'
+                          }`}
+                      >
+                        {accountNumber}
+                      </span>
+                      <img
+                        src="/icons/loading-2.1-svgrepo-com.svg"
+                        className={`absolute h-6 w-6 dark:invert transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${copyStateAccount === 'loading'
+                          ? 'opacity-70 scale-100 animate-spin'
+                          : 'opacity-0 scale-50 pointer-events-none'
+                          }`}
+                        alt="Loading"
+                      />
+                      <img
+                        src="/icons/tick-circle-svgrepo-com.svg"
+                        className={`absolute h-7 w-7 dark:invert transition-all duration-500 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] ${copyStateAccount === 'success'
+                          ? 'opacity-100 scale-110 drop-shadow-[0_0_8px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]'
+                          : 'opacity-0 scale-50 pointer-events-none'
+                          }`}
+                        alt="Success"
+                      />
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Copy Details Button */}
               <button
-                className="w-full mt-4 py-2.5 rounded-lg font-semibold bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 text-white transition-all duration-300 shadow-lg hover:shadow-blue-500/25 hover:scale-[1.02] backdrop-blur-sm text-xs"
+                onClick={() => handleCopyDetails(`Paybill: ${paybillNumber}, Account: ${accountNumber}`, setCopyStateAll)}
+                disabled={copyStateAll !== 'default'}
+                className="w-full relative py-2.5 mb-3 rounded-lg font-semibold bg-white/20 dark:bg-gray-800/20 hover:bg-white/30 dark:hover:bg-gray-700/30 text-gray-800 dark:text-gray-200 hover:shadow-[0_0_20px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_0_20px_rgba(255,255,255,0.25)] transition-all duration-500 ease-out backdrop-blur-sm overflow-hidden h-[44px]"
+              >
+                <div className="relative flex items-center justify-center w-full h-full">
+                  <div
+                    className={`absolute flex items-center justify-center space-x-2 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${copyStateAll === 'default'
+                      ? 'opacity-100 scale-100'
+                      : 'opacity-0 scale-90 pointer-events-none'
+                      }`}
+                  >
+                    <img src="/icons/copy-svgrepo-com.svg" className="h-4 w-4 dark:invert opacity-80" alt="Copy" />
+                    <span>Copy Details</span>
+                  </div>
+                  <img
+                    src="/icons/loading-2.1-svgrepo-com.svg"
+                    className={`absolute h-5 w-5 dark:invert transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${copyStateAll === 'loading'
+                      ? 'opacity-80 scale-100 animate-spin'
+                      : 'opacity-0 scale-50 pointer-events-none'
+                      }`}
+                    alt="Loading"
+                  />
+                  <img
+                    src="/icons/tick-circle-svgrepo-com.svg"
+                    className={`absolute h-5 w-5 dark:invert transition-all duration-500 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] ${copyStateAll === 'success'
+                      ? 'opacity-100 scale-125 drop-shadow-[0_0_8px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]'
+                      : 'opacity-0 scale-50 pointer-events-none'
+                      }`}
+                    alt="Success"
+                  />
+                </div>
+              </button>
+
+              {/* Close Button */}
+              <button
+                className="w-full py-2.5 rounded-lg font-semibold bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 text-white transition-all duration-300 shadow-lg hover:shadow-blue-500/25 hover:scale-[1.02] backdrop-blur-sm text-xs"
                 onClick={handleCollapse}
               >
                 Maybe Later
@@ -474,7 +515,7 @@ const DonationWidget: React.FC<DonationWidgetProps> = ({
       </div>
 
       {/* QR Modal */}
-      <QRModal 
+      <QRModal
         isOpen={isQrModalOpen}
         onClose={closeQrModal}
         qrImageSrc={currentQrImage}

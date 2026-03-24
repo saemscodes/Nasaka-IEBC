@@ -1058,11 +1058,11 @@ const IEBCOfficeMap = () => {
       <AnimatePresence>
         {selectedOffice && currentRoute && (
           <motion.div
-            initial={{ opacity: 0, x: -20, y: routeBadgePosition.y + 110 }}
+            initial={{ opacity: 0, x: -20, y: routeBadgePosition.y + 120 }}
             animate={{
               opacity: 1,
               x: routeBadgePosition.x,
-              y: routeBadgePosition.y + 105,
+              y: routeBadgePosition.y + 120,
               scale: isDraggingRouteBadge ? 0.95 : 1
             }}
             exit={{ opacity: 0, scale: 0.8, x: -20 }}
@@ -1086,7 +1086,7 @@ const IEBCOfficeMap = () => {
                 </svg>
               </div>
               <div className="flex flex-col min-w-0 pr-1">
-                <span className="text-[10px] font-black uppercase tracking-widest opacity-80 leading-none mb-0.5">Explore Area</span>
+                <span className="text-[10px] font-black uppercase tracking-widest opacity-80 leading-none mb-0.5">Explore</span>
                 <span className="text-sm font-black truncate max-w-[140px] leading-tight">
                   {selectedOffice.constituency_name || selectedOffice.county || 'This Area'}
                 </span>

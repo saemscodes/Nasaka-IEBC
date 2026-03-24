@@ -136,7 +136,7 @@ const OfficeDetail = () => {
                 // 1. Try exact ward match with hierarchy
                 const { data: d0, error: e0 } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
                     .ilike('ward_name', `%${wardSearch}%`)
                     .ilike('constituency_name', `%${constituencySearch}%`)
                     .limit(1)
@@ -150,7 +150,7 @@ const OfficeDetail = () => {
                 // 2. Try constituency match
                 const { data: d1, error: e1 } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
                     .ilike('constituency_name', `%${constituencySearch}%`)
                     .limit(1)
                     .maybeSingle();
@@ -163,7 +163,7 @@ const OfficeDetail = () => {
                 // 3. County-only fallback
                 const { data: d3, error: e3 } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
                     .ilike('county', countySearch)
                     .limit(1)
                     .maybeSingle();
@@ -214,7 +214,7 @@ const OfficeDetail = () => {
                 // Final fuzzy fallback on county as absolute last resort
                 const { data: fuzzyData } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
                     .ilike('county', `%${countySearch}%`)
                     .limit(1)
                     .maybeSingle();
@@ -415,7 +415,7 @@ const OfficeDetail = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Address</p>
-                            <p className="text-sm font-medium leading-tight truncate">{office.address || 'Address information being verified by community'}</p>
+                            <p className="text-sm font-medium leading-tight truncate">{office.office_location || 'Address information being verified by community'}</p>
                         </div>
                     </div>
                 </section>
@@ -517,60 +517,12 @@ const OfficeDetail = () => {
                                 <Info className="w-5 h-5 text-ios-blue" />
                                 <span className="text-sm font-medium">Constituency Code</span>
                             </div>
-                            <span className="text-xs font-mono font-bold">{office.constituency_code || '---'}</span>
+                            <span className="text-xs font-mono font-bold">{office.constituency_code != null ? String(office.constituency_code).padStart(3, '0') : '---'}</span>
                         </div>
                     </div>
                 </section>
 
-                {/* More About Area CTA (USER REQUESTED PRIORITY) */}
-                <section className="mb-4">
-                    <button
-                        onClick={() => {
-                            const countySlug = slugify(office.county || 'kenya');
-                            navigate(`/${countySlug}`);
-                        }}
-                        className={`w-full py-4 px-6 rounded-3xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-lg ${isDark
-                            ? 'bg-[#0b63c6] text-white shadow-[#0b63c6]/20 hover:bg-[#0b63c6]/90'
-                            : 'bg-[#0b63c6] text-white shadow-blue-500/20 hover:bg-[#0851a1]'
-                            }`}
-                    >
-                        <span className="font-bold text-center">
-                            {(() => {
-                                const { county, constituency_name, ward_name } = office;
-                                let area = '';
 
-                                // PRIORITY LIST:
-                                // i) CONSTITUENCY, COUNTY
-                                // ii) COUNTY
-                                // iii) WARD, CONSTITUENCY
-                                // iv) WARD, COUNTY
-                                // v) CONSTITUENCY
-                                // vi) WARD, CONSTITUENCY, COUNTY
-                                // vii) WARD
-                                if (constituency_name && county) {
-                                    area = `${constituency_name}, ${county}`; // i
-                                } else if (county) {
-                                    area = county; // ii
-                                } else if (ward_name && constituency_name) {
-                                    area = `${ward_name}, ${constituency_name}`; // iii
-                                } else if (ward_name && county) {
-                                    area = `${ward_name}, ${county}`; // iv
-                                } else if (constituency_name) {
-                                    area = constituency_name; // v
-                                } else if (ward_name && constituency_name && county) {
-                                    area = `${ward_name}, ${constituency_name}, ${county}`; // vi
-                                } else if (ward_name) {
-                                    area = ward_name; // vii
-                                } else {
-                                    area = 'this area';
-                                }
-
-                                return t('bottomSheet.moreAboutArea', { area });
-                            })()}
-                        </span>
-                        <ArrowRight className="w-5 h-5" />
-                    </button>
-                </section>
 
                 {/* Live Intelligence Section */}
                 {(liveIntelligence || intelligenceLoading) && (
@@ -712,6 +664,27 @@ const OfficeDetail = () => {
                         </div>
                     </section>
                 )}
+
+                {/* Go Back To Map CTA - Moved to bottom per user request */}
+                <section className="mb-6 mt-4">
+                    <button
+                        onClick={() => navigate('/map', {
+                            state: {
+                                selectedOffice: office,
+                                ...(savedUserLocation ? { userLocation: savedUserLocation } : {})
+                            }
+                        })}
+                        className={`w-full py-4 px-6 rounded-3xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-lg ${isDark
+                            ? 'bg-[#0b63c6] text-white shadow-[#0b63c6]/20 hover:bg-[#0b63c6]/90'
+                            : 'bg-[#0b63c6] text-white shadow-blue-500/20 hover:bg-[#0851a1]'
+                            }`}
+                    >
+                        <ArrowLeft className="w-5 h-5" />
+                        <span className="font-bold text-center uppercase tracking-wider text-sm">
+                            Go Back to Map
+                        </span>
+                    </button>
+                </section>
 
                 <footer className="text-center pt-8 opacity-40">
                     <p className="text-[10px] font-medium tracking-widest uppercase">
