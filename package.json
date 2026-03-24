@@ -20,6 +20,7 @@
     "test:lighthouse": "lhci autorun",
     "test:security": "npx gitleaks detect --source=. --verbose",
     "test:performance": "playwright test --project=performance",
+    "prebuild": "node scripts/generate-sitemap.js",
     "predeploy": "npm run build && npm run type-check",
     "postinstall": "npm run build:pwa",
     "data:extract": "python scripts/extract_pdf.py",
