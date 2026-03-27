@@ -4,10 +4,9 @@ import { getTilesForRoute, getStorageEstimate, requestPersistentStorage } from '
 import type { TileDownloadPlan } from '@/utils/tileUtils';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getWardCentroid, getConstituencyCentroid } from '@/services/centroidService';
+import { getWardCentroid } from '@/services/centroidService';
 
 // === INTERNAL SVG COMPONENTS ===
 const IconSun = ({ className = "w-4 h-4" }) => (
@@ -42,7 +41,7 @@ interface OfflineRouteDownloaderProps {
 }
 
 export interface OfflineDownloaderHandle {
-    startDownload: (mode?: 'minimal' | 'extended' | 'area') => Promise<void>;
+    startDownload: (mode?: 'minimal' | 'extended') => Promise<void>;
     status: DownloadStatus;
 }
 
@@ -67,7 +66,6 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
     const [plan, setPlan] = useState<TileDownloadPlan | null>(null);
     const [progress, setProgress] = useState(0);
     const [storageUsed, setStorageUsed] = useState<string>('');
-    const [centroid, setCentroid] = useState<{ lat: number; lng: number } | null>(null);
 
     // Extract geometry from currentRoute if available
     const routeGeometry = useMemo(() => {
@@ -93,115 +91,48 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
         });
     }, []);
 
-    // Fetch hierarchical centroid for 'area' mode (Ward or Constituency level)
-    useEffect(() => {
-        if (!office || downloadMode !== 'area') return;
-
-        const fetchCentroid = async () => {
-            const cName = office?.constituency_name || office?.constituency;
-
-            try {
-                // 1. Try STATIC Ward Centroid first
-                if (office?.ward_name) {
-                    const staticWard = await getWardCentroid(office.ward_name, cName);
-                    if (staticWard) {
-                        setCentroid(staticWard);
-                        return;
-                    }
-                }
-
-                // 2. Try STATIC Constituency Centroid
-                if (cName) {
-                    const staticConst = await getConstituencyCentroid(cName);
-                    if (staticConst) {
-                        setCentroid(staticConst);
-                        return;
-                    }
-                }
-
-                // --- Fallback to Database ---
-
-                // 3. Try DB Ward Centroid
-                if (office?.ward_name) {
-                    const { data: wardData } = await (supabase
-                        .from('wards')
-                        .select('latitude, longitude')
-                        .ilike('ward_name', office.ward_name)
-                        .ilike('constituency', cName)
-                        .maybeSingle() as any);
-
-                    if (wardData && wardData.latitude && wardData.longitude) {
-                        setCentroid({ lat: wardData.latitude, lng: wardData.longitude });
-                        return;
-                    }
-                }
-
-                // 4. Try DB Constituency Centroid
-                if (cName) {
-                    const { data: constData } = await (supabase
-                        .from('constituencies')
-                        .select('centroid_latitude, centroid_longitude')
-                        .ilike('name', cName)
-                        .maybeSingle() as any);
-
-                    if (constData && constData.centroid_latitude && constData.centroid_longitude) {
-                        setCentroid({
-                            lat: constData.centroid_latitude,
-                            lng: constData.centroid_longitude
-                        });
-                        return;
-                    }
-
-                    // 5. Fallback: Average Wards if official centroid is missing
-                    const { data: wards } = await (supabase
-                        .from('wards')
-                        .select('latitude, longitude')
-                        .ilike('constituency', cName) as any);
-
-                    if (wards && (wards as any[]).length > 0) {
-                        const validWards = (wards as any[]).filter((w: any) => w.latitude && w.longitude);
-                        if (validWards.length > 0) {
-                            const avgLat = validWards.reduce((sum: number, w: any) => sum + w.latitude, 0) / validWards.length;
-                            const avgLng = validWards.reduce((sum: number, w: any) => sum + w.longitude, 0) / validWards.length;
-                            setCentroid({ lat: avgLat, lng: avgLng });
-                            return;
-                        }
-                    }
-                }
-            } catch (err) {
-                console.error('[OfflineDownloader] Hierarchical centroid fetch failed:', err);
-            }
-
-            // 6. Final Fallback: Office coordinates
-            if (office?.latitude && office?.longitude) {
-                setCentroid({ lat: office.latitude, lng: office.longitude });
-            }
-        };
-        fetchCentroid();
-    }, [downloadMode, office?.ward_name, office?.constituency_name, office?.constituency, office?.latitude, office?.longitude]);
-
     // Calculate tile plan when geometry or mode changes
     useEffect(() => {
         if (downloadMode === 'area') {
-            if (!centroid) {
-                setPlan(null);
-                setStatus('idle');
-                return;
-            }
-            setStatus('calculating');
-            const boxDeg = 0.045; // ~5km in degrees
-            const { lat, lng } = centroid;
-            const areaCoords: [number, number][] = [
-                [lng - boxDeg, lat - boxDeg],
-                [lng + boxDeg, lat - boxDeg],
-                [lng + boxDeg, lat + boxDeg],
-                [lng - boxDeg, lat + boxDeg],
-                [lng - boxDeg, lat - boxDeg]
-            ];
-            const zoomLevels = [12, 13, 14, 15];
-            const tilePlan = getTilesForRoute(areaCoords, zoomLevels, 0);
-            setPlan(tilePlan);
-            setStatus(tilePlan.tileCount > 0 ? 'ready' : 'idle');
+            // Area mode: calculate tiles around the office ward centroid
+            const calculateAreaTiles = async () => {
+                if (!office?.ward_name && !office?.constituency_name) {
+                    setPlan(null);
+                    setStatus('idle');
+                    return;
+                }
+                setStatus('calculating');
+                try {
+                    const centroid = await getWardCentroid(
+                        office.ward_name || office.constituency_name,
+                        office.constituency_name
+                    );
+                    if (centroid) {
+                        // Generate a circular grid of coordinates around the centroid
+                        const radiusKm = 3;
+                        const numPoints = 36;
+                        const circleCoords: [number, number][] = [];
+                        for (let i = 0; i < numPoints; i++) {
+                            const angle = (2 * Math.PI * i) / numPoints;
+                            const dLat = (radiusKm / 111) * Math.cos(angle);
+                            const dLng = (radiusKm / (111 * Math.cos(centroid.lat * Math.PI / 180))) * Math.sin(angle);
+                            circleCoords.push([centroid.lng + dLng, centroid.lat + dLat]);
+                        }
+                        circleCoords.push(circleCoords[0]); // Close the loop
+                        const tilePlan = getTilesForRoute(circleCoords, [13, 14, 15], radiusKm);
+                        setPlan(tilePlan);
+                        setStatus(tilePlan.tileCount > 0 ? 'ready' : 'idle');
+                    } else {
+                        setPlan(null);
+                        setStatus('idle');
+                        toast.info('Ward centroid data not available yet.');
+                    }
+                } catch {
+                    setPlan(null);
+                    setStatus('idle');
+                }
+            };
+            calculateAreaTiles();
             return;
         }
 
@@ -217,7 +148,7 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
         const tilePlan = getTilesForRoute(routeGeometry, zoomLevels, bufferKm);
         setPlan(tilePlan);
         setStatus(tilePlan.tileCount > 0 ? 'ready' : 'idle');
-    }, [routeGeometry, downloadMode, centroid]);
+    }, [routeGeometry, downloadMode, office]);
 
     const handleDownload = async () => {
         if (status === 'downloading' || status === 'done') {
@@ -263,26 +194,6 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                 description: "Map tiles are now stored in persistent browser storage.",
                 duration: 5000
             });
-
-            // Area mode: also cache constituency office data as JSON
-            if (downloadMode === 'area' && office?.constituency_name) {
-                try {
-                    const { data: officeData } = await supabase
-                        .from('iebc_offices')
-                        .select('id, county, constituency_name, office_location, latitude, longitude, verified, ward_name')
-                        .ilike('constituency_name', office.constituency_name);
-                    if (officeData && officeData.length > 0) {
-                        const dataCache = await caches.open('nasaka-data-cache');
-                        const cacheKey = `/offline-data/constituency/${encodeURIComponent(office.constituency_name.toLowerCase())}.json`;
-                        const response = new Response(JSON.stringify(officeData), {
-                            headers: { 'Content-Type': 'application/json', 'X-Cached-At': new Date().toISOString() }
-                        });
-                        await dataCache.put(cacheKey, response);
-                    }
-                } catch (dataCacheErr) {
-                    console.warn('[OfflineDownloader] Data cache failed:', dataCacheErr);
-                }
-            }
 
             const est = await getStorageEstimate();
             if (est) setStorageUsed(`${est.usedMB} MB / ${est.quotaMB} MB (${est.percentUsed}%)`);
@@ -400,7 +311,7 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                                         }
                                     `}
                                 >
-                                    {mode === 'minimal' ? 'Route Only' : mode === 'extended' ? 'Full Corridor' : 'Area Cache'}
+                                    {mode === 'minimal' ? 'Route Only' : mode === 'extended' ? 'Full Corridor' : 'Whole Area'}
                                 </button>
                             ))}
                         </div>
@@ -409,7 +320,7 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                                 ? 'Caches 500m around the route path for lightweight offline navigation.'
                                 : downloadMode === 'extended'
                                     ? 'Caches 1.5km around the route for broader area coverage.'
-                                    : 'Caches ~5km area around the office + constituency data for full offline browsing.'}
+                                    : 'Caches the entire ward area (3km radius) for full offline access.'}
                         </p>
                     </div>
 
@@ -435,14 +346,12 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 onClick={handleDownload}
-                                disabled={status === 'calculating' || (!routeGeometry && downloadMode !== 'area') || (downloadMode === 'area' && !office?.latitude)}
+                                disabled={status === 'calculating' || (!routeGeometry && downloadMode !== 'area')}
                                 className={`w-full py-4 rounded-2xl font-black text-sm tracking-widest uppercase transition-all active:scale-[0.98] shadow-2xl
-                                    ${!routeGeometry ? 'bg-ios-gray-500 opacity-50 cursor-not-allowed' : 'bg-ios-blue text-white shadow-ios-blue/30 hover:bg-ios-blue-600'}
+                                    ${(!routeGeometry && downloadMode !== 'area') ? 'bg-ios-gray-500 opacity-50 cursor-not-allowed' : 'bg-ios-blue text-white shadow-ios-blue/30 hover:bg-ios-blue-600'}
                                 `}
                             >
-                                {downloadMode === 'area'
-                                    ? (!office?.latitude ? 'No Office Location' : status === 'calculating' ? 'Calculating...' : t('offline.startSecure', 'Protect Area'))
-                                    : (!routeGeometry ? 'Select a Route First' : status === 'calculating' ? 'Calculating...' : t('offline.startSecure', 'Protect Trip'))}
+                                {(!routeGeometry && downloadMode !== 'area') ? 'Select a Route First' : status === 'calculating' ? 'Calculating...' : downloadMode === 'area' ? t('offline.startArea', 'Cache Area') : t('offline.startSecure', 'Protect Trip')}
                             </motion.button>
                         ) : (
                             <motion.div

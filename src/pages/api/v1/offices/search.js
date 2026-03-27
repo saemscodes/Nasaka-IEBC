@@ -28,7 +28,6 @@ export async function GET(request) {
       .from('iebc_offices')
       .select(`
         *,
-        ward_name:ward,
         confirmations(count),
         operational_status_history(
           status,

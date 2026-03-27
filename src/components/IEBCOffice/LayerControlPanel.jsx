@@ -74,49 +74,44 @@ const LayerControlPanel = ({
     }
   ];
 
+  const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_API_KEY;
+
   const baseMapOptions = [
     {
       id: 'standard',
       name: 'Standard',
-      description: 'Default street map',
-      image: 'https://a.tile.openstreetmap.org/12/2405/1618.png'
+      description: 'OpenStreetMap Streets',
+      image: `https://api.maptiler.com/maps/streets-v2/static/36.8219,-1.2921,12/400x300.png?key=${MAPTILER_KEY}`
     },
     {
       id: 'satellite',
       name: 'Satellite',
-      description: 'Aerial imagery',
+      description: 'Esri World Imagery',
       image: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/12/1618/2405'
     },
     {
       id: 'dark',
       name: 'Black',
-      description: 'Night vision',
-      image: 'https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/12/2405/1618.png'
+      description: 'Night Vision (OSM Dark)',
+      image: `https://api.maptiler.com/maps/openstreetmap-dark/static/36.8219,-1.2921,12/400x300.png?key=${MAPTILER_KEY}`
     },
     {
       id: 'blue',
       name: 'Blue',
-      description: 'Oceanic focus',
-      image: 'https://cartodb-basemaps-a.global.ssl.fastly.net/rastertiles/voyager/12/2405/1618.png'
+      description: 'Voyager Oceanic',
+      image: `https://api.maptiler.com/maps/voyager/static/36.8219,-1.2921,12/400x300.png?key=${MAPTILER_KEY}`
     },
     {
       id: 'green',
       name: 'Green',
-      description: 'Terrain view',
-      image: 'https://c.tile.opentopomap.org/12/2405/1618.png'
+      description: 'Outdoor Terrain',
+      image: `https://api.maptiler.com/maps/outdoor-v2/static/36.8219,-1.2921,12/400x300.png?key=${MAPTILER_KEY}`
     },
     {
       id: 'retro',
       name: 'Retro',
-      description: 'Vintage style',
-      image: 'https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/12/2405/1618.png',
-      isRetro: true
-    },
-    {
-      id: 'poster',
-      name: 'Poster',
-      description: 'Clean dark contrast',
-      image: 'https://stamen-tiles.a.ssl.fastly.net/toner/12/2405/1618.png'
+      description: 'TomTom Classic',
+      image: 'https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/12/2405/1618.png'
     }
   ];
 
@@ -141,7 +136,7 @@ const LayerControlPanel = ({
       transition={{ type: 'spring', stiffness: 400, damping: 40 }}
       className="layer-control-panel open"
     >
-      <div className="sticky top-0 bg-card/80 backdrop-blur-2xl border-b border-border z-10 px-5 py-4" style={{ backdropFilter: 'blur(24px) saturate(200%)' }}>
+      <div className="sticky top-0 bg-card/95 backdrop-blur-xl border-b border-border z-10 px-5 py-4">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-foreground">Map Layers</h2>
@@ -164,16 +159,15 @@ const LayerControlPanel = ({
           <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
             Base Map
           </h3>
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+          <div className="grid grid-cols-2 gap-4">
             {baseMapOptions.map((option) => (
               <button
                 key={option.id}
                 onClick={() => handleBaseMapChange(option.id)}
-                className={`group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 flex-shrink-0 snap-start ${baseMap === option.id
+                className={`group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 ${baseMap === option.id
                   ? 'border-primary ring-4 ring-primary/20'
                   : 'border-transparent bg-muted/30 hover:bg-muted/50'
                   }`}
-                style={{ width: '120px' }}
               >
                 <div className="aspect-[4/3] relative">
                   <img
@@ -181,24 +175,26 @@ const LayerControlPanel = ({
                     alt={option.name}
                     className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${option.isRetro ? 'sepia-[0.6] brightness-[0.9] contrast-[1.1]' : ''
                       } ${baseMap === option.id ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'}`}
-                    loading="lazy"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-                  <div className="absolute bottom-2 left-2 right-2 text-left">
-                    <span className="block text-xs font-bold text-white">
+                  <div className="absolute bottom-3 left-3 right-3 text-left">
+                    <span className="block text-sm font-bold text-white mb-0.5">
                       {option.name}
+                    </span>
+                    <span className="block text-[10px] text-gray-300 line-clamp-1 leading-tight">
+                      {option.description}
                     </span>
                   </div>
 
                   {baseMap === option.id && (
-                    <div className="absolute top-1.5 right-1.5">
+                    <div className="absolute top-2 right-2">
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="w-5 h-5 bg-primary rounded-full flex items-center justify-center shadow-lg border-2 border-white/20"
+                        className="w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-lg border-2 border-white/20"
                       >
-                        <svg className="w-3 h-3 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                         </svg>
                       </motion.div>

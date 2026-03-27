@@ -202,8 +202,8 @@ const CommunityConfirmation = ({ contributionId, currentConfirmations = 0 }) => 
           onClick={handleConfirm}
           disabled={isConfirming}
           className={`w-full rounded-2xl py-4 px-6 font-bold text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3 shadow-lg active:scale-95 ${isDark
-              ? 'bg-green-600 text-white shadow-green-600/20 hover:bg-green-500'
-              : 'bg-green-600 text-white shadow-green-600/25 hover:bg-green-700'
+            ? 'bg-green-600 text-white shadow-green-600/20 hover:bg-green-500'
+            : 'bg-green-600 text-white shadow-green-600/25 hover:bg-green-700'
             }`}
         >
           {isConfirming ? (

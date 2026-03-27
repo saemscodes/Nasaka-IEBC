@@ -336,7 +336,6 @@ export function calculateRelevanceScore(query, text, options = {}) {
 export function calculateItemRelevanceScore(item, query, weights = {
   exactMatch: 10,
   startsWith: 5,
-  endsWith: 3,
   contains: 1,
   fuzzyMatch: 0.5
 }) {
@@ -360,8 +359,6 @@ export function calculateItemRelevanceScore(item, query, weights = {
       score += weights.exactMatch;
     } else if (normalizedField.startsWith(normalizedQuery)) {
       score += weights.startsWith;
-    } else if (normalizedField.endsWith(normalizedQuery)) {
-      score += weights.endsWith;
     } else if (normalizedField.includes(normalizedQuery)) {
       score += weights.contains;
     } else {

@@ -617,8 +617,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const [duplicateOffices, setDuplicateOffices] = useState([]);
   const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
   const [constituencyCode, setConstituencyCode] = useState(null);
-  const [pinConfirmed, setPinConfirmed] = useState(false);
-  const [showPinBubble, setShowPinBubble] = useState(false);
 
   const mapRef = useRef(null);
   const accuracyCircleRef = useRef(null);
@@ -962,57 +960,15 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     return () => clearTimeout(timeoutId);
   }, [position, formData.submitted_office_location]);
 
-  // Show pin confirm bubble when position changes in drop_pin mode
-  useEffect(() => {
-    if (position && selectedMethod === 'drop_pin' && step === 2 && !pinConfirmed) {
-      setShowPinBubble(true);
-    }
-  }, [position, selectedMethod, step, pinConfirmed]);
-
-  // Auto-advance to details when position is set and confirmed (for non-GPS methods)
+  // Auto-advance to details when position is set (for non-GPS methods)
   useEffect(() => {
     if (position && selectedMethod !== 'current_location' && step === 2) {
-      // For drop_pin: only auto-advance if pin is confirmed, with 20s fallback
-      if (selectedMethod === 'drop_pin') {
-        if (pinConfirmed) {
-          const timer = setTimeout(() => {
-            setStep(3);
-          }, 300);
-          return () => clearTimeout(timer);
-        } else {
-          // 20-second fallback timer
-          const timer = setTimeout(() => {
-            setPinConfirmed(true);
-            setShowPinBubble(false);
-            setStep(3);
-          }, 20000);
-          return () => clearTimeout(timer);
-        }
-      } else {
-        // For google_maps method, keep original 1s auto-advance
-        const timer = setTimeout(() => {
-          setStep(3);
-        }, 1000);
-        return () => clearTimeout(timer);
-      }
+      const timer = setTimeout(() => {
+        setStep(3);
+      }, 1000);
+      return () => clearTimeout(timer);
     }
-  }, [position, selectedMethod, step, pinConfirmed]);
-
-  // Handle pin confirm (tick)
-  const handlePinConfirm = useCallback(() => {
-    setPinConfirmed(true);
-    setShowPinBubble(false);
-  }, []);
-
-  // Handle pin cancel (x) — reverts to step 1
-  const handlePinCancel = useCallback(() => {
-    setShowPinBubble(false);
-    setPinConfirmed(false);
-    setPosition(null);
-    setAccuracy(null);
-    setSelectedMethod(null);
-    setStep(1);
-  }, []);
+  }, [position, selectedMethod, step]);
 
   // Method selection handlers
   const handleMethodSelect = (method) => {
@@ -1362,8 +1318,6 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
     setContributionId(null);
     setDuplicateOffices([]);
     setConstituencyCode(null);
-    setPinConfirmed(false);
-    setShowPinBubble(false);
     retryCountRef.current = 0;
 
     if (imagePreview) {
@@ -1507,47 +1461,41 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
           <motion.div
-            initial={{ opacity: 0, y: 100, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 100, scale: 0.95 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`relative w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] border ${isDark ? 'bg-black/80 border-white/10' : 'bg-white/95 border-black/5'} backdrop-blur-3xl rounded-[32px]`}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col"
           >
             {/* Header with progress indicator */}
-            <div className={`flex-shrink-0 flex items-center justify-between p-6 border-b ${isDark ? 'border-white/10' : 'border-black/5'} backdrop-blur-md bg-transparent relative z-10`}>
-              <div className="flex items-center space-x-6">
-                <h2 className={`text-xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  {step === 1 && 'Contribute Location'}
+            <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center space-x-4">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {step === 1 && 'Contribute IEBC Office Location'}
                   {step === 2 && 'Capture Location'}
                   {step === 3 && 'Office Details'}
-                  {step === 4 && 'Success'}
+                  {step === 4 && 'Submission Complete'}
                 </h2>
-
-                {/* iOS-style premium progress indicator */}
-                <div className="flex items-center gap-3">
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div
-                        key={i}
-                        className={`h-1 rounded-full transition-all duration-500 ease-out ${i <= step
-                          ? (isDark ? 'w-6 bg-ios-blue shadow-[0_0_8px_#007AFF80]' : 'w-6 bg-ios-blue')
-                          : 'w-2 bg-gray-200 opacity-50'
-                          }`}
-                      />
-                    ))}
-                  </div>
-                  <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-white/30' : 'text-black/20'}`}>
-                    Step {step < 4 ? step : 'Done'}
+                {/* iOS-style compact progress bar */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-gray-400 whitespace-nowrap">
+                    Step {step} of 4
                   </span>
+                  <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-green-500 rounded-full transition-all duration-500 ease-out"
+                      style={{ width: `${(step / 4) * 100}%` }}
+                    />
+                  </div>
                 </div>
               </div>
-
               <button
                 onClick={handleClose}
-                className={`transition-all p-2 rounded-full active:scale-90 ${isDark ? 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-black/40 hover:bg-black/10 hover:text-black'}`}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
                 aria-label="Close modal"
               >
-                <X className="w-5 h-5" />
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
@@ -1564,96 +1512,80 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
               {/* Step 1: Method Selection */}
               {step === 1 && (
                 <div className="space-y-6">
-                  <div className="text-center mb-8">
-                    <div className={`w-20 h-20 mx-auto mb-6 relative`}>
-                      <div className={`absolute inset-0 rounded-[24px] blur-2xl opacity-20 ${isDark ? 'bg-ios-blue' : 'bg-ios-blue'}`}></div>
-                      <div className={`relative w-full h-full rounded-[24px] flex items-center justify-center border shadow-lg overflow-hidden ${isDark ? 'bg-ios-gray-800/80 border-white/10' : 'bg-ios-gray-100/80 border-black/5'}`}>
-                        <img src="/icons/location-main.svg" className="w-10 h-10 object-contain" alt="Location" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
-                        <MapPin style={{ display: 'none' }} className={`w-10 h-10 ${isDark ? 'text-ios-blue' : 'text-ios-blue'}`} />
-                      </div>
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
                     </div>
-                    <h3 className={`text-2xl font-black tracking-tight mb-2 ${isDark ? 'text-white' : 'text-black'}`}>How to contribute?</h3>
-                    <p className={`text-sm font-medium opacity-50 ${isDark ? 'text-white' : 'text-black'}`}>Choose your capture method</p>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">How would you like to contribute?</h3>
+                    <p className="text-gray-600">Choose your preferred method to capture the IEBC office location</p>
                   </div>
 
                   <div className="grid grid-cols-1 gap-4">
                     <button
                       onClick={() => handleMethodSelect('current_location')}
-                      className={`p-6 rounded-[28px] border transition-all text-left focus:outline-none focus:ring-2 focus:ring-ios-green group relative overflow-hidden active:scale-[0.97] duration-300 shadow-sm hover:shadow-xl ${isDark
-                        ? 'bg-ios-gray-800/30 border-white/5 hover:bg-ios-gray-800/50'
-                        : 'bg-white border-black/5 hover:bg-ios-gray-50'}`}
+                      className="p-4 border-2 border-gray-200 rounded-2xl hover:border-green-500 hover:bg-green-50 transition-all text-left focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 active:scale-[0.98] shadow-sm hover:shadow-md duration-200"
                       aria-label="Use my current location"
                     >
-                      <div className="flex items-center space-x-5 relative z-10">
-                        <div className={`w-16 h-16 rounded-[20px] flex items-center justify-center transition-transform group-hover:scale-110 shadow-inner ${isDark ? 'bg-ios-green/10' : 'bg-ios-green/10'}`}>
-                          <img src="/icons/location-current.svg" className="w-8 h-8 object-contain" alt="" onError={(e) => { e.target.src = '/icons/compass-svgrepo-com.svg'; }} />
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center shadow-inner">
+                          <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
                         </div>
-                        <div className="flex-1">
-                          <h4 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-black'}`}>Use My Current Location</h4>
-                          <p className={`text-sm font-medium opacity-50 ${isDark ? 'text-white' : 'text-black'}`}>Capture your mobile GPS coordinates</p>
-                          <div className={`mt-2 flex items-center gap-1.5`}>
-                            <div className="w-4 h-4 rounded-full bg-ios-green/20 flex items-center justify-center">
-                              <Check className="w-2.5 h-2.5 text-ios-green" />
-                            </div>
-                            <span className="text-[10px] font-black uppercase tracking-wider text-ios-green">Most Accurate</span>
-                          </div>
-                        </div>
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center border border-black/5 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <ChevronRight className={`w-4 h-4 ${isDark ? 'text-white/30' : 'text-black/30'}`} />
+                        <div>
+                          <h4 className="font-semibold text-gray-900">Use My Current Location</h4>
+                          <p className="text-sm text-gray-600">Stand at the IEBC office and capture your GPS coordinates</p>
+                          <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                            <Check className="w-3 h-3" />
+                            Most accurate method
+                          </p>
                         </div>
                       </div>
                     </button>
 
                     <button
                       onClick={() => handleMethodSelect('drop_pin')}
-                      className={`p-6 rounded-[28px] border transition-all text-left focus:outline-none focus:ring-2 focus:ring-ios-blue group relative overflow-hidden active:scale-[0.97] duration-300 shadow-sm hover:shadow-xl ${isDark
-                        ? 'bg-ios-gray-800/30 border-white/5 hover:bg-ios-gray-800/50'
-                        : 'bg-white border-black/5 hover:bg-ios-gray-50'}`}
+                      className="p-4 border-2 border-gray-200 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-all text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.98] shadow-sm hover:shadow-md duration-200"
                       aria-label="Drop a pin on map"
                     >
-                      <div className="flex items-center space-x-5 relative z-10">
-                        <div className={`w-16 h-16 rounded-[20px] flex items-center justify-center transition-transform group-hover:scale-110 shadow-inner ${isDark ? 'bg-ios-blue/10' : 'bg-ios-blue/10'}`}>
-                          <img src="/icons/location-pin.svg" className="w-8 h-8 object-contain" alt="" onError={(e) => { e.target.src = '/icons/map-pin-svgrepo-com.svg'; }} />
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center shadow-inner">
+                          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          </svg>
                         </div>
-                        <div className="flex-1">
-                          <h4 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-black'}`}>Drop a Pin on Map</h4>
-                          <p className={`text-sm font-medium opacity-50 ${isDark ? 'text-white' : 'text-black'}`}>Manually place a marker on the map</p>
-                          <div className={`mt-2 flex items-center gap-1.5`}>
-                            <div className="w-4 h-4 rounded-full bg-ios-blue/20 flex items-center justify-center">
-                              <Check className="w-2.5 h-2.5 text-ios-blue" />
-                            </div>
-                            <span className="text-[10px] font-black uppercase tracking-wider text-ios-blue">Precise Control</span>
-                          </div>
-                        </div>
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center border border-black/5 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <ChevronRight className={`w-4 h-4 ${isDark ? 'text-white/30' : 'text-black/30'}`} />
+                        <div>
+                          <h4 className="font-semibold text-gray-900">Drop a Pin on Map</h4>
+                          <p className="text-sm text-gray-600">Manually place a pin on the exact office location</p>
+                          <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
+                            <Check className="w-3 h-3" />
+                            Good for precise placement
+                          </p>
                         </div>
                       </div>
                     </button>
 
                     <button
                       onClick={() => handleMethodSelect('google_maps')}
-                      className={`p-6 rounded-[28px] border transition-all text-left focus:outline-none focus:ring-2 focus:ring-ios-red group relative overflow-hidden active:scale-[0.97] duration-300 shadow-sm hover:shadow-xl ${isDark
-                        ? 'bg-ios-gray-800/30 border-white/5 hover:bg-ios-gray-800/50'
-                        : 'bg-white border-black/5 hover:bg-ios-gray-50'}`}
+                      className="p-4 border-2 border-gray-200 rounded-2xl hover:border-red-500 hover:bg-red-50 transition-all text-left focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 active:scale-[0.98] shadow-sm hover:shadow-md duration-200"
                       aria-label="Paste Google Maps link"
                     >
-                      <div className="flex items-center space-x-5 relative z-10">
-                        <div className={`w-16 h-16 rounded-[20px] flex items-center justify-center transition-transform group-hover:scale-110 shadow-inner ${isDark ? 'bg-ios-red/10' : 'bg-ios-red/10'}`}>
-                          <img src="/icons/location-link.svg" className="w-8 h-8 object-contain" alt="" onError={(e) => { e.target.src = '/icons/Google_Maps_icon_(2026).svg'; }} />
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center shadow-inner">
+                          <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                          </svg>
                         </div>
-                        <div className="flex-1">
-                          <h4 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-black'}`}>Paste Google Maps Link</h4>
-                          <p className={`text-sm font-medium opacity-50 ${isDark ? 'text-white' : 'text-black'}`}>Share a URL from your map app</p>
-                          <div className={`mt-2 flex items-center gap-1.5`}>
-                            <div className="w-4 h-4 rounded-full bg-ios-red/20 flex items-center justify-center">
-                              <Check className="w-2.5 h-2.5 text-ios-red" />
-                            </div>
-                            <span className="text-[10px] font-black uppercase tracking-wider text-ios-red">Fast Extraction</span>
-                          </div>
-                        </div>
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center border border-black/5 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <ChevronRight className={`w-4 h-4 ${isDark ? 'text-white/30' : 'text-black/30'}`} />
+                        <div>
+                          <h4 className="font-semibold text-gray-900">Paste Google Maps Link</h4>
+                          <p className="text-sm text-gray-600">Share a Google Maps URL or coordinates</p>
+                          <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                            <Check className="w-3 h-3" />
+                            Quick and convenient
+                          </p>
                         </div>
                       </div>
                     </button>
@@ -1756,7 +1688,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
 
                   {/* Map Preview */}
                   {(selectedMethod === 'current_location' || selectedMethod === 'drop_pin' || parseResult) && (
-                    <div className={`relative h-[480px] rounded-[32px] overflow-hidden border ${isDark ? 'border-white/10 bg-black/20' : 'border-black/5 bg-gray-100'} shadow-[inset_0_2px_10px_rgba(0,0,0,0.1)]`}>
+                    <div className="relative h-80 rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 shadow-inner">
                       <MapContainer
                         center={mapCenter}
                         zoom={mapZoom}
@@ -1795,77 +1727,41 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                         )}
                       </MapContainer>
 
-                      {/* Premium Stationary Crosshair Pin */}
+                      {/* Uber-style stationary crosshair pin overlay for "drop_pin" mode */}
                       {selectedMethod === 'drop_pin' && (
                         <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-[1000]">
                           <motion.div
-                            initial={{ y: -40, opacity: 0 }}
+                            initial={{ y: -20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
-                            transition={{ type: 'spring', damping: 15 }}
                             className="flex flex-col items-center"
                           >
-                            <div className="relative mb-6">
-                              {/* Floating Badge */}
-                              <div className="absolute -top-12 left-1/2 -translate-x-1/2 whitespace-nowrap bg-ios-blue text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-ios-blue/30 border border-white/20">
-                                Set Location
+                            {/* Floating indicator */}
+                            <div className="bg-white px-3 py-1 rounded-full shadow-lg border border-gray-100 mb-2 transform -translate-y-4">
+                              <span className="text-[10px] font-bold text-gray-800 uppercase tracking-wider">Set Location</span>
+                            </div>
+
+                            {/* The Pin */}
+                            <div className="relative">
+                              {/* Vertical line */}
+                              <div className="w-1 h-12 bg-gray-900 rounded-full shadow-xl"></div>
+                              {/* Top circle */}
+                              <div className="absolute top-0 left-1/2 -ml-3 -mt-6 w-7 h-7 bg-[#007AFF] border-4 border-white rounded-full shadow-lg flex items-center justify-center">
+                                <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                               </div>
-
-                              {/* The Pin Body */}
-                              <div className="w-10 h-10 bg-ios-blue border-[3px] border-white rounded-full shadow-2xl flex items-center justify-center">
-                                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                              </div>
-
-                              {/* Needle */}
-                              <div className="w-1 h-8 bg-ios-blue mx-auto -mt-1 rounded-full shadow-xl"></div>
-
-                              {/* Shadow/Contact Point */}
-                              <div className="w-2 h-1 bg-black/20 rounded-full blur-[2px] mx-auto mt-0.5 scale-x-[4.0]"></div>
+                              {/* Shadow/Point at bottom */}
+                              <div className="absolute bottom-0 left-1/2 -ml-1 w-2 h-2 bg-black/30 rounded-full blur-[2px] transform scale-x-150"></div>
                             </div>
                           </motion.div>
                         </div>
                       )}
 
-                      {/* Glassmorphic Overlay Controls */}
-                      <div className="absolute top-4 left-4 right-4 pointer-events-none flex flex-col items-center gap-2 z-[1001]">
-                        <motion.div
-                          initial={{ y: -20, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          className={`backdrop-blur-xl px-4 py-2 rounded-2xl shadow-xl border flex items-center gap-3 transition-colors ${isDark ? 'bg-black/60 border-white/10 text-white' : 'bg-white/80 border-white/50 text-gray-900'}`}
-                        >
-                          <div className={`w-2 h-2 rounded-full ${pinConfirmed ? 'bg-ios-green' : 'bg-ios-blue animate-pulse'}`}></div>
-                          <span className="text-xs font-black uppercase tracking-wider">
-                            {pinConfirmed ? 'Location Locked' : (selectedMethod === 'drop_pin' ? 'Pan map to center office' : 'Capturing Live coordinates')}
-                          </span>
-                        </motion.div>
-
-                        {selectedMethod === 'current_location' && accuracy && (
-                          <div className={`backdrop-blur-md px-3 py-1.5 rounded-xl border text-[10px] font-bold tracking-tight shadow-lg ${isDark ? 'bg-white/5 border-white/10 text-white/70' : 'bg-black/5 border-black/5 text-black/60'}`}>
-                            GPS PRECISION: ±{Math.round(accuracy)}m
+                      {/* Manual Adjustment Control Badge */}
+                      {selectedMethod === 'drop_pin' && (
+                        <div className="absolute top-4 left-4 right-4 pointer-events-none flex justify-center z-[1001]">
+                          <div className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-lg border border-white/50 flex items-center space-x-2">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                            <span className="text-xs font-semibold text-gray-900">Move map to adjust location</span>
                           </div>
-                        )}
-                      </div>
-
-                      {/* Pin Confirm Bubble — iOS Style */}
-                      {selectedMethod === 'drop_pin' && showPinBubble && position && !pinConfirmed && (
-                        <div className="absolute inset-0 pointer-events-none z-[1002]">
-                          <motion.div
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-8 flex pointer-events-auto gap-4"
-                          >
-                            <button
-                              onClick={handlePinCancel}
-                              className="w-14 h-14 bg-white/90 backdrop-blur-xl border border-black/5 rounded-full shadow-xl flex items-center justify-center group active:scale-90 transition-transform"
-                            >
-                              <X className="w-6 h-6 text-ios-red group-hover:scale-110 transition-transform" />
-                            </button>
-                            <button
-                              onClick={handlePinConfirm}
-                              className="w-14 h-14 bg-ios-blue border border-white/20 rounded-full shadow-xl shadow-ios-blue/40 flex items-center justify-center group active:scale-90 transition-transform"
-                            >
-                              <Check className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
-                            </button>
-                          </motion.div>
                         </div>
                       )}
                     </div>
@@ -1932,45 +1828,50 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
               {/* Step 3: Office Details Form */}
               {step === 3 && (
                 <form onSubmit={handleFormSubmit} className="space-y-6">
-                  <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-start justify-between">
                     <div>
-                      <h3 className={`text-xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>Office Information</h3>
-                      <p className={`text-sm opacity-50 ${isDark ? 'text-white' : 'text-black'}`}>Complete the verified listing</p>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">Office Information</h3>
+                      <p className="text-gray-600">Provide details about the IEBC office</p>
                     </div>
-                    {/* iOS Sub-action button */}
+                    {/* Uber-style refinement button */}
                     <button
                       type="button"
-                      onClick={() => setStep(2)}
-                      className={`px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-widest transition-all border flex items-center gap-2 active:scale-95 ${isDark ? 'bg-white/5 border-white/10 text-ios-blue hover:bg-white/10' : 'bg-ios-blue/5 border-ios-blue/10 text-ios-blue hover:bg-ios-blue/10'}`}
+                      onClick={() => {
+                        setSelectedMethod('drop_pin');
+                        setStep(2);
+                      }}
+                      className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-100 transition-colors flex items-center space-x-1 border border-blue-100"
                     >
-                      <MapPin className="w-3 h-3" />
-                      <span>Refine Pin</span>
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      </svg>
+                      <span>Adjust Pin</span>
                     </button>
                   </div>
 
-                  <div className="space-y-5">
-                    <div className="relative group">
-                      <label className={`block text-[10px] font-black uppercase tracking-widest mb-1.5 ml-1 ${isDark ? 'text-white/40' : 'text-black/40'}`}>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <label htmlFor="office-name" className="block text-sm font-medium text-gray-700 mb-1">
                         Office Name *
                       </label>
                       <input
+                        id="office-name"
                         type="text"
                         required
                         value={formData.submitted_office_location}
                         onChange={(e) => setFormData(prev => ({ ...prev, submitted_office_location: e.target.value }))}
                         placeholder="e.g., IEBC Eldoret County Office"
-                        className={`w-full px-5 py-4 rounded-2xl border transition-all outline-none focus:ring-2 focus:ring-ios-blue/50 ${isDark
-                          ? 'bg-ios-gray-800/40 border-white/10 text-white placeholder:text-white/20'
-                          : 'bg-ios-gray-50 border-black/5 text-gray-900 placeholder:text-black/20'}`}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="relative">
-                        <label className={`block text-[10px] font-black uppercase tracking-widest mb-1.5 ml-1 ${isDark ? 'text-white/40' : 'text-black/40'}`}>
+                        <label htmlFor="county" className="block text-sm font-medium text-gray-700 mb-1">
                           County *
                         </label>
                         <input
+                          id="county"
                           ref={countyInputRef}
                           type="text"
                           required
@@ -1978,19 +1879,19 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                           onChange={(e) => handleCountyInputChange(e.target.value)}
                           onFocus={() => setShowCountySuggestions(countyInput.length > 1)}
                           onBlur={() => setTimeout(() => setShowCountySuggestions(false), 200)}
-                          placeholder="Search County..."
-                          className={`w-full px-5 py-4 rounded-2xl border transition-all outline-none focus:ring-2 focus:ring-ios-blue/50 ${isDark
-                            ? 'bg-ios-gray-800/40 border-white/10 text-white placeholder:text-white/20'
-                            : 'bg-ios-gray-50 border-black/5 text-gray-900 placeholder:text-black/20'}`}
+                          placeholder="e.g., Nairobi"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                          list="county-suggestions"
                         />
 
+                        {/* County suggestions dropdown */}
                         {showCountySuggestions && countySuggestions.length > 0 && (
-                          <div className={`absolute z-20 w-full mt-2 rounded-2xl border shadow-2xl overflow-hidden backdrop-blur-xl ${isDark ? 'bg-ios-gray-800/90 border-white/10' : 'bg-white/95 border-black/5'}`}>
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                             {countySuggestions.map((county, index) => (
                               <button
                                 key={index}
                                 type="button"
-                                className={`w-full px-5 py-3 text-left text-sm font-semibold transition-colors ${isDark ? 'text-white hover:bg-white/10' : 'text-black hover:bg-black/5'}`}
+                                className="w-full px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
                                 onClick={() => handleCountySelect(county)}
                               >
                                 {county}
@@ -1998,13 +1899,20 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                             ))}
                           </div>
                         )}
+
+                        <datalist id="county-suggestions">
+                          {KENYAN_COUNTIES.map(county => (
+                            <option key={county} value={county} />
+                          ))}
+                        </datalist>
                       </div>
 
                       <div className="relative">
-                        <label className={`block text-[10px] font-black uppercase tracking-widest mb-1.5 ml-1 ${isDark ? 'text-white/40' : 'text-black/40'}`}>
+                        <label htmlFor="constituency" className="block text-sm font-medium text-gray-700 mb-1">
                           Constituency *
                         </label>
                         <input
+                          id="constituency"
                           ref={constituencyInputRef}
                           type="text"
                           required
@@ -2012,19 +1920,19 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                           onChange={(e) => handleConstituencyInputChange(e.target.value)}
                           onFocus={() => formData.submitted_county && setShowConstituencySuggestions(constituencyInput.length > 0)}
                           onBlur={() => setTimeout(() => setShowConstituencySuggestions(false), 200)}
-                          placeholder="Search..."
-                          className={`w-full px-5 py-4 rounded-2xl border transition-all outline-none focus:ring-2 focus:ring-ios-blue/50 ${isDark
-                            ? 'bg-ios-gray-800/40 border-white/10 text-white placeholder:text-white/20'
-                            : 'bg-ios-gray-50 border-black/5 text-gray-900 placeholder:text-black/20'}`}
+                          placeholder="e.g., Westlands"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                          list="constituency-suggestions"
                         />
 
+                        {/* Constituency suggestions dropdown */}
                         {showConstituencySuggestions && constituencySuggestions.length > 0 && (
-                          <div className={`absolute z-20 w-full mt-2 rounded-2xl border shadow-2xl overflow-hidden backdrop-blur-xl ${isDark ? 'bg-ios-gray-800/90 border-white/10' : 'bg-white/95 border-black/5'}`}>
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                             {constituencySuggestions.map((constituency, index) => (
                               <button
                                 key={index}
                                 type="button"
-                                className={`w-full px-5 py-3 text-left text-sm font-semibold transition-colors ${isDark ? 'text-white hover:bg-white/10' : 'text-black hover:bg-black/5'}`}
+                                className="w-full px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
                                 onClick={() => handleConstituencySelect(constituency)}
                               >
                                 {constituency}
@@ -2033,21 +1941,40 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                           </div>
                         )}
 
-                        <div className="px-1">
-                          <ConstituencyStatus
-                            constituency={formData.submitted_constituency}
-                            county={formData.submitted_county}
-                            code={constituencyCode}
-                          />
-                        </div>
+                        <datalist id="constituency-suggestions">
+                          {formData.submitted_county && CONSTITUENCY_SUGGESTIONS[formData.submitted_county]?.map(constituency => (
+                            <option key={constituency} value={constituency} />
+                          ))}
+                        </datalist>
+
+                        {/* Enhanced constituency status */}
+                        <ConstituencyStatus
+                          constituency={formData.submitted_constituency}
+                          county={formData.submitted_county}
+                          code={constituencyCode}
+                        />
                       </div>
                     </div>
 
-                    <div className="relative group">
-                      <label className={`block text-[10px] font-black uppercase tracking-widest mb-1.5 ml-1 ${isDark ? 'text-white/40' : 'text-black/40'}`}>
-                        Photo of the Office (Optional)
+                    <div>
+                      <label htmlFor="landmark" className="block text-sm font-medium text-gray-700 mb-1">
+                        Nearby Landmark (Optional)
                       </label>
-                      <div className="flex items-center gap-4">
+                      <input
+                        id="landmark"
+                        type="text"
+                        value={formData.submitted_landmark}
+                        onChange={(e) => setFormData(prev => ({ ...prev, submitted_landmark: e.target.value }))}
+                        placeholder="e.g., Next to Eldoret Post Office"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Photo of the Office (Optional but Recommended)
+                      </label>
+                      <div className="flex items-center space-x-4">
                         <label className="flex-1 cursor-pointer">
                           <input
                             ref={fileInputRef}
@@ -2057,86 +1984,102 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                             onChange={handleImageSelect}
                             className="hidden"
                           />
-                          <div className={`border-2 border-dashed rounded-[24px] p-6 text-center transition-all ${isDark
-                            ? 'border-white/10 bg-white/5 hover:border-ios-blue hover:bg-ios-blue/5'
-                            : 'border-black/5 bg-ios-gray-50 hover:border-ios-blue hover:bg-ios-blue/5'}`}>
-                            <Camera className={`w-8 h-8 mx-auto mb-2 ${isDark ? 'text-white/20' : 'text-black/20'}`} />
-                            <p className={`text-xs font-bold ${isDark ? 'text-white/40' : 'text-black/40'}`}>
-                              {imageFile ? 'Photo Staged' : 'Tap to capture or upload'}
+                          <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-gray-400 transition-colors">
+                            <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <p className="text-sm text-gray-600">
+                              {imageFile ? 'Photo selected' : 'Take or upload a photo'}
                             </p>
+                            <p className="text-xs text-gray-500 mt-1">Supports JPEG, PNG, WEBP (max 10MB)</p>
                           </div>
                         </label>
                         {imagePreview && (
-                          <div className="relative">
-                            <img src={imagePreview} alt="Preview" className="w-24 h-24 object-cover rounded-[20px] shadow-2xl border-2 border-white" />
+                          <div className="flex-shrink-0 relative">
+                            <img src={imagePreview} alt="Office preview" className="w-20 h-20 object-cover rounded-lg" />
                             <button
                               type="button"
                               onClick={handleRemoveImage}
-                              className="absolute -top-3 -right-3 bg-ios-red text-white rounded-full p-2 shadow-lg active:scale-90 transition-transform"
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                              aria-label="Remove photo"
                             >
-                              <X className="w-3 h-3" />
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
                             </button>
                           </div>
                         )}
                       </div>
+                      <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                        <Camera className="w-3 h-3" />
+                        Photos with GPS data are prioritized for fast verification
+                      </p>
                     </div>
 
-                    <div className="relative group">
-                      <label className={`block text-[10px] font-black uppercase tracking-widest mb-1.5 ml-1 ${isDark ? 'text-white/40' : 'text-black/40'}`}>
-                        Additional Landmark / Notes
+                    <div>
+                      <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+                        Additional Notes (Optional)
                       </label>
                       <textarea
-                        rows={2}
+                        id="notes"
+                        rows={3}
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
-                        placeholder="e.g., Near the main gate..."
-                        className={`w-full px-5 py-4 rounded-2xl border transition-all outline-none focus:ring-2 focus:ring-ios-blue/50 resize-none ${isDark
-                          ? 'bg-ios-gray-800/40 border-white/10 text-white placeholder:text-white/20'
-                          : 'bg-ios-gray-50 border-black/5 text-gray-900 placeholder:text-black/20'}`}
+                        placeholder="Any landmarks, building details, or other information..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
                       />
                     </div>
 
-                    <div className={`p-4 rounded-2xl border flex items-start gap-4 transition-colors ${agreement ? (isDark ? 'bg-ios-green/10 border-ios-green/30' : 'bg-ios-green/5 border-ios-green/20') : (isDark ? 'bg-white/5 border-white/10 opacity-70' : 'bg-black/5 border-black/5')}`}>
-                      <div className="pt-0.5">
-                        <input
-                          id="agreement"
-                          type="checkbox"
-                          required
-                          checked={agreement}
-                          onChange={(e) => setAgreement(e.target.checked)}
-                          className={`w-5 h-5 rounded-lg border-2 transition-all appearance-none cursor-pointer flex items-center justify-center ${agreement
-                            ? 'bg-ios-green border-ios-green checked:bg-ios-green'
-                            : 'bg-transparent border-gray-400'}`}
-                          style={{
-                            backgroundImage: agreement ? `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E")` : 'none',
-                            backgroundSize: '12px',
-                            backgroundPosition: 'center',
-                            backgroundRepeat: 'no-repeat'
-                          }}
-                        />
-                      </div>
-                      <label htmlFor="agreement" className={`text-xs font-bold leading-relaxed cursor-pointer select-none ${isDark ? 'text-white/60' : 'text-black/60'}`}>
-                        Confirm accuracy. I agree to the <span className="text-ios-blue underline">Verification Standards</span> and understand my coordinates will be used to help others.
+                    <div className="flex items-start space-x-3">
+                      <input
+                        id="agreement"
+                        type="checkbox"
+                        required
+                        checked={agreement}
+                        onChange={(e) => setAgreement(e.target.checked)}
+                        className="rounded border-gray-300 text-green-600 focus:ring-green-500 mt-1"
+                      />
+                      <label htmlFor="agreement" className="text-sm text-gray-700">
+                        I confirm this is the correct location of an IEBC office and consent to submitting my approximate location for public benefit
                       </label>
                     </div>
                   </div>
 
-                  <div className="flex space-x-4 pt-4">
+                  <div className="flex space-x-3 pt-6">
                     <button
                       type="button"
                       onClick={() => setStep(2)}
-                      className={`flex-1 px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-[12px] transition-all active:scale-95 border ${isDark
-                        ? 'bg-white/5 border-white/10 text-white'
-                        : 'bg-black/5 border-black/5 text-black'}`}
+                      className={`flex-1 px-4 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] duration-300 border shadow-md flex items-center justify-center space-x-2 ${isDark
+                        ? 'bg-ios-gray-800/40 border-white/10 text-ios-gray-400 hover:bg-ios-gray-800/60'
+                        : 'bg-ios-gray-100 border-black/5 text-ios-gray-600 hover:bg-gray-200'
+                        }`}
                     >
-                      Back
+                      <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                      </svg>
+                      <span>Back</span>
                     </button>
                     <button
                       type="submit"
                       disabled={!agreement || isSubmitting}
-                      className={`flex-1 px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-[12px] transition-all active:scale-95 shadow-xl shadow-ios-blue/30 text-white disabled:opacity-30 ${isSubmitting ? 'bg-ios-blue/50' : 'bg-ios-blue'}`}
+                      className={`flex-1 px-4 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] duration-300 shadow-xl flex items-center justify-center space-x-2 text-white disabled:opacity-50 disabled:cursor-not-allowed ${isDark
+                        ? 'bg-ios-blue-600 shadow-ios-blue/30 border border-white/10'
+                        : 'bg-ios-blue shadow-ios-blue/20 border border-black/5'
+                        }`}
                     >
-                      {isSubmitting ? 'Submitting...' : 'Upload Verified Pin'}
+                      {isSubmitting ? (
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                          <span>Submitting...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <span>Submit Contribution</span>
+                          <svg className="w-5 h-5 flex-shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 5l7 7-7 7" />
+                          </svg>
+                        </>
+                      )}
                     </button>
                   </div>
                 </form>
@@ -2144,86 +2087,66 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
 
               {/* Step 4: Submission Complete */}
               {step === 4 && (
-                <div className="text-center space-y-8 py-4">
+                <div className="text-center space-y-6">
                   {submissionSuccess ? (
-                    <motion.div
-                      initial={{ scale: 0.9, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="space-y-8"
-                    >
-                      <div className="relative w-24 h-24 mx-auto">
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ type: 'spring', damping: 12, delay: 0.2 }}
-                          className="absolute inset-0 bg-ios-green rounded-full shadow-[0_0_40px_rgba(52,199,89,0.4)] flex items-center justify-center border-4 border-white"
-                        >
-                          <Check className="w-12 h-12 text-white stroke-[4]" />
-                        </motion.div>
-                        <motion.div
-                          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0, 0] }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
-                          className="absolute inset-0 bg-ios-green rounded-full"
-                        />
+                    <>
+                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
                       </div>
-
                       <div>
-                        <h3 className={`text-2xl font-black tracking-tight mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Verification Pending</h3>
-                        <p className={`text-sm font-medium opacity-50 ${isDark ? 'text-white' : 'text-black'}`}>Your contribution is in the moderation queue</p>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Contribution Successfully Submitted!</h3>
+                        <p className="text-gray-600 mb-4">Your location data has been submitted and is now in our moderation queue.</p>
                       </div>
-
-                      <div className="grid grid-cols-1 gap-4 text-left">
-                        <div className={`p-5 rounded-[24px] border transition-all ${isDark ? 'bg-ios-green/10 border-ios-green/20' : 'bg-ios-green/5 border-ios-green/10'}`}>
-                          <h4 className={`text-[10px] font-black uppercase tracking-widest mb-3 ${isDark ? 'text-ios-green' : 'text-ios-green'}`}>Next Steps</h4>
-                          <ul className="space-y-3">
-                            {[
-                              'Our team will verify the coordinate accuracy',
-                              'Office details will be cross-referenced with DB',
-                              'Upon approval, the pin will go live globally'
-                            ].map((text, i) => (
-                              <li key={i} className="flex items-center gap-3">
-                                <div className="w-5 h-5 rounded-full bg-ios-green/20 flex items-center justify-center flex-shrink-0">
-                                  <Check className="w-3 h-3 text-ios-green" />
-                                </div>
-                                <span className={`text-xs font-bold ${isDark ? 'text-white/80' : 'text-black/70'}`}>{text}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        <div className={`p-5 rounded-[24px] border transition-all ${isDark ? 'bg-white/5 border-white/10' : 'bg-ios-gray-50 border-black/5'}`}>
-                          <div className="flex justify-between items-center mb-1">
-                            <span className={`text-[10px] font-black uppercase tracking-widest opacity-40 ${isDark ? 'text-white' : 'text-black'}`}>Contribution Ticket</span>
-                            <span className="text-[10px] font-black text-ios-blue uppercase tracking-widest bg-ios-blue/10 px-2 py-0.5 rounded-full">Active</span>
-                          </div>
-                          <p className={`text-lg font-black tracking-tight ${isDark ? 'text-white' : 'text-black'}`}>#{contributionId}</p>
+                      <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+                        <p className="text-sm text-green-700 text-left">
+                          <strong className="block mb-2">What happens next:</strong>
+                          <span className="flex items-center gap-2 mb-1"><Check className="w-3 h-3 text-green-600" /> Your submission enters our moderation queue</span>
+                          <span className="flex items-center gap-2 mb-1"><Check className="w-3 h-3 text-green-600" /> Our team will verify the location data for accuracy</span>
+                          <span className="flex items-center gap-2 mb-1"><Check className="w-3 h-3 text-green-600" /> Once approved, it will be added to the official database</span>
+                          <span className="flex items-center gap-2"><Check className="w-3 h-3 text-green-600" /> You'll be helping thousands of Kenyans find accurate IEBC office locations</span>
+                        </p>
+                      </div>
+                      <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                        <p className="text-sm text-blue-700 text-left">
+                          <strong className="block mb-1">Contribution ID: #{contributionId}</strong>
+                          <span>Keep this reference number for any inquiries about your submission.</span>
                           {constituencyCode && (
-                            <p className={`text-[10px] font-bold mt-1 opacity-50 ${isDark ? 'text-white' : 'text-black'}`}>WARD/CONST CODE: {constituencyCode}</p>
+                            <span className="block mt-1">
+                              <strong>Constituency Code:</strong> {constituencyCode}
+                            </span>
                           )}
-                        </div>
+                        </p>
                       </div>
-
-                      <div className="flex space-x-4">
+                      <div className="flex space-x-3 pt-6">
                         <button
                           onClick={handleClose}
-                          className={`flex-1 px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-[12px] transition-all active:scale-95 border ${isDark
-                            ? 'bg-white/5 border-white/10 text-white'
-                            : 'bg-black/5 border-black/5 text-black'}`}
+                          className={`flex-1 px-4 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] duration-300 border shadow-md flex items-center justify-center space-x-2 ${isDark
+                            ? 'bg-ios-gray-800/40 border-white/10 text-ios-gray-400 hover:bg-ios-gray-800/60'
+                            : 'bg-ios-gray-100 border-black/5 text-ios-gray-600 hover:bg-gray-200'
+                            }`}
                         >
-                          Dismiss
+                          <span>Continue Browsing</span>
                         </button>
                         <button
                           onClick={() => window.location.reload()}
-                          className={`flex-1 px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-[12px] transition-all active:scale-95 shadow-xl shadow-ios-blue/30 bg-ios-blue text-white`}
+                          className={`flex-1 px-4 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] duration-300 shadow-xl flex items-center justify-center space-x-2 text-white ${isDark
+                            ? 'bg-ios-blue-600 shadow-ios-blue/30 border border-white/10'
+                            : 'bg-ios-blue shadow-ios-blue/20 border border-black/5'
+                            }`}
                         >
-                          View Updates
+                          <span>Reload & See Updates</span>
+                          <svg className="w-5 h-5 flex-shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
                         </button>
                       </div>
-                    </motion.div>
+                    </>
                   ) : (
-                    <div className="py-12 flex flex-col items-center">
+                    <div className="py-8">
                       <LoadingSpinner size="large" />
-                      <p className={`mt-6 text-sm font-black uppercase tracking-widest opacity-40 animate-pulse ${isDark ? 'text-white' : 'text-black'}`}>Securing Contribution...</p>
+                      <p className="text-gray-600 mt-4">Processing your contribution...</p>
                     </div>
                   )}
                 </div>

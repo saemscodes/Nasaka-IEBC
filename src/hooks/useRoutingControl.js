@@ -151,23 +151,19 @@ export default function useRoutingControl(map, opts = {}) {
     try {
       const control = L.Routing.control(options);
 
-      // ✅ RACE CONDITION FIX (Full Ham Monkey-Patch)
-      // Fix for internal crashes in leaflet-routing-machine when an OSRM request returns after unmount.
-      // We monkey-patch key internal methods to safely check for this._map before proceeding.
-      const safelyPatch = (methodName) => {
-        const original = control[methodName];
-        if (typeof original === 'function') {
-          control[methodName] = function () {
-            if (!this._map) return; // Skip if map is null/unmounted
-            return original.apply(this, arguments);
-          };
-        }
-      };
-
-      safelyPatch('_clearLines');
-      safelyPatch('_updateLines');
-      safelyPatch('_onRoutesFound');
-      safelyPatch('_onRoutingRequest');
+      // ✅ RACE CONDITION FIX (Full Ham)
+      // Fix for internal crash in leaflet-routing-machine when an OSRM request returns after unmount.
+      // We monkey-patch _clearLines to safely check for this._map before proceeding.
+      const originalClearLines = control._clearLines;
+      if (typeof originalClearLines === 'function') {
+        control._clearLines = function () {
+          if (!this._map) {
+            // Unmount case: just skip the call instead of crashing
+            return;
+          }
+          return originalClearLines.apply(this, arguments);
+        };
+      }
 
       // Add event listeners with direct closure to 'control'
       if (onRouteFound) {

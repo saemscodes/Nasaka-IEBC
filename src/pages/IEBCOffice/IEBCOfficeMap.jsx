@@ -141,17 +141,20 @@ const IEBCOfficeMap = () => {
     initializeTileLayers(map);
   }, []);
 
-  // Initialize tile layers
+  // Initialize tile layers ✊🏽🇰🇪 🌍
   const initializeTileLayers = useCallback((map) => {
-    // OpenFreeMap — Vector-mapped GL layer
+    const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_API_KEY;
+    const TOMTOM_KEY = import.meta.env.VITE_TOMTOM_API_KEY;
+
+    // 1. MapTiler Standard (Vector)
     // @ts-ignore
     tileLayersRef.current.standard = L.maplibreGL({
-      style: 'https://tiles.openfreemap.org/styles/liberty',
-      attribution: '&copy; <a href="https://openfreemap.org/">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      style: `https://api.maptiler.com/maps/openstreetmap/style.json?key=${MAPTILER_KEY}`,
+      attribution: '&copy; <a href="https://www.maptiler.com/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       crossOrigin: true
     });
 
-    // Satellite view
+    // 2. Esri Satellite (Raster)
     tileLayersRef.current.satellite = L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
@@ -163,35 +166,41 @@ const IEBCOfficeMap = () => {
       }
     );
 
-    // Dark view (Black)
+    // 3. MapTiler Dark (The "Community Favorite" from your source)
     // @ts-ignore
     tileLayersRef.current.dark = L.maplibreGL({
-      style: 'https://tiles.openfreemap.org/styles/dark-matter',
-      attribution: '&copy; <a href="https://openfreemap.org/">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      crossOrigin: true
+      style: `https://api.maptiler.com/maps/openstreetmap-dark/style.json?key=${MAPTILER_KEY}`,
+      attribution: '&copy; <a href="https://www.maptiler.com/">MapTiler</a>'
     });
 
+    // 4. MapTiler Outdoor / Green
     // @ts-ignore
     tileLayersRef.current.green = L.maplibreGL({
-      style: 'https://tiles.openfreemap.org/styles/bright',
-      attribution: '&copy; <a href="https://openfreemap.org/">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      style: `https://api.maptiler.com/maps/outdoor-v2/style.json?key=${MAPTILER_KEY}`,
+      attribution: '&copy; <a href="https://www.maptiler.com/">MapTiler</a>'
     });
 
+    // 5. TomTom Retro Style (Historical/Classic feel)
     // @ts-ignore
-    tileLayersRef.current.retro = L.maplibreGL({
-      style: 'https://tiles.openfreemap.org/styles/liberty',
-      attribution: '&copy; <a href="https://openfreemap.org/">OpenFreeMap</a>'
-    });
+    tileLayersRef.current.retro = L.tileLayer(
+      `https://{s}.api.tomtom.com/map/1/tile/basic/main/{z}/{x}/{y}.png?key=${TOMTOM_KEY}`,
+      {
+        attribution: '&copy; <a href="https://www.tomtom.com/">TomTom</a>',
+        subdomains: 'abcd'
+      }
+    );
 
+    // 6. MapTiler Voyager / Blue
     // @ts-ignore
     tileLayersRef.current.blue = L.maplibreGL({
-      style: 'https://tiles.openfreemap.org/styles/positron',
-      attribution: '&copy; <a href="https://openfreemap.org/">OpenFreeMap</a>'
+      style: `https://api.maptiler.com/maps/voyager/style.json?key=${MAPTILER_KEY}`,
+      attribution: '&copy; <a href="https://www.maptiler.com/">MapTiler</a>'
     });
 
-    // Add default base map
-    tileLayersRef.current.standard.addTo(map);
-  }, []);
+    // Initial base map selection based on theme
+    const initialLayer = isDark ? 'dark' : 'standard';
+    tileLayersRef.current[initialLayer].addTo(map);
+  }, [isDark]);
 
   // Enhanced office selection
   const handleOfficeSelect = useCallback(async (office) => {
@@ -699,7 +708,18 @@ const IEBCOfficeMap = () => {
     }
   }, [nearestOffice, selectedOffice, manualEntry, hasLocationAccess, setSelectedOffice, state?.selectedOffice]);
 
-  // Handle base map changes
+  // 🌓 Auto-switch base map based on theme (Sync with Global Theme)
+  useEffect(() => {
+    // Only auto-switch if the user is currently on a "Standard" or "Dark" layer
+    // This allows them to stay on Satellite/Green/Retro if they manually picked it.
+    if (isDark && baseMap === 'standard') {
+      setBaseMap('dark');
+    } else if (!isDark && baseMap === 'dark') {
+      setBaseMap('standard');
+    }
+  }, [isDark, baseMap]);
+
+  // Handle base map changes and Leaflet layer lifecycle 🌍
   useEffect(() => {
     if (!mapInstanceRef.current || !tileLayersRef.current.standard) return;
 
@@ -711,8 +731,16 @@ const IEBCOfficeMap = () => {
 
     if (tileLayersRef.current[baseMap]) {
       tileLayersRef.current[baseMap].addTo(mapInstanceRef.current);
+
+      // Apply dark-mode filter to Satellite imagery to reduce eye strain 🌙
+      const mapContainer = mapInstanceRef.current.getContainer();
+      if (baseMap === 'satellite' && isDark) {
+        mapContainer.classList.add('satellite-dark-mode');
+      } else {
+        mapContainer.classList.remove('satellite-dark-mode');
+      }
     }
-  }, [baseMap]);
+  }, [baseMap, isDark]);
 
   // Clear routing error after delay
   useEffect(() => {

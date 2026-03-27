@@ -143,6 +143,7 @@ export interface IEBCOffice {
     constituency: string;
     constituency_name?: string;
     office_location: string;
+    clean_office_location?: string;
     latitude: number;
     longitude: number;
     verified: boolean;
@@ -151,6 +152,9 @@ export interface IEBCOffice {
     contact_phone?: string;
     contact_email?: string;
     opening_hours?: string;
+    // Ward hierarchy (20260321)
+    ward?: string;
+    ward_id?: string;
     // Mar 12 Enhancements
     elevation_meters?: number;
     isochrone_15min?: Record<string, any>;
@@ -162,7 +166,6 @@ export interface IEBCOffice {
     geocode_verified: boolean;
     geocode_verified_at?: string;
     multi_source_confidence?: number;
-    ward_name?: string;
     created_at: string;
     updated_at: string;
     distance_km?: number; // Computed field
@@ -173,20 +176,78 @@ export interface Ward {
     county: string;
     constituency: string;
     ward_name: string;
-    latitude: number;
-    longitude: number;
+    latitude?: number;
+    longitude?: number;
+    total_voters?: number;
+    total_count?: number;
+    registration_target?: number;
+    geocode_verified?: boolean;
+    geocode_verified_at?: string;
+    geocode_status?: string;
+    geocode_method?: string;
+    geocode_confidence?: number;
+    multi_source_confidence?: number;
+    formatted_address?: string;
     created_at: string;
 }
 
-export interface Constituency {
+export interface Confirmation {
     id: number;
-    name: string;
-    county_id: number;
-    county_name?: string;
-    centroid_latitude?: number;
-    centroid_longitude?: number;
-    registration_target?: number;
-    created_at?: string;
+    contribution_id?: number;
+    confirmer_lat: number;
+    confirmer_lng: number;
+    confirmer_accuracy_meters?: number;
+    confirmer_ip_hash: string;
+    confirmer_ua_hash?: string;
+    confirmer_device_hash?: string;
+    confirmation_weight?: number;
+    confirmed_at: string;
+    // Enhancement columns (20260327)
+    office_id?: number;
+    user_id?: string;
+    is_accurate?: boolean;
+    notes?: string;
+}
+
+export interface GeocodeAudit {
+    id: string;
+    office_id: number;
+    constituency: string;
+    county: string;
+    issue_type: 'DISPLACED' | 'NULL_COORDS' | 'CLUSTERING' | 'DISPLACED_REVERIFY' | 'NULL_COORDS_REVERIFY' | 'CLUSTERING_REVERIFY';
+    old_latitude?: number;
+    old_longitude?: number;
+    new_latitude?: number;
+    new_longitude?: number;
+    source_results?: any[];
+    consensus_confidence?: number;
+    agreement_count?: number;
+    spread_km?: number;
+    sources_used?: string[];
+    resolution_method: 'auto' | 'admin_manual' | 'gold_standard' | 'multi_source_consensus';
+    resolved_by?: string;
+    applied: boolean;
+    created_at: string;
+}
+
+export interface GeocodeHitlQueue {
+    id: string;
+    office_id: number;
+    audit_id?: string;
+    issue_type: string;
+    proposed_latitude?: number;
+    proposed_longitude?: number;
+    confidence?: number;
+    agreement_count?: number;
+    spread_km?: number;
+    source_details?: any[];
+    status: 'pending' | 'approved' | 'dismissed' | 'auto_resolved';
+    resolved_by?: string;
+    resolved_at?: string;
+    final_latitude?: number;
+    final_longitude?: number;
+    dismiss_reason?: string;
+    created_at: string;
 }
 
 export interface AdminTask {
@@ -316,7 +377,9 @@ export type Database = {
             iebc_offices: { Row: IEBCOffice; Insert: Partial<IEBCOffice>; Update: Partial<IEBCOffice> };
             diaspora_registration_centres: { Row: DiasporaRegistrationCentre; Insert: Partial<DiasporaRegistrationCentre>; Update: Partial<DiasporaRegistrationCentre> };
             wards: { Row: Ward; Insert: Partial<Ward>; Update: Partial<Ward> };
-            constituencies: { Row: Constituency; Insert: Partial<Constituency>; Update: Partial<Constituency> };
+            confirmations: { Row: Confirmation; Insert: Partial<Confirmation>; Update: Partial<Confirmation> };
+            geocode_audit: { Row: GeocodeAudit; Insert: Partial<GeocodeAudit>; Update: Partial<GeocodeAudit> };
+            geocode_hitl_queue: { Row: GeocodeHitlQueue; Insert: Partial<GeocodeHitlQueue>; Update: Partial<GeocodeHitlQueue> };
             signatures: { Row: Signature; Insert: Partial<Signature>; Update: Partial<Signature> };
             petitions: { Row: Petition; Insert: Partial<Petition>; Update: Partial<Petition> };
             audit_trail: { Row: AuditTrail; Insert: Partial<AuditTrail>; Update: Partial<AuditTrail> };
@@ -369,6 +432,34 @@ export type Database = {
             get_nearest_ward: {
                 Args: { lat_param: number; lng_param: number };
                 Returns: Ward[];
+            };
+            find_offices_near_place: {
+                Args: { search_lat: number; search_lng: number; radius_km?: number; max_results?: number };
+                Returns: IEBCOffice[];
+            };
+            search_offices_by_text_and_location: {
+                Args: { search_query: string; search_lat?: number; search_lng?: number; radius_km?: number; max_results?: number };
+                Returns: (IEBCOffice & { text_rank: number; combined_score: number })[];
+            };
+            search_offices_by_text_and_location_v2: {
+                Args: { search_query: string; search_lat?: number; search_lng?: number; radius_km?: number; max_results?: number };
+                Returns: (IEBCOffice & { text_rank: number; combined_score: number })[];
+            };
+            nearby_offices: {
+                Args: { user_lat: number; user_lng: number; radius_km?: number };
+                Returns: IEBCOffice[];
+            };
+            charge_usage: {
+                Args: { p_key_id: string; p_endpoint_weight?: number };
+                Returns: { allowed: boolean; remaining: number; limit_type: string; reason: string }[];
+            };
+            get_offices_by_walking_effort: {
+                Args: { effort_level: string; limit_count?: number };
+                Returns: IEBCOffice[];
+            };
+            refresh_ward_metadata: {
+                Args: Record<string, never>;
+                Returns: void;
             };
         };
     };

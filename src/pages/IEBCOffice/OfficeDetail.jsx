@@ -288,7 +288,7 @@ const OfficeDetail = () => {
                     .select('ward_name:ward, office_location, verified') // Aliased ward to ward_name
                     .ilike('constituency_name', office.constituency_name)
                     .not('ward', 'is', null)
-                    .order('ward_name');
+                    .order('ward');
                 // Deduplicate by ward_name
                 const unique = [];
                 const seen = new Set();
