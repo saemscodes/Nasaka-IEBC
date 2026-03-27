@@ -561,14 +561,7 @@ const AppContent = () => {
             </React.Suspense>
           }
         />
-        <Route
-          path="/:county"
-          element={
-            <React.Suspense fallback={<LoadingState />}>
-              <OfficeDetail />
-            </React.Suspense>
-          }
-        />
+        {/* ✅ FLAT ROUTE RESOLVER handles /:county paths too — see FlatRouteResolver.tsx */}
 
         {/* ✅ DYNAMIC IEBC OFFICE ROUTES (Legacy Support Redirects) */}
         <Route path="/iebc-office/:county/:constituency" element={<LegacyDynamicRedirect />} />
