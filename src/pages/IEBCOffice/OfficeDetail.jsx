@@ -140,8 +140,8 @@ const OfficeDetail = () => {
                 // 1. Try exact ward match with hierarchy
                 const { data: d0, error: e0 } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name') // Added ward_name to select
-                    .ilike('ward_name', `%${wardSearch}%`)
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name:ward') // Aliased ward to ward_name
+                    .ilike('ward', `%${wardSearch}%`) // Filter on real column name
                     .ilike('constituency_name', `%${constituencySearch}%`)
                     .limit(1)
                     .maybeSingle();
@@ -154,7 +154,7 @@ const OfficeDetail = () => {
                 // 2. Try constituency match
                 const { data: d1, error: e1 } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name') // Added ward_name to select
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name:ward') // Aliased ward to ward_name
                     .ilike('constituency_name', `%${constituencySearch}%`)
                     .limit(1)
                     .maybeSingle();
@@ -167,7 +167,7 @@ const OfficeDetail = () => {
                 // 3. County-only fallback
                 const { data: d3, error: e3 } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name') // Added ward_name to select
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name:ward') // Aliased ward to ward_name
                     .ilike('county', countySearch)
                     .limit(1)
                     .maybeSingle();
@@ -196,7 +196,7 @@ const OfficeDetail = () => {
                         const { data: finalOffice } = await supabase
                             .from('iebc_offices')
                             .select('*')
-                            .eq('ward_name', w.ward_name)
+                            .eq('ward', w.ward_name) // Match against the real column 'ward'
                             .ilike('constituency', w.constituency)
                             .limit(1)
                             .maybeSingle();
@@ -218,7 +218,7 @@ const OfficeDetail = () => {
                 // Final fuzzy fallback on county as absolute last resort
                 const { data: fuzzyData } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name') // Added ward_name to select
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name:ward') // Aliased ward to ward_name
                     .ilike('county', `%${countySearch}%`)
                     .limit(1)
                     .maybeSingle();
@@ -285,9 +285,9 @@ const OfficeDetail = () => {
             try {
                 const { data } = await supabase
                     .from('iebc_offices')
-                    .select('ward_name, office_location, verified')
+                    .select('ward_name:ward, office_location, verified') // Aliased ward to ward_name
                     .ilike('constituency_name', office.constituency_name)
-                    .not('ward_name', 'is', null)
+                    .not('ward', 'is', null)
                     .order('ward_name');
                 // Deduplicate by ward_name
                 const unique = [];
