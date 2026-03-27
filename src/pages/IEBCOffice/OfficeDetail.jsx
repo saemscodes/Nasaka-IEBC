@@ -200,28 +200,32 @@ const OfficeDetail = () => {
                 if (geo.result && geo.result.isKenyan) {
                     const { lat, lng } = geo.result;
                     // Find nearest ward from centroids
-                    const { data: nearest } = await supabase.rpc('get_nearest_ward', {
-                        lat_param: lat,
-                        lng_param: lng
-                    });
+                    try {
+                        const { data: nearest } = await supabase.rpc('get_nearest_ward', {
+                            lat_param: lat,
+                            lng_param: lng
+                        });
 
-                    if (nearest && nearest.length > 0) {
-                        const w = nearest[0];
-                        // Get the actual office for this ward
-                        const { data: finalOffice } = await supabase
-                            .from('iebc_offices')
-                            .select('*')
-                            .eq('ward', w.ward_name)
-                            .ilike('constituency', w.constituency)
-                            .limit(1)
-                            .maybeSingle();
+                        if (nearest && nearest.length > 0) {
+                            const w = nearest[0];
+                            // Get the actual office for this ward
+                            const { data: finalOffice } = await supabase
+                                .from('iebc_offices')
+                                .select('*')
+                                .eq('ward', w.ward_name)
+                                .ilike('constituency', w.constituency)
+                                .limit(1)
+                                .maybeSingle();
 
-                        if (finalOffice) {
-                            setOffice(finalOffice);
-                            const canonicalPath = `/${slugify(w.county)}/${slugify(w.constituency)}/${slugify(w.ward_name)}`;
-                            navigate(`${canonicalPath}?lat=${lat}&lng=${lng}&q=${encodeURIComponent(searchString)}`, { replace: true });
-                            return;
+                            if (finalOffice) {
+                                setOffice(finalOffice);
+                                const canonicalPath = `/${slugify(w.county)}/${slugify(w.constituency)}/${slugify(w.ward_name)}`;
+                                navigate(`${canonicalPath}?lat=${lat}&lng=${lng}&q=${encodeURIComponent(searchString)}`, { replace: true });
+                                return;
+                            }
                         }
+                    } catch (rpcError) {
+                        console.warn('get_nearest_ward RPC unavailable, continuing with fuzzy fallback:', rpcError);
                     }
                 }
 

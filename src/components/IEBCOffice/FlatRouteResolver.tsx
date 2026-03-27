@@ -79,20 +79,24 @@ const FlatRouteResolver = () => {
 
                     // Find the nearest ward centroid to this resolved point
                     // We use the wards table which has lat/lng for every ward
-                    const { data: nearestWard } = await (supabase.rpc as any)('get_nearest_ward', {
-                        lat_param: lat,
-                        lng_param: lng
-                    });
+                    try {
+                        const { data: nearestWard } = await (supabase.rpc as any)('get_nearest_ward', {
+                            lat_param: lat,
+                            lng_param: lng
+                        });
 
-                    if (nearestWard && (nearestWard as any[]).length > 0) {
-                        const w = (nearestWard as any[])[0];
-                        const path = `/${slugify(w.county)}/${slugify(w.constituency)}/${slugify(w.ward_name)}`;
-                        // Pass the exact resolved coordinates to center the map correctly at the destination
-                        navigate(`${path}?lat=${lat}&lng=${lng}&q=${encodeURIComponent(searchName)}`, { replace: true });
-                        return;
+                        if (nearestWard && (nearestWard as any[]).length > 0) {
+                            const w = (nearestWard as any[])[0];
+                            const path = `/${slugify(w.county)}/${slugify(w.constituency)}/${slugify(w.ward_name)}`;
+                            // Pass the exact resolved coordinates to center the map correctly at the destination
+                            navigate(`${path}?lat=${lat}&lng=${lng}&q=${encodeURIComponent(searchName)}`, { replace: true });
+                            return;
+                        }
+                    } catch (rpcError) {
+                        console.warn('get_nearest_ward RPC unavailable, falling back to county resolution:', rpcError);
                     }
 
-                    // Fallback to constituency if ward RPC fails
+                    // Fallback to county if ward RPC fails
                     if (geo.result.county) {
                         navigate(`/${slugify(geo.result.county)}?lat=${lat}&lng=${lng}&q=${encodeURIComponent(searchName)}`, { replace: true });
                         return;
