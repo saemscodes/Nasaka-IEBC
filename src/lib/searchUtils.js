@@ -276,6 +276,7 @@ export function calculateRelevanceScore(query, text, options = {}) {
   const {
     exactMatchBoost = 2.0,
     partialMatchBoost = 1.0,
+    prefixMatchBoost = 1.5,
     wordOrderPenalty = 0.1,
     minMatchThreshold = 0.3
   } = options;
@@ -289,8 +290,11 @@ export function calculateRelevanceScore(query, text, options = {}) {
 
   let score = 0;
 
-  // Exact substring match
-  if (normalizedText.includes(normalizedQuery)) {
+  // Text starts with query — strongest partial signal
+  if (normalizedText.startsWith(normalizedQuery)) {
+    score += exactMatchBoost + prefixMatchBoost;
+  } else if (normalizedText.includes(normalizedQuery)) {
+    // Exact substring match (not at start)
     score += exactMatchBoost;
   }
 
@@ -300,14 +304,25 @@ export function calculateRelevanceScore(query, text, options = {}) {
 
   let matchedWords = 0;
   let wordPositionScore = 0;
+  let prefixWordMatches = 0;
 
   queryWords.forEach((queryWord, queryIndex) => {
+    let bestMatchForThisQueryWord = false;
     textWords.forEach((textWord, textIndex) => {
-      if (textWord.includes(queryWord)) {
-        matchedWords++;
-        // Reward words that appear in similar positions
+      // Prefer word-start matches over arbitrary substring matches
+      if (textWord.startsWith(queryWord)) {
+        if (!bestMatchForThisQueryWord) {
+          matchedWords++;
+          prefixWordMatches++;
+          bestMatchForThisQueryWord = true;
+        }
         const positionSimilarity = 1 - Math.abs(queryIndex - textIndex) / Math.max(queryWords.length, textWords.length);
         wordPositionScore += positionSimilarity;
+      } else if (textWord.includes(queryWord) && !bestMatchForThisQueryWord) {
+        matchedWords++;
+        bestMatchForThisQueryWord = true;
+        const positionSimilarity = 1 - Math.abs(queryIndex - textIndex) / Math.max(queryWords.length, textWords.length);
+        wordPositionScore += positionSimilarity * 0.7; // Penalized vs prefix
       }
     });
   });
@@ -315,12 +330,15 @@ export function calculateRelevanceScore(query, text, options = {}) {
   if (matchedWords > 0) {
     const wordMatchRatio = matchedWords / queryWords.length;
     const positionScore = wordPositionScore / matchedWords;
+    const prefixRatio = prefixWordMatches / Math.max(matchedWords, 1);
 
-    score += (wordMatchRatio * partialMatchBoost) + (positionScore * (1 - wordOrderPenalty));
+    score += (wordMatchRatio * partialMatchBoost) +
+      (positionScore * (1 - wordOrderPenalty)) +
+      (prefixRatio * prefixMatchBoost * 0.5);
   }
 
   // Normalize score to 0-1 range
-  const maxPossibleScore = exactMatchBoost + (queryWords.length * partialMatchBoost);
+  const maxPossibleScore = exactMatchBoost + prefixMatchBoost + (queryWords.length * partialMatchBoost) + prefixMatchBoost;
   const normalizedScore = Math.min(score / maxPossibleScore, 1.0);
 
   return normalizedScore >= minMatchThreshold ? normalizedScore : 0;
@@ -335,8 +353,9 @@ export function calculateRelevanceScore(query, text, options = {}) {
  */
 export function calculateItemRelevanceScore(item, query, weights = {
   exactMatch: 10,
-  startsWith: 5,
-  contains: 1,
+  startsWith: 7,
+  wordStart: 4,
+  contains: 2,
   fuzzyMatch: 0.5
 }) {
   const normalizedQuery = normalizeSearchTerm(query);
@@ -349,7 +368,8 @@ export function calculateItemRelevanceScore(item, query, weights = {
     item.constituency,
     item.office_location,
     item.landmark,
-    item.formatted_address
+    item.formatted_address,
+    item.ward_name
   ].filter(Boolean);
 
   for (const field of searchFields) {
@@ -359,16 +379,30 @@ export function calculateItemRelevanceScore(item, query, weights = {
       score += weights.exactMatch;
     } else if (normalizedField.startsWith(normalizedQuery)) {
       score += weights.startsWith;
-    } else if (normalizedField.includes(normalizedQuery)) {
-      score += weights.contains;
     } else {
-      // Simple fuzzy matching
-      const queryWords = normalizedQuery.split(' ');
+      // Check if any word in the field starts with the query
       const fieldWords = normalizedField.split(' ');
-      const matches = queryWords.filter(qw =>
-        fieldWords.some(fw => fw.includes(qw))
+      const queryWords = normalizedQuery.split(' ');
+      const wordStartMatch = queryWords.every(qw =>
+        fieldWords.some(fw => fw.startsWith(qw))
       );
-      score += matches.length * weights.fuzzyMatch;
+
+      if (wordStartMatch) {
+        score += weights.wordStart;
+      } else if (normalizedField.includes(normalizedQuery)) {
+        score += weights.contains;
+      } else {
+        // Fuzzy: count how many query words match as word-starts in the field
+        const prefixMatches = queryWords.filter(qw =>
+          fieldWords.some(fw => fw.startsWith(qw))
+        );
+        const substringMatches = queryWords.filter(qw =>
+          fieldWords.some(fw => fw.includes(qw))
+        );
+        // Prefer prefix matches over substring matches
+        score += prefixMatches.length * weights.fuzzyMatch * 1.5;
+        score += (substringMatches.length - prefixMatches.length) * weights.fuzzyMatch;
+      }
     }
   }
 
@@ -388,7 +422,15 @@ export function sortByRelevance(items, query) {
       relevanceScore: calculateItemRelevanceScore(item, query)
     }))
     .filter(item => item.relevanceScore > 0)
-    .sort((a, b) => b.relevanceScore - a.relevanceScore);
+    .sort((a, b) => {
+      if (b.relevanceScore !== a.relevanceScore) {
+        return b.relevanceScore - a.relevanceScore;
+      }
+      // Tiebreaker: alphabetical by constituency_name for stable ordering
+      const aName = (a.constituency_name || a.county || '').toLowerCase();
+      const bName = (b.constituency_name || b.county || '').toLowerCase();
+      return aName.localeCompare(bName);
+    });
 }
 
 // ==================== URL HANDLING ====================
