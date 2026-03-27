@@ -478,8 +478,8 @@ const OfficeDetail = () => {
                                 >
                                     <div className="p-4 flex items-center gap-4">
                                         <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 font-bold text-lg ${isDark
-                                                ? 'bg-[#0b63c6]/20 text-[#4da3ff]'
-                                                : 'bg-blue-50 text-[#0b63c6]'
+                                            ? 'bg-[#0b63c6]/20 text-[#4da3ff]'
+                                            : 'bg-blue-50 text-[#0b63c6]'
                                             }`}>
                                             {idx + 1}
                                         </div>
@@ -518,8 +518,8 @@ const OfficeDetail = () => {
                                 }
                             })}
                             className={`w-full py-4 px-6 rounded-3xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-lg ${isDark
-                                    ? 'bg-[#0b63c6] text-white shadow-[#0b63c6]/20 hover:bg-[#0b63c6]/90'
-                                    : 'bg-[#0b63c6] text-white shadow-blue-500/20 hover:bg-[#0851a1]'
+                                ? 'bg-[#0b63c6] text-white shadow-[#0b63c6]/20 hover:bg-[#0b63c6]/90'
+                                : 'bg-[#0b63c6] text-white shadow-blue-500/20 hover:bg-[#0851a1]'
                                 }`}
                         >
                             <ArrowLeft className="w-5 h-5" />
@@ -879,7 +879,7 @@ const OfficeDetail = () => {
                     <section>
                         <h3 className="text-lg font-bold mb-4 px-1">Nearby in {countyName}</h3>
                         <div className="space-y-2">
-                            {nearbyOffices.map((nob) => (
+                            {nearbyOffices.filter(nob => nob.constituency_name).map((nob) => (
                                 <Link
                                     key={nob.constituency_name}
                                     to={`/${slugify(countyName)}/${slugify(nob.constituency_name)}${slugify(nob.constituency_name) === slugify(countyName) ? '-town' : ''}`}
@@ -906,7 +906,7 @@ const OfficeDetail = () => {
                     <section>
                         <h3 className="text-lg font-bold mb-4 px-1">Wards in {officeName}</h3>
                         <div className="space-y-2">
-                            {wards.map((w) => (
+                            {wards.filter(w => w.ward_name).map((w) => (
                                 <Link
                                     key={w.ward_name}
                                     to={`/${slugify(countyName)}/${slugify(officeName)}${slugify(officeName) === slugify(countyName) ? '-town' : ''}/${slugify(w.ward_name)}`}
