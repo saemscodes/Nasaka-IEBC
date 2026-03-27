@@ -6,6 +6,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getWardCentroid } from '@/services/centroidService';
 
 // === INTERNAL SVG COMPONENTS ===
 const IconSun = ({ className = "w-4 h-4" }) => (
@@ -61,7 +62,7 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
     const isDark = theme === 'dark';
 
     const [status, setStatus] = useState<DownloadStatus>('idle');
-    const [downloadMode, setDownloadMode] = useState<'minimal' | 'extended'>('minimal');
+    const [downloadMode, setDownloadMode] = useState<'minimal' | 'extended' | 'area'>('minimal');
     const [plan, setPlan] = useState<TileDownloadPlan | null>(null);
     const [progress, setProgress] = useState(0);
     const [storageUsed, setStorageUsed] = useState<string>('');
@@ -92,6 +93,49 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
 
     // Calculate tile plan when geometry or mode changes
     useEffect(() => {
+        if (downloadMode === 'area') {
+            // Area mode: calculate tiles around the office ward centroid
+            const calculateAreaTiles = async () => {
+                if (!office?.ward_name && !office?.constituency_name) {
+                    setPlan(null);
+                    setStatus('idle');
+                    return;
+                }
+                setStatus('calculating');
+                try {
+                    const centroid = await getWardCentroid(
+                        office.ward_name || office.constituency_name,
+                        office.constituency_name
+                    );
+                    if (centroid) {
+                        // Generate a circular grid of coordinates around the centroid
+                        const radiusKm = 3;
+                        const numPoints = 36;
+                        const circleCoords: [number, number][] = [];
+                        for (let i = 0; i < numPoints; i++) {
+                            const angle = (2 * Math.PI * i) / numPoints;
+                            const dLat = (radiusKm / 111) * Math.cos(angle);
+                            const dLng = (radiusKm / (111 * Math.cos(centroid.lat * Math.PI / 180))) * Math.sin(angle);
+                            circleCoords.push([centroid.lng + dLng, centroid.lat + dLat]);
+                        }
+                        circleCoords.push(circleCoords[0]); // Close the loop
+                        const tilePlan = getTilesForRoute(circleCoords, [13, 14, 15], radiusKm);
+                        setPlan(tilePlan);
+                        setStatus(tilePlan.tileCount > 0 ? 'ready' : 'idle');
+                    } else {
+                        setPlan(null);
+                        setStatus('idle');
+                        toast.info('Ward centroid data not available yet.');
+                    }
+                } catch {
+                    setPlan(null);
+                    setStatus('idle');
+                }
+            };
+            calculateAreaTiles();
+            return;
+        }
+
         if (!routeGeometry) {
             setPlan(null);
             setStatus('idle');
@@ -104,7 +148,7 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
         const tilePlan = getTilesForRoute(routeGeometry, zoomLevels, bufferKm);
         setPlan(tilePlan);
         setStatus(tilePlan.tileCount > 0 ? 'ready' : 'idle');
-    }, [routeGeometry, downloadMode]);
+    }, [routeGeometry, downloadMode, office]);
 
     const handleDownload = async () => {
         if (status === 'downloading' || status === 'done') {
@@ -253,11 +297,11 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
 
                     <div className={`rounded-2xl border p-4 ${isDark ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
                         <p className={`text-xs font-bold mb-3 ${isDark ? 'text-ios-gray-300' : 'text-ios-gray-600'}`}>{t('offline.coverage', 'Coverage Area')}</p>
-                        <div className="grid grid-cols-2 gap-2">
-                            {['minimal', 'extended'].map((mode) => (
+                        <div className="grid grid-cols-3 gap-2">
+                            {(['minimal', 'extended', 'area'] as const).map((mode) => (
                                 <button
                                     key={mode}
-                                    onClick={() => setDownloadMode(mode as any)}
+                                    onClick={() => setDownloadMode(mode)}
                                     className={`py-3 px-2 rounded-xl text-[11px] font-bold transition-all border
                                         ${downloadMode === mode
                                             ? 'bg-ios-blue border-ios-blue text-white shadow-lg shadow-ios-blue/20'
@@ -267,14 +311,16 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                                         }
                                     `}
                                 >
-                                    {mode === 'minimal' ? 'Route Only' : 'Full Corridor'}
+                                    {mode === 'minimal' ? 'Route Only' : mode === 'extended' ? 'Full Corridor' : 'Whole Area'}
                                 </button>
                             ))}
                         </div>
                         <p className={`text-[10px] mt-3 italic ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>
                             {downloadMode === 'minimal'
                                 ? 'Caches 500m around the route path for lightweight offline navigation.'
-                                : 'Caches 1.5km around the route for broader area coverage.'}
+                                : downloadMode === 'extended'
+                                    ? 'Caches 1.5km around the route for broader area coverage.'
+                                    : 'Caches the entire ward area (3km radius) for full offline access.'}
                         </p>
                     </div>
 
@@ -300,12 +346,12 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 onClick={handleDownload}
-                                disabled={status === 'calculating' || !routeGeometry}
+                                disabled={status === 'calculating' || (!routeGeometry && downloadMode !== 'area')}
                                 className={`w-full py-4 rounded-2xl font-black text-sm tracking-widest uppercase transition-all active:scale-[0.98] shadow-2xl
-                                    ${!routeGeometry ? 'bg-ios-gray-500 opacity-50 cursor-not-allowed' : 'bg-ios-blue text-white shadow-ios-blue/30 hover:bg-ios-blue-600'}
+                                    ${(!routeGeometry && downloadMode !== 'area') ? 'bg-ios-gray-500 opacity-50 cursor-not-allowed' : 'bg-ios-blue text-white shadow-ios-blue/30 hover:bg-ios-blue-600'}
                                 `}
                             >
-                                {!routeGeometry ? 'Select a Route First' : status === 'calculating' ? 'Calculating...' : t('offline.startSecure', 'Protect Trip')}
+                                {(!routeGeometry && downloadMode !== 'area') ? 'Select a Route First' : status === 'calculating' ? 'Calculating...' : downloadMode === 'area' ? t('offline.startArea', 'Cache Area') : t('offline.startSecure', 'Protect Trip')}
                             </motion.button>
                         ) : (
                             <motion.div

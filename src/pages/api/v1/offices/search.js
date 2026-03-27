@@ -66,10 +66,10 @@ export async function GET(request) {
     const enhancedResults = results.map(result => {
       const item = result.item;
       const score = result.score || 1;
-      
+
       // Calculate relevance based on match type and score
       let relevance = 1 - score;
-      
+
       // Boost exact matches
       if (item.office_location?.toLowerCase() === query.toLowerCase()) {
         relevance += 0.3;
@@ -77,7 +77,7 @@ export async function GET(request) {
       if (item.constituency_name?.toLowerCase() === query.toLowerCase()) {
         relevance += 0.2;
       }
-      
+
       // Boost verified offices
       if (item.verified) {
         relevance += 0.1;

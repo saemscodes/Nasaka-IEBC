@@ -1,0 +1,11 @@
+src/tests/hooks/useIEBCOffices.test.ts(21,26): error TS1005: '>' expected.
+src/tests/hooks/useIEBCOffices.test.ts(21,32): error TS1005: ')' expected.
+src/tests/hooks/useIEBCOffices.test.ts(23,6): error TS1161: Unterminated regular expression literal.
+src/tests/hooks/useIEBCOffices.test.ts(24,3): error TS1128: Declaration or statement expected.
+src/tests/hooks/useIEBCOffices.test.ts(25,1): error TS1128: Declaration or statement expected.
+src/tests/utils/testUtils.ts(27,26): error TS1005: '>' expected.
+src/tests/utils/testUtils.ts(27,32): error TS1005: ')' expected.
+src/tests/utils/testUtils.ts(30,8): error TS1161: Unterminated regular expression literal.
+src/tests/utils/testUtils.ts(31,6): error TS1161: Unterminated regular expression literal.
+src/tests/utils/testUtils.ts(32,3): error TS1128: Declaration or statement expected.
+src/tests/utils/testUtils.ts(35,1): error TS1128: Declaration or statement expected.

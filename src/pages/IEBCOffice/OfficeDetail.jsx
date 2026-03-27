@@ -34,6 +34,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
+import Avatar from 'boring-avatars';
 
 // Approximate distance function for radius visualization
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -48,7 +49,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 };
 
 const OfficeDetail = () => {
-    const { county: rawCounty, constituency: rawConstituency, ward: rawWard } = useParams();
+    const { county: rawCounty, constituency: rawConstituency, ward: rawWard, index: rawIndex } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -67,6 +68,10 @@ const OfficeDetail = () => {
     const [nearbyOffices, setNearbyOffices] = useState([]);
     const [liveIntelligence, setLiveIntelligence] = useState(null);
     const [intelligenceLoading, setIntelligenceLoading] = useState(false);
+    const [confirmations, setConfirmations] = useState([]);
+    const [wards, setWards] = useState([]);
+    const [contributionImage, setContributionImage] = useState(null);
+    const [wardOffices, setWardOffices] = useState([]);
 
     // Fix 5: Read persisted userLocation from sessionStorage for return navigation
     const savedUserLocation = useMemo(() => {
@@ -93,6 +98,7 @@ const OfficeDetail = () => {
     const countySlug = sanitizeSlug(rawCounty);
     const constituencySlug = sanitizeSlug(rawConstituency);
     const wardSlug = sanitizeSlug(rawWard);
+    const indexParam = rawIndex ? parseInt(rawIndex, 10) : null;
 
     // Redirection Logic: Redirect legacy paths to hierarchical canonical paths
     useEffect(() => {
@@ -112,11 +118,12 @@ const OfficeDetail = () => {
 
         let expectedPath = `/${canonicalCounty}/${constPart}`;
         if (wardSlug && canonicalWard) expectedPath += `/${canonicalWard}`;
+        if (indexParam && wardOffices.length > 1) expectedPath += `/${indexParam}`;
 
         if (isLegacyPath || (window.location.pathname !== expectedPath && !location.search)) {
             navigate(expectedPath, { replace: true });
         }
-    }, [office, navigate, location.pathname, wardSlug]);
+    }, [office, navigate, location.pathname, wardSlug, indexParam, wardOffices]);
 
     const fetchOfficeData = useCallback(async () => {
         setLoading(true);
@@ -133,24 +140,36 @@ const OfficeDetail = () => {
 
             if (wardSlug) {
                 const wardSearch = deslugify(wardSlug);
-                // 1. Try exact ward match with hierarchy
-                const { data: d0, error: e0 } = await supabase
+                // 1. Try ward match — fetch ALL offices in this ward for disambiguation
+                const { data: wardResults, error: e0 } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
-                    .ilike('ward_name', `%${wardSearch}%`)
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name:ward')
+                    .ilike('ward', `%${wardSearch}%`)
                     .ilike('constituency_name', `%${constituencySearch}%`)
-                    .limit(1)
-                    .maybeSingle();
+                    .order('office_location', { ascending: true });
 
                 if (e0) throw e0;
-                data = d0;
+
+                if (wardResults && wardResults.length > 0) {
+                    setWardOffices(wardResults);
+
+                    if (wardResults.length === 1) {
+                        data = wardResults[0];
+                    } else if (indexParam && indexParam >= 1 && indexParam <= wardResults.length) {
+                        data = wardResults[indexParam - 1];
+                    } else if (indexParam && (indexParam < 1 || indexParam > wardResults.length)) {
+                        data = wardResults[0];
+                    } else {
+                        data = wardResults[0];
+                    }
+                }
             }
 
             if (!data && constituencySearch) {
                 // 2. Try constituency match
                 const { data: d1, error: e1 } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name:ward')
                     .ilike('constituency_name', `%${constituencySearch}%`)
                     .limit(1)
                     .maybeSingle();
@@ -163,7 +182,7 @@ const OfficeDetail = () => {
                 // 3. County-only fallback
                 const { data: d3, error: e3 } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name:ward')
                     .ilike('county', countySearch)
                     .limit(1)
                     .maybeSingle();
@@ -192,18 +211,13 @@ const OfficeDetail = () => {
                         const { data: finalOffice } = await supabase
                             .from('iebc_offices')
                             .select('*')
-                            .eq('ward_name', w.ward_name)
+                            .eq('ward', w.ward_name)
                             .ilike('constituency', w.constituency)
                             .limit(1)
                             .maybeSingle();
 
                         if (finalOffice) {
-                            // Perfect match found via geography context!
-                            // We will trigger the canonical redirect in the next useEffect
                             setOffice(finalOffice);
-                            // Set coordinates to center the map on the SEARCHED landmark, 
-                            // not just the office centroid
-                            // We'll use a hack of setting a local state or just navigating
                             const canonicalPath = `/${slugify(w.county)}/${slugify(w.constituency)}/${slugify(w.ward_name)}`;
                             navigate(`${canonicalPath}?lat=${lat}&lng=${lng}&q=${encodeURIComponent(searchString)}`, { replace: true });
                             return;
@@ -214,7 +228,7 @@ const OfficeDetail = () => {
                 // Final fuzzy fallback on county as absolute last resort
                 const { data: fuzzyData } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name:ward')
                     .ilike('county', `%${countySearch}%`)
                     .limit(1)
                     .maybeSingle();
@@ -232,26 +246,97 @@ const OfficeDetail = () => {
             // Fetch nearby offices in same county
             const { data: nearby } = await supabase
                 .from('iebc_offices')
-                .select('constituency_name, county, verified')
+                .select('id, county, constituency_name, verified')
                 .eq('county', data.county)
-                .neq('constituency_name', data.constituency_name)
+                .neq('id', data.id)
                 .limit(5);
 
             setNearbyOffices(nearby || []);
-        } catch (err) {
-            // Log removed for production
 
+        } catch (err) {
             setError(err.message);
         } finally {
             setLoading(false);
         }
-    }, [countySlug, constituencySlug, navigate]);
+    }, [countySlug, constituencySlug, navigate, wardSlug, indexParam]);
 
     useEffect(() => {
         if (countySlug) {
             fetchOfficeData();
         }
     }, [fetchOfficeData, countySlug]);
+
+    // Fetch confirmations for verified-by badge
+    useEffect(() => {
+        if (!office?.id) return;
+        const fetchConfirmations = async () => {
+            try {
+                const { data } = await supabase
+                    .from('confirmations')
+                    .select('user_id, is_accurate, notes, created_at')
+                    .eq('office_id', office.id)
+                    .eq('is_accurate', true)
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+                setConfirmations(data || []);
+            } catch (_) {
+                // Non-blocking
+            }
+        };
+        fetchConfirmations();
+    }, [office?.id]);
+
+    // Fetch wards in this constituency
+    useEffect(() => {
+        if (!office?.constituency_name) return;
+        const fetchWards = async () => {
+            try {
+                const { data } = await supabase
+                    .from('iebc_offices')
+                    .select('ward_name:ward, office_location, verified') // Aliased ward to ward_name
+                    .ilike('constituency_name', office.constituency_name)
+                    .not('ward', 'is', null)
+                    .order('ward');
+                // Deduplicate by ward_name
+                const unique = [];
+                const seen = new Set();
+                (data || []).forEach(w => {
+                    if (w.ward_name && !seen.has(w.ward_name.toLowerCase())) {
+                        seen.add(w.ward_name.toLowerCase());
+                        unique.push(w);
+                    }
+                });
+                setWards(unique);
+            } catch (_) {
+                // Non-blocking
+            }
+        };
+        fetchWards();
+    }, [office?.constituency_name]);
+
+    // Fetch contribution image (if any)
+    useEffect(() => {
+        if (!office?.id) return;
+        const fetchImage = async () => {
+            try {
+                const { data } = await supabase
+                    .from('iebc_office_contributions')
+                    .select('image_public_url')
+                    .eq('office_id', office.id)
+                    .eq('status', 'verified')
+                    .not('image_public_url', 'is', null)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                if (data?.image_public_url) {
+                    setContributionImage(data.image_public_url);
+                }
+            } catch (_) {
+                // Non-blocking
+            }
+        };
+        fetchImage();
+    }, [office?.id]);
 
     // Live Intelligence — fetch travel + AI score when office has coordinates
     const fetchIntelligence = useCallback(async () => {
@@ -324,13 +409,141 @@ const OfficeDetail = () => {
         );
     }
 
+    // Disambiguation UI: When a ward has multiple registration centers and no index is specified
+    if (wardSlug && wardOffices.length > 1 && !indexParam) {
+        const countyNameDisambig = office.county || 'Kenya';
+        const officeNameDisambig = office.constituency_name || 'IEBC Office';
+        const wardNameDisambig = office.ward_name || deslugify(wardSlug);
+        const basePath = `/${slugify(countyNameDisambig)}/${slugify(officeNameDisambig)}${slugify(officeNameDisambig) === slugify(countyNameDisambig) ? '-town' : ''}/${slugify(wardNameDisambig)}`;
+
+        return (
+            <div className={`min-h-screen pb-20 transition-colors duration-500 ${isDark ? 'bg-ios-gray-900 text-white' : 'bg-ios-gray-50 text-ios-gray-900'}`}>
+                <SEOHead
+                    title={`${wardNameDisambig} Ward Registration Centers — ${officeNameDisambig}, ${countyNameDisambig} County | Nasaka IEBC`}
+                    description={`${wardOffices.length} IEBC registration centers found in ${wardNameDisambig} Ward, ${officeNameDisambig} constituency. Choose your nearest center for voter registration on Nasaka.`}
+                    canonical={basePath}
+                    schema={[
+                        generateBreadcrumbSchema([
+                            { name: 'Home', url: '/' },
+                            { name: countyNameDisambig, url: `/${slugify(countyNameDisambig)}` },
+                            { name: officeNameDisambig, url: `/${slugify(countyNameDisambig)}/${slugify(officeNameDisambig)}${slugify(officeNameDisambig) === slugify(countyNameDisambig) ? '-town' : ''}` },
+                            { name: `${wardNameDisambig} Ward`, url: basePath }
+                        ])
+                    ]}
+                />
+
+                {/* iOS Header */}
+                <header className={`sticky top-0 z-40 backdrop-blur-xl border-b transition-colors duration-300 ${isDark ? 'bg-ios-gray-900/80 border-ios-gray-800' : 'bg-white/80 border-ios-gray-100'}`}>
+                    <div className="max-w-2xl mx-auto px-4 h-16 flex items-center justify-between">
+                        <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-ios-gray-200/50 rounded-full transition-colors">
+                            <ArrowLeft className="w-6 h-6" />
+                        </button>
+                        <h1 className="text-lg font-semibold truncate px-4">
+                            {wardNameDisambig} Ward
+                        </h1>
+                        <div className="w-10" />
+                    </div>
+                </header>
+
+                <main className="max-w-2xl mx-auto p-4 space-y-6">
+                    {/* Hero Card */}
+                    <motion.section
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                        className={`rounded-3xl p-6 shadow-sm border overflow-hidden relative ${isDark ? 'bg-ios-gray-800 border-ios-gray-700' : 'bg-white border-ios-gray-100'}`}
+                    >
+                        <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 mb-3">
+                            {wardOffices.length} Registration Centers
+                        </div>
+                        <h2 className="text-2xl font-bold">{wardNameDisambig} Ward</h2>
+                        <p className="text-sm text-muted-foreground mt-1">{officeNameDisambig} Constituency, {countyNameDisambig} County</p>
+                        <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
+                            This ward has multiple IEBC registration centers. Select the one nearest to you.
+                        </p>
+                    </motion.section>
+
+                    {/* Registration Center List */}
+                    <section className="space-y-3">
+                        {wardOffices.map((wo, idx) => (
+                            <motion.div
+                                key={wo.id}
+                                initial={{ opacity: 0, y: 16 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.35, delay: idx * 0.06, ease: [0.4, 0, 0.2, 1] }}
+                            >
+                                <Link
+                                    to={`${basePath}/${idx + 1}`}
+                                    className={`block rounded-2xl border transition-all active:scale-[0.98] overflow-hidden ${isDark ? 'bg-ios-gray-800/60 border-ios-gray-700 hover:bg-ios-gray-800' : 'bg-white border-ios-gray-100 hover:bg-ios-gray-50 hover:shadow-md'}`}
+                                >
+                                    <div className="p-4 flex items-center gap-4">
+                                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 font-bold text-lg ${isDark
+                                            ? 'bg-[#0b63c6]/20 text-[#4da3ff]'
+                                            : 'bg-blue-50 text-[#0b63c6]'
+                                            }`}>
+                                            {idx + 1}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-semibold leading-tight truncate">
+                                                {wo.office_location || `Center ${idx + 1}`}
+                                            </p>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                {wo.verified && (
+                                                    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-green-600 dark:text-green-400">
+                                                        <CheckCircle2 className="w-3 h-3" />
+                                                        Verified
+                                                    </span>
+                                                )}
+                                                {wo.landmark && (
+                                                    <span className="text-[10px] text-muted-foreground truncate">
+                                                        Near {wo.landmark}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <ChevronRight className="w-5 h-5 text-muted-foreground opacity-40 shrink-0" />
+                                    </div>
+                                </Link>
+                            </motion.div>
+                        ))}
+                    </section>
+
+                    {/* Go Back To Map CTA */}
+                    <section className="mb-6 mt-4">
+                        <button
+                            onClick={() => navigate('/map', {
+                                state: {
+                                    selectedOffice: office,
+                                    ...(savedUserLocation ? { userLocation: savedUserLocation } : {})
+                                }
+                            })}
+                            className={`w-full py-4 px-6 rounded-3xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-lg ${isDark
+                                ? 'bg-[#0b63c6] text-white shadow-[#0b63c6]/20 hover:bg-[#0b63c6]/90'
+                                : 'bg-[#0b63c6] text-white shadow-blue-500/20 hover:bg-[#0851a1]'
+                                }`}
+                        >
+                            <ArrowLeft className="w-5 h-5" />
+                            <span className="font-bold text-center uppercase tracking-wider text-sm">
+                                Go Back to Map
+                            </span>
+                        </button>
+                    </section>
+                </main>
+            </div>
+        );
+    }
+
     const officeName = office.constituency_name || 'IEBC Office';
     const countyName = office.county || 'Kenya';
     const wardName = office.ward_name || deslugify(wardSlug);
 
-    const displayTitle = wardSlug && office.ward_name ? `${wardName} Ward, ${officeName}` : officeName;
+    const displayTitle = wardSlug && office.ward_name
+        ? (indexParam && wardOffices.length > 1
+            ? `${wardName} Ward Center #${indexParam}, ${officeName}`
+            : `${wardName} Ward, ${officeName}`)
+        : officeName;
     const seoTitle = `${displayTitle} IEBC Office — ${countyName} County | Nasaka IEBC`;
-    const seoDescription = `Find the IEBC constituency office for ${officeName}, ${countyName} County${wardSlug ? ` serving ${wardName} Ward` : ''}. Get directions, voter registration info, and community verified data.`;
+    const seoDescription = `Find the IEBC constituency office for ${officeName}, ${countyName} County${wardSlug ? ` serving ${wardName} Ward` : ''}${indexParam && wardOffices.length > 1 ? ` (Center #${indexParam} of ${wardOffices.length})` : ''}. Get directions, voter registration info, and community verified data.`;
 
     const breadcrumbItems = [
         { name: 'Home', url: '/' },
@@ -343,18 +556,26 @@ const OfficeDetail = () => {
     ];
 
     if (wardSlug && office.ward_name) {
+        const wardBreadcrumbUrl = `/${slugify(countyName)}/${slugify(officeName)}${slugify(officeName) === slugify(countyName) ? '-town' : ''}/${slugify(office.ward_name)}`;
         breadcrumbItems.push({
             name: office.ward_name,
-            url: `/${slugify(countyName)}/${slugify(officeName)}${slugify(officeName) === slugify(countyName) ? '-town' : ''}/${slugify(office.ward_name)}`
+            url: wardBreadcrumbUrl
         });
+        if (indexParam && wardOffices.length > 1) {
+            breadcrumbItems.push({
+                name: `Center #${indexParam}`,
+                url: `${wardBreadcrumbUrl}/${indexParam}`
+            });
+        }
     }
 
     // Canonical logic
     let canonical = `/${slugify(countyName)}/${slugify(officeName)}${slugify(officeName) === slugify(countyName) ? '-town' : ''}`;
     if (wardSlug && office.ward_name) canonical += `/${slugify(office.ward_name)}`;
+    if (indexParam && wardOffices.length > 1) canonical += `/${indexParam}`;
 
     return (
-        <div className={`min-h-screen pb-20 transition-colors duration-500 ${isDark ? 'bg-ios-gray-900 text-white' : 'bg-ios-gray-50 text-ios-gray-900'}`}>
+        <div className={`min-h-screen pb-20 transition-colors duration-500 bg-topo-backdrop ${isDark ? 'bg-ios-gray-900 text-white' : 'bg-ios-gray-50 text-ios-gray-900'}`}>
             <SEOHead
                 title={seoTitle}
                 description={seoDescription}
@@ -418,6 +639,21 @@ const OfficeDetail = () => {
                             <p className="text-sm font-medium leading-tight truncate">{office.office_location || 'Address information being verified by community'}</p>
                         </div>
                     </div>
+
+                    {/* Contribution Image — conditional */}
+                    {contributionImage && (
+                        <div className="mt-4 rounded-2xl overflow-hidden border border-ios-gray-100 dark:border-ios-gray-700">
+                            <img
+                                src={contributionImage}
+                                alt={`${officeName} IEBC Office`}
+                                className="w-full h-48 object-cover"
+                                loading="lazy"
+                            />
+                            <div className={`px-3 py-2 text-[10px] font-medium uppercase tracking-wider ${isDark ? 'bg-ios-gray-700/50 text-ios-gray-400' : 'bg-ios-gray-50 text-muted-foreground'}`}>
+                                Community Photo
+                            </div>
+                        </div>
+                    )}
                 </section>
 
                 {/* Quick Actions */}
@@ -643,7 +879,7 @@ const OfficeDetail = () => {
                     <section>
                         <h3 className="text-lg font-bold mb-4 px-1">Nearby in {countyName}</h3>
                         <div className="space-y-2">
-                            {nearbyOffices.map((nob) => (
+                            {nearbyOffices.filter(nob => nob.constituency_name).map((nob) => (
                                 <Link
                                     key={nob.constituency_name}
                                     to={`/${slugify(countyName)}/${slugify(nob.constituency_name)}${slugify(nob.constituency_name) === slugify(countyName) ? '-town' : ''}`}
@@ -661,6 +897,47 @@ const OfficeDetail = () => {
                                     <ChevronRight className="w-5 h-5 text-muted-foreground opacity-50" />
                                 </Link>
                             ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Wards in this Constituency */}
+                {wards.length > 0 && !wardSlug && (
+                    <section>
+                        <h3 className="text-lg font-bold mb-4 px-1">Wards in {officeName}</h3>
+                        <div className="space-y-2">
+                            {wards.filter(w => w.ward_name).map((w) => (
+                                <Link
+                                    key={w.ward_name}
+                                    to={`/${slugify(countyName)}/${slugify(officeName)}${slugify(officeName) === slugify(countyName) ? '-town' : ''}/${slugify(w.ward_name)}`}
+                                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all active:scale-[0.98] ${isDark ? 'bg-ios-gray-800/50 border-ios-gray-800 hover:bg-ios-gray-800' : 'bg-white border-ios-gray-100 hover:bg-ios-gray-50'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-ios-gray-100 dark:bg-ios-gray-700 flex items-center justify-center">
+                                            <MapPin className="w-4 h-4 text-ios-blue" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold">{w.ward_name}</p>
+                                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                                                {w.verified ? 'Verified' : 'Unverified'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <ChevronRight className="w-5 h-5 text-muted-foreground opacity-50" />
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Polling Stations in this Ward */}
+                {wardSlug && (
+                    <section>
+                        <h3 className="text-lg font-bold mb-4 px-1">Polling Stations in {wardName}</h3>
+                        <div className={`p-8 text-center rounded-3xl border ${isDark ? 'bg-ios-gray-800/30 border-ios-gray-800' : 'bg-white border-ios-gray-100'}`}>
+                            <AlertCircle className="w-8 h-8 text-ios-blue mx-auto mb-3 opacity-40" />
+                            <p className="text-sm font-medium">Digital Polling Station registry is coming soon.</p>
+                            <p className="text-xs text-muted-foreground mt-1">Verification of 40,000+ locations is in progress by the community.</p>
                         </div>
                     </section>
                 )}
@@ -686,11 +963,63 @@ const OfficeDetail = () => {
                     </button>
                 </section>
 
-                <footer className="text-center pt-8 opacity-40">
-                    <p className="text-[10px] font-medium tracking-widest uppercase">
-                        Data provided by CEKA community. Join <a href="https://www.civiceducationkenya.com/join-community" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-500 transition-colors">here</a>
-                    </p>
-                    <p className="text-[10px] mt-1">
+                <footer className="text-center pt-8">
+                    {/* Verified-by Badges */}
+                    {confirmations.length > 0 ? (
+                        <div className="space-y-3 mb-6">
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Verified By</h4>
+                            <div className="flex flex-wrap justify-center gap-3">
+                                {confirmations.slice(0, 3).map((conf, idx) => {
+                                    const isCeka = conf.user_id === 'ceka' || conf.user_id?.startsWith('ceka-');
+                                    const displayName = isCeka ? 'CEKA' : conf.user_id ? `User ${conf.user_id.slice(0, 6)}` : 'Anonymous';
+                                    const timeAgo = (() => {
+                                        if (!conf.created_at) return 'Recently';
+                                        const diff = Date.now() - new Date(conf.created_at).getTime();
+                                        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                                        if (days === 0) return 'Today';
+                                        if (days === 1) return 'Yesterday';
+                                        if (days < 30) return `${days}d ago`;
+                                        return `${Math.floor(days / 30)}mo ago`;
+                                    })();
+                                    return (
+                                        <div key={idx} className="verified-by-badge">
+                                            <div className="verified-by-avatar">
+                                                {isCeka ? (
+                                                    <div className="w-full h-full bg-white flex items-center justify-center p-1 overflow-hidden">
+                                                        <img src="/ceka-logo.svg" alt="CEKA Logo" className="w-full h-full object-contain" />
+                                                    </div>
+                                                ) : (
+                                                    <Avatar
+                                                        size={36}
+                                                        name={conf.user_id || `anon-${idx}`}
+                                                        variant="beam"
+                                                        colors={['#007AFF', '#34C759', '#FF9500', '#AF52DE', '#0b63c6']}
+                                                    />
+                                                )}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-semibold truncate">{displayName}</p>
+                                                <p className="text-[10px] text-muted-foreground">{timeAgo}</p>
+                                            </div>
+                                            <svg className="w-4 h-4 text-green-500 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M12 1l3.09 6.26L22 8.27l-5 4.87 1.18 6.88L12 16.77l-6.18 3.25L7 13.14 2 8.27l6.91-1.01L12 1z" />
+                                            </svg>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            {confirmations.length > 3 && (
+                                <p className="text-[10px] text-muted-foreground">+{confirmations.length - 3} more verifiers</p>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="opacity-40 mb-4">
+                            <p className="text-[10px] font-medium tracking-widest uppercase">
+                                Data provided by CEKA community. Join <a href="https://www.civiceducationkenya.com/join-community" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-500 transition-colors">here</a>
+                            </p>
+                        </div>
+                    )}
+                    <p className="text-[10px] opacity-40 mt-1">
                         Last updated: {office.updated_at ? new Date(office.updated_at).toLocaleDateString() : 'Recently'}
                     </p>
                 </footer>

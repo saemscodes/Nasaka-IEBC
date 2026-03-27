@@ -47,10 +47,10 @@
     "seo:sitemap": "node scripts/generate-sitemap.js"
   },
   "dependencies": {
-    "@capacitor/android": "^8.0.0",
+    "@capacitor/android": "^8.2.0",
     "@capacitor/app": "^8.0.0",
-    "@capacitor/cli": "^8.0.0",
-    "@capacitor/core": "^8.0.0",
+    "@capacitor/cli": "^8.2.0",
+    "@capacitor/core": "^8.2.0",
     "@capacitor/haptics": "^8.0.0",
     "@capacitor/ios": "^8.0.0",
     "@capacitor/keyboard": "^8.0.0",
@@ -98,6 +98,7 @@
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.37.0",
     "@vercel/blob": "^2.3.1",
+    "boring-avatars": "^2.0.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",

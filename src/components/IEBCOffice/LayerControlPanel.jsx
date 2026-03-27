@@ -74,43 +74,44 @@ const LayerControlPanel = ({
     }
   ];
 
+  const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_API_KEY;
+
   const baseMapOptions = [
     {
       id: 'standard',
       name: 'Standard',
-      description: 'Default street map',
-      image: 'https://abc.tile.openstreetmap.org/12/2405/1618.png'
+      description: 'OpenStreetMap Streets',
+      image: `https://api.maptiler.com/maps/streets-v2/static/36.8219,-1.2921,12/400x300.png?key=${MAPTILER_KEY}`
     },
     {
       id: 'satellite',
       name: 'Satellite',
-      description: 'Aerial imagery',
+      description: 'Esri World Imagery',
       image: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/12/1618/2405'
     },
     {
       id: 'dark',
       name: 'Black',
-      description: 'Night vision',
-      image: 'https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/12/2405/1618.png'
+      description: 'Night Vision (OSM Dark)',
+      image: `https://api.maptiler.com/maps/openstreetmap-dark/static/36.8219,-1.2921,12/400x300.png?key=${MAPTILER_KEY}`
     },
     {
       id: 'blue',
       name: 'Blue',
-      description: 'Oceanic focus',
-      image: 'https://cartodb-basemaps-a.global.ssl.fastly.net/rastertiles/voyager/12/2405/1618.png'
+      description: 'Voyager Oceanic',
+      image: `https://api.maptiler.com/maps/voyager/static/36.8219,-1.2921,12/400x300.png?key=${MAPTILER_KEY}`
     },
     {
       id: 'green',
       name: 'Green',
-      description: 'Terrain view',
-      image: 'https://c.tile.opentopomap.org/12/2405/1618.png'
+      description: 'Outdoor Terrain',
+      image: `https://api.maptiler.com/maps/outdoor-v2/static/36.8219,-1.2921,12/400x300.png?key=${MAPTILER_KEY}`
     },
     {
       id: 'retro',
       name: 'Retro',
-      description: 'Vintage style',
-      image: 'https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/12/2405/1618.png',
-      isRetro: true
+      description: 'TomTom Classic',
+      image: 'https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/12/2405/1618.png'
     }
   ];
 

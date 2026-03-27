@@ -176,6 +176,12 @@ pre,
   z-index: var(--z-index-map-base) !important;
 }
 
+/* Satellite Dark Mode Filter 🌙 */
+.leaflet-container.satellite-dark-mode .leaflet-tile-pane {
+  filter: brightness(0.7) contrast(1.1) saturate(0.8);
+  transition: filter 0.5s ease-in-out;
+}
+
 .leaflet-tile-pane {
   z-index: var(--z-index-map-tiles) !important;
 }

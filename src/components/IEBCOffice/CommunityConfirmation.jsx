@@ -2,13 +2,17 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
+import { useTheme } from '@/contexts/ThemeContext';
 import LoadingSpinner from './LoadingSpinner';
 import { MapPin, ShieldCheck, Clock } from 'lucide-react';
 
 const CommunityConfirmation = ({ contributionId, currentConfirmations = 0 }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [isConfirming, setIsConfirming] = useState(false);
   const [userHasConfirmed, setUserHasConfirmed] = useState(false);
   const [error, setError] = useState(null);
+  const REQUIRED_CONFIRMATIONS = 5;
 
   const generateDeviceHash = async () => {
     const components = [
@@ -153,28 +157,54 @@ const CommunityConfirmation = ({ contributionId, currentConfirmations = 0 }) => 
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4">
-      <div className="flex items-center space-x-3 mb-3">
-        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className={`rounded-2xl border p-5 transition-colors duration-300 ${isDark
+      ? 'bg-ios-gray-800/60 backdrop-blur-xl border-ios-gray-700/50'
+      : 'bg-white/80 backdrop-blur-xl border-gray-200/60'
+      }`} style={{ backdropFilter: 'blur(20px) saturate(180%)' }}>
+      <div className="flex items-center space-x-3 mb-4">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-inner ${isDark ? 'bg-blue-500/20' : 'bg-blue-100'}`}>
+          <svg className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>
         </div>
-        <div>
-          <h4 className="font-semibold text-gray-900">Help Verify This Location</h4>
-          <p className="text-sm text-gray-600">
+        <div className="flex-1">
+          <h4 className={`font-bold text-base ${isDark ? 'text-white' : 'text-gray-900'}`}>Help Verify This Location</h4>
+          <p className={`text-sm ${isDark ? 'text-ios-gray-400' : 'text-gray-600'}`}>
             {currentConfirmations} {currentConfirmations === 1 ? 'person has' : 'people have'} confirmed this location
           </p>
+        </div>
+      </div>
+
+      {/* Progress bar: confirmations out of REQUIRED_CONFIRMATIONS */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
+            Verification Progress
+          </span>
+          <span className={`text-[10px] font-bold ${currentConfirmations >= REQUIRED_CONFIRMATIONS ? 'text-green-500' : isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
+            {Math.min(currentConfirmations, REQUIRED_CONFIRMATIONS)}/{REQUIRED_CONFIRMATIONS}
+          </span>
+        </div>
+        <div className={`h-2 rounded-full overflow-hidden ${isDark ? 'bg-ios-gray-700' : 'bg-gray-200'}`}>
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${Math.min((currentConfirmations / REQUIRED_CONFIRMATIONS) * 100, 100)}%` }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            className={`h-full rounded-full ${currentConfirmations >= REQUIRED_CONFIRMATIONS ? 'bg-green-500' : 'bg-blue-500'}`}
+          />
         </div>
       </div>
 
       {!userHasConfirmed ? (
         <motion.button
           whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          whileTap={{ scale: 0.96 }}
           onClick={handleConfirm}
           disabled={isConfirming}
-          className="w-full bg-green-600 text-white rounded-lg py-2 px-4 font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
+          className={`w-full rounded-2xl py-4 px-6 font-bold text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3 shadow-lg active:scale-95 ${isDark
+            ? 'bg-green-600 text-white shadow-green-600/20 hover:bg-green-500'
+            : 'bg-green-600 text-white shadow-green-600/25 hover:bg-green-700'
+            }`}
         >
           {isConfirming ? (
             <>
@@ -183,31 +213,31 @@ const CommunityConfirmation = ({ contributionId, currentConfirmations = 0 }) => 
             </>
           ) : (
             <>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
               </svg>
               <span>Confirm This Office Is Real</span>
             </>
           )}
         </motion.button>
       ) : (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-          <div className="flex items-center justify-center space-x-2 text-green-700">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        <div className={`rounded-2xl p-4 text-center border ${isDark ? 'bg-green-500/10 border-green-500/20' : 'bg-green-50 border-green-200'}`}>
+          <div className={`flex items-center justify-center space-x-2 ${isDark ? 'text-green-400' : 'text-green-700'}`}>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
             </svg>
-            <span className="font-medium">You've confirmed this location</span>
+            <span className="font-bold">You've confirmed this location</span>
           </div>
         </div>
       )}
 
       {error && (
-        <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-3">
-          <p className="text-sm text-red-700">{error}</p>
+        <div className={`mt-3 rounded-xl p-3 border ${isDark ? 'bg-red-500/10 border-red-500/20' : 'bg-red-50 border-red-200'}`}>
+          <p className={`text-sm ${isDark ? 'text-red-400' : 'text-red-700'}`}>{error}</p>
         </div>
       )}
 
-      <div className="mt-3 text-xs text-gray-500 space-y-1">
+      <div className={`mt-4 text-xs space-y-1.5 ${isDark ? 'text-ios-gray-500' : 'text-gray-500'}`}>
         <div className="flex items-center space-x-2">
           <MapPin className="w-3 h-3 text-blue-500" />
           <span>You must be within 500m of the office</span>
