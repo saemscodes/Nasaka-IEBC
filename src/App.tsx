@@ -538,6 +538,14 @@ const AppContent = () => {
 
         {/* ✅ CANONICAL HIERARCHICAL ROUTES (Full Ham) */}
         <Route
+          path="/:county/:constituency/:ward/:index"
+          element={
+            <React.Suspense fallback={<LoadingState />}>
+              <OfficeDetail />
+            </React.Suspense>
+          }
+        />
+        <Route
           path="/:county/:constituency/:ward"
           element={
             <React.Suspense fallback={<LoadingState />}>

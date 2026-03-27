@@ -34,6 +34,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import LoadingSpinner from '@/components/IEBCOffice/LoadingSpinner';
+import Avatar from 'boring-avatars';
 
 // Approximate distance function for radius visualization
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -67,6 +68,9 @@ const OfficeDetail = () => {
     const [nearbyOffices, setNearbyOffices] = useState([]);
     const [liveIntelligence, setLiveIntelligence] = useState(null);
     const [intelligenceLoading, setIntelligenceLoading] = useState(false);
+    const [confirmations, setConfirmations] = useState([]);
+    const [wards, setWards] = useState([]);
+    const [contributionImage, setContributionImage] = useState(null);
 
     // Fix 5: Read persisted userLocation from sessionStorage for return navigation
     const savedUserLocation = useMemo(() => {
@@ -136,7 +140,7 @@ const OfficeDetail = () => {
                 // 1. Try exact ward match with hierarchy
                 const { data: d0, error: e0 } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name') // Added ward_name to select
                     .ilike('ward_name', `%${wardSearch}%`)
                     .ilike('constituency_name', `%${constituencySearch}%`)
                     .limit(1)
@@ -150,7 +154,7 @@ const OfficeDetail = () => {
                 // 2. Try constituency match
                 const { data: d1, error: e1 } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name') // Added ward_name to select
                     .ilike('constituency_name', `%${constituencySearch}%`)
                     .limit(1)
                     .maybeSingle();
@@ -163,7 +167,7 @@ const OfficeDetail = () => {
                 // 3. County-only fallback
                 const { data: d3, error: e3 } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name') // Added ward_name to select
                     .ilike('county', countySearch)
                     .limit(1)
                     .maybeSingle();
@@ -214,7 +218,7 @@ const OfficeDetail = () => {
                 // Final fuzzy fallback on county as absolute last resort
                 const { data: fuzzyData } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name') // Added ward_name to select
                     .ilike('county', `%${countySearch}%`)
                     .limit(1)
                     .maybeSingle();
@@ -232,12 +236,13 @@ const OfficeDetail = () => {
             // Fetch nearby offices in same county
             const { data: nearby } = await supabase
                 .from('iebc_offices')
-                .select('constituency_name, county, verified')
+                .select('id, county, constituency_name, verified')
                 .eq('county', data.county)
-                .neq('constituency_name', data.constituency_name)
+                .neq('id', data.id)
                 .limit(5);
 
             setNearbyOffices(nearby || []);
+
         } catch (err) {
             // Log removed for production
 
@@ -245,13 +250,85 @@ const OfficeDetail = () => {
         } finally {
             setLoading(false);
         }
-    }, [countySlug, constituencySlug, navigate]);
+    }, [countySlug, constituencySlug, navigate, wardSlug]);
 
     useEffect(() => {
         if (countySlug) {
             fetchOfficeData();
         }
     }, [fetchOfficeData, countySlug]);
+
+    // Fetch confirmations for verified-by badge
+    useEffect(() => {
+        if (!office?.id) return;
+        const fetchConfirmations = async () => {
+            try {
+                const { data } = await supabase
+                    .from('confirmations')
+                    .select('user_id, is_accurate, notes, created_at')
+                    .eq('office_id', office.id)
+                    .eq('is_accurate', true)
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+                setConfirmations(data || []);
+            } catch (_) {
+                // Non-blocking
+            }
+        };
+        fetchConfirmations();
+    }, [office?.id]);
+
+    // Fetch wards in this constituency
+    useEffect(() => {
+        if (!office?.constituency_name) return;
+        const fetchWards = async () => {
+            try {
+                const { data } = await supabase
+                    .from('iebc_offices')
+                    .select('ward_name, office_location, verified')
+                    .ilike('constituency_name', office.constituency_name)
+                    .not('ward_name', 'is', null)
+                    .order('ward_name');
+                // Deduplicate by ward_name
+                const unique = [];
+                const seen = new Set();
+                (data || []).forEach(w => {
+                    if (w.ward_name && !seen.has(w.ward_name.toLowerCase())) {
+                        seen.add(w.ward_name.toLowerCase());
+                        unique.push(w);
+                    }
+                });
+                setWards(unique);
+            } catch (_) {
+                // Non-blocking
+            }
+        };
+        fetchWards();
+    }, [office?.constituency_name]);
+
+    // Fetch contribution image (if any)
+    useEffect(() => {
+        if (!office?.id) return;
+        const fetchImage = async () => {
+            try {
+                const { data } = await supabase
+                    .from('iebc_office_contributions')
+                    .select('image_public_url')
+                    .eq('office_id', office.id)
+                    .eq('status', 'verified')
+                    .not('image_public_url', 'is', null)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                if (data?.image_public_url) {
+                    setContributionImage(data.image_public_url);
+                }
+            } catch (_) {
+                // Non-blocking
+            }
+        };
+        fetchImage();
+    }, [office?.id]);
 
     // Live Intelligence — fetch travel + AI score when office has coordinates
     const fetchIntelligence = useCallback(async () => {
@@ -354,7 +431,7 @@ const OfficeDetail = () => {
     if (wardSlug && office.ward_name) canonical += `/${slugify(office.ward_name)}`;
 
     return (
-        <div className={`min-h-screen pb-20 transition-colors duration-500 ${isDark ? 'bg-ios-gray-900 text-white' : 'bg-ios-gray-50 text-ios-gray-900'}`}>
+        <div className={`min-h-screen pb-20 transition-colors duration-500 bg-topo-backdrop ${isDark ? 'bg-ios-gray-900 text-white' : 'bg-ios-gray-50 text-ios-gray-900'}`}>
             <SEOHead
                 title={seoTitle}
                 description={seoDescription}
@@ -418,6 +495,21 @@ const OfficeDetail = () => {
                             <p className="text-sm font-medium leading-tight truncate">{office.office_location || 'Address information being verified by community'}</p>
                         </div>
                     </div>
+
+                    {/* Contribution Image — conditional */}
+                    {contributionImage && (
+                        <div className="mt-4 rounded-2xl overflow-hidden border border-ios-gray-100 dark:border-ios-gray-700">
+                            <img
+                                src={contributionImage}
+                                alt={`${officeName} IEBC Office`}
+                                className="w-full h-48 object-cover"
+                                loading="lazy"
+                            />
+                            <div className={`px-3 py-2 text-[10px] font-medium uppercase tracking-wider ${isDark ? 'bg-ios-gray-700/50 text-ios-gray-400' : 'bg-ios-gray-50 text-muted-foreground'}`}>
+                                Community Photo
+                            </div>
+                        </div>
+                    )}
                 </section>
 
                 {/* Quick Actions */}
@@ -665,6 +757,47 @@ const OfficeDetail = () => {
                     </section>
                 )}
 
+                {/* Wards in this Constituency */}
+                {wards.length > 0 && !wardSlug && (
+                    <section>
+                        <h3 className="text-lg font-bold mb-4 px-1">Wards in {officeName}</h3>
+                        <div className="space-y-2">
+                            {wards.map((w) => (
+                                <Link
+                                    key={w.ward_name}
+                                    to={`/${slugify(countyName)}/${slugify(officeName)}${slugify(officeName) === slugify(countyName) ? '-town' : ''}/${slugify(w.ward_name)}`}
+                                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all active:scale-[0.98] ${isDark ? 'bg-ios-gray-800/50 border-ios-gray-800 hover:bg-ios-gray-800' : 'bg-white border-ios-gray-100 hover:bg-ios-gray-50'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-ios-gray-100 dark:bg-ios-gray-700 flex items-center justify-center">
+                                            <MapPin className="w-4 h-4 text-ios-blue" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold">{w.ward_name}</p>
+                                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                                                {w.verified ? 'Verified' : 'Unverified'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <ChevronRight className="w-5 h-5 text-muted-foreground opacity-50" />
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Polling Stations in this Ward */}
+                {wardSlug && (
+                    <section>
+                        <h3 className="text-lg font-bold mb-4 px-1">Polling Stations in {wardName}</h3>
+                        <div className={`p-8 text-center rounded-3xl border ${isDark ? 'bg-ios-gray-800/30 border-ios-gray-800' : 'bg-white border-ios-gray-100'}`}>
+                            <AlertCircle className="w-8 h-8 text-ios-blue mx-auto mb-3 opacity-40" />
+                            <p className="text-sm font-medium">Digital Polling Station registry is coming soon.</p>
+                            <p className="text-xs text-muted-foreground mt-1">Verification of 40,000+ locations is in progress by the community.</p>
+                        </div>
+                    </section>
+                )}
+
                 {/* Go Back To Map CTA - Moved to bottom per user request */}
                 <section className="mb-6 mt-4">
                     <button
@@ -686,11 +819,63 @@ const OfficeDetail = () => {
                     </button>
                 </section>
 
-                <footer className="text-center pt-8 opacity-40">
-                    <p className="text-[10px] font-medium tracking-widest uppercase">
-                        Data provided by CEKA community. Join <a href="https://www.civiceducationkenya.com/join-community" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-500 transition-colors">here</a>
-                    </p>
-                    <p className="text-[10px] mt-1">
+                <footer className="text-center pt-8">
+                    {/* Verified-by Badges */}
+                    {confirmations.length > 0 ? (
+                        <div className="space-y-3 mb-6">
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Verified By</h4>
+                            <div className="flex flex-wrap justify-center gap-3">
+                                {confirmations.slice(0, 3).map((conf, idx) => {
+                                    const isCeka = conf.user_id === 'ceka' || conf.user_id?.startsWith('ceka-');
+                                    const displayName = isCeka ? 'CEKA' : conf.user_id ? `User ${conf.user_id.slice(0, 6)}` : 'Anonymous';
+                                    const timeAgo = (() => {
+                                        if (!conf.created_at) return 'Recently';
+                                        const diff = Date.now() - new Date(conf.created_at).getTime();
+                                        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                                        if (days === 0) return 'Today';
+                                        if (days === 1) return 'Yesterday';
+                                        if (days < 30) return `${days}d ago`;
+                                        return `${Math.floor(days / 30)}mo ago`;
+                                    })();
+                                    return (
+                                        <div key={idx} className="verified-by-badge">
+                                            <div className="verified-by-avatar">
+                                                {isCeka ? (
+                                                    <div className="w-full h-full bg-white flex items-center justify-center p-1 overflow-hidden">
+                                                        <img src="/ceka-logo.svg" alt="CEKA Logo" className="w-full h-full object-contain" />
+                                                    </div>
+                                                ) : (
+                                                    <Avatar
+                                                        size={36}
+                                                        name={conf.user_id || `anon-${idx}`}
+                                                        variant="beam"
+                                                        colors={['#007AFF', '#34C759', '#FF9500', '#AF52DE', '#0b63c6']}
+                                                    />
+                                                )}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-semibold truncate">{displayName}</p>
+                                                <p className="text-[10px] text-muted-foreground">{timeAgo}</p>
+                                            </div>
+                                            <svg className="w-4 h-4 text-green-500 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M12 1l3.09 6.26L22 8.27l-5 4.87 1.18 6.88L12 16.77l-6.18 3.25L7 13.14 2 8.27l6.91-1.01L12 1z" />
+                                            </svg>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            {confirmations.length > 3 && (
+                                <p className="text-[10px] text-muted-foreground">+{confirmations.length - 3} more verifiers</p>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="opacity-40 mb-4">
+                            <p className="text-[10px] font-medium tracking-widest uppercase">
+                                Data provided by CEKA community. Join <a href="https://www.civiceducationkenya.com/join-community" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-500 transition-colors">here</a>
+                            </p>
+                        </div>
+                    )}
+                    <p className="text-[10px] opacity-40 mt-1">
                         Last updated: {office.updated_at ? new Date(office.updated_at).toLocaleDateString() : 'Recently'}
                     </p>
                 </footer>

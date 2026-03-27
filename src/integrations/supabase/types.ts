@@ -162,6 +162,7 @@ export interface IEBCOffice {
     geocode_verified: boolean;
     geocode_verified_at?: string;
     multi_source_confidence?: number;
+    ward_name?: string;
     created_at: string;
     updated_at: string;
     distance_km?: number; // Computed field
@@ -175,6 +176,17 @@ export interface Ward {
     latitude: number;
     longitude: number;
     created_at: string;
+}
+
+export interface Constituency {
+    id: number;
+    name: string;
+    county_id: number;
+    county_name?: string;
+    centroid_latitude?: number;
+    centroid_longitude?: number;
+    registration_target?: number;
+    created_at?: string;
 }
 
 export interface AdminTask {
@@ -304,6 +316,7 @@ export type Database = {
             iebc_offices: { Row: IEBCOffice; Insert: Partial<IEBCOffice>; Update: Partial<IEBCOffice> };
             diaspora_registration_centres: { Row: DiasporaRegistrationCentre; Insert: Partial<DiasporaRegistrationCentre>; Update: Partial<DiasporaRegistrationCentre> };
             wards: { Row: Ward; Insert: Partial<Ward>; Update: Partial<Ward> };
+            constituencies: { Row: Constituency; Insert: Partial<Constituency>; Update: Partial<Constituency> };
             signatures: { Row: Signature; Insert: Partial<Signature>; Update: Partial<Signature> };
             petitions: { Row: Petition; Insert: Partial<Petition>; Update: Partial<Petition> };
             audit_trail: { Row: AuditTrail; Insert: Partial<AuditTrail>; Update: Partial<AuditTrail> };
