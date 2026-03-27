@@ -8,6 +8,8 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 
 -- Function: get_nearest_ward
 -- Resolves a lat/lng pair to the nearest ward centroid
+-- Uses squared Euclidean distance for fast ordering (sufficient for nearest-neighbor)
+-- and Haversine with LEAST/GREATEST clamping for safe distance_km output
 CREATE OR REPLACE FUNCTION public.get_nearest_ward(lat_param double precision, lng_param double precision)
 RETURNS TABLE (
     id uuid,
@@ -27,15 +29,20 @@ BEGIN
         w.county,
         w.latitude,
         w.longitude,
-        (6371 * acos(
-            cos(radians(lat_param)) * cos(radians(w.latitude)) * 
-            cos(radians(w.longitude) - radians(lng_param)) + 
-            sin(radians(lat_param)) * sin(radians(w.latitude))
+        -- Haversine with clamping to prevent acos domain errors from floating-point imprecision
+        (6371.0 * acos(
+            LEAST(1.0, GREATEST(-1.0,
+                cos(radians(lat_param)) * cos(radians(w.latitude)) * 
+                cos(radians(w.longitude) - radians(lng_param)) + 
+                sin(radians(lat_param)) * sin(radians(w.latitude))
+            ))
         )) as distance_km
     FROM public.wards w
     WHERE w.latitude IS NOT NULL AND w.longitude IS NOT NULL
+    -- Use squared Euclidean distance for fast approximate ordering
     ORDER BY (
-        point(w.longitude, w.latitude) <-> point(lng_param, lat_param)
+        (w.latitude - lat_param) * (w.latitude - lat_param) +
+        (w.longitude - lng_param) * (w.longitude - lng_param)
     ) ASC
     LIMIT 1;
 END;

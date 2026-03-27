@@ -33,12 +33,17 @@ const FlatRouteResolver = () => {
                 // Step 1: Check if it's a direct county slug
                 const { data: countyData } = await supabase
                     .from('iebc_offices')
-                    .select('county')
+                    .select('county, constituency_name')
                     .ilike('county', searchName)
                     .limit(1);
 
                 if (countyData && (countyData as any[]).length > 0) {
-                    navigate(`/${slugify((countyData as any[])[0].county)}`, { replace: true });
+                    const match = (countyData as any[])[0];
+                    const county_slug = slugify(match.county);
+                    let area_slug = slugify(match.constituency_name);
+                    if (area_slug === county_slug) area_slug = `${area_slug}-town`;
+                    // Navigate to /:county/:constituency to avoid infinite loop on /:slug
+                    navigate(`/${county_slug}/${area_slug}`, { replace: true });
                     return;
                 }
 
@@ -78,7 +83,6 @@ const FlatRouteResolver = () => {
                     const { lat, lng } = geo.result;
 
                     // Find the nearest ward centroid to this resolved point
-                    // We use the wards table which has lat/lng for every ward
                     try {
                         const { data: nearestWard } = await (supabase.rpc as any)('get_nearest_ward', {
                             lat_param: lat,
@@ -88,7 +92,6 @@ const FlatRouteResolver = () => {
                         if (nearestWard && (nearestWard as any[]).length > 0) {
                             const w = (nearestWard as any[])[0];
                             const path = `/${slugify(w.county)}/${slugify(w.constituency)}/${slugify(w.ward_name)}`;
-                            // Pass the exact resolved coordinates to center the map correctly at the destination
                             navigate(`${path}?lat=${lat}&lng=${lng}&q=${encodeURIComponent(searchName)}`, { replace: true });
                             return;
                         }
@@ -97,9 +100,24 @@ const FlatRouteResolver = () => {
                     }
 
                     // Fallback to county if ward RPC fails
+                    // Strip " County" / " county" suffix from geocoded name (Nominatim returns "Bungoma County" but DB stores "BUNGOMA")
                     if (geo.result.county) {
-                        navigate(`/${slugify(geo.result.county)}?lat=${lat}&lng=${lng}&q=${encodeURIComponent(searchName)}`, { replace: true });
-                        return;
+                        const cleanCounty = geo.result.county.replace(/\s+county$/i, '').trim();
+                        // Find first constituency in this county to build a 2-segment URL
+                        const { data: countyOffice } = await supabase
+                            .from('iebc_offices')
+                            .select('county, constituency_name')
+                            .ilike('county', cleanCounty)
+                            .limit(1);
+
+                        if (countyOffice && (countyOffice as any[]).length > 0) {
+                            const match = (countyOffice as any[])[0];
+                            const c_slug = slugify(match.county);
+                            let a_slug = slugify(match.constituency_name);
+                            if (a_slug === c_slug) a_slug = `${a_slug}-town`;
+                            navigate(`/${c_slug}/${a_slug}?lat=${lat}&lng=${lng}&q=${encodeURIComponent(searchName)}`, { replace: true });
+                            return;
+                        }
                     }
                 }
 
