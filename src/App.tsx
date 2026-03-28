@@ -538,7 +538,7 @@ const AppContent = () => {
 
         {/* ✅ CANONICAL HIERARCHICAL ROUTES (Full Ham) */}
         <Route
-          path="/:county/:constituency/:ward/:index"
+          path="/map/:county/:constituency/:ward/:index"
           element={
             <React.Suspense fallback={<LoadingState />}>
               <OfficeDetail />
@@ -546,7 +546,7 @@ const AppContent = () => {
           }
         />
         <Route
-          path="/:county/:constituency/:ward"
+          path="/map/:county/:constituency/:ward"
           element={
             <React.Suspense fallback={<LoadingState />}>
               <OfficeDetail />
@@ -554,7 +554,7 @@ const AppContent = () => {
           }
         />
         <Route
-          path="/:county/:constituency"
+          path="/map/:county/:constituency"
           element={
             <React.Suspense fallback={<LoadingState />}>
               <OfficeDetail />
@@ -568,7 +568,7 @@ const AppContent = () => {
         <Route path="/iebc-office/:county" element={<LegacyDynamicRedirect />} />
 
         {/* ✅ FLAT ROUTE RESOLVER (Go Ham) */}
-        <Route path="/:slug" element={<FlatRouteResolver />} />
+        <Route path="/map/:slug" element={<FlatRouteResolver />} />
 
         {/* ✅ Catch-all */}
         <Route path="*" element={<NotFound />} />

@@ -105,7 +105,8 @@ const OfficeDetail = () => {
         if (!office) return;
 
         const isLegacyPath = window.location.pathname.startsWith('/iebc-office/') ||
-            window.location.pathname.startsWith('/nasaka-iebc/');
+            window.location.pathname.startsWith('/nasaka-iebc/') ||
+            !window.location.pathname.startsWith('/map/');
 
         const canonicalCounty = slugify(office.county);
         const canonicalConstituency = slugify(office.constituency_name);
@@ -116,7 +117,7 @@ const OfficeDetail = () => {
         let constPart = canonicalConstituency;
         if (constPart === canonicalCounty) constPart = `${constPart}-town`;
 
-        let expectedPath = `/${canonicalCounty}/${constPart}`;
+        let expectedPath = `/map/${canonicalCounty}/${constPart}`;
         if (wardSlug && canonicalWard) expectedPath += `/${canonicalWard}`;
         if (indexParam && wardOffices.length > 1) expectedPath += `/${indexParam}`;
 
@@ -219,7 +220,7 @@ const OfficeDetail = () => {
 
                             if (finalOffice) {
                                 setOffice(finalOffice);
-                                const canonicalPath = `/${slugify(w.county)}/${slugify(w.constituency)}/${slugify(w.ward_name)}`;
+                                const canonicalPath = `/map/${slugify(w.county)}/${slugify(w.constituency)}/${slugify(w.ward_name)}`;
                                 navigate(`${canonicalPath}?lat=${lat}&lng=${lng}&q=${encodeURIComponent(searchString)}`, { replace: true });
                                 return;
                             }
@@ -238,7 +239,7 @@ const OfficeDetail = () => {
                     .maybeSingle();
 
                 if (fuzzyData) {
-                    const newUrl = `/${slugify(fuzzyData.county)}/${slugify(fuzzyData.constituency_name)}${slugify(fuzzyData.constituency_name) === slugify(fuzzyData.county) ? '-town' : ''}`;
+                    const newUrl = `/map/${slugify(fuzzyData.county)}/${slugify(fuzzyData.constituency_name)}${slugify(fuzzyData.constituency_name) === slugify(fuzzyData.county) ? '-town' : ''}`;
                     navigate(newUrl, { replace: true });
                     return;
                 }
