@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { useLenis } from "./hooks/useLenis";
@@ -416,9 +416,19 @@ const LegacyDynamicRedirect = () => {
   const { county, area, constituency } = useParams();
   const destArea = area || constituency;
   if (destArea) {
-    return <Navigate to={`/${county}/${destArea}`} replace />;
+    return <Navigate to={`/map/${county}/${destArea}`} replace />;
   }
-  return <Navigate to={`/${county}`} replace />;
+  return <Navigate to={`/map/${county}`} replace />;
+};
+
+// ✅ Helper for old-format URL redirection (pre-/map/ namespace)
+const OldFormatRedirect = () => {
+  const params = useParams();
+  const location = useLocation();
+  // Reconstruct the path segments under /map/
+  const segments = location.pathname.split('/').filter(Boolean);
+  const newPath = `/map/${segments.join('/')}`;
+  return <Navigate to={newPath} replace />;
 };
 
 const AppContent = () => {
@@ -569,6 +579,12 @@ const AppContent = () => {
 
         {/* ✅ FLAT ROUTE RESOLVER (Go Ham) */}
         <Route path="/map/:slug" element={<FlatRouteResolver />} />
+
+        {/* ✅ OLD-FORMAT URL REDIRECTS (pre-/map/ namespace) */}
+        {/* These catch old indexed/bookmarked URLs and redirect to /map/... */}
+        <Route path="/:a/:b/:c/:d" element={<OldFormatRedirect />} />
+        <Route path="/:a/:b/:c" element={<OldFormatRedirect />} />
+        <Route path="/:a/:b" element={<OldFormatRedirect />} />
 
         {/* ✅ Catch-all */}
         <Route path="*" element={<NotFound />} />
