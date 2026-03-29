@@ -285,7 +285,7 @@ async function generateSitemap() {
     // ── County-level URLs: /:county ──────────────────────────────────────────
     for (const county of uniqueCounties) {
         const countySlug = slugify(county);
-        const url = `${SITE_URL}/map/${countySlug}`;
+        const url = `${SITE_URL}/${countySlug}`;
         xml += urlEntry(url, today, 'weekly', '0.8');
         xml += '\n';
         dynamicUrlsCount++;
@@ -304,7 +304,7 @@ async function generateSitemap() {
             constituencySlug = `${constituencySlug}-town`;
         }
 
-        const url = `${SITE_URL}/map/${countySlug}/${constituencySlug}`;
+        const url = `${SITE_URL}/${countySlug}/${constituencySlug}`;
         xml += urlEntry(url, lastmod, 'weekly', '0.7');
         xml += '\n';
         dynamicUrlsCount++;
@@ -323,7 +323,7 @@ async function generateSitemap() {
         if (!wardSlug) continue;
 
         // Base ward URL
-        const wardUrl = `${SITE_URL}/map/${countySlug}/${constituencySlug}/${wardSlug}`;
+        const wardUrl = `${SITE_URL}/${countySlug}/${constituencySlug}/${wardSlug}`;
         xml += urlEntry(wardUrl, today, 'weekly', '0.6');
         xml += '\n';
         dynamicUrlsCount++;
@@ -333,7 +333,7 @@ async function generateSitemap() {
         const officeCount = wardOfficeCountMap.get(key) || 0;
         if (officeCount > 1) {
             for (let i = 1; i <= officeCount; i++) {
-                const numberedUrl = `${SITE_URL}/map/${countySlug}/${constituencySlug}/${wardSlug}/${i}`;
+                const numberedUrl = `${SITE_URL}/${countySlug}/${constituencySlug}/${wardSlug}/${i}`;
                 xml += urlEntry(numberedUrl, today, 'weekly', '0.5');
                 xml += '\n';
                 dynamicUrlsCount++;

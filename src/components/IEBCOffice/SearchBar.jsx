@@ -43,7 +43,7 @@ const SearchBar = ({
     const countySlug = slugify(suggestion.county);
     let areaSlug = slugify(suggestion.constituency_name);
     if (areaSlug === countySlug) areaSlug = `${areaSlug}-town`;
-    detailNavigate(`/map/${countySlug}/${areaSlug}`);
+    detailNavigate(`/${countySlug}/${areaSlug}`);
   }, [detailNavigate]);
 
   // IEBC Icon Component

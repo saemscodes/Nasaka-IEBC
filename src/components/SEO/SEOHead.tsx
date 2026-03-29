@@ -35,7 +35,6 @@ interface SEOHeadProps {
 }
 
 export function slugify(text: string): string {
-    if (text == null) return '';
     return text
         .toString()
         .toLowerCase()

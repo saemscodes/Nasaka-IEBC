@@ -43,7 +43,7 @@ const FlatRouteResolver = () => {
                     let area_slug = slugify(match.constituency_name);
                     if (area_slug === county_slug) area_slug = `${area_slug}-town`;
                     // Navigate to /:county/:constituency to avoid infinite loop on /:slug
-                    navigate(`/map/${county_slug}/${area_slug}`, { replace: true });
+                    navigate(`/${county_slug}/${area_slug}`, { replace: true });
                     return;
                 }
 
@@ -59,7 +59,7 @@ const FlatRouteResolver = () => {
                     let area_slug = slugify(match.constituency_name);
                     if (area_slug === county_slug) area_slug = `${area_slug}-town`;
 
-                    navigate(`/map/${county_slug}/${area_slug}`, { replace: true });
+                    navigate(`/${county_slug}/${area_slug}`, { replace: true });
                     return;
                 }
 
@@ -72,7 +72,7 @@ const FlatRouteResolver = () => {
 
                 if (wardData && (wardData as any[]).length > 0) {
                     const w = (wardData as any[])[0];
-                    navigate(`/map/${slugify(w.county)}/${slugify(w.constituency)}/${slugify(w.ward_name)}`, { replace: true });
+                    navigate(`/${slugify(w.county)}/${slugify(w.constituency)}/${slugify(w.ward_name)}`, { replace: true });
                     return;
                 }
 
@@ -91,7 +91,7 @@ const FlatRouteResolver = () => {
 
                         if (nearestWard && (nearestWard as any[]).length > 0) {
                             const w = (nearestWard as any[])[0];
-                            const path = `/map/${slugify(w.county)}/${slugify(w.constituency)}/${slugify(w.ward_name)}`;
+                            const path = `/${slugify(w.county)}/${slugify(w.constituency)}/${slugify(w.ward_name)}`;
                             navigate(`${path}?lat=${lat}&lng=${lng}&q=${encodeURIComponent(searchName)}`, { replace: true });
                             return;
                         }
@@ -115,7 +115,7 @@ const FlatRouteResolver = () => {
                             const c_slug = slugify(match.county);
                             let a_slug = slugify(match.constituency_name);
                             if (a_slug === c_slug) a_slug = `${a_slug}-town`;
-                            navigate(`/map/${c_slug}/${a_slug}?lat=${lat}&lng=${lng}&q=${encodeURIComponent(searchName)}`, { replace: true });
+                            navigate(`/${c_slug}/${a_slug}?lat=${lat}&lng=${lng}&q=${encodeURIComponent(searchName)}`, { replace: true });
                             return;
                         }
                     }

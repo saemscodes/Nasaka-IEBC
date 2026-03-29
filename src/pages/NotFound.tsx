@@ -6,8 +6,7 @@ import { handle404 } from "@/api/404-message";
 const NotFound = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [contextualMessage, setContextualMessage] = useState({ message: "Page not found", suggestion: null as any });
-  const [isVisible, setIsVisible] = useState(false);
+  const [contextualMessage, setContextualMessage] = useState({ message: "404 Error. Page not Found", suggestion: null as any });
 
   useEffect(() => {
     const ctx = handle404(location.pathname);
@@ -21,360 +20,187 @@ const NotFound = () => {
 
     console.error("404 Error: Not found:", location.pathname);
 
-    // Trigger entrance animation
-    const timer = setTimeout(() => setIsVisible(true), 50);
-
     // Cleanup function to remove Webflow CSS leakage when moving to other pages
     return () => {
-      clearTimeout(timer);
       const links = document.querySelectorAll('link[href*="webflow.shared"]');
       links.forEach(link => link.remove());
     };
   }, [location.pathname]);
 
   return (
-    <div className="not-found-wrapper">
+    <div className="not-found-wrapper" style={{ backgroundColor: '#000', minHeight: '100vh', width: '100%' }}>
       <Helmet>
-        <title>Page Not Found — Nasaka IEBC</title>
+        <title>Page Not Found</title>
         <link href="https://fonts.googleapis.com" rel="preconnect" />
         <link href="https://fonts.gstatic.com" rel="preconnect" crossOrigin="anonymous" />
         <style>{`
           .not-found-wrapper {
-            min-height: 100vh;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-            background: linear-gradient(135deg, #0a0a0a 0%, #111827 50%, #0f172a 100%);
-            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --portrait-aspect-ratio: 4 / 5;
+            --landscape-aspect-ratio: 16 / 9;
+            --square-aspect-ratio: 1 / 1;
+            --site--max-width: min(var(--site--width), 100vw);
+            --container--main: calc(var(--site--max-width) - var(--site--margin) * 2);
+            --site--gutter-total: calc(var(--site--gutter) * (var(--site--column-count) - 1));
+            --column-width--1: calc((var(--container--main) - var(--site--gutter-total)) / var(--site--column-count));
+            --column-width--plus-gutter: calc(var(--column-width--1) + var(--site--gutter));
+            --animation-primary: cubic-bezier(0.83, 0, 0.17, 1);
+            --animation-secondary: cubic-bezier(0.16, 1, 0.3, 1);
+            background-color: var(--swatch--dark, #000);
+            color: var(--swatch--light, #fff);
           }
 
-          /* Animated gradient orbs */
-          .not-found-wrapper::before,
-          .not-found-wrapper::after {
-            content: '';
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(120px);
-            opacity: 0.15;
-            animation: orbFloat 12s ease-in-out infinite;
+          /* General Resets for this scope */
+          .not-found-wrapper * {
+            vertical-align: bottom;
+            box-sizing: border-box;
           }
-          .not-found-wrapper::before {
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, #007AFF, transparent 70%);
-            top: -200px;
-            right: -100px;
-            animation-delay: 0s;
-          }
-          .not-found-wrapper::after {
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, #22c55e, transparent 70%);
-            bottom: -150px;
-            left: -100px;
-            animation-delay: -6s;
+          .not-found-wrapper h1, .not-found-wrapper p {
+            font-family: inherit;
+            margin: 0;
           }
 
-          @keyframes orbFloat {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(30px, -20px) scale(1.05); }
-            66% { transform: translate(-20px, 15px) scale(0.95); }
-          }
-
-          /* Grain overlay */
-          .nf-grain {
+          /* Grain Overlay */
+          .g_grain_overlay {
+            will-change: transform;
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            z-index: 1;
+            z-index: 100;
             pointer-events: none;
             background-image: url('https://cdn.prod.website-files.com/680244911c3d7d28354cb55b/6839aa669993efdfdc9e89d1_Noise.webp');
             background-size: 200px;
-            opacity: 0.03;
-            animation: nfGrain 0.5s steps(6) infinite;
+            opacity: 0.05;
           }
-          @keyframes nfGrain {
+
+          @keyframes grain-animation {
             0%, 100% { transform: translate(0, 0); }
             17% { transform: translate(-5%, -10%); }
+            33% { transform: translate(3%, -15%); }
             50% { transform: translate(12%, 9%); }
+            67% { transform: translate(9%, 4%); }
             83% { transform: translate(-1%, 7%); }
           }
+          .u-grain-animate {
+            animation: grain-animation 0.5s steps(6) infinite;
+          }
 
-          /* Main card */
-          .nf-card {
-            position: relative;
-            z-index: 10;
-            max-width: 480px;
-            width: calc(100% - 48px);
-            padding: 48px 40px;
-            border-radius: 28px;
-            background: rgba(255, 255, 255, 0.04);
-            backdrop-filter: blur(40px) saturate(1.2);
-            -webkit-backdrop-filter: blur(40px) saturate(1.2);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow:
-              0 0 0 1px rgba(255, 255, 255, 0.03),
-              0 8px 40px rgba(0, 0, 0, 0.4),
-              0 2px 12px rgba(0, 0, 0, 0.2),
-              inset 0 1px 0 rgba(255, 255, 255, 0.06);
-            text-align: center;
+          /* Button and Link Hovers */
+          .g_btn_svg_wrap {
+            transition: translate 0.75s var(--animation-secondary), opacity 0.4s var(--animation-secondary);
+          }
+          .g_btn_svg_wrap.is-first, .g_btn_svg_wrap.is-second, .g_btn_svg_wrap.is-third, .g_btn_svg_wrap.is-reveal {
             opacity: 0;
-            transform: translateY(24px) scale(0.97);
-            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-                        transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
           }
-          .nf-card.is-visible {
-            opacity: 1;
-            transform: translateY(0) scale(1);
+          @media (hover: hover) and (pointer: fine) {
+            .g_btn_wrap:is(:hover, :focus-visible) .g_btn_svg_wrap.is-first,
+            .g_btn_wrap:is(:hover, :focus-visible) .g_btn_svg_wrap.is-second,
+            .g_btn_wrap:is(:hover, :focus-visible) .g_btn_svg_wrap.is-third {
+              transition-delay: calc((4 - var(--index, 1)) * 0.052s);
+              translate: 100% -100%;
+              opacity: 1;
+            }
+            .g_btn_wrap:is(:hover, :focus-visible) .g_btn_svg_wrap.is-reveal {
+              opacity: 1;
+            }
+            .g_btn_wrap:is(:hover, :focus-visible) .g_btn_svg_wrap.is-main {
+              translate: 100% -100%;
+              opacity: 0;
+            }
           }
-
-          /* Error code */
-          .nf-code {
-            font-size: 96px;
-            font-weight: 800;
-            letter-spacing: -4px;
-            line-height: 1;
-            background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.3) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 8px;
-            font-family: 'DM Sans', -apple-system, sans-serif;
-          }
-
-          /* Status label */
-          .nf-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 14px;
-            border-radius: 100px;
-            background: rgba(239, 68, 68, 0.12);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            margin-bottom: 24px;
-          }
-          .nf-status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #ef4444;
-            animation: nfPulse 2s ease-in-out infinite;
-          }
-          @keyframes nfPulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-          }
-
-          /* Message */
-          .nf-message {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 15px;
-            line-height: 1.6;
-            margin-bottom: 8px;
-            font-weight: 400;
-          }
-
-          /* Path display */
-          .nf-path {
+          [data-stagger-link-duplicate],
+          [data-stagger-link-text] {
+            transition: transform 0.75s var(--animation-secondary), filter 0.4s var(--animation-secondary);
             display: inline-block;
-            padding: 4px 12px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 12px;
-            font-family: 'JetBrains Mono', 'SF Mono', monospace;
-            margin-bottom: 32px;
-            word-break: break-all;
           }
-
-          /* Divider */
-          .nf-divider {
-            width: 48px;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-            margin: 0 auto 28px;
+          [data-stagger-link]:hover [data-stagger-link-text] {
+            transform: translateY(-120%);
+            filter: blur(3px);
           }
-
-          /* Buttons container */
-          .nf-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: center;
-          }
-
-          /* Primary button */
-          .nf-btn-primary {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            padding: 14px 28px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #007AFF 0%, #0055CC 100%);
-            color: #fff;
-            font-size: 15px;
-            font-weight: 600;
-            font-family: inherit;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow:
-              0 2px 12px rgba(0, 122, 255, 0.25),
-              inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            letter-spacing: 0.2px;
-          }
-          .nf-btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow:
-              0 4px 20px rgba(0, 122, 255, 0.35),
-              inset 0 1px 0 rgba(255, 255, 255, 0.2);
-          }
-          .nf-btn-primary:active {
-            transform: translateY(0);
-            box-shadow:
-              0 1px 6px rgba(0, 122, 255, 0.2),
-              inset 0 1px 0 rgba(255, 255, 255, 0.1);
-          }
-
-          /* Secondary button */
-          .nf-btn-secondary {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            padding: 14px 28px;
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.06);
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 15px;
-            font-weight: 500;
-            font-family: inherit;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            letter-spacing: 0.2px;
-          }
-          .nf-btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.15);
-            transform: translateY(-1px);
-          }
-          .nf-btn-secondary:active {
-            transform: translateY(0);
-            background: rgba(255, 255, 255, 0.08);
-          }
-
-          /* Suggestion section */
-          .nf-suggestion-label {
-            color: rgba(255, 255, 255, 0.35);
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 1.2px;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-          }
-
-          /* Button icon */
-          .nf-btn-icon {
-            width: 16px;
-            height: 16px;
-            flex-shrink: 0;
-          }
-
-          /* Responsive */
-          @media (max-width: 480px) {
-            .nf-card {
-              padding: 36px 28px;
-              border-radius: 22px;
-            }
-            .nf-code {
-              font-size: 72px;
-              letter-spacing: -3px;
-            }
+          [data-stagger-link]:hover [data-stagger-link-duplicate] {
+            transform: translateY(0%); scale: 1;
+            filter: blur(0px);
           }
         `}</style>
       </Helmet>
 
-      <div className="nf-grain"></div>
+      <div className="g_grain_overlay u-grain-animate"></div>
 
-      <div className={`nf-card ${isVisible ? 'is-visible' : ''}`}>
-        {/* Error Code — Prominent */}
-        <div className="nf-code">404</div>
+      <main id="main" className="page_main">
+        <section className="hero_utility-page_wrap">
+          <div className="hero_utility-page_contain">
+            <div data-wf--global-eyebrow--variant="base" className="g_eyebrow_wrap">
+              <div className="g_eyebrow_layout">
+                <div className="g_default_dot" style={{ backgroundColor: 'var(--swatch--light)' }}></div>
+                <div className="g_eyebrow_text u-text-style-mono w-richtext">
+                  <p>{contextualMessage.message} — 404 Error</p>
+                </div>
+              </div>
+            </div>
 
-        {/* Status Badge */}
-        <div className="nf-status">
-          <div className="nf-status-dot"></div>
-          {contextualMessage.message}
-        </div>
+            <div className="hero_utility-page_content">
+              <h1 className="hero_utility-page_title u-text-style-h4 u-weight-bold" style={{ color: "var(--swatch--light, #fff)", marginBottom: "2rem" }}>
+                If you’re reading this, something has gone terribly, terribly wrong.
+              </h1>
 
-        {/* Explanatory Message */}
-        <p className="nf-message">
-          The page you're looking for doesn't exist or has been moved to a new location.
-        </p>
+              {/* Added conditional suggestion button mapping closely to original design specs */}
+              {contextualMessage.suggestion && (
+                <p className="mb-4 text-xs tracking-widest uppercase opacity-60">Did you mean?</p>
+              )}
 
-        {/* Path Display */}
-        <div className="nf-path">{location.pathname}</div>
+              <div className="flex flex-col gap-4 items-start">
+                {contextualMessage.suggestion && (
+                  <button
+                    data-stagger-link=""
+                    onClick={() => navigate(contextualMessage.suggestion?.path || "/")}
+                    className="g_btn_wrap w-variant-87298d25-6b0a-b66e-1cec-66b02e9013d8 w-inline-block"
+                    style={{ marginBottom: "1rem", backgroundColor: "var(--swatch--light)", color: "var(--swatch--dark)" }}
+                  >
+                    <div className="g_btn_text w-variant-87298d25-6b0a-b66e-1cec-66b02e9013d8">
+                      <span data-stagger-link-text="" className="g_btn_span w-variant-87298d25-6b0a-b66e-1cec-66b02e9013d8">
+                        {contextualMessage.suggestion.label}
+                      </span>
+                      <span data-stagger-link-duplicate="" className="g_btn_span w-variant-87298d25-6b0a-b66e-1cec-66b02e9013d8 is-duplicate" style={{ transform: "translateY(100%)" }}>
+                        {contextualMessage.suggestion.label}
+                      </span>
+                    </div>
+                  </button>
+                )}
 
-        {/* Divider */}
-        <div className="nf-divider"></div>
-
-        {/* Actions */}
-        <div className="nf-actions">
-          {/* Suggestion Button (if available) */}
-          {contextualMessage.suggestion && (
-            <>
-              <div className="nf-suggestion-label">Did you mean?</div>
-              <button
-                className="nf-btn-primary"
-                onClick={() => navigate(contextualMessage.suggestion?.path || "/")}
-              >
-                <svg className="nf-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                  <polyline points="15 3 21 3 21 9" />
-                  <line x1="10" y1="14" x2="21" y2="3" />
-                </svg>
-                {contextualMessage.suggestion.label}
-              </button>
-            </>
-          )}
-
-          {/* Return to Map */}
-          <button
-            className={contextualMessage.suggestion ? "nf-btn-secondary" : "nf-btn-primary"}
-            onClick={() => navigate('/map')}
-          >
-            <svg className="nf-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
-              <line x1="8" y1="2" x2="8" y2="18" />
-              <line x1="16" y1="6" x2="16" y2="22" />
-            </svg>
-            Return to Map
-          </button>
-
-          {/* Return Home */}
-          <button
-            className="nf-btn-secondary"
-            onClick={() => navigate('/')}
-          >
-            <svg className="nf-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
-            Return Home
-          </button>
-        </div>
-      </div>
+                <button
+                  data-stagger-arrows=""
+                  data-stagger-link=""
+                  onClick={() => navigate('/')}
+                  className="g_btn_wrap w-variant-87298d25-6b0a-b66e-1cec-66b02e9013d8 w-inline-block"
+                >
+                  <div className="g_btn_arrow w-variant-87298d25-6b0a-b66e-1cec-66b02e9013d8 u-grid-custom">
+                    <span className="g_btn_svg_wrap is-main">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 69 69" fill="none" className="g_btn_svg"><path d="M7.70451 67.8689C6.20136 69.377 4.53118 69.377 3.02802 67.8689L1.19082 66.0255C-0.312335 64.5173 -0.479353 62.8415 1.19082 61.3333L52.7993 10.0546C53.1333 9.71949 52.9663 9.21676 52.4653 9.21676L7.37047 9.88707C5.19925 9.88707 4.03012 8.71403 4.03012 6.53552L4.03012 3.35155C4.03012 1.17304 5.19925 -2.27266e-07 7.37047 -3.22174e-07L57.3088 -2.50505e-06C59.48 -2.59995e-06 61.9853 -2.70946e-06 63.9895 0.335157C65.4926 0.502728 66.4947 1.00546 67.1628 1.67577C67.9979 2.51366 68.4989 3.51913 68.666 5.02733C68.833 7.03825 69 9.55191 69 11.5628L69 59.49C69 61.6685 67.8309 62.8415 65.6597 62.8415L62.8203 62.8415C60.6491 62.8415 59.48 61.6685 59.48 59.49L60.1481 15.9199C60.1481 15.4171 59.647 15.2495 59.313 15.5847L7.70451 67.8689Z" fill="currentColor" className="g_btn_path"></path></svg>
+                    </span>
+                    <span style={{ "--index": 3 } as React.CSSProperties} className="g_btn_svg_wrap is-third w-variant-87298d25-6b0a-b66e-1cec-66b02e9013d8">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 69 69" fill="none" className="g_btn_svg"><path d="M7.70451 67.8689C6.20136 69.377 4.53118 69.377 3.02802 67.8689L1.19082 66.0255C-0.312335 64.5173 -0.479353 62.8415 1.19082 61.3333L52.7993 10.0546C53.1333 9.71949 52.9663 9.21676 52.4653 9.21676L7.37047 9.88707C5.19925 9.88707 4.03012 8.71403 4.03012 6.53552L4.03012 3.35155C4.03012 1.17304 5.19925 -2.27266e-07 7.37047 -3.22174e-07L57.3088 -2.50505e-06C59.48 -2.59995e-06 61.9853 -2.70946e-06 63.9895 0.335157C65.4926 0.502728 66.4947 1.00546 67.1628 1.67577C67.9979 2.51366 68.4989 3.51913 68.666 5.02733C68.833 7.03825 69 9.55191 69 11.5628L69 59.49C69 61.6685 67.8309 62.8415 65.6597 62.8415L62.8203 62.8415C60.6491 62.8415 59.48 61.6685 59.48 59.49L60.1481 15.9199C60.1481 15.4171 59.647 15.2495 59.313 15.5847L7.70451 67.8689Z" fill="currentColor" className="g_btn_path"></path></svg>
+                    </span>
+                    <span style={{ "--index": 2 } as React.CSSProperties} className="g_btn_svg_wrap is-second w-variant-87298d25-6b0a-b66e-1cec-66b02e9013d8">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 69 69" fill="none" className="g_btn_svg"><path d="M7.70451 67.8689C6.20136 69.377 4.53118 69.377 3.02802 67.8689L1.19082 66.0255C-0.312335 64.5173 -0.479353 62.8415 1.19082 61.3333L52.7993 10.0546C53.1333 9.71949 52.9663 9.21676 52.4653 9.21676L7.37047 9.88707C5.19925 9.88707 4.03012 8.71403 4.03012 6.53552L4.03012 3.35155C4.03012 1.17304 5.19925 -2.27266e-07 7.37047 -3.22174e-07L57.3088 -2.50505e-06C59.48 -2.59995e-06 61.9853 -2.70946e-06 63.9895 0.335157C65.4926 0.502728 66.4947 1.00546 67.1628 1.67577C67.9979 2.51366 68.4989 3.51913 68.666 5.02733C68.833 7.03825 69 9.55191 69 11.5628L69 59.49C69 61.6685 67.8309 62.8415 65.6597 62.8415L62.8203 62.8415C60.6491 62.8415 59.48 61.6685 59.48 59.49L60.1481 15.9199C60.1481 15.4171 59.647 15.2495 59.313 15.5847L7.70451 67.8689Z" fill="currentColor" className="g_btn_path"></path></svg>
+                    </span>
+                    <span style={{ "--index": 1 } as React.CSSProperties} className="g_btn_svg_wrap is-first w-variant-87298d25-6b0a-b66e-1cec-66b02e9013d8">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 69 69" fill="none" className="g_btn_svg"><path d="M7.70451 67.8689C6.20136 69.377 4.53118 69.377 3.02802 67.8689L1.19082 66.0255C-0.312335 64.5173 -0.479353 62.8415 1.19082 61.3333L52.7993 10.0546C53.1333 9.71949 52.9663 9.21676 52.4653 9.21676L7.37047 9.88707C5.19925 9.88707 4.03012 8.71403 4.03012 6.53552L4.03012 3.35155C4.03012 1.17304 5.19925 -2.27266e-07 7.37047 -3.22174e-07L57.3088 -2.50505e-06C59.48 -2.59995e-06 61.9853 -2.70946e-06 63.9895 0.335157C65.4926 0.502728 66.4947 1.00546 67.1628 1.67577C67.9979 2.51366 68.4989 3.51913 68.666 5.02733C68.833 7.03825 69 9.55191 69 11.5628L69 59.49C69 61.6685 67.8309 62.8415 65.6597 62.8415L62.8203 62.8415C60.6491 62.8415 59.48 61.6685 59.48 59.49L60.1481 15.9199C60.1481 15.4171 59.647 15.2495 59.313 15.5847L7.70451 67.8689Z" fill="currentColor" className="g_btn_path"></path></svg>
+                    </span>
+                    <span className="g_btn_svg_wrap is-reveal w-variant-87298d25-6b0a-b66e-1cec-66b02e9013d8">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 69 69" fill="none" className="g_btn_svg"><path d="M7.70451 67.8689C6.20136 69.377 4.53118 69.377 3.02802 67.8689L1.19082 66.0255C-0.312335 64.5173 -0.479353 62.8415 1.19082 61.3333L52.7993 10.0546C53.1333 9.71949 52.9663 9.21676 52.4653 9.21676L7.37047 9.88707C5.19925 9.88707 4.03012 8.71403 4.03012 6.53552L4.03012 3.35155C4.03012 1.17304 5.19925 -2.27266e-07 7.37047 -3.22174e-07L57.3088 -2.50505e-06C59.48 -2.59995e-06 61.9853 -2.70946e-06 63.9895 0.335157C65.4926 0.502728 66.4947 1.00546 67.1628 1.67577C67.9979 2.51366 68.4989 3.51913 68.666 5.02733C68.833 7.03825 69 9.55191 69 11.5628L69 59.49C69 61.6685 67.8309 62.8415 65.6597 62.8415L62.8203 62.8415C60.6491 62.8415 59.48 61.6685 59.48 59.49L60.1481 15.9199C60.1481 15.4171 59.647 15.2495 59.313 15.5847L7.70451 67.8689Z" fill="currentColor" className="g_btn_path"></path></svg>
+                    </span>
+                  </div>
+                  <div className="g_btn_text w-variant-87298d25-6b0a-b66e-1cec-66b02e9013d8">
+                    <span data-stagger-link-text="" className="g_btn_span w-variant-87298d25-6b0a-b66e-1cec-66b02e9013d8">Return home</span>
+                    <span data-stagger-link-duplicate="" className="g_btn_span w-variant-87298d25-6b0a-b66e-1cec-66b02e9013d8 is-duplicate" style={{ transform: "translateY(100%)" }}>Return home</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="hero_utility-page_cover">
+            <img src="https://cdn.prod.website-files.com/680244911c3d7d28354cb55b/682402da44729946dbe193c6_404.avif" loading="lazy" sizes="100vw" srcSet="https://cdn.prod.website-files.com/680244911c3d7d28354cb55b/682402da44729946dbe193c6_404-p-500.png 500w, https://cdn.prod.website-files.com/680244911c3d7d28354cb55b/682402da44729946dbe193c6_404-p-800.png 800w, https://cdn.prod.website-files.com/680244911c3d7d28354cb55b/682402da44729946dbe193c6_404-p-1080.png 1080w, https://cdn.prod.website-files.com/680244911c3d7d28354cb55b/682402da44729946dbe193c6_404.avif 2880w" alt="" className="hero_utility-page_image" />
+          </div>
+        </section>
+      </main>
     </div>
   );
 };
