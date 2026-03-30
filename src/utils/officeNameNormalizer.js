@@ -232,6 +232,17 @@ function getOfficeLandmarkDistance(office) {
         d = d.replace(/(\d)(m|km|metre|meter)/gi, '$1 $2');
         return smartTitleCase(d);
     }
+
+    // Fallback: check the database column directly
+    if (office?.distance_from_landmark && office.distance_from_landmark.trim()) {
+        let d = office.distance_from_landmark.trim();
+        if (/^0\s*(m|km|metres?|meters?)$/i.test(d) || d === '0' || d === '-' || /^same/i.test(d) || /^within/i.test(d) || /^inside/i.test(d)) {
+            return 'On-site';
+        }
+        d = d.replace(/(\d)(m|km|metre|meter)/gi, '$1 $2');
+        return smartTitleCase(d);
+    }
+
     return null;
 }
 

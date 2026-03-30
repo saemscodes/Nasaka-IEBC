@@ -142,6 +142,7 @@ export interface IEBCOffice {
     county: string;
     constituency: string;
     constituency_name?: string;
+    constituency_code?: number;
     office_location: string;
     clean_office_location?: string;
     latitude: number;
@@ -149,6 +150,7 @@ export interface IEBCOffice {
     verified: boolean;
     formatted_address?: string;
     landmark?: string;
+    distance_from_landmark?: string;
     contact_phone?: string;
     contact_email?: string;
     opening_hours?: string;
