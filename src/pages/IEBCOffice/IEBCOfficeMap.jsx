@@ -210,13 +210,19 @@ const IEBCOfficeMap = () => {
     const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_API_KEY;
     const TOMTOM_KEY = import.meta.env.VITE_TOMTOM_API_KEY;
 
+    // Robust check for MapTiler key — prevents "undefined" string key 403s
+    const isMapTilerValid = MAPTILER_KEY && 
+                           MAPTILER_KEY !== 'undefined' && 
+                           MAPTILER_KEY !== 'null' && 
+                           String(MAPTILER_KEY).length > 5;
+
     // ── Shared config ──────────────────────────────────────────────────────────
     const osmAttrib = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
     const mtAttrib = `&copy; <a href="https://www.maptiler.com/">MapTiler</a> ${osmAttrib}`;
     const rasterOpts = { maxZoom: 20, updateWhenIdle: true, keepBuffer: 2, crossOrigin: true };
 
-    // 1. MapTiler Standard (Vector) — requires MAPTILER_KEY
-    if (MAPTILER_KEY) {
+    // 1. MapTiler Standard (Vector) — requires valid MAPTILER_KEY
+    if (isMapTilerValid) {
       // @ts-ignore
       tileLayersRef.current.standard = L.maplibreGL({
         style: `https://api.maptiler.com/maps/openstreetmap/style.json?key=${MAPTILER_KEY}`,
@@ -224,6 +230,7 @@ const IEBCOfficeMap = () => {
         crossOrigin: true
       });
     } else {
+      // Fallback to OSM Raster if key is missing or invalid ✊🏽🇰🇪
       tileLayersRef.current.standard = L.tileLayer(
         'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         { attribution: osmAttrib, ...rasterOpts }
