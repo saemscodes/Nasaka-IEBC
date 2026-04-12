@@ -63,7 +63,14 @@ const MapController = forwardRef(({ center, zoom, onMapReady, onDoubleTap, isMod
 
   useEffect(() => {
     if (center && map && isMapLoaded) {
-      map.setView(center, zoom);
+      const [lat, lng] = Array.isArray(center) ? center : [center.lat, center.lng];
+      // Guard: MapLibre crashes if lat is outside [-90, 90]
+      if (typeof lat === 'number' && typeof lng === 'number' &&
+        lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+        map.setView(center, zoom);
+      } else {
+        console.warn('[MapContainer] Skipping setView with invalid coords:', lat, lng);
+      }
     }
   }, [center, zoom, map, isMapLoaded]);
 

@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { chromium, type Browser, type Page } from 'playwright';
+import { describe, it, beforeAll, afterAll } from 'vitest';
+import { chromium, type Browser, type Page, expect } from '@playwright/test';
 
 describe('IEBC Office Management E2E Tests', () => {
   let browser: Browser;
@@ -16,26 +16,26 @@ describe('IEBC Office Management E2E Tests', () => {
 
   it('should load the main map page', async () => {
     await page.goto('/iebc-office');
-    
+
     // Check if page loads
     await expect(page).toHaveTitle(/Nasaka IEBC/);
-    
+
     // Check for map container
     await expect(page.locator('[data-testid="office-map"]')).toBeVisible();
-    
+
     // Check for search input
     await expect(page.locator('input[placeholder*="search" i]')).toBeVisible();
   });
 
   it('should search for offices', async () => {
     await page.goto('/iebc-office');
-    
+
     // Type in search
     await page.fill('input[placeholder*="search" i]', 'Nairobi');
-    
+
     // Wait for search results
     await page.waitForTimeout(500);
-    
+
     // Check if search results appear
     const searchResults = page.locator('[data-testid="search-result"]');
     await expect(searchResults.first()).toBeVisible();
@@ -43,10 +43,10 @@ describe('IEBC Office Management E2E Tests', () => {
 
   it('should display office details', async () => {
     await page.goto('/iebc-office');
-    
+
     // Click on an office marker (simulate)
     await page.click('[data-testid="office-marker-test-office-1"]');
-    
+
     // Check if office details appear
     await expect(page.locator('[data-testid="office-details"]')).toBeVisible();
     await expect(page.locator('text=Westlands')).toBeVisible();
@@ -61,20 +61,20 @@ describe('IEBC Office Management E2E Tests', () => {
         email: 'test@example.com'
       }));
     });
-    
+
     await page.goto('/iebc-office');
-    
+
     // Click on an office
     await page.click('[data-testid="office-marker-test-office-1"]');
-    
+
     // Click confirm button
     await page.click('[data-testid="confirm-accuracy-btn"]');
-    
+
     // Fill confirmation form
     await page.check('[data-testid="accurate-yes"]');
     await page.fill('[data-testid="confirmation-notes"]', 'Verified in person');
     await page.click('[data-testid="submit-confirmation"]');
-    
+
     // Check success message
     await expect(page.locator('text=Confirmation submitted')).toBeVisible();
   });
@@ -88,22 +88,22 @@ describe('IEBC Office Management E2E Tests', () => {
         email: 'test@example.com'
       }));
     });
-    
+
     await page.goto('/iebc-office');
-    
+
     // Click on an office
     await page.click('[data-testid="office-marker-test-office-1"]');
-    
+
     // Click contribute button
     await page.click('[data-testid="contribute-btn"]');
-    
+
     // Select contribution type
     await page.selectOption('[data-testid="contribution-type"]', 'location_update');
-    
+
     // Fill form
     await page.fill('[data-testid="contribution-description"]', 'Office has moved to new location');
     await page.click('[data-testid="submit-contribution"]');
-    
+
     // Check success message
     await expect(page.locator('text=Contribution submitted')).toBeVisible();
   });
@@ -111,13 +111,13 @@ describe('IEBC Office Management E2E Tests', () => {
   it('should handle geolocation', async () => {
     // Mock geolocation
     await page.context().grantPermissions(['geolocation']);
-    await page.setGeolocation({ latitude: -1.2654, longitude: 36.7984 });
-    
+    await page.context().setGeolocation({ latitude: -1.2654, longitude: 36.7984 });
+
     await page.goto('/iebc-office');
-    
+
     // Click location button
     await page.click('[data-testid="location-button"]');
-    
+
     // Check if location is detected
     await expect(page.locator('[data-testid="location-detected"]')).toBeVisible();
   });
@@ -125,29 +125,29 @@ describe('IEBC Office Management E2E Tests', () => {
   it('should display nearby offices', async () => {
     // Mock geolocation
     await page.context().grantPermissions(['geolocation']);
-    await page.setGeolocation({ latitude: -1.2654, longitude: 36.7984 });
-    
+    await page.context().setGeolocation({ latitude: -1.2654, longitude: 36.7984 });
+
     await page.goto('/iebc-office');
-    
+
     // Click location button
     await page.click('[data-testid="location-button"]');
-    
+
     // Wait for nearby offices to load
     await page.waitForTimeout(1000);
-    
+
     // Check if nearby offices are displayed
     await expect(page.locator('[data-testid="nearby-offices"]')).toBeVisible();
   });
 
   it('should handle navigation to office detail page', async () => {
     await page.goto('/iebc-office');
-    
+
     // Click on an office
     await page.click('[data-testid="office-marker-test-office-1"]');
-    
+
     // Click view details
     await page.click('[data-testid="view-details-btn"]');
-    
+
     // Check if navigated to detail page
     await expect(page).toHaveURL(/\/office\/test-office-1/);
     await expect(page.locator('h1')).toContainText('Office Details');
@@ -162,9 +162,9 @@ describe('IEBC Office Management E2E Tests', () => {
         body: JSON.stringify({ success: false, error: 'Server error' })
       });
     });
-    
+
     await page.goto('/iebc-office');
-    
+
     // Check error message
     await expect(page.locator('[data-testid="error-message"]')).toBeVisible();
     await expect(page.locator('text=Failed to load offices')).toBeVisible();
@@ -173,10 +173,10 @@ describe('IEBC Office Management E2E Tests', () => {
   it('should work on mobile viewport', async () => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/iebc-office');
-    
+
     // Check mobile-specific elements
     await expect(page.locator('[data-testid="mobile-menu-btn"]')).toBeVisible();
-    
+
     // Test mobile search
     await page.click('[data-testid="mobile-menu-btn"]');
     await expect(page.locator('[data-testid="mobile-search"]')).toBeVisible();
@@ -184,15 +184,15 @@ describe('IEBC Office Management E2E Tests', () => {
 
   it('should support keyboard navigation', async () => {
     await page.goto('/iebc-office');
-    
+
     // Tab to search input
     await page.keyboard.press('Tab');
     await expect(page.locator('input[placeholder*="search" i]')).toBeFocused();
-    
+
     // Type search query
     await page.keyboard.type('Nairobi');
     await page.keyboard.press('Enter');
-    
+
     // Check if search is triggered
     await page.waitForTimeout(500);
     const searchResults = page.locator('[data-testid="search-result"]');

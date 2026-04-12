@@ -42,5 +42,1025 @@
   "-1.458910|36.705980": {
     "county": "KAJIADO",
     "ward": ""
+  },
+  "-4.041322|39.702638": {
+    "county": "MOMBASA",
+    "ward": ""
+  },
+  "2.208745|40.120148": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "2.208539|40.120843": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "2.485537|39.567955": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "2.492623|39.573934": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "2.484157|39.568609": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "0.217474|37.528796": {
+    "county": "MERU",
+    "ward": ""
+  },
+  "0.123348|37.664557": {
+    "county": "MERU",
+    "ward": ""
+  },
+  "-0.020776|37.619153": {
+    "county": "MERU",
+    "ward": ""
+  },
+  "-1.313475|36.780101": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "-1.318682|36.779179": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "-3.741830|39.098880": {
+    "county": "KWALE",
+    "ward": ""
+  },
+  "-1.443377|36.877564": {
+    "county": "KAJIADO",
+    "ward": ""
+  },
+  "-1.679129|36.850059": {
+    "county": "KAJIADO",
+    "ward": ""
+  },
+  "-2.089419|36.795228": {
+    "county": "KAJIADO",
+    "ward": ""
+  },
+  "-1.845396|36.788244": {
+    "county": "KAJIADO",
+    "ward": ""
+  },
+  "0.632706|34.269398": {
+    "county": "BUSIA",
+    "ward": ""
+  },
+  "0.633879|34.266738": {
+    "county": "BUSIA",
+    "ward": ""
+  },
+  "-1.320350|36.990079": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-0.692960|34.120860": {
+    "county": "HOMA BAY",
+    "ward": ""
+  },
+  "-0.648474|34.874286": {
+    "county": "NYAMIRA",
+    "ward": ""
+  },
+  "-0.653920|34.874002": {
+    "county": "NYAMIRA",
+    "ward": ""
+  },
+  "-0.649368|34.863447": {
+    "county": "NYAMIRA",
+    "ward": ""
+  },
+  "-1.263088|36.919995": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "-1.271370|36.913729": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "1.383960|34.999620": {
+    "county": "WEST POKOT",
+    "ward": ""
+  },
+  "-1.297430|36.890202": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "-1.302158|36.893077": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "-1.256140|36.867567": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "-1.300504|36.811752": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "-4.095162|39.645057": {
+    "county": "MOMBASA",
+    "ward": ""
+  },
+  "-4.044710|39.696260": {
+    "county": "MOMBASA",
+    "ward": ""
+  },
+  "-0.774580|34.107332": {
+    "county": "HOMA BAY",
+    "ward": ""
+  },
+  "-0.078643|34.777790": {
+    "county": "KISUMU",
+    "ward": ""
+  },
+  "-4.646393|39.383905": {
+    "county": "KWALE",
+    "ward": ""
+  },
+  "-4.059623|39.667076": {
+    "county": "MOMBASA",
+    "ward": "Majengo ward"
+  },
+  "-1.317537|36.887431": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "-1.312238|36.883628": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "-4.171515|39.570263": {
+    "county": "KWALE",
+    "ward": ""
+  },
+  "-3.871801|39.254448": {
+    "county": "KWALE",
+    "ward": ""
+  },
+  "-3.387861|39.925422": {
+    "county": "KILIFI",
+    "ward": ""
+  },
+  "-3.408349|39.941357": {
+    "county": "KILIFI",
+    "ward": ""
+  },
+  "-3.361170|39.919527": {
+    "county": "KILIFI",
+    "ward": ""
+  },
+  "-3.861226|39.476113": {
+    "county": "KILIFI",
+    "ward": ""
+  },
+  "-3.864726|39.474409": {
+    "county": "KILIFI",
+    "ward": ""
+  },
+  "-0.480824|39.661624": {
+    "county": "GARISSA",
+    "ward": ""
+  },
+  "-3.383148|38.566009": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "-3.414340|38.501693": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "-3.346290|38.469565": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "-3.421017|38.416270": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "-3.371878|38.306366": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "-3.369564|37.665212": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "-3.421178|38.415906": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "-3.596007|38.735631": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "-1.043376|37.047764": {
+    "county": "KIAMBU",
+    "ward": ""
+  },
+  "-0.041323|39.058348": {
+    "county": "TANA RIVER",
+    "ward": ""
+  },
+  "-0.508842|39.674954": {
+    "county": "TANA RIVER",
+    "ward": ""
+  },
+  "-0.491747|39.633625": {
+    "county": "GARISSA",
+    "ward": ""
+  },
+  "3.366921|39.570675": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "3.366342|39.569348": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "3.368366|39.570646": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "3.308080|39.544070": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "3.236506|39.510410": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "1.066452|39.551291": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "1.286201|39.837558": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "1.278066|39.841639": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "-1.257540|36.810460": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "0.037505|37.126533": {
+    "county": "LAIKIPIA",
+    "ward": ""
+  },
+  "0.086106|37.323875": {
+    "county": "MERU",
+    "ward": ""
+  },
+  "0.070051|37.647656": {
+    "county": "MERU",
+    "ward": ""
+  },
+  "-1.256164|36.764027": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "-1.315300|36.795226": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "-1.309262|36.789496": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "0.634570|34.275600": {
+    "county": "BUSIA",
+    "ward": ""
+  },
+  "0.635769|34.270457": {
+    "county": "BUSIA",
+    "ward": ""
+  },
+  "0.593970|34.161101": {
+    "county": "BUSIA",
+    "ward": ""
+  },
+  "-0.516670|34.900000": {
+    "county": "NYAMIRA",
+    "ward": ""
+  },
+  "-0.694062|34.118942": {
+    "county": "HOMA BAY",
+    "ward": ""
+  },
+  "-0.693669|34.124379": {
+    "county": "HOMA BAY",
+    "ward": ""
+  },
+  "-0.539130|35.010680": {
+    "county": "NYAMIRA",
+    "ward": ""
+  },
+  "-0.653690|34.874470": {
+    "county": "NYAMIRA",
+    "ward": ""
+  },
+  "-0.641743|34.882225": {
+    "county": "NYAMIRA",
+    "ward": ""
+  },
+  "-3.563000|39.644000": {
+    "county": "KILIFI",
+    "ward": ""
+  },
+  "-4.020000|39.666670": {
+    "county": "MOMBASA",
+    "ward": ""
+  },
+  "-4.133330|39.200000": {
+    "county": "KWALE",
+    "ward": ""
+  },
+  "-3.400000|38.370000": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "-1.533330|39.416670": {
+    "county": "TANA RIVER",
+    "ward": ""
+  },
+  "-4.026271|39.614348": {
+    "county": "MOMBASA",
+    "ward": ""
+  },
+  "-4.039575|39.662748": {
+    "county": "MOMBASA",
+    "ward": ""
+  },
+  "-4.031851|39.689528": {
+    "county": "MOMBASA",
+    "ward": ""
+  },
+  "-4.030795|39.629637": {
+    "county": "MOMBASA",
+    "ward": ""
+  },
+  "-4.028176|39.685440": {
+    "county": "MOMBASA",
+    "ward": ""
+  },
+  "-4.027868|39.687502": {
+    "county": "MOMBASA",
+    "ward": ""
+  },
+  "-4.647560|39.381750": {
+    "county": "KWALE",
+    "ward": ""
+  },
+  "-3.426278|39.595876": {
+    "county": "KILIFI",
+    "ward": ""
+  },
+  "-3.174581|39.795702": {
+    "county": "KILIFI",
+    "ward": ""
+  },
+  "-3.863320|39.473620": {
+    "county": "KILIFI",
+    "ward": ""
+  },
+  "-3.865769|39.471222": {
+    "county": "KWALE",
+    "ward": ""
+  },
+  "-3.750000|39.416670": {
+    "county": "KILIFI",
+    "ward": ""
+  },
+  "-3.863615|39.473551": {
+    "county": "KILIFI",
+    "ward": ""
+  },
+  "-1.286176|36.872801": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "-3.089281|39.825168": {
+    "county": "KILIFI",
+    "ward": ""
+  },
+  "-3.550982|39.213762": {
+    "county": "KILIFI",
+    "ward": ""
+  },
+  "-3.398704|39.933981": {
+    "county": "KILIFI",
+    "ward": ""
+  },
+  "-3.385220|38.566937": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "-3.300221|38.478638": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "-3.596732|38.737089": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "-3.387158|38.566461": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "-3.206492|37.718286": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "-3.437735|38.322790": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "-3.390990|38.555955": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "1.751596|40.063258": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "0.385915|40.075643": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "0.685231|35.435971": {
+    "county": "ELGEYO-MARAKWET",
+    "ward": ""
+  },
+  "-3.331374|38.429961": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "-0.582612|35.189771": {
+    "county": "KERICHO",
+    "ward": ""
+  },
+  "-0.146570|36.132236": {
+    "county": "NAKURU",
+    "ward": ""
+  },
+  "1.508526|39.923092": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "1.722303|40.054719": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "1.766414|40.071410": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "-1.259848|36.871576": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "0.663085|40.115001": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "0.923375|40.721894": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "3.520179|39.069916": {
+    "county": "MARSABIT",
+    "ward": ""
+  },
+  "3.517635|39.055682": {
+    "county": "MARSABIT",
+    "ward": ""
+  },
+  "2.305223|40.359959": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "-4.020279|39.622131": {
+    "county": "MOMBASA",
+    "ward": ""
+  },
+  "2.589901|37.075584": {
+    "county": "MARSABIT",
+    "ward": ""
+  },
+  "1.586602|37.800039": {
+    "county": "MARSABIT",
+    "ward": ""
+  },
+  "2.589781|37.075769": {
+    "county": "MARSABIT",
+    "ward": ""
+  },
+  "0.560401|38.041719": {
+    "county": "MERU",
+    "ward": ""
+  },
+  "3.928428|41.810316": {
+    "county": "MANDERA",
+    "ward": ""
+  },
+  "1.458663|39.905215": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "1.303188|39.844865": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "1.627069|40.008283": {
+    "county": "WAJIR",
+    "ward": ""
+  },
+  "-3.379136|38.960874": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "-1.053562|37.195231": {
+    "county": "KIAMBU",
+    "ward": ""
+  },
+  "0.385012|37.295629": {
+    "county": "LAIKIPIA",
+    "ward": ""
+  },
+  "-3.085819|39.293373": {
+    "county": "KILIFI",
+    "ward": ""
+  },
+  "0.613052|36.022837": {
+    "county": "BARINGO",
+    "ward": ""
+  },
+  "-3.085820|39.293373": {
+    "county": "KILIFI",
+    "ward": ""
+  },
+  "0.610297|36.018780": {
+    "county": "BARINGO",
+    "ward": ""
+  },
+  "-0.222274|37.708581": {
+    "county": "THARAKA-NITHI",
+    "ward": ""
+  },
+  "-0.511168|37.050105": {
+    "county": "NYERI",
+    "ward": ""
+  },
+  "-1.620288|37.456253": {
+    "county": "MAKUENI",
+    "ward": ""
+  },
+  "-0.222279|37.708581": {
+    "county": "THARAKA-NITHI",
+    "ward": ""
+  },
+  "-0.201840|37.850473": {
+    "county": "THARAKA-NITHI",
+    "ward": ""
+  },
+  "-4.368504|39.489485": {
+    "county": "KWALE",
+    "ward": ""
+  },
+  "-4.373119|39.531859": {
+    "county": "KWALE",
+    "ward": ""
+  },
+  "-1.076969|36.695050": {
+    "county": "KIAMBU",
+    "ward": ""
+  },
+  "-0.615875|35.025112": {
+    "county": "NYAMIRA",
+    "ward": ""
+  },
+  "0.113672|34.658117": {
+    "county": "VIHIGA",
+    "ward": ""
+  },
+  "-0.661065|36.844921": {
+    "county": "MURANG'A",
+    "ward": ""
+  },
+  "-0.786438|36.912606": {
+    "county": "MURANG'A",
+    "ward": ""
+  },
+  "-0.659256|36.827023": {
+    "county": "MURANG'A",
+    "ward": ""
+  },
+  "-0.766806|37.580558": {
+    "county": "EMBU",
+    "ward": ""
+  },
+  "-0.766312|37.605925": {
+    "county": "EMBU",
+    "ward": ""
+  },
+  "-0.766836|37.605078": {
+    "county": "EMBU",
+    "ward": ""
+  },
+  "-0.655569|38.447767": {
+    "county": "KITUI",
+    "ward": ""
+  },
+  "-3.408091|38.353457": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "-0.954503|36.620136": {
+    "county": "KIAMBU",
+    "ward": ""
+  },
+  "-1.472473|37.838948": {
+    "county": "KITUI",
+    "ward": ""
+  },
+  "-0.998443|38.069440": {
+    "county": "KITUI",
+    "ward": ""
+  },
+  "-1.421760|37.582310": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-1.486512|37.816459": {
+    "county": "KITUI",
+    "ward": ""
+  },
+  "-1.610506|38.095452": {
+    "county": "KITUI",
+    "ward": ""
+  },
+  "-1.431389|37.598513": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-1.495763|38.232770": {
+    "county": "KITUI",
+    "ward": ""
+  },
+  "-1.526244|37.314874": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-1.518390|37.547930": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-0.930994|37.677162": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-1.110746|37.367404": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-1.283835|37.303991": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-1.370541|37.250450": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-1.456300|36.978260": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-1.311257|37.560055": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-2.098295|37.958845": {
+    "county": "MAKUENI",
+    "ward": ""
+  },
+  "-1.467961|36.990568": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-1.449094|36.975434": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-1.458099|36.973140": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-1.397965|36.942857": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-1.455422|36.990130": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-1.298716|37.347829": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "0.181398|34.209843": {
+    "county": "SIAYA",
+    "ward": ""
+  },
+  "0.160861|34.208417": {
+    "county": "SIAYA",
+    "ward": ""
+  },
+  "-1.428515|36.986486": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-1.455269|36.990170": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-1.912887|37.729318": {
+    "county": "MAKUENI",
+    "ward": ""
+  },
+  "-2.546063|36.809644": {
+    "county": "KAJIADO",
+    "ward": ""
+  },
+  "-1.398960|36.941250": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-1.745529|37.461816": {
+    "county": "MAKUENI",
+    "ward": ""
+  },
+  "-1.528454|37.652774": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-1.340740|37.390038": {
+    "county": "MACHAKOS",
+    "ward": ""
+  },
+  "-2.546199|36.809633": {
+    "county": "KAJIADO",
+    "ward": ""
+  },
+  "-1.672419|37.268696": {
+    "county": "MAKUENI",
+    "ward": ""
+  },
+  "-0.261120|36.396019": {
+    "county": "NYANDARUA",
+    "ward": ""
+  },
+  "0.040247|36.357097": {
+    "county": "LAIKIPIA",
+    "ward": ""
+  },
+  "-0.467268|36.899068": {
+    "county": "NYERI",
+    "ward": ""
+  },
+  "-0.327719|36.903157": {
+    "county": "NYERI",
+    "ward": ""
+  },
+  "-0.344511|36.917018": {
+    "county": "NYERI",
+    "ward": ""
+  },
+  "-0.399720|36.958083": {
+    "county": "NYERI",
+    "ward": ""
+  },
+  "-0.504855|37.027975": {
+    "county": "NYERI",
+    "ward": ""
+  },
+  "-0.491960|36.950993": {
+    "county": "NYERI",
+    "ward": ""
+  },
+  "-0.573912|37.007992": {
+    "county": "NYERI",
+    "ward": ""
+  },
+  "0.019887|37.085195": {
+    "county": "LAIKIPIA",
+    "ward": ""
+  },
+  "0.038312|37.135508": {
+    "county": "LAIKIPIA",
+    "ward": ""
+  },
+  "-0.098155|34.755933": {
+    "county": "KISUMU",
+    "ward": ""
+  },
+  "-4.045234|39.656053": {
+    "county": "MOMBASA",
+    "ward": ""
+  },
+  "-1.272959|36.825054": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "-3.401273|38.363208": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "-3.338000|38.440747": {
+    "county": "TAITA TAVETA",
+    "ward": ""
+  },
+  "-4.331498|39.235743": {
+    "county": "KWALE",
+    "ward": ""
+  },
+  "-1.266914|36.748778": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "1.214959|35.049960": {
+    "county": "WEST POKOT",
+    "ward": ""
+  },
+  "1.342470|35.086972": {
+    "county": "WEST POKOT",
+    "ward": ""
+  },
+  "1.239473|35.057003": {
+    "county": "WEST POKOT",
+    "ward": ""
+  },
+  "0.349108|37.584422": {
+    "county": "ISIOLO",
+    "ward": ""
+  },
+  "0.463290|37.609147": {
+    "county": "MERU",
+    "ward": ""
+  },
+  "0.703682|37.347289": {
+    "county": "SAMBURU",
+    "ward": ""
+  },
+  "-0.110817|34.753531": {
+    "county": "KISUMU",
+    "ward": ""
+  },
+  "0.611057|34.654885": {
+    "county": "BUNGOMA",
+    "ward": ""
+  },
+  "0.176692|34.236464": {
+    "county": "SIAYA",
+    "ward": ""
+  },
+  "-0.110764|34.753573": {
+    "county": "KISUMU",
+    "ward": ""
+  },
+  "1.054240|34.932107": {
+    "county": "TRANS-NZOIA",
+    "ward": ""
+  },
+  "1.012778|35.000211": {
+    "county": "TRANS-NZOIA",
+    "ward": ""
+  },
+  "0.878585|35.116736": {
+    "county": "UASIN GISHU",
+    "ward": ""
+  },
+  "0.873941|35.119920": {
+    "county": "UASIN GISHU",
+    "ward": ""
+  },
+  "0.871780|35.122130": {
+    "county": "UASIN GISHU",
+    "ward": ""
+  },
+  "0.799330|35.043460": {
+    "county": "BUNGOMA",
+    "ward": ""
+  },
+  "0.952061|35.064870": {
+    "county": "TRANS-NZOIA",
+    "ward": ""
+  },
+  "-1.239509|36.746904": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "-0.081228|34.708073": {
+    "county": "KISUMU",
+    "ward": ""
+  },
+  "-1.218340|36.772782": {
+    "county": "KIAMBU",
+    "ward": ""
+  },
+  "0.509176|35.255758": {
+    "county": "UASIN GISHU",
+    "ward": ""
+  },
+  "-1.237350|36.745634": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "0.463880|35.259397": {
+    "county": "UASIN GISHU",
+    "ward": ""
+  },
+  "-1.310715|36.744279": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "0.835844|34.434680": {
+    "county": "BUNGOMA",
+    "ward": ""
+  },
+  "-1.272355|36.840661": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "0.533333|35.450000": {
+    "county": "UASIN GISHU",
+    "ward": ""
+  },
+  "0.533333|35.633333": {
+    "county": "BARINGO",
+    "ward": ""
+  },
+  "0.229799|34.087917": {
+    "county": "BUSIA",
+    "ward": ""
+  },
+  "-1.315740|36.707940": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "0.514592|35.275948": {
+    "county": "UASIN GISHU",
+    "ward": ""
+  },
+  "-1.323704|36.879409": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "-0.829803|34.145383": {
+    "county": "MIGORI",
+    "ward": ""
+  },
+  "-1.280135|36.781353": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "-0.549627|35.990241": {
+    "county": "NAKURU",
+    "ward": ""
+  },
+  "0.292229|34.506794": {
+    "county": "KAKAMEGA",
+    "ward": ""
+  },
+  "-1.284361|36.715371": {
+    "county": "NAIROBI",
+    "ward": ""
+  },
+  "0.490905|35.748224": {
+    "county": "BARINGO",
+    "ward": ""
+  },
+  "0.189562|35.737410": {
+    "county": "BARINGO",
+    "ward": ""
+  },
+  "0.514614|35.650792": {
+    "county": "BARINGO",
+    "ward": ""
+  },
+  "0.532703|35.663796": {
+    "county": "BARINGO",
+    "ward": ""
+  },
+  "0.452712|35.689594": {
+    "county": "BARINGO",
+    "ward": ""
   }
 }

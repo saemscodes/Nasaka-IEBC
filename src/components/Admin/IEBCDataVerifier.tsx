@@ -162,7 +162,7 @@ const IEBCDataVerifier: React.FC = () => {
     const fetchOffices = useCallback(async () => {
         setLoading(true);
         try {
-            const { data, error } = await supabase
+            const { data, error } = await (supabase as any)
                 .from('iebc_offices')
                 .select('*')
                 .order('county')
@@ -364,7 +364,7 @@ const IEBCDataVerifier: React.FC = () => {
 
         setApplying(true);
         try {
-            const { error } = await supabase
+            const { data, error } = await (supabase as any)
                 .from('iebc_offices')
                 .update({
                     latitude: issue.proposedFix.lat,
@@ -402,7 +402,7 @@ const IEBCDataVerifier: React.FC = () => {
 
         for (const issue of fixableIssues) {
             try {
-                const { error } = await supabase
+                const { error } = await (supabase as any)
                     .from('iebc_offices')
                     .update({
                         latitude: issue.proposedFix!.lat,
@@ -442,7 +442,7 @@ const IEBCDataVerifier: React.FC = () => {
 
         for (const issue of fixableIssues) {
             try {
-                const { error } = await supabase
+                const { error } = await (supabase as any)
                     .from('iebc_offices')
                     .update({
                         latitude: issue.proposedFix!.lat,

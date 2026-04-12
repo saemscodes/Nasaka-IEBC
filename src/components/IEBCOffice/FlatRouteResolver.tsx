@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/components/SEO/SEOHead";
 import { resolveLocation } from '@/lib/geocoding/pipeline';
 import LoadingSpinner from './LoadingSpinner';
+import { toDecimalDegrees } from '@/utils/geoUtils';
 
 /**
  * FlatRouteResolver
@@ -14,6 +15,12 @@ import LoadingSpinner from './LoadingSpinner';
  * 3. Checks if it's a known ward.
  * 4. Geographical Fallback: Resolve via geocoding -> Find nearest Ward -> Redirect.
  */
+const WHITELIST = [
+    'map', 'voter-services', 'boundary-review', 'election-resources',
+    'data-api', 'voter-registration', 'pricing', 'docs',
+    'auth', 'privacy', 'terms', 'admin', '404', 'api', 'dashboard'
+];
+
 const FlatRouteResolver = () => {
     const { slug } = useParams();
     const navigate = useNavigate();
@@ -22,8 +29,12 @@ const FlatRouteResolver = () => {
 
     useEffect(() => {
         const resolve = async () => {
-            if (!slug) {
-                navigate('/', { replace: true });
+            if (!slug || WHITELIST.includes(slug.toLowerCase())) {
+                // If it's a whitelisted route, we let the main router handle it
+                // But since FlatRouteResolver is mounted at /:slug, if slug is 'map',
+                // it might conflict if not careful. In App.tsx, /map is defined BEFORE /:slug,
+                // so this is a safety measure.
+                if (!slug) navigate('/', { replace: true });
                 return;
             }
 
@@ -91,8 +102,10 @@ const FlatRouteResolver = () => {
 
                         if (nearestWard && (nearestWard as any[]).length > 0) {
                             const w = (nearestWard as any[])[0];
+                            const sLat = toDecimalDegrees(lat, true);
+                            const sLng = toDecimalDegrees(lng, false);
                             const path = `/${slugify(w.county)}/${slugify(w.constituency)}/${slugify(w.ward_name)}`;
-                            navigate(`${path}?lat=${lat}&lng=${lng}&q=${encodeURIComponent(searchName)}`, { replace: true });
+                            navigate(`${path}?lat=${sLat}&lng=${sLng}&q=${encodeURIComponent(searchName)}`, { replace: true });
                             return;
                         }
                     } catch (rpcError) {
@@ -115,7 +128,9 @@ const FlatRouteResolver = () => {
                             const c_slug = slugify(match.county);
                             let a_slug = slugify(match.constituency_name);
                             if (a_slug === c_slug) a_slug = `${a_slug}-town`;
-                            navigate(`/${c_slug}/${a_slug}?lat=${lat}&lng=${lng}&q=${encodeURIComponent(searchName)}`, { replace: true });
+                            const sLat = toDecimalDegrees(lat, true);
+                            const sLng = toDecimalDegrees(lng, false);
+                            navigate(`/${c_slug}/${a_slug}?lat=${sLat}&lng=${sLng}&q=${encodeURIComponent(searchName)}`, { replace: true });
                             return;
                         }
                     }

@@ -42,15 +42,15 @@ const SimplifiedSignatureFlow: React.FC<SignatureFlowProps> = ({ petitionId }) =
     }
 
     setIsVerifying(true);
-    
+
     try {
       // Simulate verification process
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       // Mock verification success
       setVerificationStatus('verified');
       setCurrentStep(2);
-      
+
       toast({
         title: "Verification Successful",
         description: "Your identity has been verified with IEBC database",
@@ -80,7 +80,7 @@ const SimplifiedSignatureFlow: React.FC<SignatureFlowProps> = ({ petitionId }) =
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('signatures')
         .insert({
           petition_id: petitionId || 'demo-petition',
@@ -128,15 +128,13 @@ const SimplifiedSignatureFlow: React.FC<SignatureFlowProps> = ({ petitionId }) =
         <div className="flex items-center space-x-4">
           {[1, 2, 3].map((step) => (
             <div key={step} className="flex items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                currentStep >= step ? 'bg-green-600 text-white' : 'bg-green-100 text-green-600'
-              }`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= step ? 'bg-green-600 text-white' : 'bg-green-100 text-green-600'
+                }`}>
                 {currentStep > step ? <CheckCircle className="w-4 h-4" /> : step}
               </div>
               {step < 3 && (
-                <div className={`w-12 h-0.5 ${
-                  currentStep > step ? 'bg-green-600' : 'bg-green-200'
-                }`} />
+                <div className={`w-12 h-0.5 ${currentStep > step ? 'bg-green-600' : 'bg-green-200'
+                  }`} />
               )}
             </div>
           ))}
@@ -200,7 +198,7 @@ const SimplifiedSignatureFlow: React.FC<SignatureFlowProps> = ({ petitionId }) =
               />
             </div>
 
-            <Button 
+            <Button
               onClick={handleVerification}
               disabled={isVerifying || !formData.nationalId || !formData.fullName}
               className="w-full bg-green-600 hover:bg-green-700"
@@ -271,7 +269,7 @@ const SimplifiedSignatureFlow: React.FC<SignatureFlowProps> = ({ petitionId }) =
               </AlertDescription>
             </Alert>
 
-            <Button 
+            <Button
               onClick={handleSignature}
               disabled={isSubmitting || !formData.constituency || !formData.ward}
               className="w-full bg-green-600 hover:bg-green-700"
@@ -300,7 +298,7 @@ const SimplifiedSignatureFlow: React.FC<SignatureFlowProps> = ({ petitionId }) =
             <p className="text-green-700 mb-4">
               Your petition signature has been securely recorded and encrypted.
             </p>
-            
+
             <div className="bg-white rounded-lg p-4 mb-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>

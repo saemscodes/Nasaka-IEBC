@@ -617,6 +617,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const [duplicateOffices, setDuplicateOffices] = useState([]);
   const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
   const [constituencyCode, setConstituencyCode] = useState(null);
+  const [manualPinLocked, setManualPinLocked] = useState(false);
 
   const mapRef = useRef(null);
   const accuracyCircleRef = useRef(null);
@@ -625,6 +626,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   const retryCountRef = useRef(0);
   const countyInputRef = useRef(null);
   const constituencyInputRef = useRef(null);
+  const autoAdvanceTimerRef = useRef(null);
 
   const {
     getCurrentPosition,
@@ -961,19 +963,28 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   }, [position, formData.submitted_office_location]);
 
   // Auto-advance to details when position is set (for non-GPS methods)
+  // GATED: drop_pin requires manualPinLocked before auto-advance
   useEffect(() => {
     if (position && selectedMethod !== 'current_location' && step === 2) {
-      const timer = setTimeout(() => {
+      // For drop_pin, require lock-in before auto-advance
+      if (selectedMethod === 'drop_pin' && !manualPinLocked) return;
+      if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
+      autoAdvanceTimerRef.current = setTimeout(() => {
         setStep(3);
       }, 1000);
-      return () => clearTimeout(timer);
+      return () => {
+        if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
+      };
     }
-  }, [position, selectedMethod, step]);
+  }, [position, selectedMethod, step, manualPinLocked]);
 
   // Method selection handlers
   const handleMethodSelect = (method) => {
     setSelectedMethod(method);
     setStep(2);
+    setManualPinLocked(false); // Reset lock on method switch
+    // Clear any background auto-advance timers to prevent bypass
+    if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
 
     if (method === 'current_location') {
       handleCurrentLocation();
@@ -1459,7 +1470,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
   return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <div className="contribute-modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -1531,15 +1542,15 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     >
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center shadow-inner">
-                          <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          <svg className="w-6 h-6 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M19 12C19 15.866 15.866 19 12 19M19 12C19 8.13401 15.866 5 12 5M19 12H21M12 19C8.13401 19 5 15.866 5 12M12 19V21M5 12C5 8.13401 8.13401 5 12 5M5 12H3M12 5V3M15 12C15 13.6569 13.6569 15 12 15C10.3431 15 9 13.6569 9 12C9 10.3431 10.3431 9 12 9C13.6569 9 15 10.3431 15 12Z" />
                           </svg>
                         </div>
                         <div>
                           <h4 className="font-semibold text-gray-900">Use My Current Location</h4>
                           <p className="text-sm text-gray-600">Stand at the IEBC office and capture your GPS coordinates</p>
                           <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                            <Check className="w-3 h-3" />
+                            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4.89163 13.2687L9.16582 17.5427L18.7085 8" /></svg>
                             Most accurate method
                           </p>
                         </div>
@@ -1553,15 +1564,15 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     >
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center shadow-inner">
-                          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <svg className="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20.6188 8.7C19.5788 4.07 15.5388 2 11.9988 2C11.9988 2 11.9988 2 11.9888 2C8.45877 2 4.42877 4.07 3.37877 8.69C2.19877 13.85 5.35877 18.22 8.21877 20.98C9.27877 22 10.6388 22.51 11.9988 22.51C13.3588 22.51 14.7188 22 15.7688 20.98C18.6288 18.22 21.7888 13.86 20.6188 8.7ZM14.7488 11.75H12.7488V13.75C12.7488 14.16 12.4088 14.5 11.9988 14.5C11.5888 14.5 11.2488 14.16 11.2488 13.75V11.75H9.24877C8.83877 11.75 8.49877 11.41 8.49877 11C8.49877 10.59 8.83877 10.25 9.24877 10.25H11.2488V8.25C11.2488 7.84 11.5888 7.5 11.9988 7.5C12.4088 7.5 12.7488 7.84 12.7488 8.25V10.25H14.7488C15.1588 10.25 15.4988 10.59 15.4988 11C15.4988 11.41 15.1588 11.75 14.7488 11.75Z" />
                           </svg>
                         </div>
                         <div>
                           <h4 className="font-semibold text-gray-900">Drop a Pin on Map</h4>
                           <p className="text-sm text-gray-600">Manually place a pin on the exact office location</p>
                           <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
-                            <Check className="w-3 h-3" />
+                            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4.89163 13.2687L9.16582 17.5427L18.7085 8" /></svg>
                             Good for precise placement
                           </p>
                         </div>
@@ -1575,15 +1586,19 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     >
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center shadow-inner">
-                          <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                          <svg className="w-6 h-6 text-red-600" viewBox="-0.5 0 25 25" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20 12.48V7.32007C20 6.2592 19.5786 5.24178 18.8284 4.49164C18.0783 3.74149 17.0609 3.32007 16 3.32007H6C4.93913 3.32007 3.92178 3.74149 3.17163 4.49164C2.42149 5.24178 2 6.2592 2 7.32007V17.3201C2 18.3809 2.42149 19.3984 3.17163 20.1485C3.92178 20.8986 4.93913 21.3201 6 21.3201H12.53" />
+                            <path d="M17.0303 12.4801L2.82031 4.89014" />
+                            <path d="M3.58008 20.5101L9.90009 8.68005" />
+                            <path d="M18.44 22.2101C20.3399 22.2101 21.88 20.6699 21.88 18.7701C21.88 16.8702 20.3399 15.3301 18.44 15.3301C16.5401 15.3301 15 16.8702 15 18.7701C15 20.6699 16.5401 22.2101 18.44 22.2101Z" />
+                            <path d="M23.0009 23.3201L20.8809 21.2001" />
                           </svg>
                         </div>
                         <div>
                           <h4 className="font-semibold text-gray-900">Paste Google Maps Link</h4>
                           <p className="text-sm text-gray-600">Share a Google Maps URL or coordinates</p>
                           <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
-                            <Check className="w-3 h-3" />
+                            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4.89163 13.2687L9.16582 17.5427L18.7085 8" /></svg>
                             Quick and convenient
                           </p>
                         </div>
@@ -1755,13 +1770,55 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                         </div>
                       )}
 
-                      {/* Manual Adjustment Control Badge */}
                       {selectedMethod === 'drop_pin' && (
                         <div className="absolute top-4 left-4 right-4 pointer-events-none flex justify-center z-[1001]">
                           <div className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-lg border border-white/50 flex items-center space-x-2">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                            <span className="text-xs font-semibold text-gray-900">Move map to adjust location</span>
+                            <div className={`w-2 h-2 rounded-full ${manualPinLocked ? 'bg-green-500' : 'bg-blue-500 animate-pulse'}`}></div>
+                            <span className="text-xs font-semibold text-gray-900">
+                              {manualPinLocked ? 'Location locked' : 'Move map to adjust location'}
+                            </span>
                           </div>
+                        </div>
+                      )}
+
+                      {/* [✓|✕] Pin Lock Combo — iOS glassmorphic action buttons */}
+                      {selectedMethod === 'drop_pin' && position && (
+                        <div className="contribute-pin-lock-combo absolute bottom-4 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2">
+                          {!manualPinLocked ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => setManualPinLocked(true)}
+                                className="contribute-pin-lock-btn confirm pointer-events-auto w-11 h-11 rounded-full bg-green-500 text-white shadow-lg flex items-center justify-center hover:bg-green-600 active:scale-90 transition-all"
+                                aria-label="Confirm pin location"
+                              >
+                                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M4.89163 13.2687L9.16582 17.5427L18.7085 8" />
+                                </svg>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => { setPosition(null); setAccuracy(null); }}
+                                className="contribute-pin-lock-btn cancel pointer-events-auto w-11 h-11 rounded-full bg-red-500/80 text-white shadow-lg flex items-center justify-center hover:bg-red-600 active:scale-90 transition-all"
+                                aria-label="Reset pin location"
+                              >
+                                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                                  <path d="M8.46445 15.5354L15.5355 8.46436" />
+                                  <path d="M8.46446 8.46458L15.5355 15.5356" />
+                                </svg>
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setManualPinLocked(false)}
+                              className="contribute-pin-lock-btn unlock pointer-events-auto px-5 h-10 rounded-full bg-white/90 backdrop-blur-md text-gray-700 shadow-lg border border-white/50 flex items-center justify-center gap-2 hover:bg-white active:scale-95 transition-all text-xs font-bold"
+                              aria-label="Unlock and readjust pin"
+                            >
+                              <MapPin className="w-4 h-4" />
+                              Readjust
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -1801,7 +1858,7 @@ const ContributeLocationModal = ({ isOpen, onClose, onSuccess, userLocation }) =
                     </button>
                     <button
                       onClick={() => setStep(3)}
-                      disabled={!position || isGettingLocation}
+                      disabled={!position || isGettingLocation || (selectedMethod === 'drop_pin' && !manualPinLocked)}
                       className={`flex-1 px-4 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] duration-300 shadow-xl flex items-center justify-center space-x-2 text-white disabled:opacity-50 disabled:cursor-not-allowed ${isDark
                         ? 'bg-ios-blue-600 shadow-ios-blue/30 border border-white/10'
                         : 'bg-ios-blue shadow-ios-blue/20 border border-black/5'

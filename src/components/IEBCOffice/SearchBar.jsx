@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { Search, X, Filter } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -24,9 +25,10 @@ const SearchBar = ({
   onFocus,
   onSearch,
   onLocationSearch,
-  placeholder = "Search IEBC offices by county, constituency, or location...",
+  placeholder,
   className = ""
 }) => {
+  const { t } = useTranslation('nasaka');
   const [isExpanded, setIsExpanded] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,10 +66,10 @@ const SearchBar = ({
     </svg>
   );
 
-  // Load all offices for Fuse.js indexing
-  useEffect(() => {
-    loadAllOffices();
-  }, []);
+  // ❌ [DEACTIVATED] Global Indexing - Stop 30k row data dump in SearchBar
+  // useEffect(() => {
+  //   loadAllOffices();
+  // }, []);
 
   const loadAllOffices = async () => {
     try {
@@ -145,9 +147,9 @@ const SearchBar = ({
     }
   };
 
-  // Enhanced search function with Fuse.js + 13-layer pipeline fallback + searchUtils scoring
+  // ─── Lightweight Server-Side Search (RPC) ──────────────────────────────────
   const performSearch = useCallback(async (searchTerm) => {
-    if (!searchTerm.trim() || !fuse) {
+    if (!searchTerm.trim()) {
       setSuggestions([]);
       return;
     }
@@ -164,80 +166,42 @@ const SearchBar = ({
     }
 
     try {
-      // ── Tier 1: Fuse.js (local, instant) ─────────────────────────────────
-      const results = fuse.search(normalized).slice(0, 8);
-      let formattedSuggestions = results.map(result => ({
-        ...result.item,
-        matches: result.matches,
-        score: result.score,
-        type: result.item.type || 'office'
+      // 🕵️ Query Supabase RPC
+      const { data, error } = await supabase.rpc('get_search_suggestions', {
+        query_text: searchTerm.trim()
+      });
+
+      if (error) throw error;
+
+      let formattedSuggestions = (data || []).map(r => ({
+        ...r,
+        name: r.name,
+        type: 'office',
+        latitude: r.latitude,
+        longitude: r.longitude
       }));
 
-      // ── Re-rank with searchUtils relevance scoring ──────────────────────
-      if (formattedSuggestions.length > 1) {
-        formattedSuggestions = sortByRelevance(formattedSuggestions, searchTerm)
-          .map(item => ({ ...item, type: item.type || 'office' }))
-          .slice(0, 8);
-      }
-
-      // ── Tier 2: Multi-layer pipeline (when Fuse returns < 3 results) ───
-      if (formattedSuggestions.length < 3 && searchTerm.length >= 3) {
-        try {
-          const pipelineResult = await pipelineGeocodeWithCache(searchTerm, {
-            isGlobal: false,
-          });
-
-          if (pipelineResult.result) {
-            const place = pipelineResult.result;
-            const placeSuggestion = {
-              id: `place-${place.lat}-${place.lng}`,
-              name: place.name,
-              county: place.county,
-              displayName: place.displayName,
-              latitude: place.lat,
-              longitude: place.lng,
-              boundingBox: place.boundingBox,
-              type: 'place',
-              score: place.confidence,
-              pipelineSource: pipelineResult.layerUsed,
-              pipelineDepth: pipelineResult.fallbackDepth,
-            };
-            formattedSuggestions.push(placeSuggestion);
-          }
-        } catch {
-          // Pipeline exhausted — still show whatever Fuse found
-        }
-      }
-
-      // Add search query suggestion
+      // Add search query suggestion (the "Search for '...'" option)
       if (searchTerm.length > 2) {
         formattedSuggestions.push({
           id: `search-${searchTerm}`,
-          name: `Search for "${searchTerm}"`,
-          subtitle: 'Find all matching IEBC offices',
+          name: t('search.searchFor', { term: searchTerm }),
+          subtitle: t('search.subtitle', 'Find all matching IEBC offices'),
           type: 'search_query',
           query: searchTerm
         });
       }
 
-      // Cache in memory for 5 minutes
+      // Cache locally
       globalSearchCache.set(`suggestions:${normalized}`, formattedSuggestions);
-
-      // Track search analytics
-      trackSearchEvent('search_performed', {
-        query: searchTerm,
-        source: formattedSuggestions.some(s => s.type === 'place') ? 'pipeline' : 'fuse',
-        resultsCount: formattedSuggestions.length,
-      });
-
       setSuggestions(formattedSuggestions);
     } catch (error) {
-      console.error('Search error:', error);
+      console.error('[SearchBar] Server-side search error:', error);
       setSuggestions([]);
     } finally {
       setIsLoading(false);
     }
-  }, [fuse]);
+  }, []);
 
   // Debounced search
   useEffect(() => {
@@ -520,13 +484,12 @@ const SearchBar = ({
                 damping: 30
               }}
             >
-              {isLoading ? (
                 <div className={`p-6 text-center transition-colors duration-300 ${theme === 'dark' ? 'text-ios-dark-text-secondary' : 'text-ios-light-text-secondary'
-                  }`}>
-                  <div className={`inline-block animate-spin rounded-full h-6 w-6 border-b-2 ${theme === 'dark' ? 'border-ios-blue-dark' : 'border-ios-blue'
-                    }`}></div>
-                  <span className="ml-3 text-sm font-medium">Searching IEBC offices...</span>
-                </div>
+                   }`}>
+                   <div className={`inline-block animate-spin rounded-full h-6 w-6 border-b-2 ${theme === 'dark' ? 'border-ios-blue-dark' : 'border-ios-blue'
+                     }`}></div>
+                   <span className="ml-3 text-sm font-medium">{t('search.searching', 'Searching IEBC offices...')}</span>
+                 </div>
               ) : (
                 <>
                   {suggestions.map((suggestion, index) => {
@@ -624,12 +587,12 @@ const SearchBar = ({
                     : 'border-ios-light-border bg-ios-light-surface/90'
                     }`}>
                     <div className={`text-sm text-center transition-colors duration-300 ${theme === 'dark' ? 'text-ios-dark-text-tertiary' : 'text-ios-light-text-tertiary'
-                      }`}>
-                      Press <kbd className={`px-2 py-1 border rounded text-sm font-mono transition-all duration-300 ${theme === 'dark'
-                        ? 'bg-ios-dark-surface border-ios-dark-border text-ios-dark-text-secondary shadow-lg'
-                        : 'bg-white border-ios-light-border text-ios-light-text-secondary shadow-md'
-                        }`}>Enter</kbd> to see all IEBC office results
-                    </div>
+                       }`}>
+                       {t('search.pressKey', 'Press')} <kbd className={`px-2 py-1 border rounded text-sm font-mono transition-all duration-300 ${theme === 'dark'
+                         ? 'bg-ios-dark-surface border-ios-dark-border text-ios-dark-text-secondary shadow-lg'
+                         : 'bg-white border-ios-light-border text-ios-light-text-secondary shadow-md'
+                         }`}>{t('search.enterKey', 'Enter')}</kbd> {t('search.toSeeAll', 'to see all IEBC office results')}
+                     </div>
                   </div>
                 </>
               )}

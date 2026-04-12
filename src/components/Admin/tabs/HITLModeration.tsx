@@ -58,7 +58,7 @@ const HITLModeration = () => {
 
             if (action === 'approve') {
                 // 1. Update the office coordinates
-                const { error: updateError } = await supabase
+                const { error: updateError } = await (supabase as any)
                     .from('iebc_offices')
                     .update({
                         latitude: item.proposed_latitude,

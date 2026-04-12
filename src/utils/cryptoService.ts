@@ -10,14 +10,14 @@ const KEY_ID = 'current';
 const openDB = () => {
   return new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, 1);
-    
+
     request.onupgradeneeded = (event) => {
       const db = request.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME, { keyPath: 'id' });
       }
     };
-    
+
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
@@ -29,7 +29,7 @@ const getKeyRecord = async () => {
     const transaction = db.transaction([STORE_NAME], 'readonly');
     const store = transaction.objectStore(STORE_NAME);
     const request = store.get(KEY_ID);
-    
+
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
@@ -41,7 +41,7 @@ const storeKeyRecord = async (record: any) => {
     const transaction = db.transaction([STORE_NAME], 'readwrite');
     const store = transaction.objectStore(STORE_NAME);
     store.put(record);
-    
+
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => reject(transaction.error);
   });
@@ -70,7 +70,7 @@ export const generateKeyPair = async (passphrase: string) => {
 
     // Export public key
     const publicKey = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
-    
+
     // Export and encrypt private key
     const privateKey = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
     const salt = crypto.getRandomValues(new Uint8Array(16));
@@ -118,17 +118,17 @@ export const signPetitionData = async (
     const passphrase = await securePrompt('Enter your security passphrase to sign');
     const keyMaterial = await getKeyMaterial(passphrase);
     const encryptionKey = await deriveEncryptionKey(
-      keyMaterial, 
+      keyMaterial,
       new Uint8Array(record.salt)
     );
-    
+
     // Decrypt private key
     const decryptedPrivateKey = await decryptData(
       new Uint8Array(record.encryptedPrivateKey).buffer,
       encryptionKey,
       new Uint8Array(record.iv)
     );
-    
+
     // Import private key
     const privateKey = await crypto.subtle.importKey(
       'jwk',
@@ -212,7 +212,7 @@ export const verifySignature = async (
 
 // Submit signature to Supabase
 export const submitSignature = async (signatureData: any) => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('signatures')
     .insert({
       petition_id: signatureData.payload.petitionId,
@@ -292,7 +292,7 @@ const decryptData = async (encryptedData: ArrayBuffer, key: CryptoKey, iv: Uint8
       key,
       encryptedData
     );
-    
+
     const decoder = new TextDecoder();
     return decoder.decode(decrypted);
   } catch (error) {
@@ -333,7 +333,7 @@ export const clearCryptoData = async () => {
     const transaction = db.transaction([STORE_NAME], 'readwrite');
     const store = transaction.objectStore(STORE_NAME);
     store.delete(KEY_ID);
-    
+
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => reject(transaction.error);
   });
@@ -384,7 +384,7 @@ export const recoverKeys = async (oldPassphrase: string, newPassphrase: string) 
     // Decrypt with old passphrase
     const keyMaterial = await getKeyMaterial(oldPassphrase);
     const encryptionKey = await deriveEncryptionKey(
-      keyMaterial, 
+      keyMaterial,
       new Uint8Array(record.salt)
     );
     const decryptedPrivateKey = await decryptData(
@@ -392,7 +392,7 @@ export const recoverKeys = async (oldPassphrase: string, newPassphrase: string) 
       encryptionKey,
       new Uint8Array(record.iv)
     );
-    
+
     // Re-encrypt with new passphrase
     const newSalt = crypto.getRandomValues(new Uint8Array(16));
     const newKeyMaterial = await getKeyMaterial(newPassphrase);
@@ -424,10 +424,10 @@ export const validateKeyConsistency = async () => {
   try {
     const record = await getKeyRecord();
     if (!record) return false;
-    
+
     // Simple validation - check required fields exist
     return !!(
-      record.publicKey && 
+      record.publicKey &&
       record.encryptedPrivateKey &&
       record.salt &&
       record.iv
@@ -446,18 +446,18 @@ export const securePrompt = (message: string): Promise<string> => {
       background: rgba(0,0,0,0.5); z-index: 10000; display: flex;
       align-items: center; justify-content: center;
     `;
-    
+
     const container = document.createElement('div');
     container.style.cssText = `
       background: white; padding: 20px; border-radius: 8px;
       width: 300px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     `;
-    
+
     const label = document.createElement('p');
     label.textContent = message;
     label.style.marginBottom = '10px';
     label.style.fontWeight = '500';
-    
+
     const input = document.createElement('input');
     input.type = 'password';
     input.style.cssText = `

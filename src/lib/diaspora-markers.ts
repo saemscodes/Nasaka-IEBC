@@ -113,7 +113,7 @@ export function buildDiasporaPopup(mission: any): string {
         ${mission.mission_name || ''}
       </div>
       <div style="font-size:12px;color:#4A5568;margin-bottom:8px;">
-        ${mission.city || ''}, ${mission.country || ''}
+        ${(mission.city || mission.country) ? [mission.city, mission.country].filter(Boolean).join(', ') : ''}
       </div>
       ${historicalBadges ? `<div style="margin-bottom:8px;display:flex;gap:4px;align-items:center;"><span style="font-size:10px;color:#9CA3AF;">Designated:</span>${historicalBadges}</div>` : ''}
       ${mission.address ? `<div style="font-size:11px;color:#6B7280;margin-bottom:4px;">📍 ${mission.address}</div>` : ''}

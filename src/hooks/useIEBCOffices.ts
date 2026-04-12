@@ -141,6 +141,7 @@ interface UseIEBCOfficesOptions {
   refreshInterval?: number;
   enableOfflineCache?: boolean;
   cacheDuration?: number;
+  useLegacyGlobalFetch?: boolean;
 }
 
 export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
@@ -148,12 +149,14 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     autoRefresh = true,
     refreshInterval = 300000,
     enableOfflineCache = true,
-    cacheDuration = 24 * 60 * 60 * 1000
+    cacheDuration = 24 * 60 * 60 * 1000,
+    useLegacyGlobalFetch = false // ✊🏽🇰🇪 [STRICT MODE] Formal toggle for legacy 30k row dump
   } = options;
 
   const queryClient = useQueryClient();
 
   const [offices, setOffices] = useState<Office[]>([]);
+  const [viewportOffices, setViewportOffices] = useState<Office[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [offlineWarning, setOfflineWarning] = useState<string | null>(null);
@@ -173,6 +176,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     isExpired: false
   });
 
+  const [isStaticLoaded, setIsStaticLoaded] = useState(false);
   const searchControllerRef = useRef<AbortController | null>(null);
   const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -238,6 +242,73 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     }
   }, []);
 
+  /**
+   * ☁️ Cloudflare R2 Static Loader
+   * Fetches the 30k registration centres from CDN instead of Supabase
+   * ZERO Egress, High Speed ✊🏽🇰🇪
+   */
+  const loadOfficesFromCDN = useCallback(async () => {
+    try {
+      // Primary: Local public folder
+      // Fallback: Custom domain connected to R2 bucket
+      const urls = [
+        '/iebc-offices.json',
+        'https://static.civiceducationkenya.com/iebc-offices.json',
+        'https://cdn.jsdelivr.net/gh/civiceducationkenya/iebc-data@main/iebc-offices.json'
+      ].filter(Boolean);
+
+      let response = null;
+      for (const url of urls) {
+        try {
+          const res = await fetch(url);
+          if (res.ok) {
+            response = res;
+            console.log(`[useIEBCOffices] Successfully loaded offices from: ${url}`);
+            break;
+          }
+        } catch (e) {
+          console.warn(`[useIEBCOffices] Fetch failed for ${url}, trying next fallback...`);
+        }
+      }
+
+      if (!response) {
+        throw new Error('All CDN/Local fallback fetches failed');
+      }
+
+      const data = await response.json();
+
+      // Remap lean JSON keys to full Office object
+      const fullOffices: Office[] = data.map((o: any) => ({
+        id: o.i,
+        latitude: o.lt,
+        longitude: o.lg,
+        office_location: o.n,
+        clean_office_location: o.n,
+        displayName: o.n,
+        constituency_name: o.c,
+        county: o.y,
+        ward: o.w,
+        category: o.t === 'rc' ? 'registration_centre' : 'office',
+        office_type: o.ot,
+        type: 'office',
+        verified: true,
+        coordinates: [o.lt, o.lg]
+      }));
+
+      setOffices(fullOffices);
+      setIsStaticLoaded(true);
+
+      if (enableOfflineCache) {
+        await setCachedOffices(fullOffices);
+      }
+
+      return fullOffices;
+    } catch (err) {
+      console.warn('[useIEBCOffices] CDN Load failed, falling back to viewport-only mode:', err);
+      return [];
+    }
+  }, [enableOfflineCache]);
+
   const fetchOffices = useCallback(async (forceRefresh = false) => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -245,200 +316,189 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
 
     abortControllerRef.current = new AbortController();
 
-    // FAILSAFE: Absolutely guarantee loading resolves within 20s no matter what
-    if (loadingFailsafeRef.current) clearTimeout(loadingFailsafeRef.current);
-    loadingFailsafeRef.current = setTimeout(() => {
-      setLoading(prev => {
-        if (prev) console.warn('[useIEBCOffices] FAILSAFE: Force-clearing stuck loading state after 20s');
-        return false;
-      });
-    }, 20000);
-
     try {
       setLoading(true);
       setError(null);
-      setOfflineWarning(null);
 
+      // Check cache first
       if (enableOfflineCache && !forceRefresh) {
         const cached = await getCachedOffices();
-        if (cached?.data?.length > 0) {
-          const cacheAge = Date.now() - cached.timestamp;
-
-          // PHASE 2: Check for remote updates if we are online
-          let isStaleByRemote = false;
-          if (!isOffline) {
-            const remoteTS = await fetchRemoteTimestamp();
-            if (remoteTS && remoteTS > cached.timestamp) {
-              console.log('[useIEBCOffices] Remote data is newer than cache. Triggering fresh fetch.');
-              isStaleByRemote = true;
-            }
-          }
-
-          const isCacheValid = !isStaleByRemote && cacheAge < cacheDuration;
-
-          if (isCacheValid) {
-            setOffices(cached.data);
-            setLastSyncTime(new Date(cached.timestamp));
-            setLoading(false);
-            if (loadingFailsafeRef.current) clearTimeout(loadingFailsafeRef.current);
-            await updateCacheStatus();
-
-            // Background refresh only if cache is aged and we are CERTAINLY online
-            if (!isOffline && cacheAge > (cacheDuration / 2)) {
-              // Verify real internet path before background fetch to avoid "ghost" online states
-              verifyInternetPath().then(isReallyOnline => {
-                if (isReallyOnline) {
-                  fetchFreshData().catch(bgErr => {
-                    console.warn('[useIEBCOffices] Background refresh failed:', bgErr?.message);
-                  });
-                }
-              });
-            }
-            return cached.data;
-          }
+        if (cached?.data?.length > 1000) { // Large cache is likely complete
+          setOffices(cached.data);
+          setLoading(false);
+          return cached.data;
         }
       }
 
-      const freshData = await fetchFreshData();
-      return freshData;
+      const [allDomestic, diaspora] = await Promise.all([
+        fetchAllOfficesPaginated(),
+        fetchDiaspora()
+      ]);
+
+      const allData = [...allDomestic, ...diaspora];
+      setOffices(allData);
+
+      if (enableOfflineCache) {
+        await setCachedOffices(allData);
+      }
+
+      setLastSyncTime(new Date());
+      return allData;
 
     } catch (err: any) {
       console.error('Error fetching offices:', err);
-
-      const cached = await getCachedOffices();
-      if (!cached?.data?.length) {
-        // If NO cache and network failed, we MUST show an error
-        setError('Your internet appears to be down. Please check your connection to load the latest IEBC offices.');
-      } else {
-        // If we have cache, use it and don't show a blocking error
-        setOffices(cached.data);
-        setLastSyncTime(new Date(cached.timestamp));
-        setError(null);
-        setOfflineWarning('Offline Mode: Using cached data from ' + new Date(cached.timestamp).toLocaleTimeString());
-      }
-
+      setError(err.message);
       return [];
     } finally {
       setLoading(false);
-      if (loadingFailsafeRef.current) clearTimeout(loadingFailsafeRef.current);
-      await updateCacheStatus();
     }
-  }, [enableOfflineCache, cacheDuration, isOffline, updateCacheStatus]);
+  }, [enableOfflineCache]);
 
-  const fetchFreshData = async () => {
-    // SECONDARY GUARD: If we are offline, don't even try and don't throw an aggressive error
-    if (isOffline) {
-      return null;
-    }
-
+  const fetchDiaspora = async () => {
     try {
-      const isReallyOnline = await verifyInternetPath();
-      if (!isReallyOnline) return null;
-    } catch {
-      return null;
+      const { data, error } = await supabase
+        .from('diaspora_registration_centres')
+        .select('*');
+
+      if (error) throw error;
+      if (!data) return [];
+
+      return data.map((d: any) => ({
+        ...d,
+        id: `d-${d.id}`,
+        type: 'diaspora',
+        county: d.country,
+        constituency_name: d.mission_name,
+        office_location: d.city,
+        displayName: d.mission_name,
+        formattedAddress: d.formatted_address || `${d.city}, ${d.country}`,
+        coordinates: [d.latitude, d.longitude],
+        verified: true
+      }));
+    } catch (err) {
+      console.warn('Failed to fetch diaspora offices:', err);
+      return [];
     }
+  };
+
+  const fetchAllOfficesPaginated = async () => {
+    const batchSize = 1000;
+    let allRecords: Office[] = [];
+    let from = 0;
+    let to = batchSize - 1;
+    let hasMore = true;
 
     const client = window.location.pathname.includes('/admin') ? supabaseCustom : supabase;
 
-    // Parallel fetch with a 15-second safety timeout
-    const fetchWithTimeout = async () => {
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Data fetch timed out after 15s')), 15000)
-      );
+    while (hasMore) {
+      const { data, error } = await (client as any)
+        .from('iebc_offices')
+        .select('*')
+        .range(from, to)
+        .order('id');
 
-      return Promise.race([
-        Promise.all([
-          client
-            .from('iebc_offices')
-            .select('id, county, constituency, constituency_name, constituency_code, office_location, clean_office_location, latitude, longitude, verified, formatted_address, landmark, distance_from_landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
-            .not('latitude', 'is', null)
-            .not('longitude', 'is', null)
-            .eq('verified', true)
-            .order('county')
-            .order('constituency_name'),
-          client
-            .from('diaspora_registration_centres')
-            .select('id, mission_name, mission_type, city, country, country_code, continent, region, latitude, longitude, address, google_maps_url, phone, email, website_url, whatsapp, designation_state, designated_2017, designated_2022, designation_count, is_iebc_confirmed_2027, confirmed_2027_source_url, confirmed_2027_gazette_ref, services_2027, registration_opens_at, registration_closes_at, voting_date, registration_requirements, inquiry_contact_name, inquiry_contact_email, inquiry_notes, verified_at, verification_source, last_checked_at, is_active, created_at, updated_at, geocode_status, geocode_method, geocode_confidence, formatted_address')
-            .not('latitude', 'is', null)
-            .not('longitude', 'is', null)
-            .order('country')
-            .order('mission_name')
-        ]),
-        timeoutPromise
-      ]) as Promise<[any, any]>;
-    };
+      if (error) throw error;
+      if (data && data.length > 0) {
+        const mapped = data.map((office: any) => ({
+          ...office,
+          type: 'office',
+          displayName: office.constituency_name || office.office_location,
+          formattedAddress: office.formatted_address || `${office.office_location}, ${office.county} County`,
+          coordinates: [office.latitude, office.longitude]
+        }));
+        allRecords = [...allRecords, ...mapped];
 
-    const [officesRes, diasporaRes] = await fetchWithTimeout();
-
-    if (officesRes.error) throw officesRes.error;
-    if (diasporaRes.error) console.warn('Diaspora fetch failed:', diasporaRes.error);
-
-    const validOffices = ((officesRes.data as any[]) || [])
-      .filter(office => office.latitude && office.longitude)
-      .map(office => ({
-        ...office,
-        type: 'office',
-        displayName: office.constituency_name || office.office_location,
-        formattedAddress: office.formatted_address || `${office.office_location}, ${office.county} County`,
-        coordinates: [office.latitude, office.longitude],
-        isCached: false
-      })) as Office[];
-
-    const validDiaspora = ((diasporaRes.data as any[]) || [])
-      .filter(center => center.latitude && center.longitude)
-      .map(center => ({
-        ...center,
-        id: `d-${center.id}`,
-        type: 'diaspora',
-        country: center.country,
-        county: null, // Explictly null for Diaspora
-        constituency_name: center.mission_name,
-        office_location: center.city,
-        displayName: center.mission_name,
-        formattedAddress: center.formatted_address || `${center.mission_name}, ${center.city}, ${center.country}`,
-        coordinates: [center.latitude, center.longitude],
-        isCached: false,
-        verified: true // Diaspora centers are official
-      })) as Office[];
-
-    const allLocations = [...validOffices, ...validDiaspora];
-
-    setOffices(allLocations);
-    setLastSyncTime(new Date());
-
-    if (enableOfflineCache) {
-      await setCachedOffices(allLocations);
+        if (data.length < batchSize) {
+          hasMore = false;
+        } else {
+          from += batchSize;
+          to += batchSize;
+        }
+      } else {
+        hasMore = false;
+      }
     }
 
-    const fuseOptions = {
-      keys: [
-        'county',
-        'constituency_name',
-        'constituency',
-        'office_location',
-        'landmark',
-        'clean_office_location',
-        'formatted_address',
-        'displayName',
-        'mission_name',
-        'city',
-        'country'
-      ],
-      threshold: 0.3,
-      includeScore: true,
-      includeMatches: true,
-      minMatchCharLength: 2,
-      shouldSort: true,
-      findAllMatches: true,
-      useExtendedSearch: true,
-      ignoreLocation: true,
-      distance: 100
+    return allRecords;
+  };
+
+  const fetchInBounds = useCallback(async (bounds: { minLat: number, minLng: number, maxLat: number, maxLng: number }, zoom = 15) => {
+    // ✊🏽🇰🇪 Zoom-aware marker cap — prevents browser crash from too many DOM markers
+    const getMarkerCap = (z: number) => {
+      if (z >= 12) return Infinity; // Street level: all markers (~50-300 typical)
+      if (z >= 10) return 500;       // District level
+      if (z >= 8) return 200;        // County level
+      return 50;                     // Country overview
     };
 
-    setFuse(new Fuse(allLocations, fuseOptions));
+    // Spatially-distributed sampling — ensures even geographic coverage at low zoom
+    const spatialSample = (items: any[], cap: number) => {
+      if (items.length <= cap) return items;
+      // Grid-based spatial sampling for even distribution
+      const step = items.length / cap;
+      const sampled: any[] = [];
+      for (let i = 0; i < items.length && sampled.length < cap; i += step) {
+        sampled.push(items[Math.floor(i)]);
+      }
+      return sampled;
+    };
 
-    return allLocations;
-  };
+    const markerCap = getMarkerCap(zoom);
+
+    try {
+      // @ts-expect-error — custom RPC function not in generated Supabase types
+      const { data, error } = await supabase.rpc('get_offices_in_bounds', {
+        min_lat: bounds.minLat,
+        min_lng: bounds.minLng,
+        max_lat: bounds.maxLat,
+        max_lng: bounds.maxLng,
+        zoom_level: zoom
+      });
+
+      if (error) throw error;
+
+      const mapped = (data || []).map((o: any) => ({
+        ...o,
+        type: 'office',
+        displayName: o.constituency_name || o.office_location,
+        formattedAddress: o.formatted_address || `${o.office_location}, ${o.county} County`,
+        coordinates: [o.latitude, o.longitude],
+        // Ensure all metadata fields are preserved from RPC response
+        landmark: o.landmark,
+        distance_from_landmark: o.distance_from_landmark,
+        ward: o.ward,
+        category: o.category,
+        elevation_meters: o.elevation_meters,
+        walking_effort: o.walking_effort,
+        landmark_normalized: o.landmark_normalized,
+        landmark_source: o.landmark_source,
+        isochrone_15min: o.isochrone_15min,
+        isochrone_30min: o.isochrone_30min,
+        isochrone_45min: o.isochrone_45min
+      }));
+
+      // Merge with static Diaspora markers (small enough to keep in memory)
+      const diaspora = offices.filter(o => o.type === 'diaspora');
+      const cappedMapped = spatialSample(mapped, markerCap);
+      const combined = [...cappedMapped, ...diaspora];
+
+      setViewportOffices(combined);
+      return combined;
+    } catch (err) {
+      console.error('[useIEBCOffices] Viewport fetch error, falling back to client-side filter:', err);
+      // FALLBACK: Client-side bounding-box filter of CDN-loaded offices
+      const filtered = offices.filter(o => {
+        if (!o.latitude || !o.longitude || o.type === 'diaspora') return false;
+        return o.latitude >= bounds.minLat && o.latitude <= bounds.maxLat
+          && o.longitude >= bounds.minLng && o.longitude <= bounds.maxLng;
+      });
+      const cappedFiltered = spatialSample(filtered, markerCap);
+      const diasporaFallback = offices.filter(o => o.type === 'diaspora');
+      const fallbackCombined = [...cappedFiltered, ...diasporaFallback];
+      setViewportOffices(fallbackCombined);
+      return fallbackCombined;
+    }
+  }, [offices]);
 
   const performSearch = useCallback(async (query: string, options: any = {}) => {
     const { source = 'ui', autoSelectFirst = false, useCache = true } = options;
@@ -539,40 +599,51 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     }
   }, [fuse, isOffline]);
 
-  const searchOffices = useCallback((query: string) => {
-    if (!query.trim()) {
+  /**
+   * LIGHTWEIGHT SERVER-SIDE SEARCH ✊🏽🇰🇪
+   * Calls the get_search_suggestions RPC for O(1) performance regardless of client data
+   */
+  const searchOffices = useCallback(async (query: string) => {
+    if (!query || query.trim().length === 0) {
       return [];
     }
 
     try {
-      if (fuse) {
-        const fuseResults = fuse.search(query.trim());
-        return fuseResults.map(result => ({
-          ...result.item,
-          matches: result.matches,
-          score: result.score,
-          type: result.item.type || 'office'
-        }));
-      }
+      // @ts-expect-error — custom RPC function not in generated Supabase types
+      const { data, error } = await supabase.rpc('get_search_suggestions', {
+        query_text: query.trim()
+      });
 
-      const lowercaseQuery = query.toLowerCase();
-      return offices.filter(office =>
-        office.county?.toLowerCase().includes(lowercaseQuery) ||
-        office.constituency_name?.toLowerCase().includes(lowercaseQuery) ||
-        office.office_location?.toLowerCase().includes(lowercaseQuery) ||
-        office.mission_name?.toLowerCase().includes(lowercaseQuery) ||
-        office.city?.toLowerCase().includes(lowercaseQuery) ||
-        office.country?.toLowerCase().includes(lowercaseQuery)
-      ).map(office => ({
-        ...office,
-        type: office.type || 'office',
-        score: 0.5
+      if (error) throw error;
+
+      // Map to the expected Office format
+      return (data || []).map((r: any) => ({
+        ...r,
+        office_location: r.name,
+        displayName: r.name,
+        type: 'office',
+        coordinates: [r.latitude, r.longitude],
+        verified: true
       }));
     } catch (error) {
-      console.error('Search error:', error);
+      console.error('[useIEBCOffices] Server-side search error:', error);
+
+      // Fallback to local search if we have data (emergency only)
+      if (offices.length > 0) {
+        const lowercaseQuery = query.toLowerCase();
+        return offices.filter(office =>
+          office.county?.toLowerCase().includes(lowercaseQuery) ||
+          office.constituency_name?.toLowerCase().includes(lowercaseQuery) ||
+          office.office_location?.toLowerCase().includes(lowercaseQuery)
+        ).map(office => ({
+          ...office,
+          type: office.type || 'office',
+          score: 0.5
+        }));
+      }
       return [];
     }
-  }, [fuse, offices]);
+  }, [offices]);
 
   const debouncedSearch = useMemo(
     () => debounce((query: string, options: any) => {
@@ -716,7 +787,27 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     if (hasFetchedRef.current) return;
     hasFetchedRef.current = true;
 
-    fetchOffices();
+    // ☁️ [ENHANCED] Use Cloudflare R2 for global data
+    const init = async () => {
+      const cdnOffices = await loadOfficesFromCDN();
+      // Always fetch Diaspora separately to ensure global visibility
+      const diaspora = await fetchDiaspora();
+      const allLoaded = [
+        ...(cdnOffices || []).filter(o => o.type !== 'diaspora'),
+        ...diaspora
+      ];
+      setOffices(allLoaded);
+      // NOTE: Do NOT setViewportOffices(allLoaded) — 30k markers crashes the browser.
+      // MapBoundsListener fires on map ready → fetchInBounds → zoom-aware viewport subset.
+    };
+    init();
+
+    // ✊🏽🇰🇪 [STRICT MODE] Legacy Global Fetch - Fully implemented but dormant by default
+    if (useLegacyGlobalFetch) {
+      fetchOffices();
+    } else {
+      setLoading(false); // Immediate entry for Viewport Fetching
+    }
 
     return () => {
       hasFetchedRef.current = false;
@@ -885,6 +976,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
 
   return {
     offices,
+    viewportOffices: viewportOffices.length > 0 ? viewportOffices : offices,
     filteredOffices,
     loading,
     error,
@@ -900,6 +992,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     handleSearch,
     clearSearch,
     performSearch,
+    fetchInBounds,
     searchOffices,
     getOfficesByCounty,
     getOfficeById,
@@ -907,10 +1000,10 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     clearCache,
     forceSync,
     updateCacheStatus,
-    submitContribution: submitContribution.mutate,
-    confirmAccuracy: confirmAccuracy.mutate,
-    reportStatusChange: reportStatusChange.mutate,
-    suggestContactUpdate: suggestContactUpdate.mutate,
+    submitContribution: (data: any) => submitContribution.mutateAsync(data),
+    confirmAccuracy: (data: any) => confirmAccuracy.mutateAsync(data),
+    reportStatusChange: (data: any) => reportStatusChange.mutateAsync(data),
+    suggestContactUpdate: (data: any) => suggestContactUpdate.mutateAsync(data),
     isSubmittingContribution: submitContribution.isPending,
     isConfirmingAccuracy: confirmAccuracy.isPending,
     isReportingStatus: reportStatusChange.isPending,

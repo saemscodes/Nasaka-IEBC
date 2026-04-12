@@ -50,6 +50,7 @@ capacitor.config.json
 secrets.json
 service-account.json
 firebase-config.json
+android/*.json
 
 # Temporary files
 *.tmp
@@ -58,3 +59,8 @@ firebase-config.json
 # Local context and network reports (contains secrets)
 context/
 *.har
+.vercel
+.env*.local
+
+# Large Data Files
+data/**/*.dbf

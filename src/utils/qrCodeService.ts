@@ -46,7 +46,7 @@ export class QRCodeService {
       receiptData.ward,
       receiptData.constituency
     );
-    
+
     const now = new Date();
     const expiresAt = new Date(now.getTime() + (60 * 24 * 60 * 60 * 1000)); // 60 days
 
@@ -62,7 +62,7 @@ export class QRCodeService {
     };
 
     const receiptCode = `REC254-${systemCode}-${userHash}-${receiptData.petitionId.substring(0, 6)}`;
-    
+
     // Generate QR code with receipt data
     const qrCodeData = JSON.stringify({
       code: receiptCode,
@@ -84,7 +84,7 @@ export class QRCodeService {
     const qrCode = await QRCode.toDataURL(qrCodeData, qrCodeOptions);
 
     // Store QR receipt in database using the correct table name
-    await supabase
+    await (supabase as any)
       .from('signatures')
       .update({
         verification_status: {
@@ -127,7 +127,7 @@ export class QRCodeService {
         return { isValid: false, error: 'Receipt not found' };
       }
 
-      const signature = signatures[0];
+      const signature = (signatures as any)[0];
       const receiptData = signature.verification_status as any;
 
       // Check expiry
@@ -165,7 +165,7 @@ export class QRCodeService {
         return { success: false, error: 'Receipt not found' };
       }
 
-      const signature = signatures[0];
+      const signature = (signatures as any)[0];
       const oldReceiptData = signature.verification_status as any;
 
       // Generate new receipt with extended expiry
@@ -174,7 +174,7 @@ export class QRCodeService {
       const newReceiptCode = `REC254-${newSystemCode}-${oldReceiptData.userHash}-${oldReceiptData.petitionId.substring(0, 6)}`;
 
       // Update signature with renewed receipt
-      const { error: updateError } = await supabase
+      const { error: updateError } = await (supabase as any)
         .from('signatures')
         .update({
           verification_status: {
@@ -185,7 +185,7 @@ export class QRCodeService {
             renewal_count: (oldReceiptData.renewal_count || 0) + 1
           }
         })
-        .eq('id', signature.id);
+        .eq('id', (signature as any).id);
 
       if (updateError) {
         return { success: false, error: 'Failed to renew signature' };

@@ -46,7 +46,7 @@ interface ContactUpdateData {
 
 export const useMapControls = (initialCenter: [number, number] = [-1.286389, 36.817223]) => {
   const queryClient = useQueryClient();
-  
+
   const [mapCenter, setMapCenter] = useState<[number, number]>(initialCenter);
   const [mapZoom, setMapZoom] = useState(10);
   const [selectedOffice, setSelectedOffice] = useState<Office | null>(null);
@@ -60,7 +60,7 @@ export const useMapControls = (initialCenter: [number, number] = [-1.286389, 36.
       setMapCenter(latLng);
       setMapZoom(15);
       setSelectedOffice(office);
-      
+
       if (mapRef.current) {
         mapRef.current.flyTo(latLng, 15, {
           duration: 1.5
@@ -74,7 +74,7 @@ export const useMapControls = (initialCenter: [number, number] = [-1.286389, 36.
       const latLng: [number, number] = [lat, lng];
       setMapCenter(latLng);
       setMapZoom(zoom);
-      
+
       mapRef.current.flyTo(latLng, zoom, {
         duration: 1.5
       });
@@ -106,7 +106,7 @@ export const useMapControls = (initialCenter: [number, number] = [-1.286389, 36.
   const contributions = {
     submit: useMutation({
       mutationFn: async (data: ContributionData) => {
-        const { data: contribution, error } = await supabase
+        const { data: contribution, error } = await (supabase as any)
           .from('iebc_office_contributions')
           .insert({
             original_office_id: data.officeId,
@@ -134,7 +134,7 @@ export const useMapControls = (initialCenter: [number, number] = [-1.286389, 36.
   const verification = {
     confirm: useMutation({
       mutationFn: async (data: ConfirmationData) => {
-        const { data: confirmation, error } = await supabase
+        const { data: confirmation, error } = await (supabase as any)
           .from('confirmations')
           .insert({
             office_id: data.officeId,
@@ -162,7 +162,7 @@ export const useMapControls = (initialCenter: [number, number] = [-1.286389, 36.
   const statusReport = {
     submit: useMutation({
       mutationFn: async (data: StatusReportData) => {
-        const { data: statusReport, error } = await supabase
+        const { data: statusReport, error } = await (supabase as any)
           .from('operational_status_history')
           .insert({
             office_id: data.officeId,
@@ -189,7 +189,7 @@ export const useMapControls = (initialCenter: [number, number] = [-1.286389, 36.
   const contactUpdate = {
     submit: useMutation({
       mutationFn: async (data: ContactUpdateData) => {
-        const { data: contactUpdate, error } = await supabase
+        const { data: contactUpdate, error } = await (supabase as any)
           .from('contact_update_requests')
           .insert({
             office_id: data.officeId,

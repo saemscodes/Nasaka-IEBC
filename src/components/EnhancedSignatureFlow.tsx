@@ -6,11 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  Shield, 
-  User, 
-  MapPin, 
-  CheckCircle, 
+import {
+  Shield,
+  User,
+  MapPin,
+  CheckCircle,
   AlertCircle,
   Loader2,
   QrCode,
@@ -24,10 +24,10 @@ import {
 import { toast } from "sonner";
 import SignatureSuccessModal from './SignatureSuccessModal';
 import CryptoStatusCard from './CryptoStatusCard';
-import { 
-  generateKeyPair, 
-  signPetitionData, 
-  getKeyInfo, 
+import {
+  generateKeyPair,
+  signPetitionData,
+  getKeyInfo,
   recoverKeys,
   checkCryptoSupport,
   generateKeyBackup,
@@ -65,7 +65,7 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
   const [keysReady, setKeysReady] = useState(false);
   const [cryptoSupported, setCryptoSupported] = useState(true);
   const [keyError, setKeyError] = useState('');
-  
+
   const [formData, setFormData] = useState<SignatureFlowData>({
     petitionId,
     voterName: '',
@@ -83,12 +83,12 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
     // Check crypto support on mount
     const support = checkCryptoSupport();
     setCryptoSupported(support.supported);
-    
+
     if (!support.supported) {
       toast.error(`Security features unavailable: ${support.reason}`);
       return;
     }
-    
+
     // Check if keys exist
     const checkKeys = async () => {
       try {
@@ -98,7 +98,7 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
         console.error('Key check error:', error);
       }
     };
-    
+
     checkKeys();
   }, []);
 
@@ -128,7 +128,7 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
       ...prev,
       [field]: value
     }));
-    
+
     // Clear validation error when user starts typing
     if (validationErrors[field]) {
       setValidationErrors(prev => ({
@@ -148,11 +148,11 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
     try {
       const passphrase = await securePrompt('Create a security passphrase');
       const confirmPassphrase = await securePrompt('Confirm your passphrase');
-      
-       if (passphrase.length < 8) {
-      throw new Error('PASSPHRASE_TOO_SHORT');
-    }
-      
+
+      if (passphrase.length < 8) {
+        throw new Error('PASSPHRASE_TOO_SHORT');
+      }
+
       await generateKeyPair(passphrase);
       setKeysReady(true);
       toast.success('Security keys successfully created');
@@ -166,7 +166,7 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
     try {
       const oldPassphrase = await securePrompt('Enter your old passphrase');
       const newPassphrase = await securePrompt('Enter a new security passphrase');
-      
+
       const success = await recoverKeys(oldPassphrase, newPassphrase);
       if (success) {
         setKeysReady(true);
@@ -179,186 +179,186 @@ const EnhancedSignatureFlow: React.FC<EnhancedSignatureFlowProps> = ({
   };
 
   const handleSubmit = async () => {
-  if (!validateStep(2)) return;
+    if (!validateStep(2)) return;
 
-  setIsProcessing(true);
+    setIsProcessing(true);
 
-  try {
-    console.log('🚀 Starting signature processing with crypto integration');
-    
-    const { data: existingSignatures, error: existingError } = await supabase
-      .from('signatures')
-      .select('id')
-      .eq('petition_id', petitionId)
-      .eq('voter_id', formData.voterId)
-      .limit(1);
+    try {
+      console.log('🚀 Starting signature processing with crypto integration');
 
-    if (existingError) throw existingError;
-    if (existingSignatures && existingSignatures.length > 0) {
-      throw new Error('You have already signed this petition');
-    }
+      const { data: existingSignatures, error: existingError } = await (supabase as any)
+        .from('signatures')
+        .select('id')
+        .eq('petition_id', petitionId)
+        .eq('voter_id', formData.voterId)
+        .limit(1);
 
-    console.log('🔐 Generating cryptographic signature...');
-    const signature = await signPetitionData(
-      { petitionId, petitionTitle },
-      formData
-    );
+      if (existingError) throw existingError;
+      if (existingSignatures && existingSignatures.length > 0) {
+        throw new Error('You have already signed this petition');
+      }
 
-    // Verification would be done server-side in production
-    const verification = { isValid: true };
-    if (!verification.isValid) {
-      throw new Error('Local verification failed');
-    }
-
-    const { data: signatureRecord, error } = await supabase
-      .from('signatures')
-      .insert({
-        petition_id: petitionId,
-        voter_id: formData.voterId,
-        voter_name: formData.voterName,
-        constituency: formData.constituency,
-        ward: formData.ward,
-        polling_station: formData.pollingStation,
-        csp_provider: 'web-crypto',
-        signature_value: signature.signature,
-        public_key: signature.publicKeyJwk,
-        key_version: signature.keyVersion,
-        device_id: signature.deviceId,
-        verification_status: {
-          verified: true,
-          method: 'digital_signature',
-          timestamp: new Date().toISOString()
-        }
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    const receiptCode = `RC-${Date.now().toString(36).toUpperCase()}`;
-
-    setSignatureResult({
-      signatureId: signatureRecord.id,
-      receiptCode,
-      voterName: formData.voterName,
-      voterEmail: formData.voterEmail,
-      petitionTitle,
-      signatureData: signature
-    });
-
-    setShowSuccessModal(true);
-    toast.success('🔐 Petition signed with cryptographic security!');
-    onComplete(receiptCode);
-
-  } catch (error: any) {
-    console.error('Signature submission error:', error);
-
-    if (error.message === 'KEY_DERIVATION_FAILED') {
-      toast.error(
-        <div className="max-w-md">
-          <p className="font-medium">Security Key Mismatch</p>
-          <p className="text-sm mt-1">This usually happens when:</p>
-          <ul className="list-disc pl-5 mt-1 space-y-1">
-            <li>Browser storage was partially cleared</li>
-            <li>You're using a different security context</li>
-            <li>Device identification changed</li>
-          </ul>
-          <div className="mt-3 flex space-x-2">
-            <Button 
-              size="sm"
-              onClick={async () => {
-                // Clear and regenerate keys
-                await generateKeyPair('default-passphrase');
-                handleSubmit();
-              }}
-            >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Reset Keys & Retry
-            </Button>
-          </div>
-        </div>
+      console.log('🔐 Generating cryptographic signature...');
+      const signature = await signPetitionData(
+        { petitionId, petitionTitle },
+        formData
       );
-    } else if (error.message === 'USER_CANCELLED_PASSPHRASE') {
-      toast.info('Signing cancelled - passphrase required');
-    } else {
-      toast.error(`Signature failed: ${error.message}`);
+
+      // Verification would be done server-side in production
+      const verification = { isValid: true };
+      if (!verification.isValid) {
+        throw new Error('Local verification failed');
+      }
+
+      const { data: signatureRecord, error } = await (supabase as any)
+        .from('signatures')
+        .insert({
+          petition_id: petitionId,
+          voter_id: formData.voterId,
+          voter_name: formData.voterName,
+          constituency: formData.constituency,
+          ward: formData.ward,
+          polling_station: formData.pollingStation,
+          csp_provider: 'web-crypto',
+          signature_value: signature.signature,
+          public_key: signature.publicKeyJwk,
+          key_version: signature.keyVersion,
+          device_id: signature.deviceId,
+          verification_status: {
+            verified: true,
+            method: 'digital_signature',
+            timestamp: new Date().toISOString()
+          }
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const receiptCode = `RC-${Date.now().toString(36).toUpperCase()}`;
+
+      setSignatureResult({
+        signatureId: signatureRecord.id,
+        receiptCode,
+        voterName: formData.voterName,
+        voterEmail: formData.voterEmail,
+        petitionTitle,
+        signatureData: signature
+      });
+
+      setShowSuccessModal(true);
+      toast.success('🔐 Petition signed with cryptographic security!');
+      onComplete(receiptCode);
+
+    } catch (error: any) {
+      console.error('Signature submission error:', error);
+
+      if (error.message === 'KEY_DERIVATION_FAILED') {
+        toast.error(
+          <div className="max-w-md">
+            <p className="font-medium">Security Key Mismatch</p>
+            <p className="text-sm mt-1">This usually happens when:</p>
+            <ul className="list-disc pl-5 mt-1 space-y-1">
+              <li>Browser storage was partially cleared</li>
+              <li>You're using a different security context</li>
+              <li>Device identification changed</li>
+            </ul>
+            <div className="mt-3 flex space-x-2">
+              <Button
+                size="sm"
+                onClick={async () => {
+                  // Clear and regenerate keys
+                  await generateKeyPair('default-passphrase');
+                  handleSubmit();
+                }}
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Reset Keys & Retry
+              </Button>
+            </div>
+          </div>
+        );
+      } else if (error.message === 'USER_CANCELLED_PASSPHRASE') {
+        toast.info('Signing cancelled - passphrase required');
+      } else {
+        toast.error(`Signature failed: ${error.message}`);
+      }
+
+    } finally {
+      setIsProcessing(false);
     }
-
-  } finally {
-    setIsProcessing(false);
-  }
-};
+  };
 
 
-const securePrompt = (message: string): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const modal = document.createElement('div');
-    modal.style.cssText = `
+  const securePrompt = (message: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const modal = document.createElement('div');
+      modal.style.cssText = `
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.5); z-index: 10000; display: flex;
       align-items: center; justify-content: center;
     `;
-    
-    const container = document.createElement('div');
-    container.style.cssText = `
+
+      const container = document.createElement('div');
+      container.style.cssText = `
       background: white; padding: 20px; border-radius: 8px;
       width: 300px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     `;
-    
-    const label = document.createElement('p');
-    label.textContent = message;
-    label.style.marginBottom = '10px';
-    label.style.fontWeight = '500';
-    
-    const input = document.createElement('input');
-    input.type = 'password';
-    input.style.cssText = `
+
+      const label = document.createElement('p');
+      label.textContent = message;
+      label.style.marginBottom = '10px';
+      label.style.fontWeight = '500';
+
+      const input = document.createElement('input');
+      input.type = 'password';
+      input.style.cssText = `
       width: 100%; padding: 10px; margin-bottom: 15px;
       border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
     `;
 
-    const button = document.createElement('button');
-    button.textContent = 'Submit';
-    button.style.cssText = `
+      const button = document.createElement('button');
+      button.textContent = 'Submit';
+      button.style.cssText = `
       padding: 8px 15px; background: #15803d; color: white;
       border: none; border-radius: 4px; cursor: pointer; font-weight: 500;
     `;
 
-    const timeout = setTimeout(() => {
-      document.body.removeChild(modal);
-      reject(new Error('PROMPT_TIMEOUT'));
-    }, 120000); // 2-minute timeout
+      const timeout = setTimeout(() => {
+        document.body.removeChild(modal);
+        reject(new Error('PROMPT_TIMEOUT'));
+      }, 120000); // 2-minute timeout
 
-    const cleanup = () => {
-      clearTimeout(timeout);
-      document.body.removeChild(modal);
-    };
+      const cleanup = () => {
+        clearTimeout(timeout);
+        document.body.removeChild(modal);
+      };
 
-    button.addEventListener('click', () => {
-      if (input.value.trim()) {
-        cleanup();
-        resolve(input.value);
-      }
-    });
-
-    // Handle Enter key press
-    input.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
+      button.addEventListener('click', () => {
         if (input.value.trim()) {
           cleanup();
           resolve(input.value);
         }
-      }
-    });
+      });
 
-    container.appendChild(label);
-    container.appendChild(input);
-    container.appendChild(button);
-    modal.appendChild(container);
-    document.body.appendChild(modal);
-    input.focus();
-  });
-};
+      // Handle Enter key press
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          if (input.value.trim()) {
+            cleanup();
+            resolve(input.value);
+          }
+        }
+      });
+
+      container.appendChild(label);
+      container.appendChild(input);
+      container.appendChild(button);
+      modal.appendChild(container);
+      document.body.appendChild(modal);
+      input.focus();
+    });
+  };
 
   const renderStepIndicator = () => (
     <div className="flex items-center justify-center space-x-4 mb-6">
@@ -366,17 +366,16 @@ const securePrompt = (message: string): Promise<string> => {
         <div key={step} className="flex items-center">
           <div className={`
             w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
-            ${currentStep >= step 
-              ? 'bg-green-600 text-white' 
+            ${currentStep >= step
+              ? 'bg-green-600 text-white'
               : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
             }
           `}>
             {currentStep > step ? <CheckCircle className="w-4 h-4" /> : step}
           </div>
           {step < 4 && (
-            <div className={`w-16 h-1 mx-2 ${
-              currentStep > step ? 'bg-green-600' : 'bg-gray-200 dark:bg-gray-700'
-            }`} />
+            <div className={`w-16 h-1 mx-2 ${currentStep > step ? 'bg-green-600' : 'bg-gray-200 dark:bg-gray-700'
+              }`} />
           )}
         </div>
       ))}
@@ -527,11 +526,11 @@ const securePrompt = (message: string): Promise<string> => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-            <CryptoStatusCard 
-              onSign={() => {
-                // Test signing handler
-              }}
-            />
+          <CryptoStatusCard
+            onSign={() => {
+              // Test signing handler
+            }}
+          />
         </CardContent>
       </Card>
 
@@ -600,7 +599,7 @@ const securePrompt = (message: string): Promise<string> => {
             <div>
               <p className="font-medium text-yellow-900 dark:text-yellow-100">Legal Declaration</p>
               <p className="text-sm text-yellow-800 dark:text-yellow-200 mt-1">
-                By proceeding, you confirm that all information provided is accurate and truthful. 
+                By proceeding, you confirm that all information provided is accurate and truthful.
                 Your cryptographic signature will create a legally binding digital record under KICA §83C.
               </p>
             </div>
@@ -613,15 +612,15 @@ const securePrompt = (message: string): Promise<string> => {
             <AlertDescription className="text-red-800 dark:text-red-200">
               <strong>Security Keys Not Initialized</strong> - You must set up cryptographic keys before signing.
               <div className="mt-2 flex space-x-2">
-                <Button 
+                <Button
                   size="sm"
                   onClick={initializeKeys}
                 >
                   <Key className="mr-2 h-4 w-4" />
                   Create Keys
                 </Button>
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="outline"
                   onClick={handleKeyRecovery}
                 >
@@ -637,8 +636,8 @@ const securePrompt = (message: string): Promise<string> => {
           <Button variant="outline" onClick={() => setCurrentStep(3)}>
             Previous
           </Button>
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            onClick={handleSubmit}
             disabled={isProcessing || !keysReady}
             className="bg-green-600 hover:bg-green-700"
           >
@@ -673,7 +672,7 @@ const securePrompt = (message: string): Promise<string> => {
             <p className="text-red-600 dark:text-red-300">
               Your browser does not support required security features for digital signatures.
             </p>
-            
+
             <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
               <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-2">
                 Recommended Actions:
@@ -685,8 +684,8 @@ const securePrompt = (message: string): Promise<string> => {
                 <li>Check browser security settings</li>
               </ul>
             </div>
-            
-            <Button 
+
+            <Button
               className="w-full mt-4"
               onClick={() => window.location.reload()}
             >

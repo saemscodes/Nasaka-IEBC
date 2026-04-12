@@ -284,7 +284,10 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     historyApiFallback: true,
     headers: {
-      'Service-Worker-Allowed': '/'
+      'Service-Worker-Allowed': '/',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
     }
   },
 

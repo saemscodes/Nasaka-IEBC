@@ -1,0 +1,18 @@
+HTTP/1.1 308 Permanent Redirect
+Date: Wed, 01 Apr 2026 21:58:12 GMT
+Content-Type: text/plain
+Transfer-Encoding: chunked
+Connection: keep-alive
+Cache-Control: public, max-age=0, must-revalidate
+location: /recovering
+refresh: 0;url=/recovering
+Server: cloudflare
+strict-transport-security: max-age=63072000
+x-vercel-id: cpt1::zdxr8-1775080692192-226a98bde8c4
+cf-cache-status: DYNAMIC
+Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=U%2FMRkSYIti2LGG8dx%2F%2Fu%2F54C7AznND1DzbDfpbWZLQ6T9sCAxBgMuzsqrw580r3rifKArS%2FOxOtF4jQPskBHFkedDJuGWasm7VJs7lum9XCnpToPTpN9BbUSfSG0heZPD2XfCvanwlOIZdooBuekGTAgmhFR"}]}
+CF-RAY: 9e5ada9178c68a6a-MBA
+alt-svc: h3=":443"; ma=86400
+
+Redirecting...

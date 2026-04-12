@@ -58,17 +58,30 @@ const RoutingSystem = ({
       destination.longitude
     );
 
-    if (distanceKm > 5000) {
-      // Log removed for production
+    if (distanceKm > 2000) {
+      // Region-aware toast messages based on distance from Kenya
+      let toastTitle, toastDescription;
 
-      toast.info("Turn-by-turn directions disabled", {
-        description: "It looks like you're accessing Nasaka from far away. If you're in Kenya, please check your GPS or VPN settings for more accurate directions.",
+      if (distanceKm <= 5000) {
+        // East Africa / Horn of Africa / Southern Africa
+        toastTitle = "Turn-by-turn directions adjusted";
+        toastDescription = "You appear to be in the East African region. Road routing across borders is limited. If you're in Kenya, check your GPS or VPN settings.";
+      } else if (distanceKm <= 10000) {
+        // Rest of Africa, Middle East, Europe, South/Central Asia
+        toastTitle = "Turn-by-turn directions disabled";
+        toastDescription = "You're accessing Nasaka from outside East Africa. Diaspora registration centres exist in your region — tap a Diaspora marker for embassy contact details.";
+      } else {
+        // Americas, East Asia, Oceania, Pacific
+        toastTitle = "Turn-by-turn directions disabled";
+        toastDescription = "You're accessing Nasaka from overseas. Switch to Diaspora mode to find Kenyan missions and registration centres in your region.";
+      }
 
+      toast.info(toastTitle, {
+        description: toastDescription,
         duration: 10000,
         action: {
           label: "I'm Overseas",
           onClick: () => { }
-
         }
       });
       clearRoute();

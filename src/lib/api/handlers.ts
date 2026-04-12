@@ -51,7 +51,7 @@ interface SearchFilters {
 export const apiHandlers = {
   async fetchAllOffices(filters: SearchFilters = {}): Promise<Office[]> {
     try {
-      let query = supabase
+      let query = (supabase as any)
         .from('iebc_offices')
         .select('*')
         .order('county')
@@ -82,7 +82,7 @@ export const apiHandlers = {
 
   async searchOffices(searchTerm: string, limit = 20): Promise<Office[]> {
     try {
-      const { data, error } = await supabase.rpc('search_offices_fuzzy', {
+      const { data, error } = await (supabase as any).rpc('search_offices_fuzzy', {
         search_term: searchTerm,
         limit_count: limit
       });
@@ -102,7 +102,7 @@ export const apiHandlers = {
     radiusKm = 50
   ): Promise<Office[]> {
     try {
-      const { data, error } = await supabase.rpc('nearby_offices', {
+      const { data, error } = await (supabase as any).rpc('nearby_offices', {
         user_lat: latitude,
         user_lng: longitude,
         radius_km: radiusKm
@@ -119,7 +119,7 @@ export const apiHandlers = {
 
   async fetchOfficeById(id: number): Promise<Office | null> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('iebc_offices')
         .select('*')
         .eq('id', id)
@@ -138,20 +138,20 @@ export const apiHandlers = {
     try {
       const [office, stats, confirmations, statusHistory, contactUpdates] = await Promise.all([
         this.fetchOfficeById(id),
-        supabase.rpc('get_office_stats', { office_id_param: id }),
-        supabase
+        (supabase as any).rpc('get_office_stats', { office_id_param: id }),
+        (supabase as any)
           .from('confirmations')
           .select('*')
           .eq('office_id', id)
           .order('confirmed_at', { ascending: false })
           .limit(10),
-        supabase
+        (supabase as any)
           .from('operational_status_history')
           .select('*')
           .eq('office_id', id)
           .order('reported_at', { ascending: false })
           .limit(10),
-        supabase
+        (supabase as any)
           .from('contact_update_requests')
           .select('*')
           .eq('office_id', id)
@@ -195,7 +195,7 @@ export const apiHandlers = {
 
   async confirmOfficeAccuracy(data: Confirmation): Promise<any> {
     try {
-      const { data: confirmation, error } = await supabase
+      const { data: confirmation, error } = await (supabase as any)
         .from('confirmations')
         .insert({
           office_id: data.officeId,
@@ -219,7 +219,7 @@ export const apiHandlers = {
 
   async submitContribution(data: Contribution): Promise<any> {
     try {
-      const { data: contribution, error } = await supabase
+      const { data: contribution, error } = await (supabase as any)
         .from('iebc_office_contributions')
         .insert({
           original_office_id: data.officeId,
@@ -243,7 +243,7 @@ export const apiHandlers = {
 
   async reportStatusChange(data: StatusReport): Promise<any> {
     try {
-      const { data: statusReport, error } = await supabase
+      const { data: statusReport, error } = await (supabase as any)
         .from('operational_status_history')
         .insert({
           office_id: data.officeId,
@@ -266,7 +266,7 @@ export const apiHandlers = {
 
   async suggestContactUpdate(data: ContactUpdate): Promise<any> {
     try {
-      const { data: contactUpdate, error } = await supabase
+      const { data: contactUpdate, error } = await (supabase as any)
         .from('contact_update_requests')
         .insert({
           office_id: data.officeId,
@@ -291,7 +291,7 @@ export const apiHandlers = {
 
   async voteOnContribution(contributionId: number, voteType: 'upvote' | 'downvote' | 'helpful' | 'not_helpful'): Promise<any> {
     try {
-      const { data: vote, error } = await supabase
+      const { data: vote, error } = await (supabase as any)
         .from('contribution_votes')
         .insert({
           contribution_id: contributionId,
@@ -367,7 +367,7 @@ export const apiHandlers = {
 
   async approveContribution(contributionId: number, notes?: string): Promise<any> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('iebc_office_contributions')
         .update({
           status: 'approved',
@@ -390,7 +390,7 @@ export const apiHandlers = {
 
   async rejectContribution(contributionId: number, notes: string): Promise<any> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('iebc_office_contributions')
         .update({
           status: 'rejected',
@@ -413,7 +413,7 @@ export const apiHandlers = {
 
   async updateOfficeDetails(officeId: number, updates: Partial<Office>): Promise<Office> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('iebc_offices')
         .update({
           ...updates,

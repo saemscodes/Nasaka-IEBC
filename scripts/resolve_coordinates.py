@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Multi-Source Cross-Validated Geocoding Resolver for Nasaka IEBC
 
 Queries Nominatim, Geocode.xyz, Geokeo, and Gemini AI to find the most
 accurate coordinate for each IEBC office.  Uses weighted-cluster voting,
-DB cross-validation (constituency→county), reverse geocoding checks,
+DB cross-validation (constituencyâ†’county), reverse geocoding checks,
 direction metadata extraction, contribution data integration, and
 duplicate/cluster detection.
 
@@ -28,6 +28,8 @@ import logging
 import argparse
 import requests
 import threading
+import psycopg2
+from urllib.parse import urlparse
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple, Any
@@ -35,8 +37,10 @@ from typing import Dict, List, Optional, Tuple, Any
 # Internal Admin Task Library
 try:
     from admin_task_lib import AdminTask
+    HAS_ADMIN_LIB = True
 except ImportError:
     AdminTask = None
+    HAS_ADMIN_LIB = False
 
 # Load .env if present
 try:
@@ -45,26 +49,32 @@ try:
 except ImportError:
     pass
 
-# ── Configuration ─────────────────────────────────────────────────────────────
+
+_last_env_mtime = 0.0
+
+def get_secret(key_name: str, default: str = "") -> str:
+    """v10.8.1: Smarter hot-reload. Only reloads .env if the file has changed on disk."""
+    global _last_env_mtime
+    try:
+        env_path = os.path.join(os.getcwd(), '.env')
+        if os.path.exists(env_path):
+            current_mtime = os.path.getmtime(env_path)
+            if current_mtime > _last_env_mtime:
+                # File has changed or haven't loaded yet
+                load_dotenv(dotenv_path=env_path, override=True)
+                _last_env_mtime = current_mtime
+        return os.getenv(key_name, default) or ""
+    except Exception as e:
+        # Fallback to existing os.environ if file check fails
+        return os.getenv(key_name, default) or ""
+
+# â”€â”€ Configuration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "https://ftswzvqwxdwgkvfbwfpx.supabase.co")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", os.getenv("SUPABASE_ANON_KEY", ""))
-GEMINI_API_KEY = os.getenv("VITE_GEMINI_API_KEY", "")
-GEOKEO_API_KEY = os.getenv("VITE_GEOKEO_API_KEY", "")
-OPENAI_API_KEY = os.getenv("VITE_OPEN_AI_KEY", "")
-GROQ_API_KEY = os.getenv("VITE_GROQ_API_KEY", "")
-HF_API_TOKEN = os.getenv("VITE_HF_API_TOKEN", "")
 
-# ArcGIS Keys (with rotation support)
-ARCGIS_API_KEY_1 = os.getenv("ARCGIS_API_KEY_PRIMARY", "")
-ARCGIS_API_KEY_2 = os.getenv("ARCGIS_API_KEY_SECONDARY", "")
-
-# Geocoding alternatives (v9.5)
-LOCATIONIQ_API_KEY = os.getenv("VITE_LOCATION_IQ_API_KEY", os.getenv("VITE_LOCATIONIQ_API_KEY", os.getenv("VITE_LOCATION_IQ", os.getenv("LOCATIONIQ_API_KEY", ""))))
-OPENCAGE_API_KEY = os.getenv("VITE_OPENCAGE_API_KEY", os.getenv("OPENCAGE_API_KEY", ""))
-GEOAPIFY_API_KEY = os.getenv("VITE_GEOAPIFY_API_KEY", os.getenv("GEOAPIFY_API_KEY", ""))
-GEOCODE_EARTH_KEY = os.getenv("VITE_GEOCODE_EARTH_KEY", "ge-ce02c91bea45c413")
-GEONAMES_USERNAME = os.getenv("VITE_GEONAMES_USERNAME", "civiceducationkenya")
+# v10.8 Note: API keys below are now loaded dynamically via get_secret() in each function
+# to support hot-reloading mid-run without process restart.
 
 DOMAIN = os.getenv("DOMAIN", "nasakaiebc.civiceducationkenya.com")
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
@@ -116,6 +126,16 @@ RATE_LIMITERS = {
     "hf":          RateLimiter(0.5),   # v9.5
     "geocode_earth": RateLimiter(0.1),  # v10.2: geocode.earth supports 10 req/s
     "geonames":    RateLimiter(1.0),   # v10.3: GeoNames recommends 1s delay for free accounts
+    "manus":       RateLimiter(2.0),   # v10.7: Manus AI
+    "deepseek":    RateLimiter(2.0),   # v10.9
+    "cerebras":    RateLimiter(1.0),   # v10.9
+    "cohere":      RateLimiter(1.0),   # v10.9
+    "nvidia":      RateLimiter(1.0),   # v10.9
+    "openrouter":  RateLimiter(1.0),   # v10.9
+    "positionstack": RateLimiter(1.0), # v10.9
+    "geocodemaps": RateLimiter(1.0),   # v10.9
+    "bigdatacloud": RateLimiter(1.0),  # v10.9
+    "overpass":    RateLimiter(5.0),   # v10.9
 }
 
 logging.basicConfig(
@@ -125,7 +145,7 @@ logging.basicConfig(
 )
 log = logging.getLogger("resolve")
 
-# ── Per-County Adaptive Thresholds ────────────────────────────────────────────
+# â”€â”€ Per-County Adaptive Thresholds â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 ADAPTIVE_THRESHOLDS_KM = {
     "turkana": 150, "marsabit": 200, "wajir": 150, "mandera": 200,
@@ -137,7 +157,7 @@ ADAPTIVE_THRESHOLDS_KM = {
 }
 DEFAULT_THRESHOLD_KM = 50
 
-# ── Cardinal direction variants for cluster detection ─────────────────────────
+# â”€â”€ Cardinal direction variants for cluster detection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 CARDINAL_SUFFIXES = {"north", "south", "east", "west", "central"}
 
@@ -156,7 +176,7 @@ SUBCOUNTY_TO_COUNTY = {
     "MVITA": "MOMBASA",
 }
 
-# ── v10.0: Multi-Table Configuration (Additive) ──────────────────────────────
+# â”€â”€ v10.0: Multi-Table Configuration (Additive) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 SUPPORTED_TABLES = {
     "iebc_offices": {
         "id": "id",
@@ -190,7 +210,7 @@ SUPPORTED_TABLES = {
     }
 }
 
-# ── Direction-type keywords ───────────────────────────────────────────────────
+# â”€â”€ Direction-type keywords â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 DIRECTION_KEYWORDS = {
     "beside": "beside", "next to": "next to", "opposite": "opposite",
@@ -207,7 +227,7 @@ DIRECTION_KEYWORDS = {
     "proximal to": "near", "opposite to": "opposite",
 }
 
-# ── Landmark-type patterns ────────────────────────────────────────────────────
+# â”€â”€ Landmark-type patterns â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 LANDMARK_TYPE_PATTERNS = {
     r"\boffice\b": "office",
@@ -253,7 +273,7 @@ LANDMARK_TYPE_PATTERNS = {
 }
 
 
-# ── Haversine ─────────────────────────────────────────────────────────────────
+# â”€â”€ Haversine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     R = 6371.0
@@ -270,7 +290,7 @@ def is_in_kenya(lat: float, lng: float) -> bool:
             KENYA_BOUNDS["lng_min"] <= lng <= KENYA_BOUNDS["lng_max"])
 
 
-# ── DB Reference Data ─────────────────────────────────────────────────────────
+# â”€â”€ DB Reference Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 _constituency_county_map: Dict[str, str] = {}
 _county_names: Dict[int, str] = {}
@@ -278,10 +298,12 @@ _constituency_wards: Dict[str, List[str]] = {}  # v9.1: Ward-level precision
 _rev_geo_cache: Dict[Tuple[float, float], Dict[str, str]] = {}  # v9.1: Coordinate cache
 _pdf_extraction_data: List[Dict] = []  # v9.1: PDF fallback data
 _CIRCUIT_BREAKERS: Dict[str, Dict] = {}  # v9.3: Stores {"tripped": bool, "last_trip": float}
+_ward_boundaries: List[Dict] = []  # v10.7: Ward polygon boundaries from GeoJSON
 CACHE_FILE = Path("data/cache/rev_geo_cache.json")
+MASTER_ARCHIVE_FILE = Path("data/MASTER_IEBC_RESOLVED.json")  # v11.0: E.V.E.R.Y.T.H.I.N.G Archive
 
 
-# ── Reliable Requests with Exponential Backoff & Circuit Breaker (v9.1) ───────
+# â”€â”€ Reliable Requests with Exponential Backoff & Circuit Breaker (v9.1) â”€â”€â”€â”€â”€â”€â”€
 
 def safe_request(url: str, params: Optional[Dict] = None, method: str = "GET",
                  json_data: Optional[Dict] = None, headers: Optional[Dict] = None,
@@ -297,7 +319,7 @@ def safe_request(url: str, params: Optional[Dict] = None, method: str = "GET",
         if elapsed < 300:  # 5-minute cool-off
             return None
         else:
-            log.info(f"  🔄 Circuit breaker reset for {host} (cool-off expired)")
+            log.info(f"  ðŸ”„ Circuit breaker reset for {host} (cool-off expired)")
             _CIRCUIT_BREAKERS[host] = {"tripped": False, "last_trip": 0}
 
     delay = initial_delay
@@ -328,7 +350,7 @@ def safe_request(url: str, params: Optional[Dict] = None, method: str = "GET",
                     delay *= 2
                     continue
                 else:
-                    log.error(f"  ⚠ CIRCUIT BREAKER TRIPPED for {host} after {max_retries} retries")
+                    log.error(f"  âš  CIRCUIT BREAKER TRIPPED for {host} after {max_retries} retries")
                     _CIRCUIT_BREAKERS[host] = {"tripped": True, "last_trip": time.monotonic()}
                     return None
 
@@ -348,7 +370,7 @@ def safe_request(url: str, params: Optional[Dict] = None, method: str = "GET",
 
 
 def load_reference_data():
-    """Load constituencies→county mapping and county names from Supabase."""
+    """Load constituenciesâ†’county mapping and county names from Supabase."""
     global _constituency_county_map, _county_names, _rev_geo_cache
 
     # v9.3: Load persistent reverse geocode cache
@@ -376,10 +398,13 @@ def load_reference_data():
     for c in constituencies:
         county_name = _county_names.get(c["county_id"], "")
         _constituency_county_map[c["name"].strip().upper()] = county_name.strip().upper()
-    log.info(f"  Loaded {len(_constituency_county_map)} constituency→county mappings")
+    log.info(f"  Loaded {len(_constituency_county_map)} constituencyâ†’county mappings")
 
     # v9.1: Load wards for Ward-level precision
     load_ward_data()
+
+    # v10.7: Load ward boundary polygons from GeoJSON
+    load_ward_boundaries()
 
     # v9.1: Load PDF extraction data for Stage 7 fallback
     load_pdf_extraction_data()
@@ -402,6 +427,121 @@ def load_ward_data():
         log.info(f"  Loaded {len(wards)} wards for precision validation")
     except Exception as e:
         log.warning(f"  Ward data load failed (non-fatal): {e}")
+
+
+def load_ward_boundaries():
+    """v10.7: Load ward polygon boundaries from GeoJSON for point-in-polygon validation."""
+    global _ward_boundaries
+    geojson_paths = [
+        Path("public/context/Wards/kenya_wards.geojson"),
+        Path("dist/context/Wards/kenya_wards.geojson"),
+    ]
+    geojson_path = None
+    for p in geojson_paths:
+        if p.exists():
+            geojson_path = p
+            break
+    if not geojson_path:
+        log.warning("  Ward boundaries GeoJSON not found (non-fatal)")
+        return
+    try:
+        with open(str(geojson_path), "r", encoding="utf-8") as f:
+            data = json.load(f)
+        features = data.get("features", [])
+        for feat in features:
+            props = feat.get("properties", {})
+            geom = feat.get("geometry", {})
+            geom_type = geom.get("type", "")
+            coords = geom.get("coordinates", [])
+            if not coords:
+                continue
+            # Normalize all polygons to a list of rings
+            # Polygon: [[ring1], [ring2], ...]
+            # MultiPolygon: [[[ring1], ...], [[ring1], ...], ...]
+            rings = []
+            if geom_type == "Polygon":
+                rings = coords  # coords is [[lng,lat], ...] per ring
+            elif geom_type == "MultiPolygon":
+                for polygon in coords:
+                    rings.extend(polygon)
+            else:
+                continue
+            _ward_boundaries.append({
+                "county": (props.get("county") or "").strip().upper(),
+                "subcounty": (props.get("subcounty") or "").strip().upper(),
+                "ward": (props.get("ward") or "").strip().upper(),
+                "rings": rings,
+            })
+        log.info(f"  Loaded {len(_ward_boundaries)} ward boundaries from GeoJSON")
+    except Exception as e:
+        log.warning(f"  Ward boundaries load failed (non-fatal): {e}")
+
+
+def point_in_polygon(lat: float, lng: float, ring: List) -> bool:
+    """v10.7: Ray-casting algorithm for point-in-polygon test.
+    Ring is a list of [lng, lat] coordinate pairs (GeoJSON format).
+    """
+    n = len(ring)
+    inside = False
+    x, y = lng, lat  # GeoJSON uses [lng, lat]
+    j = n - 1
+    for i in range(n):
+        xi, yi = ring[i][0], ring[i][1]
+        xj, yj = ring[j][0], ring[j][1]
+        if ((yi > y) != (yj > y)) and (x < (xj - xi) * (y - yi) / (yj - yi) + xi):
+            inside = not inside
+        j = i
+    return inside
+
+
+def point_in_ward(lat: float, lng: float, ward_entry: Dict) -> bool:
+    """v10.7: Check if a point falls inside a ward's polygon (handles multi-ring)."""
+    rings = ward_entry.get("rings", [])
+    if not rings:
+        return False
+    # First ring is the outer boundary
+    if not point_in_polygon(lat, lng, rings[0]):
+        return False
+    # Subsequent rings are holes â€” point must NOT be in any hole
+    for hole in rings[1:]:
+        if point_in_polygon(lat, lng, hole):
+            return False
+    return True
+
+
+def validate_point_in_boundary(lat: float, lng: float, expected_county: str,
+                               expected_constituency: str = "") -> Tuple[bool, str]:
+    """v10.7: Validate that coordinates fall within the correct ward/constituency/county boundary.
+    Returns (is_valid, detail_string).
+    """
+    if not _ward_boundaries:
+        return True, "no_boundary_data"  # Cannot validate, pass through
+
+    exp_county = normalize_county(expected_county)
+    exp_constituency = expected_constituency.strip().upper() if expected_constituency else ""
+
+    # First: check if point falls in ANY ward within the expected county
+    county_wards = [w for w in _ward_boundaries if normalize_county(w["county"]) == exp_county]
+    if not county_wards:
+        return True, f"no_boundary_for_county_{exp_county}"  # No boundary data for this county
+
+    # Check constituency-level match first (subcounty in GeoJSON = constituency)
+    if exp_constituency:
+        constituency_wards = [w for w in county_wards if w["subcounty"] == exp_constituency]
+        for ward_entry in constituency_wards:
+            if point_in_ward(lat, lng, ward_entry):
+                return True, f"boundary_match:ward={ward_entry['ward']},constituency={ward_entry['subcounty']},county={ward_entry['county']}"
+
+    # Check county-level match (point is in the county but maybe a different constituency)
+    for ward_entry in county_wards:
+        if point_in_ward(lat, lng, ward_entry):
+            detail = f"county_match_only:ward={ward_entry['ward']},subcounty={ward_entry['subcounty']},county={ward_entry['county']}"
+            if exp_constituency and ward_entry["subcounty"] != exp_constituency:
+                detail += f",expected_constituency={exp_constituency}"
+            return True, detail
+
+    # Point is NOT inside any ward polygon in this county
+    return False, f"outside_county_boundary:{exp_county}"
 
 
 def load_pdf_extraction_data():
@@ -464,7 +604,86 @@ def save_rev_geo_cache():
         log.warning(f"  Failed to save cache file: {e}")
 
 
-# ── v10.2: Enhanced County Normalization (API Alignment) ───────────────────
+# v11.0: Universal Result Archiver (E.V.E.R.Y.T.H.I.N.G Version)
+def archive_full_record(table_name: str, record_id: int, payload: Dict, original_record: Optional[Dict] = None):
+    """Real-time High-Fidelity Archiver. Captures 100% of telemetry to local JSON."""
+    try:
+        MASTER_ARCHIVE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        archive = {}
+        if MASTER_ARCHIVE_FILE.exists():
+            try:
+                with open(MASTER_ARCHIVE_FILE, "r", encoding="utf-8") as f:
+                    archive = json.load(f)
+            except:
+                archive = {}
+        
+        # Build comprehensive entry
+        entry = {
+            "archive_timestamp": datetime.now(timezone.utc).isoformat(),
+            "table": table_name,
+            "id": record_id,
+        }
+        
+        # Include original context if provided
+        if original_record:
+            for k, v in original_record.items():
+                if k not in ["latitude", "longitude", "geocode_status"]: # Don't overwrite new data with old
+                    entry[f"original_{k}"] = v
+        
+        # Merge updated data
+        entry.update(payload)
+        
+        # Key by table/id for stability
+        archive_key = f"{table_name}:{record_id}"
+        archive[archive_key] = entry
+        
+        # Atomic write
+        import tempfile
+        tmp_fd, tmp_path = tempfile.mkstemp(suffix=".tmp", dir=str(MASTER_ARCHIVE_FILE.parent))
+        with os.fdopen(tmp_fd, 'w', encoding='utf-8') as f:
+            json.dump(archive, f, indent=2)
+        Path(tmp_path).replace(MASTER_ARCHIVE_FILE)
+    except Exception as e:
+        log.error(f"  âŒ Failed to update Master Archive: {e}")
+
+
+def apply_resolution_sql(table_name: str, record_id: int, payload: Dict) -> bool:
+    """v11.0: Direct SQL Writer. Bypasses API Egress Quotas using Transaction Pooler (Port 6543)."""
+    db_url = get_secret("SUPABASE_DB_POOLED_URL")
+    if not db_url:
+        return False
+        
+    conn = None
+    try:
+        conn = psycopg2.connect(db_url)
+        with conn.cursor() as cur:
+            # Dynamically build UPDATE query
+            columns = []
+            values = []
+            for k, v in payload.items():
+                if k == "id": continue
+                columns.append(f"{k} = %s")
+                # Handle types
+                if isinstance(v, (dict, list)):
+                    values.append(json.dumps(v))
+                else:
+                    values.append(v)
+            
+            sql = f"UPDATE {table_name} SET {', '.join(columns)} WHERE id = %s"
+            values.append(record_id)
+            
+            cur.execute(sql, tuple(values))
+            conn.commit()
+            return True
+    except Exception as e:
+        log.error(f"  âŒ Direct SQL Update Failed: {e}")
+        return False
+    finally:
+        if conn:
+            conn.close()
+
+
+# â”€â”€ v10.2: Enhanced County Normalization (API Alignment) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 COUNTY_NORMALIZE = {
     'MOMBASA': 'MOMBASA', 'KWALE': 'KWALE', 'KILIFI': 'KILIFI',
     'TANA RIVER': 'TANA RIVER', 'TANARIVER': 'TANA RIVER', 'TANA-RIVER': 'TANA RIVER',
@@ -492,7 +711,7 @@ COUNTY_NORMALIZE = {
     'NAIROBI': 'NAIROBI', 'NAIROBI CITY': 'NAIROBI'
 }
 
-def normalize_county(name: str) -> str:
+def normalize_county(name: Optional[str]) -> str:
     """Normalize county name for comparison (uppercase, strip, handle Murang'a etc). Alignment with api/v1/offices.ts."""
     if not name: return ""
     n = name.strip().upper()
@@ -516,7 +735,7 @@ def expected_county_for_constituency(constituency: str) -> Optional[str]:
     return _constituency_county_map.get(key)
 
 
-# ── Direction Metadata Extraction ─────────────────────────────────────────────
+# â”€â”€ Direction Metadata Extraction â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def extract_direction_metadata(office_location: str, landmark: str) -> Dict[str, Any]:
     """Parse office_location and landmark fields to extract direction metadata."""
@@ -550,7 +769,7 @@ def extract_direction_metadata(office_location: str, landmark: str) -> Dict[str,
         result["direction_distance"] = dist_val
         result["distance_from_landmark"] = dist_val
 
-    # Extract landmark name — text after "from", "to", "of", direction keywords
+    # Extract landmark name â€” text after "from", "to", "of", direction keywords
     landmark_text = landmark or ""
     if landmark_text:
         # Remove distance prefix like "500m from"
@@ -569,7 +788,7 @@ def extract_direction_metadata(office_location: str, landmark: str) -> Dict[str,
     return result
 
 
-# ── Contribution Data Lookup ──────────────────────────────────────────────────
+# â”€â”€ Contribution Data Lookup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def fetch_contributions_for_office(office_id: int) -> List[Dict]:
     """Fetch approved/pending contributions for a given office."""
@@ -589,7 +808,7 @@ def fetch_contributions_for_office(office_id: int) -> List[Dict]:
     return []
 
 
-# ── Reverse Geocoding for County Validation ───────────────────────────────────
+# â”€â”€ Reverse Geocoding for County Validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def reverse_geocode_county(lat: float, lng: float) -> Optional[str]:
     """Reverse-geocode a coordinate via Nominatim to extract the county name, consult cache first (v9.4)."""
@@ -615,32 +834,55 @@ def validate_coords_against_county(lat: float, lng: float, expected_county: str)
 
 
 def reverse_geocode_address(lat: float, lng: float) -> Dict[str, str]:
-    """v9.1: Reverse-geocode via Nominatim with caching (rounded keys at 6 decimals, v9.4)."""
+    """v9.1: Reverse-geocode via Nominatim with Geoapify fallback (v10.6)."""
     cache_key = (round(lat, 6), round(lng, 6))
     if cache_key in _rev_geo_cache:
         return _rev_geo_cache[cache_key]
 
-    RATE_LIMITERS["nominatim"].wait()
+    # Try Nominatim first
     try:
+        RATE_LIMITERS["nominatim"].wait()
         resp = requests.get(
             "https://nominatim.openstreetmap.org/reverse",
             params={"lat": lat, "lon": lng, "format": "json", "addressdetails": 1, "zoom": 6},
             headers={"User-Agent": USER_AGENT},
             timeout=10,
         )
-        resp.raise_for_status()
-        data = resp.json()
-        address = data.get("address", {})
-        county = address.get("county") or address.get("state_district") or address.get("state") or ""
-        county = normalize_county(county)
-        ward = address.get("suburb") or address.get("neighbourhood") or address.get("town") or address.get("village") or ""
-
-        res = {"county": county, "ward": ward}
-        _rev_geo_cache[cache_key] = res
-        return res
+        if resp.status_code == 200:
+            data = resp.json()
+            address = data.get("address", {})
+            county = address.get("county") or address.get("state_district") or address.get("state") or ""
+            county = normalize_county(county)
+            ward = address.get("suburb") or address.get("neighbourhood") or address.get("town") or address.get("village") or ""
+            res = {"county": county, "ward": ward}
+            _rev_geo_cache[cache_key] = res
+            return res
     except Exception as e:
-        log.warning(f"  Reverse geocode address failed: {e}")
-        return {"county": "", "ward": ""}
+        log.warning(f"  Nominatim reverse geocode failed: {e}")
+
+    # Fallback to Geoapify (v10.6)
+    geoapify_key = get_secret("GEOAPIFY_API_KEY")
+    if geoapify_key:
+        try:
+            RATE_LIMITERS["geoapify"].wait()
+            resp = requests.get(
+                "https://api.geoapify.com/v1/geocode/reverse",
+                params={"lat": lat, "lon": lng, "apiKey": geoapify_key, "format": "json"},
+                timeout=10,
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                result = data.get("results", [{}])[0]
+                county = result.get("state") or result.get("county") or ""
+                county = normalize_county(county)
+                ward = result.get("suburb") or result.get("neighbourhood") or result.get("city") or ""
+                res = {"county": county, "ward": ward}
+                _rev_geo_cache[cache_key] = res
+                return res
+        except Exception as e:
+            log.warning(f"  Geoapify reverse geocode fallback failed: {e}")
+
+    return {"county": "", "ward": ""}
 
 
 def validate_coords_precision(lat: float, lng: float, expected_county: str,
@@ -676,10 +918,10 @@ def validate_coords_precision(lat: float, lng: float, expected_county: str,
     return True, "county_match"
 
 
-# ── Individual Geocoders ──────────────────────────────────────────────────────
+# â”€â”€ Individual Geocoders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def geocode_nominatim(query: str, limit: int = 5) -> List[Dict]:
-    """OSM Nominatim — free, 1 req/s, countrycodes=ke. Returns multiple results."""
+    """OSM Nominatim â€” free, 1 req/s, countrycodes=ke. Returns multiple results."""
     try:
         RATE_LIMITERS["nominatim"].wait()
         resp = requests.get(
@@ -712,14 +954,15 @@ def geocode_nominatim(query: str, limit: int = 5) -> List[Dict]:
 
 
 def geocode_earth(query: str, continent: Optional[str] = None) -> List[Dict]:
-    """Geocode.earth (Pelias) — reliable fallback for geocode.xyz (v10.2)."""
-    if not GEOCODE_EARTH_KEY:
+    """v10.3: geocode.earth (Pelias-based) â€” global high-precision geocoder."""
+    api_key = get_secret("GEOCODE_EARTH_API_KEY")
+    if not api_key:
         return []
     try:
         RATE_LIMITERS["geocode_earth"].wait()
         params = {
             "text": query,
-            "api_key": GEOCODE_EARTH_KEY,
+            "api_key": api_key,
             "size": "5",
         }
         # If continent is provided (diaspora), we don't restrict to KEN
@@ -752,8 +995,9 @@ def geocode_earth(query: str, continent: Optional[str] = None) -> List[Dict]:
 
 
 def geocode_geonames(query: str, country: str = "KE") -> List[Dict]:
-    """GeoNames Search — reliable open-source data (v10.3)."""
-    if not GEONAMES_USERNAME:
+    """GeoNames Search â€” reliable open-source data (v10.3)."""
+    username = get_secret("GEONAMES_USERNAME")
+    if not username:
         return []
     try:
         RATE_LIMITERS["geonames"].wait()
@@ -761,7 +1005,7 @@ def geocode_geonames(query: str, country: str = "KE") -> List[Dict]:
             "q": query,
             "country": country,
             "maxRows": "3",
-            "username": GEONAMES_USERNAME,
+            "username": username,
             "type": "json"
         }
         resp = requests.get("http://api.geonames.org/searchJSON", params=params, timeout=10)
@@ -786,14 +1030,15 @@ def geocode_geonames(query: str, country: str = "KE") -> List[Dict]:
 
 
 def geocode_geokeo(query: str) -> List[Dict]:
-    """Geokeo — 2500/day, api key in env. Returns multiple results (v9.5 safe parse)."""
-    if not GEOKEO_API_KEY:
+    """Geokeo â€” 2500/day, api key in env. Returns multiple results (v9.5 safe parse)."""
+    api_key = get_secret("GEOKEO_API_KEY")
+    if not api_key:
         return []
     try:
         RATE_LIMITERS["geokeo"].wait()
         resp = requests.get(
             "https://geokeo.com/geocode/v1/search.php",
-            params={"q": query, "api": GEOKEO_API_KEY},
+            params={"q": query, "api": api_key},
             timeout=10,
         )
         if resp.status_code != 200 or "application/json" not in resp.headers.get("Content-Type", ""):
@@ -819,14 +1064,15 @@ def geocode_geokeo(query: str) -> List[Dict]:
 
 
 def geocode_locationiq(query: str) -> List[Dict]:
-    """LocationIQ — 5,000/day free tier. OSM-backed (v9.5)."""
-    if not LOCATIONIQ_API_KEY:
+    """LocationIQ â€” 5,000/day free tier. OSM-backed (v9.5)."""
+    api_key = get_secret("LOCATIONIQ_API_KEY")
+    if not api_key:
         return []
     try:
         RATE_LIMITERS["locationiq"].wait()
         resp = safe_request(
             "https://us1.locationiq.com/v1/search",
-            params={"key": LOCATIONIQ_API_KEY, "q": query, "format": "json", "countrycodes": "ke", "limit": 3},
+            params={"key": api_key, "q": query, "format": "json", "countrycodes": "ke", "limit": 3},
         )
         if not resp:
             return []
@@ -849,14 +1095,15 @@ def geocode_locationiq(query: str) -> List[Dict]:
 
 
 def geocode_geoapify(query: str) -> List[Dict]:
-    """Geoapify — 3,000/day free tier. 3 req/s (v9.5)."""
-    if not GEOAPIFY_API_KEY:
+    """Geoapify â€” high-quality global geocoding (v9.5)."""
+    api_key = get_secret("GEOAPIFY_API_KEY")
+    if not api_key:
         return []
     try:
         RATE_LIMITERS["geoapify"].wait()
         resp = safe_request(
             "https://api.geoapify.com/v1/geocode/search",
-            params={"text": query, "apiKey": GEOAPIFY_API_KEY, "filter": "countrycode:ke", "limit": 3},
+            params={"text": query, "apiKey": api_key, "filter": "countrycode:ke", "limit": 3},
         )
         if not resp:
             return []
@@ -881,14 +1128,15 @@ def geocode_geoapify(query: str) -> List[Dict]:
 
 
 def geocode_opencage(query: str) -> List[Dict]:
-    """OpenCage — 2,500/day free tier. Late-stage fallback (v9.5)."""
-    if not OPENCAGE_API_KEY:
+    """OpenCage â€” 2,500/day free tier. Late-stage fallback (v9.5)."""
+    api_key = get_secret("OPENCAGE_API_KEY")
+    if not api_key:
         return []
     try:
         RATE_LIMITERS["opencage"].wait()
         resp = safe_request(
             "https://api.opencagedata.com/geocode/v1/json",
-            params={"q": query, "key": OPENCAGE_API_KEY, "countrycode": "ke", "limit": 3, "no_annotations": 1},
+            params={"q": query, "key": api_key, "countrycode": "ke", "limit": 3, "no_annotations": 1},
         )
         if not resp:
             return []
@@ -912,8 +1160,10 @@ def geocode_opencage(query: str) -> List[Dict]:
 
 # v9.1: ArcGIS Geocoder with key rotation
 def geocode_arcgis(query: str, key_idx: int = 1) -> List[Dict]:
-    """ArcGIS World Geocoding — enterprise-grade, key rotation support."""
-    key = ARCGIS_API_KEY_1 if key_idx == 1 else ARCGIS_API_KEY_2
+    """ArcGIS World Geocoding â€” enterprise-grade, key rotation support."""
+    key1 = get_secret("ARCGIS_API_KEY_PRIMARY")
+    key2 = get_secret("ARCGIS_API_KEY_SECONDARY")
+    key = key1 if key_idx == 1 else key2
     if not key:
         return []
     try:
@@ -924,7 +1174,7 @@ def geocode_arcgis(query: str, key_idx: int = 1) -> List[Dict]:
                     "countryCode": "KEN", "outFields": "Region,City,Neighborhood"},
         )
         if not resp:
-            if key_idx == 1 and ARCGIS_API_KEY_2:
+            if key_idx == 1 and key2:
                 return geocode_arcgis(query, 2)
             return []
         results = []
@@ -949,7 +1199,7 @@ def geocode_arcgis(query: str, key_idx: int = 1) -> List[Dict]:
 
 # v9.1: Photon (Komoot) Geocoder
 def geocode_photon(query: str) -> List[Dict]:
-    """Photon (Komoot) — OpenStreetMap-backed, no rate limit, bbox=Kenya."""
+    """Photon (Komoot) â€” OpenStreetMap-backed, no rate limit, bbox=Kenya."""
     try:
         RATE_LIMITERS["photon"].wait()
         resp = safe_request(
@@ -980,16 +1230,14 @@ def geocode_photon(query: str) -> List[Dict]:
 
 
 def geocode_gemini(constituency: str, county: str, office_location: str = "", landmark: str = "") -> List[Dict]:
-    """Gemini AI — 60 RPM, lowest confidence (0.4) to mitigate hallucination."""
-    if not GEMINI_API_KEY:
-        return []
+    """Gemini 2.0 Flash as a deep geocoding analyst (v10.8)."""
+    api_key = get_secret("GEMINI_API_KEY")
+    if not api_key: return []
     try:
         RATE_LIMITERS["gemini"].wait()
         context_parts = [f"the {constituency} IEBC constituency office in {county} County, Kenya"]
-        if office_location:
-            context_parts.append(f"located at or near {office_location}")
-        if landmark:
-            context_parts.append(f"landmark reference: {landmark}")
+        if office_location: context_parts.append(f"located at or near {office_location}")
+        if landmark: context_parts.append(f"landmark reference: {landmark}")
 
         prompt = (
             f"What are the GPS coordinates of {', '.join(context_parts)}?\n\n"
@@ -997,174 +1245,285 @@ def geocode_gemini(constituency: str, county: str, office_location: str = "", la
             f"If uncertain, return: {{\"lat\": null, \"lng\": null, \"county\": null}}"
         )
         resp = requests.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}",
-            json={
-                "contents": [{"parts": [{"text": prompt}]}],
-                "generationConfig": {"temperature": 0.0, "maxOutputTokens": 150},
-            },
-            timeout=15,
+            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}",
+            json={"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0.0, "maxOutputTokens": 150}},
+            timeout=15
         )
         resp.raise_for_status()
-        data = resp.json()
-        text = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-        if not text:
-            return []
+        text = resp.json().get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
         m = re.search(r'\{[^}]+\}', text)
-        if not m:
-            return []
+        if not m: return []
         parsed = json.loads(m.group(0))
-        if parsed.get("lat") is None or parsed.get("lng") is None:
-            return []
-        lat, lng = float(parsed["lat"]), float(parsed["lng"])
-        if not is_in_kenya(lat, lng):
-            return []
+        lat, lng = parsed.get("lat"), parsed.get("lng")
+        if lat is None or lng is None or not is_in_kenya(lat, lng): return []
         return [{
-            "lat": lat, "lng": lng, "source": "gemini_ai", "confidence": 0.4,
+            "lat": lat, "lng": lng, "source": "gemini_ai", "confidence": 0.7,
             "display_name": f"{constituency} (Gemini)",
-            "county_from_api": parsed.get("county", "") or "",
+            "county_from_api": parsed.get("county", "") or ""
         }]
-    except Exception as e:
-        log.warning(f"  Gemini failed: {e}")
-        return []
+    except: return []
 
-
-# v9.1: OpenAI Geocoder for high-precision validation
 def geocode_openai(query: str) -> List[Dict]:
-    """OpenAI GPT-4o-mini as a high-precision geocoding fallback."""
-    if not OPENAI_API_KEY:
-        return []
+    """OpenAI GPT-4o-mini high-precision fallback."""
+    api_key = get_secret("OPENAI_API_KEY")
+    if not api_key: return []
     try:
         RATE_LIMITERS["openai"].wait()
         prompt = (
             f"What are the GPS coordinates of the IEBC office for: '{query}' in Kenya?\n"
-            f"Return ONLY a JSON object: {{\"lat\": <number>, \"lng\": <number>, \"county\": \"<county name>\"}}\n"
-            f"If uncertain, return: {{\"lat\": null, \"lng\": null, \"county\": null}}"
+            f"Return ONLY a JSON object: {{\"lat\": <number>, \"lng\": <number>, \"county\": \"<county name>\"}}"
         )
-        resp = safe_request(
+        resp = requests.post(
             "https://api.openai.com/v1/chat/completions",
-            method="POST",
-            headers={"Authorization": f"Bearer {OPENAI_API_KEY}"},
-            json_data={
+            headers={"Authorization": f"Bearer {api_key}"},
+            json={
                 "model": "gpt-4o-mini",
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.0,
                 "response_format": {"type": "json_object"}
-            }
+            },
+            timeout=15
         )
-        if not resp:
-            return []
-        data = resp.json()
-        content = data["choices"][0]["message"]["content"]
-        parsed = json.loads(content)
-        if parsed.get("lat") is None or parsed.get("lng") is None:
-            return []
-        lat, lng = float(parsed["lat"]), float(parsed["lng"])
-        if not is_in_kenya(lat, lng):
-            return []
+        parsed = json.loads(resp.json()["choices"][0]["message"]["content"])
+        lat, lng = parsed.get("lat"), parsed.get("lng")
+        if lat is None or lng is None or not is_in_kenya(lat, lng): return []
         return [{
-            "lat": lat, "lng": lng, "source": "openai_gpt4", "confidence": 0.7,
+            "lat": lat, "lng": lng, "source": "openai_gpt4", "confidence": 0.75,
             "display_name": f"{query} (OpenAI)",
-            "county_from_api": parsed.get("county", "") or "",
-            "query_used": query,
-        }]
-    except Exception as e:
-        log.warning(f"  OpenAI geocode failed: {e}")
-        return []
-
-
-def geocode_groq(query: str) -> List[Dict]:
-    """Groq Llama-3-70b/8b — high-speed AI geocoding fallback (v9.5)."""
-    if not GROQ_API_KEY:
-        return []
-    try:
-        RATE_LIMITERS["groq"].wait()
-        prompt = (
-            f"What are the GPS coordinates of the IEBC office for: '{query}' in Kenya?\n"
-            f"Return ONLY valid JSON: {{\"lat\": 0.0, \"lng\": 0.0, \"county\": \"Name\"}}\n"
-        )
-        resp = safe_request(
-            "https://api.groq.com/openai/v1/chat/completions",
-            method="POST",
-            headers={"Authorization": f"Bearer {GROQ_API_KEY}"},
-            json_data={
-                "model": "llama3-70b-8192",
-                "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.1
-            }
-        )
-        if not resp:
-            return []
-        content = resp.json()["choices"][0]["message"]["content"]
-        parsed = json.loads(content)
-        if not parsed.get("lat") or not parsed.get("lng"):
-            return []
-        return [{
-            "lat": float(parsed["lat"]), "lng": float(parsed["lng"]), "source": "groq_ai",
-            "confidence": 0.65, "display_name": f"{query} (Groq)",
             "county_from_api": parsed.get("county", "") or ""
         }]
-    except Exception as e:
-        log.warning(f"  Groq failed: {e}")
-        return []
+    except: return []
 
+def geocode_manus(query: str) -> List[Dict]:
+    """Manus AI (v10.7) high-precision provider."""
+    api_key = get_secret("MANUS_API_KEY")
+    if not api_key: return []
+    try:
+        RATE_LIMITERS["manus"].wait()
+        prompt = f"GPS for IEBC office '{query}' in Kenya. JSON: {{\"lat\": <f>, \"lng\": <f>, \"county\": \"<s>\"}}"
+        resp = requests.post(
+            "https://api.manus.im/v1/chat/completions",
+            headers={"Authorization": f"Bearer {api_key}"},
+            json={"model": "manus-1", "messages": [{"role": "user", "content": prompt}], "temperature": 0.1},
+            timeout=15
+        )
+        m = re.search(r'\{[^}]+\}', resp.json()["choices"][0]["message"]["content"])
+        if not m: return []
+        parsed = json.loads(m.group(0))
+        lat, lng = parsed.get("lat"), parsed.get("lng")
+        if lat is None or lng is None or not is_in_kenya(lat, lng): return []
+        return [{
+            "lat": lat, "lng": lng, "source": "manus_ai", "confidence": 0.7,
+            "display_name": f"{query} (Manus)",
+            "county_from_api": parsed.get("county", "") or ""
+        }]
+    except: return []
+
+def geocode_groq(query: str) -> List[Dict]:
+    """Groq Llama-3.3-70b (v10.8) with schema-in-prompt."""
+    api_key = get_secret("GROQ_API_KEY")
+    if not api_key: return []
+    try:
+        RATE_LIMITERS["groq"].wait()
+        payload = {
+            "model": "llama-3.3-70b-versatile",
+            "messages": [
+                {"role": "system", "content": "Return ONLY valid JSON: {\"lat\": number, \"lng\": number, \"county\": \"string\"}"},
+                {"role": "user", "content": f"GPS for IEBC office '{query}' in Kenya."}
+            ],
+            "temperature": 0.1,
+            "response_format": {"type": "json_object"}
+        }
+        resp = requests.post("https://api.groq.com/openai/v1/chat/completions", headers={"Authorization": f"Bearer {api_key}"}, json=payload, timeout=15)
+        parsed = json.loads(resp.json()["choices"][0]["message"]["content"])
+        lat, lng = parsed.get("lat"), parsed.get("lng")
+        if lat is None or lng is None or not is_in_kenya(lat, lng): return []
+        return [{
+            "lat": lat, "lng": lng, "source": "groq_ai", "confidence": 0.7,
+            "display_name": f"{query} (Groq)",
+            "county_from_api": parsed.get("county", "") or ""
+        }]
+    except: return []
+
+def geocode_deepseek(query: str) -> List[Dict]:
+    """DeepSeek AI Geocoding (v10.9)."""
+    api_key = get_secret("DEEPSEEK_API_KEY")
+    if not api_key: return []
+    try:
+        RATE_LIMITERS["deepseek"].wait()
+        payload = {
+            "model": "deepseek-chat",
+            "messages": [{"role": "user", "content": f"GPS for IEBC office '{query}' in Kenya. JSON: {{\"lat\": <f>, \"lng\": <f>, \"county\": \"<s>\"}}"}],
+            "response_format": {"type": "json_object"}
+        }
+        resp = requests.post("https://api.deepseek.com/chat/completions", headers={"Authorization": f"Bearer {api_key}"}, json=payload, timeout=15)
+        parsed = json.loads(resp.json()["choices"][0]["message"]["content"])
+        lat, lng = float(parsed["lat"]), float(parsed["lng"])
+        if not is_in_kenya(lat, lng): return []
+        return [{"lat": lat, "lng": lng, "source": "deepseek", "confidence": 0.7, "display_name": f"{query} (DeepSeek)", "county_from_api": parsed.get("county", "")}]
+    except: return []
+
+def geocode_cerebras(query: str) -> List[Dict]:
+    """Cerebras AI (v10.9)."""
+    api_key = get_secret("CEREBRAS_API_KEY")
+    if not api_key: return []
+    try:
+        RATE_LIMITERS["cerebras"].wait()
+        payload = {
+            "model": "llama3.1-70b",
+            "messages": [{"role": "user", "content": f"GPS for IEBC office '{query}' in Kenya. Output JSON ONLY: {{\"lat\": <f>, \"lng\": <f>, \"county\": \"<s>\"}}"}],
+        }
+        resp = requests.post("https://api.cerebras.ai/v1/chat/completions", headers={"Authorization": f"Bearer {api_key}"}, json=payload, timeout=15)
+        m = re.search(r'\{[^}]+\}', resp.json()["choices"][0]["message"]["content"])
+        if not m: return []
+        parsed = json.loads(m.group(0))
+        lat, lng = float(parsed["lat"]), float(parsed["lng"])
+        if not is_in_kenya(lat, lng): return []
+        return [{"lat": lat, "lng": lng, "source": "cerebras", "confidence": 0.7, "display_name": f"{query} (Cerebras)", "county_from_api": parsed.get("county", "")}]
+    except: return []
+
+def geocode_cohere(query: str) -> List[Dict]:
+    """Cohere Command (v10.9)."""
+    api_key = get_secret("COHERE_API_KEY")
+    if not api_key: return []
+    try:
+        RATE_LIMITERS["cohere"].wait()
+        payload = {
+            "message": f"GPS for IEBC office '{query}' in Kenya. Return JSON: {{\"lat\": <f>, \"lng\": <f>, \"county\": \"<s>\"}}",
+            "model": "command-r-plus"
+        }
+        resp = requests.post("https://api.cohere.ai/v1/chat", headers={"Authorization": f"Bearer {api_key}"}, json=payload, timeout=15)
+        m = re.search(r'\{[^}]+\}', resp.json()["text"])
+        if not m: return []
+        parsed = json.loads(m.group(0))
+        lat, lng = float(parsed["lat"]), float(parsed["lng"])
+        if not is_in_kenya(lat, lng): return []
+        return [{"lat": lat, "lng": lng, "source": "cohere", "confidence": 0.7, "display_name": f"{query} (Cohere)", "county_from_api": parsed.get("county", "")}]
+    except: return []
+
+def geocode_nvidia(query: str) -> List[Dict]:
+    """NVIDIA NIM (v10.9)."""
+    api_key = get_secret("NVIDIA_API_KEY")
+    if not api_key: return []
+    try:
+        RATE_LIMITERS["nvidia"].wait()
+        payload = {
+            "model": "meta/llama-3.1-70b-instruct",
+            "messages": [{"role": "user", "content": f"GPS for IEBC office '{query}' in Kenya. JSON: {{\"lat\": <f>, \"lng\": <f>, \"county\": \"<s>\"}}"}],
+            "temperature": 0.1
+        }
+        resp = requests.post("https://integrate.api.nvidia.com/v1/chat/completions", headers={"Authorization": f"Bearer {api_key}"}, json=payload, timeout=15)
+        parsed = json.loads(resp.json()["choices"][0]["message"]["content"])
+        lat, lng = float(parsed["lat"]), float(parsed["lng"])
+        if not is_in_kenya(lat, lng): return []
+        return [{"lat": lat, "lng": lng, "source": "nvidia", "confidence": 0.7, "display_name": f"{query} (NVIDIA)", "county_from_api": parsed.get("county", "")}]
+    except: return []
+
+def geocode_openrouter(query: str) -> List[Dict]:
+    """Open Router (v10.9)."""
+    api_key = get_secret("OPENROUTER_API_KEY")
+    if not api_key: return []
+    try:
+        RATE_LIMITERS["openrouter"].wait()
+        payload = {
+            "model": "meta-llama/llama-3.1-70b-instruct:free",
+            "messages": [{"role": "user", "content": f"GPS coordinates for '{query}' in Kenya. JSON: {{\"lat\": <f>, \"lng\": <f>, \"county\": \"<s>\"}}"}],
+        }
+        resp = requests.post("https://openrouter.ai/api/v1/chat/completions", headers={"Authorization": f"Bearer {api_key}"}, json=payload, timeout=15)
+        parsed = json.loads(resp.json()["choices"][0]["message"]["content"])
+        lat, lng = float(parsed["lat"]), float(parsed["lng"])
+        if not is_in_kenya(lat, lng): return []
+        return [{"lat": lat, "lng": lng, "source": "openrouter", "confidence": 0.65, "display_name": f"{query} (OpenRouter)", "county_from_api": parsed.get("county", "")}]
+    except: return []
+
+def geocode_positionstack(query: str) -> List[Dict]:
+    """PositionStack (v10.9)."""
+    api_key = get_secret("POSITIONSTACK_API_KEY")
+    if not api_key: return []
+    try:
+        RATE_LIMITERS["positionstack"].wait()
+        resp = requests.get("http://api.positionstack.com/v1/forward", params={"access_key": api_key, "query": query, "country": "KE", "limit": 1}, timeout=10)
+        r = resp.json().get("data", [])[0]
+        return [{"lat": r["latitude"], "lng": r["longitude"], "source": "positionstack", "confidence": 0.6, "display_name": r.get("label", ""), "county_from_api": r.get("region", "")}]
+    except: return []
+
+def geocode_geocodemaps(query: str) -> List[Dict]:
+    """Geocode.maps.co (v10.9)."""
+    api_key = get_secret("GEOCODE_MAPS_API_KEY")
+    if not api_key: return []
+    try:
+        RATE_LIMITERS["geocodemaps"].wait()
+        resp = requests.get("https://geocode.maps.co/search", params={"q": query, "api_key": api_key}, timeout=10)
+        r = resp.json()[0]
+        return [{"lat": float(r["lat"]), "lng": float(r["lon"]), "source": "geocodemaps", "confidence": 0.6, "display_name": r.get("display_name", "")}]
+    except: return []
+
+def geocode_bigdatacloud(query: str) -> List[Dict]:
+    """Big Data Cloud (v10.9)."""
+    api_key = get_secret("BIGDATACLOUD_API_KEY")
+    if not api_key: return []
+    try:
+        RATE_LIMITERS["bigdatacloud"].wait()
+        resp = requests.get("https://api.bigdatacloud.net/data/address-lookup", params={"address": query, "key": api_key}, timeout=10)
+        r = resp.json()
+        return [{"lat": r["latitude"], "lng": r["longitude"], "source": "bigdatacloud", "confidence": 0.65, "display_name": r.get("label", "")}]
+    except: return []
+
+def geocode_overpass(query: str) -> List[Dict]:
+    """Overpass API â€” Spatial lookup (v10.9)."""
+    try:
+        RATE_LIMITERS["overpass"].wait()
+        overpass_query = f"[out:json][timeout:25];node[\"name\"~\"{query}\",i](-5.0,33.9,5.0,42.0);out body;"
+        resp = requests.get("https://overpass-api.de/api/interpreter", params={"data": overpass_query}, timeout=30)
+        elements = resp.json().get("elements", [])
+        return [{"lat": e["lat"], "lng": e["lon"], "source": "overpass_osm", "confidence": 0.85, "display_name": e.get("tags", {}).get("name", query)} for e in elements]
+    except: return []
 
 def geocode_huggingface(query: str) -> List[Dict]:
-    """Hugging Face Inference API — LLM geocoding fallback (v9.5)."""
-    if not HF_API_TOKEN:
-        return []
+    """HF Inference API (v9.5)."""
+    api_key = get_secret("HF_API_TOKEN")
+    if not api_key: return []
     try:
         RATE_LIMITERS["hf"].wait()
-        # Using a general-purpose model for extraction
         api_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
-        headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
-        prompt = f"Extract GPS coordinates (lat, lng) for {query} in Kenya. Result: [JSON] {{\"lat\": ..., \"lng\": ...}}"
-        resp = requests.post(api_url, headers=headers, json={"inputs": prompt, "parameters": {"max_new_tokens": 100}}, timeout=15)
-        if resp.status_code != 200:
-            return []
+        resp = requests.post(api_url, headers={"Authorization": f"Bearer {api_key}"}, json={"inputs": f"GPS for {query} in Kenya. JSON: {{\"lat\": ..., \"lng\": ...}}", "parameters": {"max_new_tokens": 100}}, timeout=15)
         text = resp.json()[0]["generated_text"]
         m = re.search(r'\{[^}]+\}', text)
-        if not m:
-            return []
+        if not m: return []
         parsed = json.loads(m.group(0))
-        if not parsed.get("lat") or not parsed.get("lng"):
-            return []
-        return [{
-            "lat": float(parsed["lat"]), "lng": float(parsed["lng"]), "source": "hf_ai",
-            "confidence": 0.5, "display_name": f"{query} (HF)",
-            "county_from_api": ""
-        }]
-    except Exception as e:
-        log.warning(f"  Hugging Face failed: {e}")
-        return []
+        lat, lng = float(parsed["lat"]), float(parsed["lng"])
+        if not is_in_kenya(lat, lng): return []
+        return [{"lat": lat, "lng": lng, "source": "hf_ai", "confidence": 0.6, "display_name": f"{query} (HF)"}]
+    except: return []
 
 
-# ── Multi-Query Strategy ──────────────────────────────────────────────────────
+# â”€â”€ Multi-Query Strategy â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def build_queries(office: Dict) -> List[str]:
-    """Build 5 progressively specific geocoding queries."""
+    """Build geocoding queries prioritizing PDF-sourced data over generic queries."""
     constituency = office.get("constituency_name") or office.get("constituency", "")
     county = office.get("county", "")
     location = office.get("office_location", "")
     landmark = office.get("landmark", "")
 
     queries = []
-    # Query 1: Generic constituency + county
-    queries.append(f"{constituency} IEBC office {county} county Kenya")
+    # v10.7: PDF-sourced data queries FIRST â€” these are the most specific
+    # Query 1: Office location + landmark + constituency + county (most specific)
+    if location and landmark:
+        queries.append(f"{location} near {landmark}, {constituency}, {county} County, Kenya")
     # Query 2: Office location + constituency + county
     if location:
         queries.append(f"{location}, {constituency}, {county} County, Kenya")
-    # Query 3: Office location + landmark + county
-    if location and landmark:
-        queries.append(f"{location} near {landmark}, {county} County, Kenya")
-    # Query 4: Landmark + constituency + county
+    # Query 3: Landmark + constituency + county
     if landmark:
         queries.append(f"{landmark}, {constituency}, {county} County, Kenya")
-    # Query 5: Town/area only (from office_location) + county
+    # Query 4: Town/area only (from office_location) + county
     if location:
-        # Extract first meaningful town/area name
         town = re.sub(r'\b(Town|Centre|Center|CBD)\b', '', location, flags=re.IGNORECASE).strip()
         if town and town.upper() != constituency.upper():
             queries.append(f"{town}, {county} County, Kenya")
+    # Query 5: Generic constituency + county (LAST â€” least specific, most likely to be wrong)
+    queries.append(f"{constituency} IEBC office {county} county Kenya")
 
     # Ensure at least 3 queries
     if len(queries) < 3:
@@ -1173,7 +1532,7 @@ def build_queries(office: Dict) -> List[str]:
     return queries
 
 
-# ── Multi-Source Resolver with Cross-Validation ───────────────────────────────
+# â”€â”€ Multi-Source Resolver with Cross-Validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) -> Dict:
     """
@@ -1184,7 +1543,7 @@ def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) 
     current_lat = office.get("latitude")
     queries = build_queries(office)
     if current_lat is not None and len(queries) > 3:
-        log.info(f"  ⚡ Office has coordinates -> reducing queries to 3 stages")
+        log.info(f"  âš¡ Office has coordinates -> reducing queries to 3 stages")
         queries = queries[:3]
 
     constituency = office.get("constituency_name") or office.get("constituency", "")
@@ -1197,7 +1556,7 @@ def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) 
     queries_used: List[str] = []
 
     for qi, query in enumerate(queries):
-        log.info(f"  🔍 Query {qi + 1}/{len(queries)}: '{query}'")
+        log.info(f"  ðŸ” Query {qi + 1}/{len(queries)}: '{query}'")
         queries_used.append(query)
 
         # 1. Primary Free Sources (Unlimited/High Quota)
@@ -1237,8 +1596,8 @@ def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) 
             if not expected_county:
                 all_candidates.append(c)
             else:
-                api_county = normalize_county(c.get("county_from_api", ""))
-                exp_county = normalize_county(expected_county)
+                api_county = normalize_county(c.get("county_from_api", "") or "")
+                exp_county = normalize_county(expected_county or "")
                 # County check + constituency check (precision v9.1)
                 if api_county and (api_county == exp_county or exp_county in api_county or api_county in exp_county):
                     all_candidates.append(c)
@@ -1249,7 +1608,7 @@ def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) 
         # Short-circuit logic: if we found 2+ validated candidates, skip AI to save credits
         valid_count = len([c for c in all_candidates if not c.get("rejection_reason")])
         if valid_count >= 2:
-            log.info(f"  ✨ Sufficient validated candidates ({valid_count}) found via standard sources. Skipping AI.")
+            log.info(f"  âœ¨ Sufficient validated candidates ({valid_count}) found via standard sources. Skipping AI.")
             break
 
     # AI Escalation Layer (v10: AI results now go through county validation)
@@ -1292,32 +1651,41 @@ def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) 
                 r["query_index"] = -4
             ai_raw_results.extend(oai_results)
 
+        # Manus AI (v10.7)
+        if len(ai_raw_results) < 2:
+            log.info("  \U0001f9e0 Triggering Manus AI...")
+            manus_results = geocode_manus(queries[0])
+            for r in manus_results:
+                r["query_used"] = "manus_ai_v10.7"
+                r["query_index"] = -5
+            ai_raw_results.extend(manus_results)
+
         # v10 FIX: Route AI results through the SAME county validation as standard geocoders
         for c in ai_raw_results:
             if not expected_county:
                 all_candidates.append(c)
             else:
-                api_county = normalize_county(c.get("county_from_api", ""))
-                exp_county = normalize_county(expected_county)
+                api_county = normalize_county(c.get("county_from_api", "") or "")
+                exp_county = normalize_county(expected_county or "")
                 if api_county and (api_county == exp_county or exp_county in api_county or api_county in exp_county):
                     c["validation_method"] = "ai_county_match"
                     all_candidates.append(c)
-                    log.info(f"    ✓ AI [{c['source']}] county match: {api_county} == {exp_county}")
+                    log.info(f"    âœ“ AI [{c['source']}] county match: {api_county} == {exp_county}")
                 else:
-                    # AI gave no county or wrong county — try reverse geocode validation
+                    # AI gave no county or wrong county â€” try reverse geocode validation
                     rev_county = reverse_geocode_county(c["lat"], c["lng"])
                     if rev_county:
                         rev_norm = normalize_county(rev_county)
                         if rev_norm == exp_county or exp_county in rev_norm or rev_norm in exp_county:
                             c["validation_method"] = "ai_reverse_geocode_match"
                             all_candidates.append(c)
-                            log.info(f"    ✓ AI [{c['source']}] reverse-geocode county match: {rev_norm}")
+                            log.info(f"    âœ“ AI [{c['source']}] reverse-geocode county match: {rev_norm}")
                             continue
                     c["rejection_reason"] = f"AI county mismatch: got '{api_county or 'none'}', reverse='{rev_county or 'none'}', expected '{exp_county}'"
                     rejected.append(c)
-                    log.info(f"    ✗ AI [{c['source']}] REJECTED: {c['rejection_reason']}")
+                    log.info(f"    âœ— AI [{c['source']}] REJECTED: {c['rejection_reason']}")
 
-    # v9.1: Stage 7 — PDF Extraction Fallback
+    # v10.7: Stage 7 â€” PDF Extraction (ALWAYS runs, uses ALL geocoders)
     if _pdf_extraction_data:
         pdf_row = next((r for r in _pdf_extraction_data
                         if r.get("constituency_name", "").strip().upper() == constituency.strip().upper()), None)
@@ -1327,13 +1695,26 @@ def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) 
             pq = f"{pdf_loc}, {pdf_lnd}, {constituency}, {county} County, Kenya"
             log.info(f"  \U0001f50d Stage 7 PDF: '{pq}'")
             queries_used.append(pq)
-            # Re-query top sources with PDF-derived data
-            for geocoder_fn in [geocode_arcgis, geocode_nominatim]:
-                pdf_results = geocoder_fn(pq) if geocoder_fn != geocode_nominatim else geocoder_fn(pq, limit=3)
-                for r in pdf_results:
-                    r["query_used"] = pq
-                    r["query_index"] = 7  # Stage 7
-                all_candidates.extend(pdf_results)
+            # v10.9: Run PDF query through ALL 22 available geocoders for maximum coverage
+            pdf_geocoders = [
+                lambda q: geocode_nominatim(q, limit=3),
+                geocode_arcgis, geocode_locationiq, geocode_geoapify, geocode_opencage,
+                geocode_photon, geocode_earth, geocode_geonames, geocode_geokeo, 
+                geocode_openai, geocode_manus, geocode_groq, geocode_huggingface,
+                geocode_deepseek, geocode_cerebras, geocode_cohere, geocode_nvidia,
+                geocode_openrouter, geocode_positionstack, geocode_geocodemaps,
+                geocode_bigdatacloud, geocode_overpass,
+                lambda q: geocode_gemini(constituency, county, office_location=q)
+            ]
+            for geocoder_fn in pdf_geocoders:
+                try:
+                    pdf_results = geocoder_fn(pq)
+                    for r in pdf_results:
+                        r["query_used"] = pq
+                        r["query_index"] = 7  # Stage 7
+                    all_candidates.extend(pdf_results)
+                except Exception as e:
+                    pass
 
     # Check contribution data
     office_id = office.get("id")
@@ -1356,15 +1737,37 @@ def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) 
                     "query_used": "contribution_pipeline",
                     "query_index": -2,
                 })
-                log.info(f"    ✓ Contribution #{contrib['id']}: ({clat:.5f}, {clng:.5f}) "
+                log.info(f"    âœ“ Contribution #{contrib['id']}: ({clat:.5f}, {clng:.5f}) "
                          f"conf={conf:.2f} confirmations={conf_count}")
 
-    log.info(f"  📊 Total candidates: {len(all_candidates)}")
+    log.info(f"  ðŸ“Š Standard candidates: {len(all_candidates)}")
+
+    # v10.9: Stage 6 â€” AI Escalation Layer (Trigger if low consensus)
+    if len(all_candidates) < 2:
+        log.info(f"  ðŸ§  AI ESCALATION: Triggering powerhouse providers...")
+        # 1. Specialized Gemini Analysis
+        all_candidates.extend(geocode_gemini(constituency, county, location, landmark))
+        
+        # 2. Sequential AI Fallbacks (using best query)
+        best_q = queries[0] if queries else f"{constituency} IEBC office {county} Kenya"
+        ai_powerhouse = [
+            geocode_openai, geocode_manus, geocode_groq, geocode_deepseek,
+            geocode_cerebras, geocode_cohere, geocode_nvidia, geocode_openrouter,
+            geocode_huggingface
+        ]
+        for ai_fn in ai_powerhouse:
+            try:
+                results = ai_fn(best_q)
+                for r in results:
+                    r["query_used"] = f"ai_escalation_{ai_fn.__name__}"
+                    r["query_index"] = -1
+                all_candidates.extend(results)
+            except: pass
 
     if not all_candidates:
         return {"best_results": [], "all_candidates": [], "queries_used": queries_used, "rejected": []}
 
-    # ── Cross-validation: filter candidates against expected county ──
+    # â”€â”€ Cross-validation: filter candidates against expected county â”€â”€
     validated: List[Dict] = []
     for c in all_candidates:
         if not expected_county:
@@ -1372,8 +1775,8 @@ def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) 
             continue
 
         # First check: does the API-returned county match?
-        api_county = normalize_county(c.get("county_from_api", ""))
-        exp_county = normalize_county(expected_county)
+        api_county = normalize_county(c.get("county_from_api", "") or "")
+        exp_county = normalize_county(expected_county or "")
         if api_county and (api_county == exp_county or exp_county in api_county or api_county in exp_county):
             c["validation_method"] = "api_county_match"
             validated.append(c)
@@ -1402,10 +1805,10 @@ def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) 
                     validated.append(c)
                     continue
 
-        # v9.1: Fourth check — Ward-level precision with cached reverse geocode
+        # v9.1: Fourth check â€” Ward-level precision with cached reverse geocode
         if c["confidence"] >= 0.4:
             ok, reason = validate_coords_precision(
-                c["lat"], c["lng"], expected_county,
+                c["lat"], c["lng"], expected_county or "",
                 office.get("constituency_name") or office.get("constituency", ""),
                 c.get("address_data"),
             )
@@ -1417,11 +1820,11 @@ def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) 
                 validated.append(c)
                 continue
 
-        # Not validated — reject with reason
+        # Not validated â€” reject with reason
         c["rejection_reason"] = f"County mismatch: expected '{expected_county}', API returned '{c.get('county_from_api', 'unknown')}'"
         rejected.append(c)
 
-    log.info(f"  ✅ Validated: {len(validated)} | ❌ Rejected: {len(rejected)}")
+    log.info(f"  âœ… Validated: {len(validated)} | âŒ Rejected: {len(rejected)}")
 
     return {
         "best_results": validated,
@@ -1431,7 +1834,7 @@ def resolve_office_crossvalidated(office: Dict, expected_county: Optional[str]) 
     }
 
 
-# ── Consensus Engine ──────────────────────────────────────────────────────────
+# â”€â”€ Consensus Engine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def compute_consensus(results: List[Dict]) -> Optional[Dict]:
     """
@@ -1439,7 +1842,7 @@ def compute_consensus(results: List[Dict]) -> Optional[Dict]:
     highest cumulative confidence.
 
     Confidence formula:
-      composite = (agreementRatio × 0.6) + (avgSourceConfidence × 0.4)
+      composite = (agreementRatio Ã— 0.6) + (avgSourceConfidence Ã— 0.4)
     """
     if not results:
         return None
@@ -1478,7 +1881,7 @@ def compute_consensus(results: List[Dict]) -> Optional[Dict]:
     }
 
 
-# ── Cluster / Duplicate Detection ─────────────────────────────────────────────
+# â”€â”€ Cluster / Duplicate Detection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def strip_cardinal(name: str) -> str:
     """Remove cardinal suffixes (NORTH, SOUTH, EAST, WEST, CENTRAL) from a name."""
@@ -1579,35 +1982,64 @@ def detect_case_duplicates(offices: List[Dict]) -> List[Dict]:
     return dupes
 
 
-# ── Supabase Operations ──────────────────────────────────────────────────────
+# â”€â”€ Supabase Operations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-def fetch_all_offices() -> List[Dict]:
-    """Fetch ALL offices from Supabase."""
-    resp = requests.get(
-        f"{SUPABASE_URL}/rest/v1/iebc_offices"
-        f"?select=id,constituency,constituency_name,constituency_code,county,"
-        f"office_location,latitude,longitude,landmark,landmark_type,landmark_subtype,"
-        f"direction_type,direction_landmark,direction_distance,distance_from_landmark,"
-        f"geocode_queries,geocode_query,geocode_method,geocode_confidence,geocode_status,"
-        f"formatted_address,verified,verified_latitude,verified_longitude,"
-        f"clean_office_location,notes,source,submission_method,submission_source,"
-        f"accuracy_meters,verified_at,verified_by,confidence_score,"
-        f"image_url,contributor_image_url,created_from_contribution_id,"
-        f"linked_contribution_ids,importance_score,result_type,"
-        f"successful_geocode_query,total_queries_tried"
-        f"&order=id",
-        headers=HEADERS, timeout=30,
+def fetch_all_offices(skip_resolved: bool = False) -> List[Dict]:
+    """Fetch ALL offices from Supabase with full pagination (v10.4)."""
+    all_offices: List[Dict] = []
+    page_size: int = 1000
+    offset: int = 0
+
+    select_cols = (
+        "id,constituency,constituency_name,constituency_code,county,"
+        "office_location,latitude,longitude,landmark,landmark_type,landmark_subtype,"
+        "direction_type,direction_landmark,direction_distance,distance_from_landmark,"
+        "geocode_queries,geocode_query,geocode_method,geocode_confidence,geocode_status,"
+        "formatted_address,verified,verified_latitude,verified_longitude,"
+        "clean_office_location,notes,source,submission_method,submission_source,"
+        "accuracy_meters,verified_at,verified_by,confidence_score,"
+        "image_url,contributor_image_url,created_from_contribution_id,"
+        "linked_contribution_ids,importance_score,result_type,"
+        "successful_geocode_query,total_queries_tried"
     )
-    resp.raise_for_status()
-    return resp.json()
+
+    # Optional filter to skip already-resolved offices (v10.5: include NULL status)
+    # PostgREST neq.resolved EXCLUDES NULL values â€” must use OR to include unprocessed records
+    status_filter = "&or=(geocode_status.neq.resolved,geocode_status.is.null)" if skip_resolved else ""
+
+    while True:
+        range_header = f"{offset}-{offset + page_size - 1}"
+        resp = requests.get(
+            f"{SUPABASE_URL}/rest/v1/iebc_offices"
+            f"?select={select_cols}"
+            f"&order=id"
+            f"{status_filter}",
+            headers={**HEADERS, "Range": range_header},
+            timeout=30,
+        )
+        # Supabase returns 200 for full results, 206 for partial (paginated)
+        if resp.status_code not in (200, 206):
+            resp.raise_for_status()
+        batch = resp.json()
+        if not batch:
+            break
+        all_offices.extend(batch)
+        log.info(f"  Fetched {len(all_offices)} offices so far...")
+        if len(batch) < page_size:
+            break  # Last page
+        offset += page_size
+
+    log.info(f"  Total offices fetched: {len(all_offices)}")
+    return all_offices
 
 
-def apply_resolution(office_id: int, lat: float, lng: float, confidence: float,
+def apply_resolution(office: Dict, lat: float, lng: float, confidence: float,
                      direction_meta: Dict, queries_used: List[str],
                      successful_query: str, formatted_addr: str,
                      consensus: Optional[Dict]) -> bool:
-    """Update an office's coordinates and ALL metadata in Supabase (v9.5: integer confidence cast)."""
+    """v11.0: Dual-Channel High-Fidelity Writer. Captures local archive + bypasses cloud quotas."""
     try:
+        office_id = office["id"]
         # Fix: Supabase confidence_score is integer (percentage)
         conf_int = int(float(confidence) * 100)
         
@@ -1656,6 +2088,15 @@ def apply_resolution(office_id: int, lat: float, lng: float, confidence: float,
             else:
                 payload["result_type"] = "cross_validated"
 
+        # v11.0: CHANNEL 1 â€” UNIVERSAL LOCAL ARCHIVE (GUARANTEED SAFETY)
+        archive_full_record("iebc_offices", office_id, payload, office)
+
+        # v11.0: CHANNEL 2 â€” DIRECT SQL BYPASS (NO API EGRESS)
+        if apply_resolution_sql("iebc_offices", office_id, payload):
+            log.info(f"  âš¡ Direct SQL Update Succeeded (Office {office_id})")
+            return True
+
+        # v11.0: CHANNEL 3 â€” LEGACY REST API (FALLBACK / QUOTA SENSITIVE)
         resp = requests.patch(
             f"{SUPABASE_URL}/rest/v1/iebc_offices?id=eq.{office_id}",
             headers=HEADERS,
@@ -1665,10 +2106,8 @@ def apply_resolution(office_id: int, lat: float, lng: float, confidence: float,
         if resp.status_code in (200, 204):
             return True
 
-        # v9.1: Log the actual error and retry with core-only columns
+        # v9.1: Fallback to core-only columns if payload is too large or schema constrained
         log.warning(f"  DB full-payload update failed ({resp.status_code}): {resp.text[:300]}")
-        
-        # Core-only fallback
         core_payload = {
             "latitude": lat,
             "longitude": lng,
@@ -1680,6 +2119,11 @@ def apply_resolution(office_id: int, lat: float, lng: float, confidence: float,
             "geocode_status": "resolved",
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
+        
+        # Try SQL first for core payload too
+        if apply_resolution_sql("iebc_offices", office_id, core_payload):
+            return True
+
         resp2 = requests.patch(
             f"{SUPABASE_URL}/rest/v1/iebc_offices?id=eq.{office_id}",
             headers=HEADERS,
@@ -1687,18 +2131,18 @@ def apply_resolution(office_id: int, lat: float, lng: float, confidence: float,
             timeout=10,
         )
         if resp2.status_code in (200, 204):
-            log.info(f"  ✅ Core-only fallback succeeded for office {office_id}")
+            log.info(f"  âœ… Core-only fallback succeeded for office {office_id}")
             return True
-        log.error(f"  ❌ Core-only fallback also failed ({resp2.status_code}): {resp2.text[:300]}")
+        log.error(f"  âŒ Core-only fallback also failed ({resp2.status_code}): {resp2.text[:300]}")
         return False
     except Exception as e:
-        log.error(f"  ❌ Network error applying resolution for office {office_id}: {e}")
+        log.error(f"  âŒ Network error applying resolution for office {office_id}: {e}")
         return False
 
 
 def log_audit(office: Dict, issue_type: str, new_lat: float, new_lng: float,
               consensus: Optional[Dict], applied: bool) -> Optional[str]:
-    """Write an audit record to geocode_audit."""
+    """v11.0: Dual-Channel Audit Logger. Bypasses quota-blocked REST API."""
     payload = {
         "office_id": office["id"],
         "constituency": office.get("constituency_name") or office.get("constituency", ""),
@@ -1716,6 +2160,38 @@ def log_audit(office: Dict, issue_type: str, new_lat: float, new_lng: float,
         "resolution_method": "multi_source_crossvalidated",
         "applied": applied,
     }
+    
+    # 1. Local Archive
+    archive_full_record("geocode_audit", f"audit_office_{office['id']}_{int(time.time())}", office, payload)
+
+    # 2. Direct SQL Bypass
+    db_url = get_secret("SUPABASE_DB_POOLED_URL")
+    if db_url:
+        try:
+            with psycopg2.connect(db_url) as conn:
+                with conn.cursor() as cur:
+                    sql = """
+                        INSERT INTO geocode_audit (
+                            office_id, constituency, county, issue_type, old_latitude, old_longitude, 
+                            new_latitude, new_longitude, consensus_confidence, agreement_count, spread_km, 
+                            sources_used, source_results, resolution_method, applied
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        RETURNING id;
+                    """
+                    cur.execute(sql, (
+                        payload["office_id"], payload["constituency"], payload["county"], payload["issue_type"],
+                        payload["old_latitude"], payload["old_longitude"], payload["new_latitude"], payload["new_longitude"],
+                        payload["consensus_confidence"], payload["agreement_count"], payload["spread_km"],
+                        json.dumps(payload["sources_used"]), json.dumps(payload["source_results"]),
+                        payload["resolution_method"], payload["applied"]
+                    ))
+                    audit_id = cur.fetchone()[0]
+                    log.info(f"  âš¡ Audit Log Written (ID: {audit_id})")
+                    return str(audit_id)
+        except Exception as e:
+            log.warning(f"  SQL Audit failed: {e}. Falling back to REST...")
+
+    # 3. Legacy REST Fallback
     try:
         resp = requests.post(
             f"{SUPABASE_URL}/rest/v1/geocode_audit",
@@ -1727,12 +2203,214 @@ def log_audit(office: Dict, issue_type: str, new_lat: float, new_lng: float,
             data = resp.json()
             return data[0]["id"] if data else None
     except Exception as e:
-        log.warning(f"  Audit log failed: {e}")
+        log.warning(f"  Audit log fully failed: {e}")
+    return None
+
+
+def deep_retry_geocode(office: Dict, expected_county: str, reason: str) -> Optional[Dict]:
+    """v10.7: Exhaustive deep retry using ALL PDF data before HITL queuing.
+    Builds hyper-specific queries from every available PDF field and runs them
+    through ALL geocoders + ALL AI providers. Each result is validated against
+    ward boundaries. Returns a validated consensus dict or None.
+    """
+    constituency = office.get("constituency_name") or office.get("constituency", "")
+    county = office.get("county", "")
+    location = office.get("office_location", "")
+    landmark = office.get("landmark", "")
+    ward = office.get("ward", "")
+
+    log.info(f"  ðŸ” DEEP RETRY ({reason}): Building hyper-specific queries from PDF data")
+
+    # Pull ALL matching PDF records for this constituency (there may be multiple ward-level entries)
+    pdf_rows = []
+    if _pdf_extraction_data:
+        pdf_rows = [r for r in _pdf_extraction_data
+                    if r.get("constituency_name", "").strip().upper() == constituency.strip().upper()]
+    log.info(f"  ðŸ” Found {len(pdf_rows)} PDF records for constituency '{constituency}'")
+
+    # Build hyper-specific queries from PDF data
+    retry_queries = []
+
+    # Tier 1: From the office record itself (most specific combinations)
+    if location and landmark:
+        retry_queries.append(f"{location} near {landmark}, {constituency}, {county} County, Kenya")
+        retry_queries.append(f"{location}, {landmark}, {county} County, Kenya")
+    if location:
+        retry_queries.append(f"{location}, {constituency} constituency, {county} County, Kenya")
+        retry_queries.append(f"{location}, {county} County, Kenya")
+    if landmark:
+        retry_queries.append(f"{landmark}, {constituency}, {county} County, Kenya")
+        retry_queries.append(f"{landmark}, {county} County, Kenya")
+
+    # Tier 2: From ALL PDF records for this constituency (ward-level data)
+    for pdf_row in pdf_rows:
+        pdf_loc = pdf_row.get("office_location", "").strip()
+        pdf_lnd = pdf_row.get("landmark", "").strip()
+        pdf_ward = pdf_row.get("ward", "").strip()
+        if pdf_loc and pdf_loc.upper() != location.upper():
+            if pdf_lnd:
+                retry_queries.append(f"{pdf_loc} near {pdf_lnd}, {constituency}, {county} County, Kenya")
+            retry_queries.append(f"{pdf_loc}, {constituency}, {county} County, Kenya")
+        if pdf_ward:
+            retry_queries.append(f"{pdf_ward} ward, {constituency}, {county} County, Kenya")
+            if pdf_loc:
+                retry_queries.append(f"{pdf_loc}, {pdf_ward}, {county} County, Kenya")
+
+    # Tier 3: Direction-based queries from the office record
+    dir_type = office.get("direction_type", "") or ""
+    dir_landmark = office.get("direction_landmark", "") or ""
+    dir_distance = office.get("distance_from_landmark", "") or ""
+    if dir_landmark:
+        retry_queries.append(f"{dir_landmark}, {constituency}, {county} County, Kenya")
+        if dir_type and dir_distance:
+            retry_queries.append(f"{dir_distance} {dir_type} of {dir_landmark}, {county} County, Kenya")
+
+    # Tier 4: Ward name as location hint
+    if ward:
+        retry_queries.append(f"{ward} ward, {constituency} constituency, {county} County, Kenya")
+        retry_queries.append(f"{ward}, {county} County, Kenya")
+
+    # Deduplicate while preserving order
+    seen = set()
+    unique_queries = []
+    for q in retry_queries:
+        q_norm = q.strip().upper()
+        if q_norm and q_norm not in seen:
+            seen.add(q_norm)
+            unique_queries.append(q)
+    retry_queries = unique_queries[:12]  # Cap at 12 queries to avoid excessive API usage
+
+    log.info(f"  ðŸ” Deep retry: {len(retry_queries)} unique queries")
+
+    # All geocoders
+    all_geocoders = [
+        lambda q: geocode_nominatim(q, limit=5),
+        geocode_arcgis,
+        geocode_locationiq,
+        geocode_geoapify,
+        geocode_photon,
+        geocode_earth,
+        geocode_geonames,
+        geocode_geokeo,
+        geocode_opencage,
+    ]
+
+    all_retry_candidates: List[Dict] = []
+
+    # Phase 1: Run all standard geocoders on all queries
+    for qi, query in enumerate(retry_queries):
+        log.info(f"  ðŸ” Retry query {qi+1}/{len(retry_queries)}: '{query}'")
+        for geocoder_fn in all_geocoders:
+            try:
+                results = geocoder_fn(query)
+                for r in results:
+                    r["query_used"] = query
+                    r["query_index"] = 100 + qi  # Mark as retry
+                all_retry_candidates.extend(results)
+            except Exception:
+                pass
+
+        # Short-circuit if we already have enough boundary-validated candidates
+        validated_in_boundary = 0
+        for c in all_retry_candidates:
+            ok, _ = validate_point_in_boundary(c["lat"], c["lng"], expected_county, constituency)
+            if ok and "no_boundary" not in _:
+                validated_in_boundary += 1
+        if validated_in_boundary >= 3:
+            log.info(f"  ðŸ” Short-circuit: {validated_in_boundary} boundary-validated candidates found")
+            break
+
+    # Phase 2: AI providers (always try â€” they have contextual understanding)
+    log.info(f"  ðŸ” Phase 2: AI providers")
+    ai_query = f"{location}, {landmark}, {constituency} constituency, {county} County, Kenya".strip(", ")
+
+    # Gemini (structured â€” most reliable for Kenya)
+    gem_results = geocode_gemini(constituency, county, location, landmark)
+    for r in gem_results:
+        r["query_used"] = "deep_retry_gemini"
+        r["query_index"] = 200
+    all_retry_candidates.extend(gem_results)
+
+    # Groq
+    grq_results = geocode_groq(ai_query)
+    for r in grq_results:
+        r["query_used"] = "deep_retry_groq"
+        r["query_index"] = 201
+    all_retry_candidates.extend(grq_results)
+
+    # OpenAI
+    oai_results = geocode_openai(ai_query)
+    for r in oai_results:
+        r["query_used"] = "deep_retry_openai"
+        r["query_index"] = 202
+    all_retry_candidates.extend(oai_results)
+
+    # HuggingFace
+    hf_results = geocode_huggingface(ai_query)
+    for r in hf_results:
+        r["query_used"] = "deep_retry_hf"
+        r["query_index"] = 203
+    all_retry_candidates.extend(hf_results)
+
+    # Manus AI (v10.7)
+    manus_results = geocode_manus(ai_query)
+    for r in manus_results:
+        r["query_used"] = "deep_retry_manus"
+        r["query_index"] = 204
+    all_retry_candidates.extend(manus_results)
+
+    log.info(f"  ðŸ” Total deep retry candidates: {len(all_retry_candidates)}")
+
+    if not all_retry_candidates:
+        log.warning(f"  ðŸ” Deep retry: NO candidates found at all")
+        return None
+
+    # Phase 3: Validate ALL candidates against ward boundaries
+    boundary_validated: List[Dict] = []
+    for c in all_retry_candidates:
+        ok, detail = validate_point_in_boundary(c["lat"], c["lng"], expected_county, constituency)
+        if ok and "no_boundary" not in detail:
+            c["validation_method"] = f"deep_retry_boundary:{detail}"
+            boundary_validated.append(c)
+        elif ok and "no_boundary" in detail:
+            # Fallback: try reverse geocode county check
+            rev_county = reverse_geocode_county(c["lat"], c["lng"])
+            if rev_county:
+                rev_norm = normalize_county(rev_county)
+                exp_norm = normalize_county(expected_county)
+                if rev_norm == exp_norm or exp_norm in rev_norm or rev_norm in exp_norm:
+                    c["validation_method"] = f"deep_retry_revgeo:{rev_county}"
+                    boundary_validated.append(c)
+
+    log.info(f"  ðŸ” Boundary-validated: {len(boundary_validated)} / {len(all_retry_candidates)}")
+
+    if not boundary_validated:
+        log.warning(f"  ðŸ” Deep retry: All {len(all_retry_candidates)} candidates FAILED boundary validation")
+        return None
+
+    # Phase 4: Compute consensus from boundary-validated candidates
+    retry_consensus = compute_consensus(boundary_validated)
+    if retry_consensus:
+        # Final boundary check on the consensus itself
+        final_ok, final_detail = validate_point_in_boundary(
+            retry_consensus["lat"], retry_consensus["lng"], expected_county, constituency
+        )
+        if final_ok and "outside" not in final_detail:
+            log.info(f"  âœ… DEEP RETRY SUCCESS: ({retry_consensus['lat']:.5f}, {retry_consensus['lng']:.5f}) "
+                     f"conf={retry_consensus['confidence']:.2f} | {final_detail}")
+            retry_consensus["method"] = "deep_retry_v10.7"
+            retry_consensus["boundary_detail"] = final_detail
+            return retry_consensus
+        else:
+            log.warning(f"  ðŸ” Deep retry consensus also failed boundary: {final_detail}")
+            return None
+
+    log.warning(f"  ðŸ” Deep retry: Could not reach consensus from boundary-validated candidates")
     return None
 
 
 def enqueue_hitl(office: Dict, consensus: Optional[Dict], issue_type: str, audit_id: Optional[str]):
-    """Add low-confidence resolution to admin HITL queue."""
+    """v11.0: Dual-Channel HITL Queue. Bypasses quota-blocked REST API."""
     payload = {
         "office_id": office["id"],
         "audit_id": audit_id,
@@ -1745,6 +2423,34 @@ def enqueue_hitl(office: Dict, consensus: Optional[Dict], issue_type: str, audit
         "source_details": consensus["source_details"] if consensus else [],
         "status": "pending",
     }
+    
+    # 1. Local Archive
+    archive_full_record("hitl_queue", f"hitl_office_{office['id']}_{int(time.time())}", office, payload)
+
+    # 2. Direct SQL Bypass
+    db_url = get_secret("SUPABASE_DB_POOLED_URL")
+    if db_url:
+        try:
+            with psycopg2.connect(db_url) as conn:
+                with conn.cursor() as cur:
+                    sql = """
+                        INSERT INTO geocode_hitl_queue (
+                            office_id, audit_id, issue_type, proposed_latitude, proposed_longitude, 
+                            confidence, agreement_count, spread_km, source_details, status
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+                    """
+                    cur.execute(sql, (
+                        payload["office_id"], payload["audit_id"], payload["issue_type"],
+                        payload["proposed_latitude"], payload["proposed_longitude"],
+                        payload["confidence"], payload["agreement_count"], payload["spread_km"],
+                        json.dumps(payload["source_details"]), payload["status"]
+                    ))
+                    log.info(f"  âš¡ HITL Queue Written (Office {office['id']})")
+                    return
+        except Exception as e:
+            log.warning(f"  SQL HITL failed: {e}. Falling back to REST...")
+
+    # 3. Legacy REST Fallback
     try:
         requests.post(
             f"{SUPABASE_URL}/rest/v1/geocode_hitl_queue",
@@ -1753,10 +2459,10 @@ def enqueue_hitl(office: Dict, consensus: Optional[Dict], issue_type: str, audit
             timeout=10,
         )
     except Exception as e:
-        log.warning(f"  HITL enqueue failed: {e}")
+        log.warning(f"  HITL enqueue fully failed: {e}")
 
 
-# ── v10.0: Generic Geocoding Helpers (Parallel to Legacy) ──────────────────────
+# â”€â”€ v10.0: Generic Geocoding Helpers (Parallel to Legacy) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def build_generic_queries(record: Dict, t_cfg: Dict) -> List[str]:
     """Generate search queries for any supported table configuration."""
@@ -1794,7 +2500,7 @@ def resolve_record_crossvalidated(record: Dict, expected_context: str, t_cfg: Di
     queries_used: List[str] = []
 
     for qi, query in enumerate(queries):
-        log.info(f"  🔍 Query {qi + 1}/{len(queries)}: '{query}'")
+        log.info(f"  ðŸ” Query {qi + 1}/{len(queries)}: '{query}'")
         queries_used.append(query)
 
         # Standard Sources
@@ -1840,7 +2546,7 @@ def resolve_record_crossvalidated(record: Dict, expected_context: str, t_cfg: Di
 
 def apply_resolution_generic(table: str, record_id: int, lat: float, lng: float, 
                              confidence: float, queries_used: List[str], formatted_addr: str, record: Dict) -> bool:
-    """Generic schema-aware field updater."""
+    """v11.0: Generic schema-aware field updater with Dual-Channel safety."""
     try:
         payload = {
             "latitude": lat, "longitude": lng,
@@ -1857,6 +2563,15 @@ def apply_resolution_generic(table: str, record_id: int, lat: float, lng: float,
             if k in record: payload[k] = v
         if "confidence_score" in record: payload["confidence_score"] = int(float(confidence) * 100)
 
+        # v11.0: CHANNEL 1 â€” LOCAL ARCHIVE
+        archive_full_record(table, record_id, payload, record)
+
+        # v11.0: CHANNEL 2 â€” DIRECT SQL BYPASS
+        if apply_resolution_sql(table, record_id, payload):
+            log.info(f"  âš¡ Direct SQL Update Succeeded ({table}:{record_id})")
+            return True
+
+        # v11.0: CHANNEL 3 â€” LEGACY REST API
         resp = requests.patch(f"{SUPABASE_URL}/rest/v1/{table}?id=eq.{record_id}", 
                               headers=HEADERS, json=payload, timeout=10)
         return resp.status_code in (200, 204)
@@ -1865,7 +2580,7 @@ def apply_resolution_generic(table: str, record_id: int, lat: float, lng: float,
         return False
 
 
-# ── Fetch Flagged Offices (legacy path) ───────────────────────────────────────
+# â”€â”€ Fetch Flagged Offices (legacy path) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def fetch_flagged_offices() -> List[Dict]:
     """Load the latest verification report and extract flagged office IDs."""
@@ -1939,23 +2654,25 @@ def fetch_autoresolved_offices() -> List[Dict]:
     return offices
 
 
-# ── Main Pipeline ─────────────────────────────────────────────────────────────
+# â”€â”€ Main Pipeline â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def main():
-    parser = argparse.ArgumentParser(description="Multi-Source Cross-Validated Resolver v10.1")
+    parser = argparse.ArgumentParser(description="Multi-Source Cross-Validated Resolver v10.4")
     parser.add_argument("--apply", action="store_true", help="Write resolved coords to Supabase")
     parser.add_argument("--all", action="store_true", help="Resolve ALL records")
     parser.add_argument("--office-id", type=int, help="Resolve a single office by ID")
     parser.add_argument("--id", type=int, help="Generic Record ID (if table is not iebc_offices)")
     parser.add_argument("--table", default="iebc_offices", choices=SUPPORTED_TABLES.keys(), help="Target table")
-    parser.add_argument("--limit", type=int, default=1000, help="Max records to process")
+    parser.add_argument("--limit", type=int, default=50000, help="Max records to process")
+    parser.add_argument("--offset", type=int, default=0, help="Skip first N records (resume support)")
+    parser.add_argument("--skip-resolved", action="store_true", help="Skip offices with geocode_status=resolved")
     parser.add_argument("--hitl-autoresolved", action="store_true", help="Resolve HITL auto_resolved/dismissed")
     parser.add_argument("--json-output", action="store_true", help="Output JSON summary")
     parser.add_argument("--skip-clusters", action="store_true", help="Skip cluster detection phase")
     parser.add_argument("--task-id", help="Admin Task ID")
     args = parser.parse_args()
 
-    # ── Phase 0: Init ──
+    # â”€â”€ Phase 0: Init â”€â”€
     T_CFG = SUPPORTED_TABLES[args.table]
     load_reference_data()
     
@@ -1966,10 +2683,10 @@ def main():
             admin_task.log(f"Starting {args.table} Resolver", level='step')
         except: pass
 
-    # ── BRANCHING EXECUTION ──
+    # â”€â”€ BRANCHING EXECUTION â”€â”€
     
     if args.table == "iebc_offices":
-        # ── LEGACY IEBC OFFICE PATH (100% Preserved Logic) ──
+        # â”€â”€ LEGACY IEBC OFFICE PATH (100% Preserved Logic) â”€â”€
         mode_label = "APPLY (LIVE)" if args.apply else "DRY RUN"
         log.info("=" * 70)
         log.info("MULTI-SOURCE CROSS-VALIDATED GEOCODING RESOLVER")
@@ -1982,7 +2699,7 @@ def main():
             offices = resp.json()
         elif args.all:
             log.info("Fetching ALL offices from database...")
-            offices = fetch_all_offices()
+            offices = fetch_all_offices(skip_resolved=args.skip_resolved)
         elif args.hitl_autoresolved:
             offices = fetch_autoresolved_offices()
         else:
@@ -2006,6 +2723,10 @@ def main():
             if case_dupes:
                 log.info(f"  Found {len(case_dupes)} case-sensitivity duplicates.")
 
+        # v10.4: Apply offset (resume support) and limit
+        if args.offset > 0:
+            log.info(f"  Skipping first {args.offset} offices (--offset)")
+            offices = offices[args.offset:]
         offices = offices[:args.limit]
         log.info(f"\nPHASE 2: RESOLUTION ({len(offices)} offices)")
         stats = {
@@ -2031,7 +2752,65 @@ def main():
             consensus = compute_consensus(validated) if validated else None
             
             if consensus:
-                log.info(f"  ✅ Consensus: ({consensus['lat']:.5f}, {consensus['lng']:.5f}) conf={consensus['confidence']:.2f}")
+                log.info(f"  âœ… Consensus: ({consensus['lat']:.5f}, {consensus['lng']:.5f}) conf={consensus['confidence']:.2f}")
+                
+                # v10.7: MANDATORY boundary validation on FINAL consensus
+                # Two-layer validation: (1) Ward polygon boundary check, (2) Reverse-geocode county fallback
+                consensus_county_ok = True
+                boundary_detail = ""
+                if expected_county:
+                    # Layer 1: Point-in-polygon ward boundary check (most accurate)
+                    boundary_ok, boundary_detail = validate_point_in_boundary(
+                        consensus["lat"], consensus["lng"],
+                        expected_county,
+                        office.get("constituency_name") or office.get("constituency", "")
+                    )
+                    if not boundary_ok:
+                        log.warning(f"  ðŸš« BOUNDARY REJECTED: {boundary_detail}")
+                        log.warning(f"     Coordinates ({consensus['lat']:.5f}, {consensus['lng']:.5f}) are OUTSIDE {expected_county} ward boundaries. Skipping write.")
+                        consensus_county_ok = False
+                    elif "no_boundary" in boundary_detail:
+                        # Layer 2: Fallback to reverse-geocode county check
+                        rev_county = reverse_geocode_county(consensus["lat"], consensus["lng"])
+                        if rev_county:
+                            rev_norm = normalize_county(rev_county)
+                            exp_norm = normalize_county(expected_county)
+                            if not (rev_norm == exp_norm or exp_norm in rev_norm or rev_norm in exp_norm):
+                                log.warning(f"  🚫 CONSENSUS REJECTED: reverse-geocode county '{rev_county}' != expected '{expected_county}'")
+                                log.warning(f"     Coordinates ({consensus['lat']:.5f}, {consensus['lng']:.5f}) are NOT in {expected_county}. Skipping write.")
+                                consensus_county_ok = False
+                        else:
+                            log.warning(f"  ⚠️ Could not reverse-geocode consensus coordinates for county validation")
+                    else:
+                        log.info(f"  ✅ Boundary validated: {boundary_detail}")
+                
+                if not consensus_county_ok:
+                    # v10.7: DEEP RETRY before HITL queuing
+                    retry_result = deep_retry_geocode(office, expected_county, "BOUNDARY_MISMATCH")
+                    if retry_result:
+                        # Deep retry found valid coordinates — apply them
+                        best_addr_retry = ""
+                        for s in retry_result.get("source_details", []):
+                            if s.get("display_name") and len(s["display_name"]) > len(best_addr_retry):
+                                best_addr_retry = s["display_name"]
+                        if args.apply:
+                            ok = apply_resolution(office, retry_result["lat"], retry_result["lng"],
+                                                  retry_result["confidence"], dir_meta, queries_used,
+                                                  "", best_addr_retry, retry_result)
+                            log_audit(office, "DEEP_RETRY_RESOLVED", retry_result["lat"], retry_result["lng"], retry_result, ok)
+                            if ok: stats["auto_applied"] += 1
+                        else:
+                            stats["auto_applied"] += 1
+                        stats["resolved"] += 1
+                        continue
+                    else:
+                        # Deep retry also failed — now HITL queue
+                        if args.apply:
+                            audit_id = log_audit(office, "BOUNDARY_MISMATCH", consensus["lat"], consensus["lng"], consensus, False)
+                            enqueue_hitl(office, consensus, "BOUNDARY_MISMATCH", audit_id)
+                        stats["hitl_queued"] += 1
+                        stats["resolved"] += 1
+                        continue
                 
                 # Check displacement
                 old_lat, old_lng = office.get("latitude"), office.get("longitude")
@@ -2052,26 +2831,64 @@ def main():
                 if displacement <= DISPLACEMENT_THRESHOLD_KM:
                     log.info(f"  ⏭️  Coordinates accurate — updating metadata only")
                     if args.apply:
-                        apply_resolution(office["id"], old_lat, old_lng, consensus["confidence"], dir_meta, queries_used, "", best_addr, consensus)
+                        apply_resolution(office, old_lat, old_lng, consensus["confidence"], dir_meta, queries_used, "", best_addr, consensus)
                     stats["skipped_accurate"] += 1
                 elif consensus["confidence"] >= AUTO_APPLY_THRESHOLD:
                     if args.apply:
-                        ok = apply_resolution(office["id"], consensus["lat"], consensus["lng"], consensus["confidence"], dir_meta, queries_used, "", best_addr, consensus)
+                        ok = apply_resolution(office, consensus["lat"], consensus["lng"], consensus["confidence"], dir_meta, queries_used, "", best_addr, consensus)
                         log_audit(office, issue_type, consensus["lat"], consensus["lng"], consensus, ok)
                         if ok: stats["auto_applied"] += 1
                     else: stats["auto_applied"] += 1
                 else:
-                    if args.apply:
-                        audit_id = log_audit(office, issue_type, consensus["lat"], consensus["lng"], consensus, False)
-                        enqueue_hitl(office, consensus, issue_type, audit_id)
-                    stats["hitl_queued"] += 1
+                    # v10.7: DEEP RETRY before HITL queuing for low confidence
+                    retry_result = deep_retry_geocode(office, expected_county, f"LOW_CONFIDENCE:{consensus['confidence']:.2f}")
+                    if retry_result:
+                        best_addr_retry = ""
+                        for s in retry_result.get("source_details", []):
+                            if s.get("display_name") and len(s["display_name"]) > len(best_addr_retry):
+                                best_addr_retry = s["display_name"]
+                        if args.apply:
+                            ok = apply_resolution(office, retry_result["lat"], retry_result["lng"],
+                                                  retry_result["confidence"], dir_meta, queries_used,
+                                                  "", best_addr_retry, retry_result)
+                            log_audit(office, "DEEP_RETRY_RESOLVED", retry_result["lat"], retry_result["lng"], retry_result, ok)
+                            if ok: stats["auto_applied"] += 1
+                        else:
+                            stats["auto_applied"] += 1
+                    else:
+                        if args.apply:
+                            audit_id = log_audit(office, issue_type, consensus["lat"], consensus["lng"], consensus, False)
+                            enqueue_hitl(office, consensus, issue_type, audit_id)
+                        stats["hitl_queued"] += 1
                 
                 stats["resolved"] += 1
             else:
-                log.warning("  ❌ No validated consensus.")
-                stats["no_consensus"] += 1
+                # No consensus at all — deep retry for zero-result records too
+                retry_result = deep_retry_geocode(office, expected_county, "NO_CONSENSUS")
+                if retry_result:
+                    best_addr_retry = ""
+                    for s in retry_result.get("source_details", []):
+                        if s.get("display_name") and len(s["display_name"]) > len(best_addr_retry):
+                            best_addr_retry = s["display_name"]
+                    if args.apply:
+                        ok = apply_resolution(office, retry_result["lat"], retry_result["lng"],
+                                              retry_result["confidence"], dir_meta, queries_used,
+                                              "", best_addr_retry, retry_result)
+                        log_audit(office, "DEEP_RETRY_RESOLVED", retry_result["lat"], retry_result["lng"], retry_result, ok)
+                        if ok: stats["auto_applied"] += 1
+                    else:
+                        stats["auto_applied"] += 1
+                    stats["resolved"] += 1
+                else:
+                    log.warning("  âŒ No consensus even after deep retry.")
+                    if args.apply:
+                        enqueue_hitl(office, None, "EXHAUSTED", None)
+                    stats["hitl_queued"] += 1
+                    stats["no_consensus"] += 1
             
-            save_rev_geo_cache()
+            # v10.4: Save cache every 25 records instead of every record
+            if i % 25 == 0 or i == len(offices):
+                save_rev_geo_cache()
 
         log.info("\nPHASE 3: SUMMARY")
         log.info(f"  Total:    {stats['total']}")
@@ -2079,7 +2896,7 @@ def main():
         log.info(f"  Queued:   {stats['hitl_queued']}")
 
     else:
-        # ── NEW GENERIC PATH (Additive for Wards/Diaspora) ──
+        # â”€â”€ NEW GENERIC PATH (Additive for Wards/Diaspora) â”€â”€
         log.info(f"\nGENERIC RESOLVER v10.1: Table={args.table}")
         if args.id:
             resp = requests.get(f"{SUPABASE_URL}/rest/v1/{args.table}?id=eq.{args.id}&select=*", headers=HEADERS)
@@ -2099,7 +2916,7 @@ def main():
             consensus = compute_consensus(res["best_results"]) if res["best_results"] else None
             
             if consensus and consensus["confidence"] >= AUTO_APPLY_THRESHOLD:
-                log.info(f"  ✅ Consensus: ({consensus['lat']:.5f}, {consensus['lng']:.5f}) conf={consensus['confidence']:.2f}")
+                log.info(f"  âœ… Consensus: ({consensus['lat']:.5f}, {consensus['lng']:.5f}) conf={consensus['confidence']:.2f}")
                 if args.apply:
                     # Best address
                     best_addr = ""
@@ -2109,9 +2926,9 @@ def main():
                     
                     ok = apply_resolution_generic(args.table, record["id"], consensus["lat"], consensus["lng"], 
                                                  consensus["confidence"], res["queries_used"], best_addr, record)
-                    if ok: log.info(f"  ✨ APPLIED to {args.table}")
+                    if ok: log.info(f"  âœ¨ APPLIED to {args.table}")
             else:
-                log.warning("  ⚠️  No validated consensus.")
+                log.warning("  âš ï¸  No validated consensus.")
             
             save_rev_geo_cache()
 

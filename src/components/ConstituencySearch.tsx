@@ -22,9 +22,9 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({ onSelect }) => 
   const searchConstituencies = async (query: string): Promise<Constituency[]> => {
     try {
       console.log('Searching for:', query);
-      
+
       // Search constituencies by name
-      const { data: constituencies, error: constError } = await supabase
+      const { data: constituencies, error: constError } = await (supabase as any)
         .from('constituencies')
         .select(`
           id,
@@ -43,7 +43,7 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({ onSelect }) => 
       }
 
       // Search counties by name and get their constituencies
-      const { data: counties, error: countyError } = await supabase
+      const { data: counties, error: countyError } = await (supabase as any)
         .from('counties')
         .select(`
           id,
@@ -67,7 +67,7 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({ onSelect }) => 
 
       // Add direct constituency matches
       if (constituencies) {
-        constituencies.forEach(constituency => {
+        constituencies.forEach((constituency: any) => {
           results.push({
             id: constituency.id,
             name: constituency.name,
@@ -80,9 +80,9 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({ onSelect }) => 
 
       // Add constituencies from county matches
       if (counties) {
-        counties.forEach(county => {
+        counties.forEach((county: any) => {
           if (county.constituencies) {
-            county.constituencies.forEach(constituency => {
+            county.constituencies.forEach((constituency: any) => {
               // Avoid duplicates
               if (!results.find(r => r.id === constituency.id)) {
                 results.push({
@@ -125,12 +125,12 @@ const ConstituencySearch: React.FC<ConstituencySearchProps> = ({ onSelect }) => 
         placeholder="Search constituencies and counties..."
         onSearch={searchConstituencies}
         onSelect={handleSelect}
-        getDisplayText={(constituency) => 
+        getDisplayText={(constituency) =>
           `${constituency.name} (${constituency.county_name})`
         }
         className="w-full"
       />
-      
+
       <LocationDetailViewer
         location={selectedLocation}
         isOpen={showLocationViewer}

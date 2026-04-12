@@ -103,12 +103,12 @@ const PetitionDetailsModal: React.FC<PetitionDetailsModalProps> = ({ petition, i
     setIsUploading(true);
     try {
       let filePath = null;
-      
+
       if (evidenceForm.file) {
         const fileExt = evidenceForm.file.name.split('.').pop();
         const fileName = `${Date.now()}.${fileExt}`;
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage
+
+        const { data: uploadData, error: uploadError } = await (supabase.storage as any)
           .from('evidence')
           .upload(`evidence/${fileName}`, evidenceForm.file);
 
@@ -116,7 +116,7 @@ const PetitionDetailsModal: React.FC<PetitionDetailsModalProps> = ({ petition, i
         filePath = uploadData.path;
       }
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('evidence_documents')
         .insert({
           petition_id: petition.id,
@@ -217,7 +217,7 @@ const PetitionDetailsModal: React.FC<PetitionDetailsModalProps> = ({ petition, i
                 </span>
               </div>
               <div className="w-full bg-green-200 dark:bg-green-800 rounded-full h-2">
-                <div 
+                <div
                   className="bg-green-600 dark:bg-green-400 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${Math.min(progressPercentage, 100)}%` }}
                 />
@@ -235,7 +235,7 @@ const PetitionDetailsModal: React.FC<PetitionDetailsModalProps> = ({ petition, i
                 </span>
               </div>
               <div className="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-2">
-                <div 
+                <div
                   className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${Math.min(wardProgress, 100)}%` }}
                 />
@@ -273,14 +273,14 @@ const PetitionDetailsModal: React.FC<PetitionDetailsModalProps> = ({ petition, i
 
       {/* Action Buttons */}
       <div className="flex space-x-4">
-        <Button 
+        <Button
           onClick={() => setCurrentView('evidence')}
           className="flex-1 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white"
         >
           <Upload className="w-4 h-4 mr-2" />
           Submit Evidence
         </Button>
-        <Button 
+        <Button
           onClick={() => setCurrentView('sign')}
           className="flex-1 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white"
         >
@@ -315,7 +315,7 @@ const PetitionDetailsModal: React.FC<PetitionDetailsModalProps> = ({ petition, i
 
           <div>
             <Label htmlFor="documentType" className="text-gray-700 dark:text-gray-300">Document Type *</Label>
-            <Select 
+            <Select
               value={evidenceForm.documentType}
               onValueChange={(value) => setEvidenceForm(prev => ({ ...prev, documentType: value }))}
             >
@@ -369,14 +369,14 @@ const PetitionDetailsModal: React.FC<PetitionDetailsModalProps> = ({ petition, i
       </Card>
 
       <div className="flex space-x-4">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={() => setCurrentView('details')}
           className="flex-1"
         >
           Back to Details
         </Button>
-        <Button 
+        <Button
           onClick={handleEvidenceSubmit}
           disabled={isUploading || !evidenceForm.title || !evidenceForm.documentType}
           className="flex-1 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white"
@@ -396,7 +396,7 @@ const PetitionDetailsModal: React.FC<PetitionDetailsModalProps> = ({ petition, i
         </p>
       </div>
 
-      <EnhancedSignatureFlow 
+      <EnhancedSignatureFlow
         petitionId={petition.id}
         petitionTitle={`Recall ${petition.mp_name}`}
         onComplete={(code) => {
@@ -405,8 +405,8 @@ const PetitionDetailsModal: React.FC<PetitionDetailsModalProps> = ({ petition, i
         }}
       />
 
-      <Button 
-        variant="outline" 
+      <Button
+        variant="outline"
         onClick={() => setCurrentView('details')}
         className="w-full"
       >

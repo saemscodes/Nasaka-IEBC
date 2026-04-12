@@ -65,7 +65,7 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
   const handleGroundsChange = (groundId: string, checked: boolean) => {
     setFormData(prev => ({
       ...prev,
-      grounds: checked 
+      grounds: checked
         ? [...prev.grounds, groundId]
         : prev.grounds.filter(g => g !== groundId)
     }));
@@ -106,7 +106,7 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
 
     setIsSubmitting(true);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('petitions')
         .insert([{
           mp_name: formData.mpName,
@@ -123,9 +123,9 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
         .select();
 
       if (error) throw error;
-      
+
       toast.success('Petition created successfully!');
-      
+
       // Reset form
       setFormData({
         mpName: '',
@@ -138,7 +138,7 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
         deadline: ''
       });
       setCurrentStep(1);
-      
+
     } catch (error) {
       console.error('Error creating petition:', error);
       toast.error('Failed to create petition. Please try again.');
@@ -169,7 +169,7 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
                 <h3 className="text-xl font-semibold text-green-900 dark:text-green-100 mb-2">Basic Information</h3>
                 <p className="text-green-700 dark:text-green-300">Provide details about the MP and petition timeline</p>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Label htmlFor="mpName" className="text-green-800 dark:text-green-200">MP Name *</Label>
@@ -181,7 +181,7 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
                     className="border-green-200 dark:border-green-700 focus:border-green-500 dark:focus:border-green-400 bg-white dark:bg-gray-800"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="constituency" className="text-green-800 dark:text-green-200">Constituency *</Label>
                   <Input
@@ -192,7 +192,7 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
                     className="border-green-200 dark:border-green-700 focus:border-green-500 dark:focus:border-green-400 bg-white dark:bg-gray-800"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="county" className="text-green-800 dark:text-green-200">County *</Label>
                   <Input
@@ -203,7 +203,7 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
                     className="border-green-200 dark:border-green-700 focus:border-green-500 dark:focus:border-green-400 bg-white dark:bg-gray-800"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="deadline" className="text-green-800 dark:text-green-200">Petition Deadline *</Label>
                   <Input
@@ -227,7 +227,7 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
                 <h3 className="text-xl font-semibold text-green-900 dark:text-green-100 mb-2">Legal Grounds for Recall</h3>
                 <p className="text-green-700 dark:text-green-300">Select all applicable constitutional violations (minimum 1 required)</p>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {availableGrounds.map((ground) => (
                   <div key={ground.id} className="flex items-start space-x-3 p-4 border border-green-200 dark:border-green-700 rounded-lg hover:bg-green-50/50 dark:hover:bg-green-950/20 transition-colors">
@@ -272,7 +272,7 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
                 <h3 className="text-xl font-semibold text-green-900 dark:text-green-100 mb-2">Petition Details</h3>
                 <p className="text-green-700 dark:text-green-300">Provide detailed information and set collection targets</p>
               </div>
-              
+
               <div>
                 <Label htmlFor="description" className="text-green-800 dark:text-green-200">Detailed Description *</Label>
                 <Textarea
@@ -285,7 +285,7 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
                 />
                 <p className="text-xs text-green-600 dark:text-green-400 mt-1">Be specific and factual. This will be public information.</p>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Label htmlFor="signatureTarget" className="text-green-800 dark:text-green-200">Signature Target *</Label>
@@ -300,7 +300,7 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
                   />
                   <p className="text-xs text-green-600 dark:text-green-400 mt-1">Minimum 30% of registered voters required by law</p>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="wardTarget" className="text-green-800 dark:text-green-200">Ward Coverage Target *</Label>
                   <Input
@@ -322,7 +322,7 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
                   <div>
                     <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">Constitutional Requirements</h4>
                     <p className="text-sm text-blue-800 dark:text-blue-200">
-                      Your petition must meet the legal threshold of 30% of registered voters and adequate ward distribution 
+                      Your petition must meet the legal threshold of 30% of registered voters and adequate ward distribution
                       as required by the Constitution of Kenya 2010 and the Elections Act.
                     </p>
                   </div>
@@ -338,7 +338,7 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
                 <h3 className="text-xl font-semibold text-green-900 dark:text-green-100 mb-2">Review Your Petition</h3>
                 <p className="text-green-700 dark:text-green-300">Please review all details before submitting</p>
               </div>
-              
+
               <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-4">
                   <div>
@@ -366,7 +366,7 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
                     <p className="text-green-800 dark:text-green-200">{formData.wardTarget}</p>
                   </div>
                 </div>
-                
+
                 <div className="mb-4">
                   <strong className="text-green-900 dark:text-green-100">Legal Grounds:</strong>
                   <div className="flex flex-wrap gap-2 mt-1">
@@ -380,20 +380,20 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
                     })}
                   </div>
                 </div>
-                
+
                 <div>
                   <strong className="text-green-900 dark:text-green-100">Description:</strong>
                   <p className="mt-2 text-green-800 dark:text-green-200 text-sm leading-relaxed">{formData.description}</p>
                 </div>
               </div>
-              
+
               <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
                 <div className="flex items-start">
                   <Scale className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2 mt-0.5" />
                   <div>
                     <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                      <strong>Legal Declaration:</strong> By submitting this petition, you confirm that all information is accurate 
-                      and that you have legal grounds for this recall as per Article 104 of the Constitution of Kenya 2010. 
+                      <strong>Legal Declaration:</strong> By submitting this petition, you confirm that all information is accurate
+                      and that you have legal grounds for this recall as per Article 104 of the Constitution of Kenya 2010.
                       False or malicious petitions may be subject to legal action.
                     </p>
                   </div>
@@ -412,7 +412,7 @@ const PetitionWizard: React.FC<PetitionWizardProps> = ({ prefilledData }) => {
             >
               Previous
             </Button>
-            
+
             {currentStep < totalSteps ? (
               <Button
                 onClick={handleNext}

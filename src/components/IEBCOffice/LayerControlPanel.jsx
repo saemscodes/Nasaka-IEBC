@@ -1,6 +1,7 @@
 // src/components/IEBCOffice/LayerControlPanel.jsx
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 const LayerControlPanel = ({
   layers,
@@ -11,6 +12,7 @@ const LayerControlPanel = ({
   baseMap = 'standard',
   onBaseMapChange
 }) => {
+  const { t } = useTranslation('nasaka');
   const availableLayers = [
     {
       id: 'iebc-offices',
@@ -80,40 +82,60 @@ const LayerControlPanel = ({
     {
       id: 'standard',
       name: 'Standard',
-      description: 'OpenStreetMap Streets',
-      image: `https://api.maptiler.com/maps/streets-v2/static/36.8219,-1.2921,12/400x300.png?key=${MAPTILER_KEY}`
+      description: 'MapTiler OpenStreetMap',
+      image: 'https://tile.openstreetmap.org/10/617/515.png'
     },
     {
       id: 'satellite',
       name: 'Satellite',
       description: 'Esri World Imagery',
-      image: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/12/1618/2405'
-    },
-    {
-      id: 'dark',
-      name: 'Black',
-      description: 'Night Vision (OSM Dark)',
-      image: `https://api.maptiler.com/maps/openstreetmap-dark/static/36.8219,-1.2921,12/400x300.png?key=${MAPTILER_KEY}`
-    },
-    {
-      id: 'blue',
-      name: 'Blue',
-      description: 'Voyager Oceanic',
-      image: `https://api.maptiler.com/maps/voyager/static/36.8219,-1.2921,12/400x300.png?key=${MAPTILER_KEY}`
-    },
-    {
-      id: 'green',
-      name: 'Green',
-      description: 'Outdoor Terrain',
-      image: `https://api.maptiler.com/maps/outdoor-v2/static/36.8219,-1.2921,12/400x300.png?key=${MAPTILER_KEY}`
+      image: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/10/515/617'
     },
     {
       id: 'retro',
       name: 'Retro',
       description: 'TomTom Classic',
-      image: 'https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/12/2405/1618.png'
+      image: 'https://a.basemaps.cartocdn.com/light_all/10/617/515.png'
+    },
+    {
+      id: 'stadia',
+      name: 'Stadia',
+      description: 'Alidade Smooth',
+      image: 'https://tiles.stadiamaps.com/tiles/alidade_smooth/10/617/515.png'
+    },
+    {
+      id: 'stadia-dark',
+      name: 'Stadia Dark',
+      description: 'Alidade Smooth Dark',
+      image: 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/10/617/515.png'
+    },
+    {
+      id: 'carto',
+      name: 'Carto Light',
+      description: 'CartoDB Positron',
+      image: 'https://a.basemaps.cartocdn.com/light_all/10/617/515.png'
+    },
+    {
+      id: 'carto-dark',
+      name: 'Carto Dark',
+      description: 'CartoDB Dark Matter',
+      image: 'https://a.basemaps.cartocdn.com/dark_all/10/617/515.png'
+    },
+    {
+      id: 'topo',
+      name: 'Topo',
+      description: 'OpenTopoMap Terrain',
+      image: 'https://tile.opentopomap.org/10/617/515.png'
+    },
+    {
+      id: 'humanitarian',
+      name: 'Humanitarian',
+      description: 'HOT OpenStreetMap',
+      image: 'https://a.tile.openstreetmap.fr/hot/10/617/515.png'
     }
   ];
+
+
 
   const handleLayerToggle = (layerId) => {
     if (availableLayers.find(l => l.id === layerId)?.disabled) {
@@ -139,13 +161,13 @@ const LayerControlPanel = ({
       <div className="sticky top-0 bg-card/95 backdrop-blur-xl border-b border-border z-10 px-5 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-foreground">Map Layers</h2>
-            <p className="text-sm text-muted-foreground mt-1">Customize your map view</p>
+            <h2 className="text-xl font-bold text-foreground">{t('layers.mapLayers', 'Map Layers')}</h2>
+            <p className="text-sm text-muted-foreground mt-1">{t('layers.customizeView', 'Customize your map view')}</p>
           </div>
           <button
             onClick={onClose}
             className="w-10 h-10 flex items-center justify-center rounded-full bg-muted hover:bg-accent transition-colors"
-            aria-label="Close panel"
+            aria-label={t('officeList.closePanel', 'Close panel')}
           >
             <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -157,7 +179,7 @@ const LayerControlPanel = ({
       <div className="overflow-y-auto h-full green-scrollbar px-5 py-6">
         <div className="mb-8">
           <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
-            Base Map
+            {t('layers.baseMap', 'Base Map')}
           </h3>
           <div className="grid grid-cols-2 gap-4">
             {baseMapOptions.map((option) => (
@@ -172,7 +194,7 @@ const LayerControlPanel = ({
                 <div className="aspect-[4/3] relative">
                   <img
                     src={option.image}
-                    alt={option.name}
+                    alt={t(`layers.${option.id}`, option.name)}
                     className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${option.isRetro ? 'sepia-[0.6] brightness-[0.9] contrast-[1.1]' : ''
                       } ${baseMap === option.id ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'}`}
                   />
@@ -180,10 +202,10 @@ const LayerControlPanel = ({
 
                   <div className="absolute bottom-3 left-3 right-3 text-left">
                     <span className="block text-sm font-bold text-white mb-0.5">
-                      {option.name}
+                      {t(`layers.${option.id}`, option.name)}
                     </span>
                     <span className="block text-[10px] text-gray-300 line-clamp-1 leading-tight">
-                      {option.description}
+                      {t(`layers.${option.id}Desc`, option.description)}
                     </span>
                   </div>
 
@@ -208,7 +230,7 @@ const LayerControlPanel = ({
 
         <div>
           <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
-            Data Layers
+            {t('layers.dataLayers', 'Data Layers')}
           </h3>
           <div className="space-y-3">
             {availableLayers.map((layer) => {
@@ -251,7 +273,7 @@ const LayerControlPanel = ({
                       <div className="flex items-center justify-between">
                         <h4 className={`text-base font-semibold ${isDisabled ? 'text-muted-foreground' : 'text-foreground'
                           }`}>
-                          {layer.name}
+                          {t(`layers.${layer.id.replace(/-([a-z])/g, (g) => g[1].toUpperCase())}`, layer.name)}
                         </h4>
                         <motion.div
                           className={`relative inline-flex items-center w-12 h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${isDisabled
@@ -347,14 +369,14 @@ const LayerControlPanel = ({
                       </div>
                       <p className={`text-sm mt-1 ${isDisabled ? 'text-muted-foreground' : 'text-muted-foreground'
                         }`}>
-                        {layer.description}
+                        {t(`layers.${layer.id.replace(/-([a-z])/g, (g) => g[1].toUpperCase())}Desc`, layer.description)}
                       </p>
                       {isDisabled && layer.id === 'user-location' && (
                         <p className="text-xs text-destructive mt-2 flex items-center">
                           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                           </svg>
-                          Location permission required
+                          {t('layers.locationPermissionRequired', 'Location permission required')}
                         </p>
                       )}
                     </div>
@@ -371,9 +393,9 @@ const LayerControlPanel = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div>
-              <h4 className="text-sm font-semibold text-primary mb-1">About Layers</h4>
+              <h4 className="text-sm font-semibold text-primary mb-1">{t('layers.aboutLayers', 'About Layers')}</h4>
               <p className="text-xs text-primary">
-                Toggle layers on and off to customize your map view. You can combine multiple data layers with different base maps for the best experience.
+                {t('layers.aboutLayersDesc', 'Toggle layers on and off to customize your map view. You can combine multiple data layers with different base maps for the best experience.')}
               </p>
             </div>
           </div>

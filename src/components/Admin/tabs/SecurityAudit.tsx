@@ -99,8 +99,8 @@ const SecurityAudit = () => {
         const fetchLogs = async () => {
             // Fetching from both security_audit_log and verification_log
             const [secResp, verResp] = await Promise.all([
-                supabase.from('security_audit_log').select('*').order('created_at', { ascending: false }).limit(20),
-                supabase.from('verification_log').select('*').order('created_at', { ascending: false }).limit(20)
+                (supabase as any).from('security_audit_log').select('*').order('created_at', { ascending: false }).limit(20),
+                (supabase as any).from('verification_log').select('*').order('created_at', { ascending: false }).limit(20)
             ]);
 
             const combined = [...(secResp.data || []), ...(verResp.data || [])]

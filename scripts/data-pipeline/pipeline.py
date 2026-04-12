@@ -57,7 +57,12 @@ MAPBOX_API_KEY = os.getenv("MAPBOX_API_KEY")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-ORS_API_KEY = os.getenv("ORS_API_KEY")
+ORS_API_KEY = os.getenv("ORS_API_KEY") or os.getenv("VITE_ORS_API_KEY")
+
+# Local Data Sources
+SCHOOLS_SHP = Path("data/raw/schools/Schools/Schools.shp")
+HOTOSM_SHP = Path("data/raw/hotosm/hotosm_ken_education_facilities_points_shp.shp")
+import shapefile # pyshp
 
 # Kenyan Counties (for validation)
 KENYAN_COUNTIES = [
@@ -120,11 +125,31 @@ class PDFExtractor:
         return offices
     
     def _parse_table_row(self, headers: List, row: List) -> Optional[Dict]:
-        """Parse a table row into office dict"""
-        if len(row) < 3:
+        """Parse a table row into office dict (handles both 6-column office and 8-column gazette)"""
+        if not row or len(row) < 3:
             return None
         
         office = {}
+        # Special case: 8-column Gazette (County Code, County, Const Code, Const, Ward Code, Ward, Centre Code, Centre)
+        if len(row) == 8:
+            try:
+                office = {
+                    'county_code': str(row[0]).strip(),
+                    'county': str(row[1]).strip(),
+                    'constituency_code': str(row[2]).strip(),
+                    'constituency_name': str(row[3]).strip(),
+                    'ward_code': str(row[4]).strip(),
+                    'ward': str(row[5]).strip(),
+                    'centre_code': str(row[6]).strip(),
+                    'office_location': str(row[7]).strip(), # Polling station name
+                    'office_type': 'REGISTRATION_CENTRE',
+                    'category': 'registration_centre'
+                }
+                return office
+            except Exception as e:
+                logger.warning(f"Error parsing 8-column row: {e}")
+                
+        # Existing logic for other table formats
         for i, header in enumerate(headers):
             if i >= len(row):
                 break
@@ -143,11 +168,13 @@ class PDFExtractor:
                     office['landmark'] = value
                 elif 'code' in header_clean:
                     try:
-                        office['constituency_code'] = int(value)
+                        office['constituency_code'] = value
                     except:
                         pass
         
         if 'county' in office and 'office_location' in office:
+            office.setdefault('office_type', 'CONSTITUENCY_OFFICE')
+            office.setdefault('category', 'office')
             return office
         return None
     
@@ -233,14 +260,16 @@ class DataCleaner:
         if landmark:
             cleaned['landmark'] = landmark
         
-        constituency_code = office.get('constituency_code')
-        if constituency_code:
-            try:
-                cleaned['constituency_code'] = int(constituency_code)
-            except:
-                pass
+        # Extension fields
+        cleaned['constituency_code'] = str(office.get('constituency_code', '')).zfill(3) if office.get('constituency_code') else None
+        cleaned['county_code'] = str(office.get('county_code', '')).zfill(3) if office.get('county_code') else None
+        cleaned['ward_code'] = str(office.get('ward_code', '')).zfill(4) if office.get('ward_code') else None
+        cleaned['ward'] = office.get('ward')
+        cleaned['centre_code'] = str(office.get('centre_code', '')).zfill(3) if office.get('centre_code') else None
+        cleaned['office_type'] = office.get('office_type', 'CONSTITUENCY_OFFICE')
+        cleaned['category'] = office.get('category', 'office')
         
-        cleaned['source'] = 'IEBC PDF - Physical Locations of County and Constituency Offices in Kenya'
+        cleaned['source'] = 'IEBC Gazette No. 4491 - Physical Locations of Registration Centres' if cleaned['office_type'] == 'REGISTRATION_CENTRE' else 'IEBC PDF - Physical Locations of County and Constituency Offices in Kenya'
         cleaned['created_at'] = datetime.now().isoformat()
         
         return cleaned
@@ -259,8 +288,33 @@ class DataCleaner:
         return None
     
     def _clean_location(self, location: str) -> str:
-        """Clean location string"""
+        """Clean location string and fix common OCR/Extraction typos"""
         location = location.replace('\n', ' ').replace('\r', ' ')
+        
+        # Fix common merged words and typos from PDF extraction
+        replacements = {
+            'SECONDSRY': 'SECONDARY',
+            'SCHOOLRIMARY': 'SCHOOL PRIMARY',
+            'RIMARY': 'PRIMARY',
+            'SCHOOLA': 'SCHOOL A',
+            'SCHOOLB': 'SCHOOL B',
+            'SCHOOLC': 'SCHOOL C',
+            'PRY SCH': 'PRIMARY SCHOOL',
+            'SEC SCH': 'SECONDARY SCHOOL',
+            'POLLING STATION': '',
+            'REGISTRATION CENTRE': '',
+            'ECD CENTRE': 'PRIMARY SCHOOL', # ECDs are often attached to primary schools
+            'NURSERY SCHOOL': 'PRIMARY SCHOOL',
+            'POLYTECHNIC': 'VOCATIONAL',
+            'VOCATIONAL TRAINING': 'VOCATIONAL',
+            'CHIEF\'S OFFICE': 'CHIEF OFFICE',
+            'CHIEFS OFFICE': 'CHIEF OFFICE'
+        }
+        
+        location = location.upper()
+        for old, new in replacements.items():
+            location = location.replace(old, new)
+            
         location = ' '.join(location.split())
         return location
 
@@ -273,9 +327,65 @@ class Geocoder:
             'nominatim': 0,
             'google': 0,
             'mapbox': 0,
+            'local_school': 0,
             'cached': 0,
             'failed': 0
         }
+        self.local_schools = self._load_local_schools()
+        
+    def _load_local_schools(self) -> Dict[str, List[Dict]]:
+        """Load schools from local shapefiles for high-precision matching"""
+        schools = {}
+        cleaner = DataCleaner() # Use same normalization as PDF data
+        
+        try:
+            if SCHOOLS_SHP.exists():
+                logger.info(f"Loading schools from {SCHOOLS_SHP}...")
+                sf = shapefile.Reader(str(SCHOOLS_SHP))
+                fields = [f[0] for f in sf.fields[1:]]
+                for i, rec in enumerate(sf.records()):
+                    record = dict(zip(fields, rec))
+                    raw_name = record.get('SCHOOL_NAM', '')
+                    name = cleaner._clean_location(str(raw_name))
+                    county = str(record.get('County', '')).strip().upper()
+                    if not name: continue
+                    
+                    point = sf.shape(i).points[0]
+                    entry = {
+                        'lat': point[1],
+                        'lng': point[0],
+                        'name': name,
+                        'county': county,
+                        'source': 'Kenya Ministry of Education Shapefile'
+                    }
+                    key = f"{county}|{name}"
+                    schools.setdefault(key, []).append(entry)
+                sf.close()
+                
+            if HOTOSM_SHP.exists():
+                logger.info(f"Loading facilities from {HOTOSM_SHP}...")
+                sf = shapefile.Reader(str(HOTOSM_SHP))
+                fields = [f[0] for f in sf.fields[1:]]
+                for i, rec in enumerate(sf.records()):
+                    record = dict(zip(fields, rec))
+                    raw_name = record.get('name', '')
+                    name = cleaner._clean_location(str(raw_name))
+                    if not name: continue
+                    
+                    point = sf.shape(i).points[0]
+                    entry = {
+                        'lat': point[1],
+                        'lng': point[0],
+                        'name': name,
+                        'source': 'HOTOSM Education Facilities'
+                    }
+                    schools.setdefault(f"GLOBAL|{name}", []).append(entry)
+                sf.close()
+                
+            logger.info(f"Indexed {len(schools)} local school locations")
+        except Exception as e:
+            logger.warning(f"Error loading local school data: {e}")
+        return schools
     
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
     @sleep_and_retry
@@ -392,7 +502,7 @@ class Geocoder:
         return None
     
     def geocode(self, office: Dict) -> Dict:
-        """Geocode office with fallback chain"""
+        """Geocode office with fallback chain (Local -> External)"""
         query = self._build_query(office)
         query_hash = hash(query)
         
@@ -400,8 +510,48 @@ class Geocoder:
             self.stats['cached'] += 1
             return {**office, **self.cache[query_hash]}
         
-        result = None
+        # 🟢 STEP 1: Try Local School Match (Highest Precision)
+        name = str(office.get('office_location', '')).strip().upper()
+        county = str(office.get('county', '')).strip().upper()
         
+        # Exact County + Name Match
+        key = f"{county}|{name}"
+        match = self.local_schools.get(key)
+        
+        # If not found, try stripping common suffixes
+        if not match:
+            clean_name = name.replace("PRIMARY SCHOOL", "").replace("PRY SCH", "").replace("SEC SCH", "").replace("SECONDARY SCHOOL", "").strip()
+            match = self.local_schools.get(f"{county}|{clean_name}")
+            
+        # 🧪 Fuzzy Match within County (NEW)
+        if not match:
+            county_schools = [s for k, s_list in self.local_schools.items() if k.startswith(f"{county}|") for s in s_list]
+            if county_schools:
+                school_names = [s['name'] for s in county_schools]
+                best_match_name, score = process.extractOne(name, school_names, scorer=fuzz.token_sort_ratio)
+                if score >= 75: # Lowered threshold for better coverage
+                    match = [s for s in county_schools if s['name'] == best_match_name]
+                    logger.info(f"MATCH [LOCAL-FUZZY]: {name} -> {best_match_name} (Score: {score})")
+
+        if not match:
+            # Last ditch local: Global name match (might be ambiguous)
+            match = self.local_schools.get(f"GLOBAL|{name}")
+
+        if match:
+            m = match[0] # Use first match
+            self.stats['local_school'] += 1
+            logger.info(f"MATCH [LOCAL]: {name} in {county} -> ({m['lat']}, {m['lng']})")
+            return {
+                **office,
+                'latitude': m['lat'],
+                'longitude': m['lng'],
+                'formatted_address': f"{m['name']}, {m.get('county', county)}, Kenya",
+                'geocode_method': 'local_shapefile',
+                'geocode_confidence': 0.95 if 'score' not in locals() else round(score/100, 2),
+                'geocode_service': m['source']
+            }
+
+        # 🟡 STEP 2: Fallback to External Geocoding
         result = self.geocode_nominatim(query)
         if not result:
             result = self.geocode_google(query)
@@ -411,10 +561,11 @@ class Geocoder:
         if result:
             self.cache[query_hash] = result
             return {**office, **result}
-        else:
-            self.stats['failed'] += 1
-            logger.warning(f"All geocoding services failed for: {query}")
-            return {**office, 'geocode_status': 'failed'}
+        
+        # 🔴 FAILED
+        self.stats['failed'] += 1
+        logger.warning(f"All geocoding services failed for: {query}")
+        return {**office, 'geocode_status': 'failed'}
     
     def _build_query(self, office: Dict) -> str:
         """Build geocoding query string"""
@@ -640,20 +791,26 @@ class SupabaseIngester:
         
         self.supabase: Client = create_client(SUPABASE_URL, key)
     
-    def ingest(self, offices: List[Dict], batch_size: int = 50) -> Dict:
+    def ingest(self, offices: List[Dict], batch_size: int = 100) -> Dict:
         """Ingest offices to Supabase in batches"""
         total = len(offices)
         ingested = 0
         errors = 0
+        
+        # Use on_conflict matching the new unique constraint for centres
+        # For offices, we might stick to id or name+constituency
         
         for i in range(0, total, batch_size):
             batch = offices[i:i + batch_size]
             try:
                 batch_prepared = [self._prepare_office(office) for office in batch]
                 
+                # Deduplicate within batch to avoid Postgres errors
+                unique_batch = { (o.get('centre_code'), o.get('constituency_code'), o.get('county_code')): o for o in batch_prepared }.values()
+                
                 result = self.supabase.table('iebc_offices').upsert(
-                    batch_prepared,
-                    on_conflict='id'
+                    list(unique_batch),
+                    on_conflict='centre_code,constituency_code,county_code'
                 ).execute()
                 
                 ingested += len(batch)
@@ -672,9 +829,8 @@ class SupabaseIngester:
         """Prepare office dict for Supabase"""
         prepared = {
             'county': office.get('county'),
-            'constituency': office.get('constituency'),
             'constituency_name': office.get('constituency_name'),
-            'constituency_code': office.get('constituency_code'),
+            'constituency_code': str(office.get('constituency_code', '')).zfill(3) if office.get('constituency_code') else None,
             'office_location': office.get('office_location'),
             'clean_office_location': office.get('clean_office_location'),
             'landmark': office.get('landmark'),
@@ -692,6 +848,13 @@ class SupabaseIngester:
             'walking_effort': office.get('walking_effort'),
             'landmark_normalized': office.get('landmark_normalized'),
             'landmark_source': office.get('landmark_source'),
+            'office_type': office.get('office_type'),
+            'category': office.get('category'),
+            'centre_code': office.get('centre_code'),
+            'ward_code': office.get('ward_code'),
+            'ward': office.get('ward'),
+            'county_code': office.get('county_code'),
+            'caw_code': office.get('ward_code'), # Assuming CAW code is ward code
         }
 
         if office.get('isochrone_15min'):
@@ -793,10 +956,38 @@ def main():
         geocoder = Geocoder()
         geocoded_offices = []
         
+        # Load existing progress if available to support resume/retry
+        existing_results = {}
+        if GEOCODED_CSV.exists():
+            try:
+                df_existing = pd.read_csv(GEOCODED_CSV)
+                # Key by a combination of identifiers to avoid collisions
+                for _, row in df_existing.iterrows():
+                    key = f"{row.get('county')}|{row.get('constituency')}|{row.get('office_location')}"
+                    existing_results[key] = row.to_dict()
+                logger.info(f"Loaded {len(existing_results)} existing geocoded results for resume/retry.")
+            except Exception as e:
+                logger.warning(f"Could not load existing geocoded results: {e}")
+
         for i, office in enumerate(cleaned_offices):
+            key = f"{office.get('county')}|{office.get('constituency')}|{office.get('office_location')}"
+            
+            # If already successfully geocoded, skip or reuse
+            if key in existing_results and existing_results[key].get('geocode_method'):
+                geocoded = existing_results[key]
+                geocoded_offices.append(geocoded)
+                geocoder.stats['cached'] += 1
+                continue
+            
+            # Otherwise, (re)geocode
             logger.info(f"Geocoding {i+1}/{len(cleaned_offices)}: {office.get('office_location', 'Unknown')}")
             geocoded = geocoder.geocode(office)
             geocoded_offices.append(geocoded)
+            
+            # Save periodic checkpoints
+            if (i + 1) % 50 == 0:
+                pd.DataFrame(geocoded_offices).to_csv(GEOCODED_CSV, index=False)
+                logger.info(f"Saved checkpoint of {len(geocoded_offices)} geocoded offices to {GEOCODED_CSV}")
         
         df_geocoded = pd.DataFrame(geocoded_offices)
         df_geocoded.to_csv(GEOCODED_CSV, index=False)
@@ -846,6 +1037,18 @@ def main():
         
         # PHASE 5: Ingest to Supabase
         logger.info("\n[PHASE 5] DATABASE INGESTION")
+        
+        # Enforce threshold requirement (40k+! as per user instructions)
+        extracted_count = len(geocoded_offices)
+        THRESHOLD = 40000 
+        
+        if extracted_count < THRESHOLD:
+            logger.error(f"FATAL: Extracted count ({extracted_count}) is below the threshold of {THRESHOLD}!")
+            logger.error("Dumping debug data and aborting ingestion.")
+            report['success'] = False
+            report['error'] = f"Threshold violation: {extracted_count} < {THRESHOLD}"
+            raise ValueError(report['error'])
+            
         ingester = SupabaseIngester()
         ingestion_result = ingester.ingest(geocoded_offices)
         
@@ -866,6 +1069,7 @@ def main():
         
         logger.info("\n" + "=" * 80)
         logger.info("PIPELINE COMPLETED SUCCESSFULLY")
+        logger.info(f"Processed: {len(geocoded_offices)} records")
         logger.info(f"Duration: {duration:.2f} seconds")
         logger.info("=" * 80)
         

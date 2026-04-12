@@ -1,0 +1,11 @@
+HTTP/1.1 307 Temporary Redirect
+Cache-Control: public, max-age=0, must-revalidate
+Content-Type: text/plain
+Date: Wed, 01 Apr 2026 21:55:40 GMT
+Location: https://nasakaiebc.civiceducationkenya.com/
+Server: Vercel
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+X-Vercel-Id: cpt1::7rcfg-1775080540628-2513d09b2f48
+Transfer-Encoding: chunked
+
+Redirecting...

@@ -3,6 +3,7 @@
 // Provides "Travel Difficulty Score" for IEBC office visits
 
 import { getAIDifficultyScore, type AIScoreResult, type AIConsensusInput } from './aiService';
+import { toDecimalDegrees } from '@/utils/geoUtils';
 
 const ORS_API_KEY = import.meta.env.VITE_ORS_API_KEY || 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjA0ZTcwZDQyMTMwNjRmYzNiMmNjMzQyMTI2MTIxYTdmIiwiaCI6Im11cm11cjY0In0=';
 const VC_API_KEY = import.meta.env.VITE_VC_API_KEY || 'R8QQ25ARUVVFEZHJY3BX3DRGJ';
@@ -111,6 +112,15 @@ async function fetchORSRoute(
     originLat: number, originLon: number,
     destLat: number, destLon: number
 ): Promise<ORSRouteResult | null> {
+    // Validate coordinate ranges before calling ORS
+    if (originLat < -90 || originLat > 90 || destLat < -90 || destLat > 90 ||
+        originLon < -180 || originLon > 180 || destLon < -180 || destLon > 180) {
+        console.warn('[TravelService] Invalid coordinates, skipping ORS call:', {
+            origin: [originLat, originLon], dest: [destLat, destLon]
+        });
+        return null;
+    }
+
     const cacheKey = routeCacheKey(originLat, originLon, destLat, destLon);
     const cached = getCached<ORSRouteResult>(cacheKey);
     if (cached) return cached;
@@ -126,7 +136,7 @@ async function fetchORSRoute(
         incrementQuota('ors');
 
         if (!res.ok) {
-            console.error(`[TravelService] ORS error: ${res.status}`);
+            console.warn(`[TravelService] ORS error: ${res.status}`);
             return null;
         }
 
@@ -317,8 +327,11 @@ export async function getTravelInsights(
     dest: [number, number],
     officeContext?: { name?: string; county?: string; verified?: boolean }
 ): Promise<TravelInsights> {
-    const [lat1, lon1] = origin;
-    const [lat2, lon2] = dest;
+    // Defense-in-depth: Ensure coordinates are in decimal degrees
+    const lat1 = toDecimalDegrees(origin[0], true);
+    const lon1 = toDecimalDegrees(origin[1], false);
+    const lat2 = toDecimalDegrees(dest[0], true);
+    const lon2 = toDecimalDegrees(dest[1], false);
 
     // Parallel fetch: route + weather (with fallback chain)
     const [route, weather] = await Promise.all([

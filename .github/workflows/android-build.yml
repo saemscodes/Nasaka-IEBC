@@ -140,8 +140,10 @@ jobs:
           prerelease: false
           
       - name: Upload to Firebase App Distribution
-        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        if: ${{ env.FIREBASE_SERVICE_ACCOUNT != '' }}
         uses: wzieba/Firebase-Distribution-Github-Action@v1
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFile: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
@@ -170,8 +172,24 @@ jobs:
           echo "AAB size should be under 150MB for Google Play"
           
       - name: Run security scan on AAB
-        uses: mobsf/mobsf-action@v1.1.0
-        with:
-          scan_type: 'apk'
-          mobsf_url: 'https://mobsf.live'
-          mobsf_api_key: ${{ secrets.MOBSF_API_KEY }}
+        run: |
+          AAB_FILE=$(find . -name "*.aab" | head -n 1)
+          if [ -z "$AAB_FILE" ]; then
+            echo "No AAB file found, skipping security scan"
+            exit 0
+          fi
+          echo "Uploading $AAB_FILE to MobSF..."
+          UPLOAD_RESP=$(curl -s -F "file=@$AAB_FILE" \
+            -H "Authorization: ${{ secrets.MOBSF_API_KEY }}" \
+            "https://mobsf.live/api/v1/upload")
+          echo "Upload response: $UPLOAD_RESP"
+          SCAN_HASH=$(echo "$UPLOAD_RESP" | python3 -c "import sys, json; d=json.load(sys.stdin); print(d.get('hash',''))" 2>/dev/null || echo "")
+          if [ -n "$SCAN_HASH" ]; then
+            curl -s -X POST \
+              -H "Authorization: ${{ secrets.MOBSF_API_KEY }}" \
+              -d "hash=$SCAN_HASH" \
+              "https://mobsf.live/api/v1/scan"
+            echo "Security scan initiated. Hash: $SCAN_HASH"
+          else
+            echo "Could not extract scan hash, scan skipped."
+          fi

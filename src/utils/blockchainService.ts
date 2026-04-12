@@ -15,16 +15,16 @@ export class BlockchainService {
     try {
       // Create a deterministic hash from the signature data
       const hashInput = `${data.signatureId}${data.petitionId}${data.voterHash}${data.timestamp}${data.wardConstituency}`;
-      
+
       // Use Web Crypto API for secure hashing
       const encoder = new TextEncoder();
       const dataBuffer = encoder.encode(hashInput);
       const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
-      
+
       // Convert to hex string
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      
+
       // Add blockchain prefix
       return `BLK254-${hashHex.substring(0, 32)}`;
     } catch (error) {
@@ -35,12 +35,12 @@ export class BlockchainService {
 
   // Verify blockchain hash integrity
   static async verifyBlockchainHash(
-    signatureId: string, 
+    signatureId: string,
     expectedHash: string
   ): Promise<{ isValid: boolean; error?: string }> {
     try {
       // Get signature data from database
-      const { data: signature, error } = await supabase
+      const { data: signature, error } = await (supabase as any)
         .from('signatures')
         .select('*')
         .eq('id', signatureId)
@@ -60,7 +60,7 @@ export class BlockchainService {
       };
 
       const regeneratedHash = await this.generateBlockchainHash(hashData);
-      
+
       return {
         isValid: regeneratedHash === expectedHash,
         error: regeneratedHash !== expectedHash ? 'Hash verification failed' : undefined
@@ -86,7 +86,7 @@ export class BlockchainService {
   // Store blockchain hash in signature record
   static async storeBlockchainHash(signatureId: string, blockchainHash: string): Promise<boolean> {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('signatures')
         .update({ blockchain_hash: blockchainHash })
         .eq('id', signatureId);

@@ -155,7 +155,7 @@ async function fetchMistralScore(input: AIConsensusInput): Promise<AIScoreResult
 
     try {
         const prompt = buildScoringPrompt(input);
-        const res = await fetch('/api/services?service=ai-proxy', {
+        const res = await fetch('/api/ai-proxy', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -203,7 +203,7 @@ async function fetchGroqScore(input: AIConsensusInput): Promise<AIScoreResult | 
 
     try {
         const prompt = buildScoringPrompt(input);
-        const res = await fetch('/api/services?service=ai-proxy', {
+        const res = await fetch('/api/ai-proxy', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -260,7 +260,7 @@ async function fetchGeminiReferee(
             ? `${buildScoringPrompt(input)}\n\nTwo other AI models scored this location:\n- Model A: ${scoreA}/100\n- Model B: ${scoreB}/100\n\nConsider both scores and provide your own independent assessment. If they disagree by more than 25 points, lean toward the more conservative (higher difficulty) score for safety.`
             : buildScoringPrompt(input);
 
-        const res = await fetch('/api/services?service=ai-proxy', {
+        const res = await fetch('/api/ai-proxy', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -309,7 +309,7 @@ async function verifyGroundTruth(input: AIConsensusInput): Promise<{ verified: b
     try {
         const prompt = buildGroundTruthPrompt(input);
 
-        const res = await fetch('/api/services?service=ai-proxy', {
+        const res = await fetch('/api/ai-proxy', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -375,6 +375,22 @@ export async function getAIDifficultyScore(input: AIConsensusInput): Promise<AIS
     // 2. Check IndexedDB persistence (offline support)
     const persisted = await getPersistedAIScore(cacheKey);
     if (persisted && !navigator.onLine) return persisted;
+
+    // 2.5 Dev-mode bypass: /api/ai-proxy only exists on Vercel (production)
+    const isDev = typeof window !== 'undefined' && (
+        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    );
+    if (isDev) {
+        return {
+            score: input.currentScore,
+            reason: 'AI Intelligence unavailable in dev mode',
+            provider: 'fallback',
+            confidence: 'low',
+            groundTruthVerified: false,
+            groundTruthNote: null,
+            fetchedAt: Date.now()
+        };
+    }
 
     // 3. If offline, return deterministic fallback
     if (!navigator.onLine) {

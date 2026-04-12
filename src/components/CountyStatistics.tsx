@@ -27,33 +27,33 @@ const CountyStatistics = () => {
   const fetchCountyStatistics = async () => {
     try {
       // Fetch counties with their basic data
-      const { data: counties, error: countiesError } = await supabase
+      const { data: counties, error: countiesError } = await (supabase as any)
         .from('counties')
         .select('*')
         .order('total_count', { ascending: false });
-      
+
       if (countiesError) throw countiesError;
 
       // Fetch constituencies with county names
-      const { data: constituencies, error: constError } = await supabase
+      const { data: constituencies, error: constError } = await (supabase as any)
         .from('constituencies')
         .select(`
           id,
           counties!inner(name)
         `);
-      
+
       if (constError) throw constError;
 
       // Fetch wards count per county
-      const { data: wards, error: wardsError } = await supabase
+      const { data: wards, error: wardsError } = await (supabase as any)
         .from('wards')
         .select('county')
         .order('county');
-      
+
       if (wardsError) throw wardsError;
 
       // Count constituencies per county
-      const constituencyCounts = constituencies.reduce((acc: {[key: string]: number}, curr) => {
+      const constituencyCounts = (constituencies as any).reduce((acc: { [key: string]: number }, curr: any) => {
         const countyName = curr.counties?.name;
         if (countyName) {
           acc[countyName] = (acc[countyName] || 0) + 1;
@@ -62,13 +62,13 @@ const CountyStatistics = () => {
       }, {});
 
       // Count wards per county
-      const wardCounts = wards.reduce((acc: {[key: string]: number}, curr) => {
+      const wardCounts = (wards as any).reduce((acc: { [key: string]: number }, curr: any) => {
         acc[curr.county] = (acc[curr.county] || 0) + 1;
         return acc;
       }, {});
 
       // Map data with counts
-      const mappedData = counties.map(county => ({
+      const mappedData = (counties as any).map((county: any) => ({
         id: county.id,
         county_name: county.name,
         total_voters: county.total_count || 0,
@@ -111,8 +111,8 @@ const CountyStatistics = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
             {countyStats.map((county, index) => (
-              <div 
-                key={county.id} 
+              <div
+                key={county.id}
                 className="p-4 bg-white dark:bg-gray-700 rounded-lg border border-green-100 dark:border-green-700 hover:shadow-md hover:bg-green-50 dark:hover:bg-green-950/20 transition-all cursor-pointer"
                 onClick={() => handleCountyClick(county)}
               >

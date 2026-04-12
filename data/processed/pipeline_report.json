@@ -1,35 +1,55 @@
 {
-  "started_at": "2026-02-14T02:44:42.156693",
+  "started_at": "2026-03-31T03:19:47.221503",
   "phases": {
     "extraction": {
-      "offices_extracted": 148,
+      "offices_extracted": 60059,
       "output_file": "data\\processed\\raw_iebc_offices.csv"
     },
     "cleaning": {
-      "offices_cleaned": 72,
+      "offices_cleaned": 236,
       "output_file": "data\\processed\\cleaned_iebc_offices.csv"
     },
     "geocoding": {
-      "offices_geocoded": 72,
+      "offices_geocoded": 236,
       "stats": {
-        "nominatim": 1,
+        "nominatim": 0,
         "google": 0,
         "mapbox": 0,
         "cached": 0,
-        "failed": 71
+        "failed": 236
       },
       "output_file": "data\\processed\\geocoded_iebc_offices.csv"
+    },
+    "landmark_normalization": {
+      "stats": {
+        "success": 0,
+        "failed": 0,
+        "cached": 0
+      }
+    },
+    "elevation": {
+      "stats": {
+        "success": 0,
+        "failed": 0
+      }
+    },
+    "isochrones": {
+      "stats": {
+        "success": 0,
+        "failed": 0,
+        "skipped": 0
+      }
     },
     "geojson": {
       "output_file": "data\\outputs\\iebc_offices.geojson"
     },
     "ingestion": {
-      "total": 72,
+      "total": 236,
       "ingested": 0,
-      "errors": 72
+      "errors": 236
     }
   },
-  "completed_at": "2026-02-14T02:47:02.760040",
-  "duration_seconds": 140.603347,
+  "completed_at": "2026-03-31T03:57:01.736687",
+  "duration_seconds": 2234.515184,
   "success": true
 }

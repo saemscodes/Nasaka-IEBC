@@ -110,7 +110,7 @@ const DataRegistry = () => {
                 updated_at: new Date().toISOString()
             };
 
-            const { error } = await supabase
+            const { error } = await (supabase as any)
                 .from('iebc_offices')
                 .update(payload)
                 .eq('id', editingOffice.id);
@@ -118,13 +118,13 @@ const DataRegistry = () => {
             if (error) throw error;
 
             // Log to security audit
-            await supabase.from('security_audit_log').insert({
+            await (supabase as any).from('security_audit_log').insert({
                 action_type: 'ADMIN_EDIT',
                 table_name: 'iebc_offices',
                 record_id: editingOffice.id.toString(),
                 details: `Admin edited office ${editingOffice.id}: ${editingOffice.office_location}`,
                 user_id: 'admin_nexus'
-            }).then(() => { });
+            });
 
             toast.success(`Office "${editForm.office_location}" updated`);
             setEditingOffice(null);
@@ -140,15 +140,15 @@ const DataRegistry = () => {
         setSaving(true);
         try {
             // Log before deleting
-            await supabase.from('security_audit_log').insert({
+            await (supabase as any).from('security_audit_log').insert({
                 action_type: 'ADMIN_DELETE',
                 table_name: 'iebc_offices',
                 record_id: office.id.toString(),
                 details: `Admin deleted office ${office.id}: ${office.office_location} (${office.county}, ${office.constituency})`,
                 user_id: 'admin_nexus'
-            }).then(() => { });
+            });
 
-            const { error } = await supabase
+            const { error } = await (supabase as any)
                 .from('iebc_offices')
                 .delete()
                 .eq('id', office.id);

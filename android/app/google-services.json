@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "5008262820",
+    "project_id": "nasakaiebc",
+    "storage_bucket": "nasakaiebc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:5008262820:android:4057322660b32dd0550831",
+        "android_client_info": {
+          "package_name": "com.nasaka.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLkeEYDZiXdORV4lVUmp1tOYFM4T-8vrw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

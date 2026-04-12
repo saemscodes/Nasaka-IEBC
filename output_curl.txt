@@ -1,0 +1,17 @@
+HTTP/1.1 307 Temporary Redirect
+Date: Wed, 01 Apr 2026 21:54:12 GMT
+Content-Type: text/plain
+Transfer-Encoding: chunked
+Connection: keep-alive
+Cache-Control: public, max-age=0, must-revalidate
+location: /recovering.html
+Server: cloudflare
+strict-transport-security: max-age=63072000
+x-vercel-id: cpt1::q7sg6-1775080452000-70d87387f0d4
+cf-cache-status: DYNAMIC
+Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=EST3W9iaKkQSmZJjDWTVDeRrk1CCksO7XGmDVLiMp5iYuWb146sf7vcyqGio2f13LAiM2Axbtbs0jRXqp5sUnEcgu2Ot4gTWhiT%2FMZF26h3dZP1%2FklTnfY1u0EIpn9Wkw4JBctu1nqZwvOMn7wMMIwezwcv0"}]}
+CF-RAY: 9e5ad4b44fa78a6d-MBA
+alt-svc: h3=":443"; ma=86400
+
+Redirecting...

@@ -115,7 +115,7 @@ const DashboardMapContainer: React.FC<{
   children: React.ReactNode;
 }> = ({ center, zoom, children }) => {
   return (
-    <div className="dashboard-map-container" style={{ 
+    <div className="dashboard-map-container" style={{
       position: 'relative',
       width: '100%',
       height: '100%',
@@ -193,7 +193,7 @@ const ContributionCard: React.FC<{
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="contribution-card relative z-50 rounded-xl border overflow-hidden bg-card text-card-foreground shadow-sm border-border"
-      style={{ 
+      style={{
         position: 'relative',
         zIndex: 50
       }}
@@ -201,18 +201,16 @@ const ContributionCard: React.FC<{
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-3">
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-              theme === 'dark' 
-                ? `bg-${getStatusColor(contribution.status)}-900 text-${getStatusColor(contribution.status)}-100`
-                : `bg-${getStatusColor(contribution.status)}-100 text-${getStatusColor(contribution.status)}-800`
-            }`}>
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${theme === 'dark'
+              ? `bg-${getStatusColor(contribution.status)}-900 text-${getStatusColor(contribution.status)}-100`
+              : `bg-${getStatusColor(contribution.status)}-100 text-${getStatusColor(contribution.status)}-800`
+              }`}>
               {getStatusText(contribution.status)}
             </span>
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-              theme === 'dark'
-                ? `bg-${getConfidenceColor(contribution.confidence_score)}-900 text-${getConfidenceColor(contribution.confidence_score)}-100`
-                : `bg-${getConfidenceColor(contribution.confidence_score)}-100 text-${getConfidenceColor(contribution.confidence_score)}-800`
-            }`}>
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${theme === 'dark'
+              ? `bg-${getConfidenceColor(contribution.confidence_score)}-900 text-${getConfidenceColor(contribution.confidence_score)}-100`
+              : `bg-${getConfidenceColor(contribution.confidence_score)}-100 text-${getConfidenceColor(contribution.confidence_score)}-800`
+              }`}>
               {getConfidenceText(contribution.confidence_score)} Confidence: {contribution.confidence_score || 0}%
             </span>
           </div>
@@ -251,8 +249,8 @@ const ContributionCard: React.FC<{
             >
               <GeoJSONLayerManager
                 activeLayers={['iebc-offices']}
-                onOfficeSelect={() => {}}
-                onNearbyOfficesFound={() => {}}
+                onOfficeSelect={() => { }}
+                onNearbyOfficesFound={() => { }}
                 selectedOffice={null}
               />
               <UserLocationMarker
@@ -269,7 +267,7 @@ const ContributionCard: React.FC<{
                 {contribution.submitted_latitude.toFixed(6)}, {contribution.submitted_longitude.toFixed(6)}
               </p>
             </div>
-            
+
             <div>
               <label className="text-sm font-medium text-foreground mb-2">GPS Accuracy</label>
               <p className="text-sm text-foreground">
@@ -287,9 +285,9 @@ const ContributionCard: React.FC<{
             {contribution.google_maps_link && (
               <div>
                 <label className="text-sm font-medium text-foreground mb-2">Google Maps</label>
-                <a 
-                  href={contribution.google_maps_link} 
-                  target="_blank" 
+                <a
+                  href={contribution.google_maps_link}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-primary hover:text-primary/80 truncate block"
                 >
@@ -305,10 +303,10 @@ const ContributionCard: React.FC<{
                   className="text-sm font-medium text-foreground mb-2 flex items-center space-x-1 hover:text-primary transition-colors"
                 >
                   <span>Location Details</span>
-                  <svg 
+                  <svg
                     className={`w-4 h-4 transition-transform ${showReverseGeocode ? 'rotate-180' : ''}`}
-                    fill="none" 
-                    stroke="currentColor" 
+                    fill="none"
+                    stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -360,20 +358,19 @@ const ContributionCard: React.FC<{
                   onError={() => setImageLoading(false)}
                 />
               </div>
-              
+
               <div className="flex-1">
                 {contribution.exif_metadata && (
                   <div className="mb-3">
                     <div className="flex items-center space-x-2 mb-2">
-                      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
-                        contribution.exif_metadata.has_exif 
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' 
-                          : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100'
-                      }`}>
+                      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${contribution.exif_metadata.has_exif
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
+                        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100'
+                        }`}>
                         {contribution.exif_metadata.has_exif ? '✓ EXIF Data Available' : '⚠ No EXIF Data'}
                       </span>
                     </div>
-                    
+
                     <div className="text-xs text-muted-foreground space-y-1">
                       <div>File: {contribution.exif_metadata.file_name || 'Unknown'}</div>
                       <div>Size: {contribution.exif_metadata.file_size ? `${(contribution.exif_metadata.file_size / 1024 / 1024).toFixed(2)} MB` : 'Unknown'}</div>
@@ -435,23 +432,21 @@ const ContributionCard: React.FC<{
                 </svg>
                 <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Confidence Analysis</span>
               </div>
-              <span className={`text-sm font-medium ${
-                contribution.confidence_score >= 80 ? 'text-green-600 dark:text-green-400' :
+              <span className={`text-sm font-medium ${contribution.confidence_score >= 80 ? 'text-green-600 dark:text-green-400' :
                 contribution.confidence_score >= 60 ? 'text-blue-600 dark:text-blue-400' :
-                contribution.confidence_score >= 40 ? 'text-yellow-600 dark:text-yellow-400' :
-                'text-red-600 dark:text-red-400'
-              }`}>
+                  contribution.confidence_score >= 40 ? 'text-yellow-600 dark:text-yellow-400' :
+                    'text-red-600 dark:text-red-400'
+                }`}>
                 {contribution.confidence_score}%
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
-              <div 
-                className={`h-2 rounded-full ${
-                  contribution.confidence_score >= 80 ? 'bg-green-600' :
+              <div
+                className={`h-2 rounded-full ${contribution.confidence_score >= 80 ? 'bg-green-600' :
                   contribution.confidence_score >= 60 ? 'bg-blue-600' :
-                  contribution.confidence_score >= 40 ? 'bg-yellow-600' :
-                  'bg-red-600'
-                }`}
+                    contribution.confidence_score >= 40 ? 'bg-yellow-600' :
+                      'bg-red-600'
+                  }`}
                 style={{ width: `${contribution.confidence_score}%` }}
               ></div>
             </div>
@@ -487,10 +482,10 @@ const ContributionCard: React.FC<{
         >
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-foreground">Device & Technical Metadata</span>
-            <svg 
+            <svg
               className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-              fill="none" 
-              stroke="currentColor" 
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -690,11 +685,10 @@ const ArchiveView: React.FC<{
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-3">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      theme === 'dark' 
-                        ? `bg-${getActionColor(archive.action_type)}-900 text-${getActionColor(archive.action_type)}-100`
-                        : `bg-${getActionColor(archive.action_type)}-100 text-${getActionColor(archive.action_type)}-800`
-                    }`}>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${theme === 'dark'
+                      ? `bg-${getActionColor(archive.action_type)}-900 text-${getActionColor(archive.action_type)}-100`
+                      : `bg-${getActionColor(archive.action_type)}-100 text-${getActionColor(archive.action_type)}-800`
+                      }`}>
                       {getActionText(archive.action_type)}
                     </span>
                     <span className="text-sm font-medium text-gray-900 dark:text-white">
@@ -940,17 +934,16 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
 
     try {
       console.log('Looking up constituency ID for:', constituencyName, 'county:', countyName);
-      
-      const { data, error } = await supabase
-        .rpc('get_or_create_constituency' as any, {
-          constituency_name: constituencyName,
-          county_name: countyName || ''
-        });
+
+      const { data, error } = await (supabase as any).rpc('get_or_create_constituency', {
+        constituency_name: constituencyName,
+        county_name: countyName || ''
+      });
 
       if (error) {
         console.error('RPC failed, trying manual lookup:', error);
-        
-        let query = supabase
+
+        let query = (supabase as any)
           .from('constituencies')
           .select('id, name, county_id')
           .ilike('name', `%${constituencyName}%`);
@@ -986,8 +979,8 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
   const fixAllConstituencyRelationships = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .rpc('fix_all_constituency_relationships' as any);
+      const { data, error } = await (supabase as any)
+        .rpc('fix_all_constituency_relationships');
 
       if (error) throw error;
 
@@ -1004,9 +997,9 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
   const fetchContributions = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const { data, error } = await (async (): Promise<any> => {
-        let queryBuilder: any = supabase
+        let queryBuilder: any = (supabase as any)
           .from('iebc_office_contributions')
           .select('*')
           .order('created_at', { ascending: false });
@@ -1108,8 +1101,8 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
 
   const fetchArchives = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .rpc('get_archived_contributions' as any, {
+      const { data, error } = await (supabase as any)
+        .rpc('get_archived_contributions', {
           p_limit: 100,
           p_offset: 0
         });
@@ -1137,8 +1130,8 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
     originalOfficeId?: number
   ) => {
     try {
-      const { data, error } = await supabase
-        .rpc('archive_contribution' as any, {
+      const { data, error } = await (supabase as any)
+        .rpc('archive_contribution', {
           p_contribution_id: contributionId,
           p_action_type: actionType,
           p_actor: 'admin_dashboard',
@@ -1158,14 +1151,14 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
   const handleVerify = async (contribution: Contribution, constituencyId?: number) => {
     try {
       console.log('Verifying and archiving contribution:', contribution.id);
-      
+
       const shouldMerge = contribution.duplicate_candidate_ids && contribution.duplicate_candidate_ids.length > 0;
-      
+
       if (shouldMerge) {
         const confirmMerge = confirm(
           `This contribution has ${contribution.duplicate_candidate_ids.length} potential duplicate(s). Do you want to merge with an existing office instead of creating a new one?`
         );
-        
+
         if (confirmMerge) {
           await handleMerge(contribution);
           return;
@@ -1173,7 +1166,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
       }
 
       let finalConstituencyId = constituencyId || contribution.submitted_constituency_id;
-      
+
       if (!finalConstituencyId || finalConstituencyId === 0) {
         console.log('No valid constituency ID found, looking up by name...');
         finalConstituencyId = await getConstituencyIdFromName(
@@ -1190,7 +1183,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
 
       console.log('Using constituency ID for office creation:', finalConstituencyId);
 
-      const { data: newOffice, error: officeError } = await supabase
+      const { data: newOffice, error: officeError } = await (supabase as any)
         .from('iebc_offices')
         .insert([{
           constituency: contribution.submitted_constituency,
@@ -1214,11 +1207,11 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
 
       if (officeError) {
         console.error('Error creating office:', officeError);
-        
+
         if (officeError.code === '23503' && officeError.message.includes('constituency')) {
           throw new Error(`Failed to create office: The constituency ID "${finalConstituencyId}" does not exist in the constituencies table.`);
         }
-        
+
         throw new Error(`Failed to create office: ${officeError.message}`);
       }
 
@@ -1229,22 +1222,24 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
         newOffice.id
       );
 
-      await supabase.from('verification_log').insert({
-        contribution_id: contribution.id,
-        office_id: newOffice.id,
-        action: 'verified',
-        actor: 'admin:dashboard',
-        details: {
-          confidence_score: contribution.confidence_score,
-          submission_method: contribution.submission_method,
-          has_image: !!contribution.image_public_url,
-          archived: true
-        }
-      });
+      const { error: logError } = await (supabase as any)
+        .from('verification_log')
+        .insert({
+          contribution_id: contribution.id,
+          office_id: newOffice.id,
+          action: 'verified_and_merged',
+          actor: 'admin',
+          details: {
+            confidence_score: 1.0,
+            submission_method: contribution.submission_method,
+            has_image: !!contribution.image_public_url,
+            archived: false
+          }
+        });
 
       await fetchContributions();
       await fetchStats();
-      
+
       alert(`Contribution verified and archived successfully! New office created with ID: ${newOffice.id}`);
     } catch (err: any) {
       console.error('Error verifying contribution:', err);
@@ -1263,20 +1258,22 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
         reason
       );
 
-      await supabase.from('verification_log').insert({
-        contribution_id: contribution.id,
-        action: 'rejected',
-        actor: 'admin:dashboard',
-        details: { 
-          reason,
-          confidence_score: contribution.confidence_score,
-          archived: true
-        }
-      });
+      const { error: logError } = await (supabase as any)
+        .from('verification_log')
+        .insert({
+          contribution_id: contribution.id,
+          action: 'rejected',
+          actor: 'admin',
+          details: {
+            reason: reason || 'No reason provided',
+            confidence_score: 0,
+            archived: false
+          }
+        });
 
       await fetchContributions();
       await fetchStats();
-      
+
       alert('Contribution rejected and archived successfully!');
     } catch (err: any) {
       console.error('Error rejecting contribution:', err);
@@ -1285,11 +1282,11 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
   };
 
   const handleRequestInfo = async (contribution: Contribution) => {
-    const message = prompt('Enter information request:');
+    const message = prompt('Enter request message:');
     if (!message) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('iebc_office_contributions')
         .update({
           status: 'more_info_requested',
@@ -1310,18 +1307,17 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
 
   const handleMerge = async (contribution: Contribution) => {
     try {
-      const { data: duplicates, error: dupError } = await supabase
-        .rpc('find_duplicate_offices', {
-          p_lat: contribution.submitted_latitude,
-          p_lng: contribution.submitted_longitude,
-          p_name: contribution.submitted_office_location,
-          p_radius_meters: 200
-        });
+      const { data, error: dupError } = await (supabase as any).rpc('find_duplicate_offices', {
+        p_lat: contribution.submitted_latitude,
+        p_lng: contribution.submitted_longitude,
+        p_name: contribution.submitted_office_location,
+        p_radius_meters: 500
+      });
 
       if (dupError) throw dupError;
 
-      if (duplicates && duplicates.length > 0) {
-        const duplicateList = duplicates.map((d: any) => 
+      if (data && data.length > 0) {
+        const duplicateList = data.map((d: any) =>
           `${d.office_name} (ID: ${d.id}, ${Math.round(d.distance_meters)}m away)`
         ).join('\n');
 
@@ -1331,8 +1327,8 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
 
         if (selectedId) {
           const officeId = parseInt(selectedId);
-          const selectedOffice = duplicates.find((d: any) => d.id === officeId);
-          
+          const selectedOffice = data.find((d: any) => d.id === officeId);
+
           if (selectedOffice) {
             await archiveContribution(
               contribution.id,
@@ -1341,22 +1337,24 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
               officeId
             );
 
-            await supabase.from('verification_log').insert({
-              contribution_id: contribution.id,
-              office_id: officeId,
-              action: 'merged_existing',
-              actor: 'admin:dashboard',
-              details: {
-                existing_office: selectedOffice.office_location,
-                distance: selectedOffice.distance_meters,
-                confidence_score: contribution.confidence_score,
-                archived: true
-              }
-            });
+            const { error: logError } = await (supabase as any)
+              .from('verification_log')
+              .insert({
+                contribution_id: contribution.id,
+                office_id: selectedOffice.id,
+                action: 'merged_to_existing',
+                actor: 'admin',
+                details: {
+                  existing_office: selectedOffice.office_location,
+                  distance: selectedOffice.distance_meters,
+                  confidence_score: 0.9,
+                  archived: false
+                }
+              });
 
             await fetchContributions();
             await fetchStats();
-            
+
             alert(`Contribution merged and archived successfully with office: ${selectedOffice.office_location}`);
           } else {
             alert('Invalid office ID selected.');
@@ -1379,22 +1377,22 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
     if (!confirmRestore) return;
 
     try {
-      const { error } = await supabase
+      const { error: updateError } = await (supabase as any)
         .from('iebc_office_contributions')
         .update({
-          is_archived: false,
-          archived_at: null,
-          archive_reason: null,
-          status: 'pending_review'
+          is_archived: true,
+          archived_at: new Date().toISOString(),
+          archive_reason: 'auto_archived_after_merge',
+          status: 'merged'
         })
         .eq('id', archive.contribution_id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
       await fetchContributions();
       await fetchStats();
       await fetchArchives();
-      
+
       alert('Contribution restored successfully!');
     } catch (err: any) {
       console.error('Error restoring archive:', err);
@@ -1403,7 +1401,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
   };
 
   const handleBulkAction = async (action: 'verify' | 'reject', contributionIds: number[]) => {
-    const confirmMessage = action === 'verify' 
+    const confirmMessage = action === 'verify'
       ? `Are you sure you want to verify and archive ${contributionIds.length} contributions?`
       : `Are you sure you want to reject and archive ${contributionIds.length} contributions?`;
 
@@ -1429,7 +1427,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
           errorCount++;
         }
       }
-      
+
       if (errorCount > 0) {
         alert(`Processed ${successCount} contributions successfully. ${errorCount} failed.`);
       } else {
@@ -1463,7 +1461,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
   }
 
   return (
-    <div 
+    <div
       className="contributions-dashboard min-h-screen bg-background text-foreground relative"
       style={{
         zIndex: 10000,
@@ -1471,7 +1469,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
         isolation: 'isolate'
       }}
     >
-      <div 
+      <div
         className="bg-card text-card-foreground shadow-sm border-b border-border relative z-[10001]"
         style={{ zIndex: 10001 }}
       >
@@ -1517,7 +1515,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
         </div>
       </div>
 
-      <div 
+      <div
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-[10001]"
         style={{ zIndex: 10001 }}
       >
@@ -1592,7 +1590,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
                 <div className="w-8 h-8 bg-gray-100 dark:bg-gray-900 rounded-lg flex items-center justify-center">
                   <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                </svg>
+                  </svg>
                 </div>
               </div>
               <div className="ml-4">
@@ -1749,7 +1747,7 @@ const ContributionsDashboard: React.FC<ContributionsDashboardProps> = ({ countie
             </svg>
             <h3 className="text-lg font-medium text-foreground mb-2">No contributions found</h3>
             <p className="text-muted-foreground">
-              {filters.showArchived 
+              {filters.showArchived
                 ? 'No submissions match your current filters, including archived contributions.'
                 : 'No active submissions match your current filters.'
               }

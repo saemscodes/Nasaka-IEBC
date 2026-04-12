@@ -171,6 +171,16 @@ export interface IEBCOffice {
     created_at: string;
     updated_at: string;
     distance_km?: number; // Computed field
+    // Gazette Extensions (20260331)
+    centre_code?: string;
+    caw_code?: string;
+    county_code?: string;
+    ward_code?: string;
+    office_type?: 'CONSTITUENCY_OFFICE' | 'REGISTRATION_CENTRE';
+    category?: 'office' | 'registration_centre';
+    // Verification fields (20260331)
+    verification_source?: string;
+    image_url?: string;
 }
 
 export interface Ward {
@@ -190,6 +200,89 @@ export interface Ward {
     geocode_confidence?: number;
     multi_source_confidence?: number;
     formatted_address?: string;
+    created_at: string;
+    // Gazette Extensions (20260331)
+    caw_code?: string;
+    registration_centre_count?: number;
+    // Statistics (20260331)
+}
+
+export interface VerificationLog {
+    id: number;
+    contribution_id?: number;
+    office_id?: number;
+    action: string;
+    actor: string;
+    details: Record<string, any>;
+    created_at: string;
+}
+
+export interface SecurityAuditLog {
+    id: number;
+    action_type: string;
+    table_name: string;
+    record_id?: any;
+    details: string;
+    user_id?: string;
+    created_at: string;
+}
+
+export interface IEBCOfficeContribution {
+    id: number;
+    original_office_id?: number;
+    submitted_office_location: string;
+    status: 'pending' | 'verified' | 'rejected' | 'merged';
+    submission_method: string;
+    submission_source: string;
+    submitted_by?: string;
+    review_notes?: string;
+    reviewed_at?: string;
+    created_at: string;
+    // Extended fields
+    county?: string;
+    constituency?: string;
+    landmark?: string;
+    latitude?: number;
+    longitude?: number;
+}
+
+export interface OperationalStatusHistory {
+    id: number;
+    office_id: number;
+    status: 'operational' | 'closed' | 'relocated' | 'under_renovation';
+    reason: string;
+    reported_at: string;
+    reported_by?: string;
+}
+
+export interface ContactUpdateRequest {
+    id: number;
+    office_id: number;
+    phone?: string;
+    email?: string;
+    hours?: string;
+    notes?: string;
+    submitted_at: string;
+    submitted_by?: string;
+    status: 'pending' | 'approved' | 'rejected';
+}
+
+export interface ContributionVote {
+    id: number;
+    contribution_id: number;
+    user_id: string;
+    vote_type: 'upvote' | 'downvote' | 'helpful' | 'not_helpful';
+    created_at: string;
+}
+
+export interface EvidenceDocument {
+    id: string;
+    petition_id: string;
+    document_title: string;
+    document_type: string;
+    file_path: string;
+    verification_status: 'pending' | 'verified' | 'rejected';
+    uploaded_by?: string;
     created_at: string;
 }
 
@@ -372,97 +465,186 @@ export interface AuditTrail {
     created_at: string;
 }
 
-// Database type map for Supabase client usage
+
+export type Json =
+    | string
+    | number
+    | boolean
+    | null
+    | { [key: string]: Json | undefined }
+    | Json[]
+
+
 export type Database = {
     public: {
         Tables: {
-            iebc_offices: { Row: IEBCOffice; Insert: Partial<IEBCOffice>; Update: Partial<IEBCOffice> };
-            diaspora_registration_centres: { Row: DiasporaRegistrationCentre; Insert: Partial<DiasporaRegistrationCentre>; Update: Partial<DiasporaRegistrationCentre> };
-            wards: { Row: Ward; Insert: Partial<Ward>; Update: Partial<Ward> };
-            confirmations: { Row: Confirmation; Insert: Partial<Confirmation>; Update: Partial<Confirmation> };
-            geocode_audit: { Row: GeocodeAudit; Insert: Partial<GeocodeAudit>; Update: Partial<GeocodeAudit> };
-            geocode_hitl_queue: { Row: GeocodeHitlQueue; Insert: Partial<GeocodeHitlQueue>; Update: Partial<GeocodeHitlQueue> };
-            signatures: { Row: Signature; Insert: Partial<Signature>; Update: Partial<Signature> };
-            petitions: { Row: Petition; Insert: Partial<Petition>; Update: Partial<Petition> };
-            audit_trail: { Row: AuditTrail; Insert: Partial<AuditTrail>; Update: Partial<AuditTrail> };
-            api_keys: { Row: ApiKey; Insert: Partial<ApiKey>; Update: Partial<ApiKey> };
-            nasaka_profiles: { Row: NasakaProfile; Insert: Partial<NasakaProfile>; Update: Partial<NasakaProfile> };
-            nasaka_usage_log: { Row: NasakaUsageLog; Insert: Partial<NasakaUsageLog>; Update: Partial<NasakaUsageLog> };
-            api_usage_log: { Row: ApiUsageLog; Insert: Partial<ApiUsageLog>; Update: Partial<ApiUsageLog> };
-            nasaka_paystack_events: { Row: NasakaPaystackEvent; Insert: Partial<NasakaPaystackEvent>; Update: Partial<NasakaPaystackEvent> };
-            nasaka_payment_history: { Row: NasakaPaymentHistory; Insert: Partial<NasakaPaymentHistory>; Update: Partial<NasakaPaymentHistory> };
-            nasaka_enterprise_leads: { Row: NasakaEnterpriseLead; Insert: Partial<NasakaEnterpriseLead>; Update: Partial<NasakaEnterpriseLead> };
-            nasaka_license_applications: { Row: NasakaLicenseApplication; Insert: Partial<NasakaLicenseApplication>; Update: Partial<NasakaLicenseApplication> };
-            nasaka_discount_applications: { Row: NasakaDiscountApplication; Insert: Partial<NasakaDiscountApplication>; Update: Partial<NasakaDiscountApplication> };
-            admin_tasks: { Row: AdminTask; Insert: Partial<AdminTask>; Update: Partial<AdminTask> };
-            admin_task_logs: { Row: AdminTaskLog; Insert: Partial<AdminTaskLog>; Update: Partial<AdminTaskLog> };
-            geocoding_service_log: { Row: GeocodingServiceLog; Insert: Partial<GeocodingServiceLog>; Update: Partial<GeocodingServiceLog> };
+            iebc_offices: { Row: IEBCOffice; Insert: Partial<IEBCOffice>; Update: Partial<IEBCOffice>; Relationships: [] };
+            diaspora_registration_centres: { Row: DiasporaRegistrationCentre; Insert: Partial<DiasporaRegistrationCentre>; Update: Partial<DiasporaRegistrationCentre>; Relationships: [] };
+            wards: { Row: Ward; Insert: Partial<Ward>; Update: Partial<Ward>; Relationships: [] };
+            confirmations: { Row: Confirmation; Insert: Partial<Confirmation>; Update: Partial<Confirmation>; Relationships: [] };
+            geocode_audit: { Row: GeocodeAudit; Insert: Partial<GeocodeAudit>; Update: Partial<GeocodeAudit>; Relationships: [] };
+            geocode_hitl_queue: { Row: GeocodeHitlQueue; Insert: Partial<GeocodeHitlQueue>; Update: Partial<GeocodeHitlQueue>; Relationships: [] };
+            signatures: { Row: Signature; Insert: Partial<Signature>; Update: Partial<Signature>; Relationships: [] };
+            petitions: { Row: Petition; Insert: Partial<Petition>; Update: Partial<Petition>; Relationships: [] };
+            audit_trail: { Row: AuditTrail; Insert: Partial<AuditTrail>; Update: Partial<AuditTrail>; Relationships: [] };
+            api_keys: { Row: ApiKey; Insert: Partial<ApiKey>; Update: Partial<ApiKey>; Relationships: [] };
+            nasaka_profiles: { Row: NasakaProfile; Insert: Partial<NasakaProfile>; Update: Partial<NasakaProfile>; Relationships: [] };
+            nasaka_usage_log: { Row: NasakaUsageLog; Insert: Partial<NasakaUsageLog>; Update: Partial<NasakaUsageLog>; Relationships: [] };
+            api_usage_log: { Row: ApiUsageLog; Insert: Partial<ApiUsageLog>; Update: Partial<ApiUsageLog>; Relationships: [] };
+            nasaka_paystack_events: { Row: NasakaPaystackEvent; Insert: Partial<NasakaPaystackEvent>; Update: Partial<NasakaPaystackEvent>; Relationships: [] };
+            nasaka_payment_history: { Row: NasakaPaymentHistory; Insert: Partial<NasakaPaymentHistory>; Update: Partial<NasakaPaymentHistory>; Relationships: [] };
+            nasaka_enterprise_leads: { Row: NasakaEnterpriseLead; Insert: Partial<NasakaEnterpriseLead>; Update: Partial<NasakaEnterpriseLead>; Relationships: [] };
+            nasaka_license_applications: { Row: NasakaLicenseApplication; Insert: Partial<NasakaLicenseApplication>; Update: Partial<NasakaLicenseApplication>; Relationships: [] };
+            nasaka_discount_applications: { Row: NasakaDiscountApplication; Insert: Partial<NasakaDiscountApplication>; Update: Partial<NasakaDiscountApplication>; Relationships: [] };
+            admin_tasks: { Row: AdminTask; Insert: Partial<AdminTask>; Update: Partial<AdminTask>; Relationships: [] };
+            admin_task_logs: { Row: AdminTaskLog; Insert: Partial<AdminTaskLog>; Update: Partial<AdminTaskLog>; Relationships: [] };
+            geocoding_service_log: { Row: GeocodingServiceLog; Insert: Partial<GeocodingServiceLog>; Update: Partial<GeocodingServiceLog>; Relationships: [] };
+            verification_log: { Row: VerificationLog; Insert: Partial<VerificationLog>; Update: Partial<VerificationLog>; Relationships: [] };
+            security_audit_log: { Row: SecurityAuditLog; Insert: Partial<SecurityAuditLog>; Update: Partial<SecurityAuditLog>; Relationships: [] };
+            iebc_office_contributions: { Row: IEBCOfficeContribution; Insert: Partial<IEBCOfficeContribution>; Update: Partial<IEBCOfficeContribution>; Relationships: [] };
+            operational_status_history: { Row: OperationalStatusHistory; Insert: Partial<OperationalStatusHistory>; Update: Partial<OperationalStatusHistory>; Relationships: [] };
+            contact_update_requests: { Row: ContactUpdateRequest; Insert: Partial<ContactUpdateRequest>; Update: Partial<ContactUpdateRequest>; Relationships: [] };
+            contribution_votes: { Row: ContributionVote; Insert: Partial<ContributionVote>; Update: Partial<ContributionVote>; Relationships: [] };
+            evidence_documents: { Row: EvidenceDocument; Insert: Partial<EvidenceDocument>; Update: Partial<EvidenceDocument>; Relationships: [] };
+            constituencies: { Row: any; Insert: any; Update: any; Relationships: [] };
+            counties: { Row: any; Insert: any; Update: any; Relationships: [] };
+        };
+        Views: {
+            petition_stats: { Row: any; Relationships: [] };
         };
         Functions: {
-            validate_api_key: {
-                Args: { p_key_hash: string };
-                Returns: {
-                    id: string;
-                    tier: string;
-                    requests_today: number;
-                    is_active: boolean;
-                    monthly_request_count: number;
-                    credits_balance: number;
-                    is_locked: boolean;
-                    plan_status: string;
-                    current_period_end: string;
-                    monthly_reset_date: string;
-                }[];
-            };
-            deduct_credits: {
-                Args: { p_key_id: string; p_amount: number };
-                Returns: void;
-            };
-            get_county_stats: {
-                Args: Record<string, never>;
-                Returns: {
-                    county: string;
-                    office_count: number;
-                    mapped_count: number;
-                    verified_count: number;
-                }[];
-            };
-            get_tier_monthly_limit: {
-                Args: { p_tier: string };
-                Returns: number;
-            };
-            get_nearest_ward: {
-                Args: { lat_param: number; lng_param: number };
-                Returns: Ward[];
-            };
-            find_offices_near_place: {
-                Args: { search_lat: number; search_lng: number; radius_km?: number; max_results?: number };
-                Returns: IEBCOffice[];
-            };
-            search_offices_by_text_and_location: {
-                Args: { search_query: string; search_lat?: number; search_lng?: number; radius_km?: number; max_results?: number };
-                Returns: (IEBCOffice & { text_rank: number; combined_score: number })[];
-            };
-            search_offices_by_text_and_location_v2: {
-                Args: { search_query: string; search_lat?: number; search_lng?: number; radius_km?: number; max_results?: number };
-                Returns: (IEBCOffice & { text_rank: number; combined_score: number })[];
-            };
-            nearby_offices: {
-                Args: { user_lat: number; user_lng: number; radius_km?: number };
-                Returns: IEBCOffice[];
-            };
-            charge_usage: {
-                Args: { p_key_id: string; p_endpoint_weight?: number };
-                Returns: { allowed: boolean; remaining: number; limit_type: string; reason: string }[];
-            };
-            get_offices_by_walking_effort: {
-                Args: { effort_level: string; limit_count?: number };
-                Returns: IEBCOffice[];
-            };
-            refresh_ward_metadata: {
-                Args: Record<string, never>;
-                Returns: void;
-            };
+            validate_api_key: { Args: { p_key_hash: string }; Returns: any[] };
+            deduct_credits: { Args: { p_key_id: string; p_amount: number }; Returns: void };
+            get_county_stats: { Args: Record<string, any>; Returns: any[] };
+            get_tier_monthly_limit: { Args: { p_tier: string }; Returns: number };
+            get_nearest_ward: { Args: { lat_param: number; lng_param: number }; Returns: any[] };
+            find_offices_near_place: { Args: { search_lat: number; search_lng: number; radius_km?: number; max_results?: number }; Returns: any[] };
+            search_offices_by_text_and_location: { Args: { search_query: string; search_lat?: number; search_lng?: number; radius_km?: number; max_results?: number }; Returns: any[] };
+            search_offices_by_text_and_location_v2: { Args: { search_query: string; search_lat?: number; search_lng?: number; radius_km?: number; max_results?: number }; Returns: any[] };
+            nearby_offices: { Args: { user_lat: number; user_lng: number; radius_km?: number }; Returns: any[] };
+            charge_usage: { Args: { p_key_id: string; p_endpoint_weight?: number }; Returns: any[] };
+            get_offices_by_walking_effort: { Args: { effort_level: string; limit_count?: number }; Returns: any[] };
+            refresh_ward_metadata: { Args: Record<string, any>; Returns: void };
+            get_office_stats: { Args: { office_id_param: number }; Returns: any[] };
+            get_pending_contributions: { Args: { p_limit?: number; p_offset?: number }; Returns: any[] };
+            get_contribution_details: { Args: { p_contribution_id: number }; Returns: any[] };
+            get_trending_contributions: { Args: { days_back?: number; limit_count?: number }; Returns: any[] };
+            search_offices_fuzzy: { Args: { search_term: string; limit_count?: number }; Returns: any[] };
+            get_offices_by_status: { Args: { status_filter: string; limit_count?: number }; Returns: any[] };
+            get_most_verified_offices: { Args: { limit_count?: number }; Returns: any[] };
+            get_offices_needing_verification: { Args: { min_confirmations?: number; limit_count?: number }; Returns: any[] };
+            bulk_update_verification: { Args: { office_ids: number[]; verified_status: boolean; verified_by_user?: string }; Returns: any[] };
+            auto_approve_contact_updates: { Args: { min_confirmations?: number }; Returns: any[] };
+            moderate_contribution: { Args: { p_contribution_id: number; p_action_type: string; p_actor: string; p_review_notes: string; p_archive_reason: string; p_original_office_id: number }; Returns: any };
+            get_contributions_dashboard_stats: { Args: { constituency_name?: string; county_name?: string }; Returns: any };
+            get_or_create_constituency: { Args: { constituency_name: string; county_name: string }; Returns: number };
+            fix_all_constituency_relationships: { Args: Record<string, any>; Returns: any[] };
+            get_archived_contributions: { Args: { p_limit: number; p_offset: number }; Returns: any[] };
+            archive_contribution: { Args: { p_contribution_id: number; p_action_type: string; p_actor: string; p_review_notes: string; p_archive_reason: string; p_original_office_id: number | null }; Returns: any };
+            find_duplicate_offices: { Args: { p_lat: number; p_lng: number; p_name: string; p_radius_meters: number }; Returns: any[] };
+        };
+        Enums: {
+            [_ in never]: never;
+        };
+        CompositeTypes: {
+            [_ in never]: never;
         };
     };
 };
+
+type PublicSchema = Database[Extract<keyof Database, "public">]
+
+export type Tables<
+    PublicTableNameOrOptions extends
+    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+    | { schema: keyof Database },
+    TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+        Database[PublicTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+    ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+        Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+            Row: infer R
+        }
+    ? R
+    : never
+    : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
+        PublicSchema["Views"])
+    ? (PublicSchema["Tables"] &
+        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+            Row: infer R
+        }
+    ? R
+    : never
+    : never
+
+export type TablesInsert<
+    PublicTableNameOrOptions extends
+    | keyof PublicSchema["Tables"]
+    | { schema: keyof Database },
+    TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+    ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+        Insert: infer I
+    }
+    ? I
+    : never
+    : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+        Insert: infer I
+    }
+    ? I
+    : never
+    : never
+
+export type TablesUpdate<
+    PublicTableNameOrOptions extends
+    | keyof PublicSchema["Tables"]
+    | { schema: keyof Database },
+    TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+    ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+        Update: infer U
+    }
+    ? U
+    : never
+    : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+        Update: infer U
+    }
+    ? U
+    : never
+    : never
+
+export type Enums<
+    PublicEnumNameOrOptions extends
+    | keyof PublicSchema["Enums"]
+    | { schema: keyof Database },
+    EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = PublicEnumNameOrOptions extends { schema: keyof Database }
+    ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
+    : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
+    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+    PublicCompositeTypeNameOrOptions extends
+    | keyof PublicSchema["CompositeTypes"]
+    | { schema: keyof Database },
+    CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+        schema: keyof Database
+    }
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+    ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+    : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
+    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never

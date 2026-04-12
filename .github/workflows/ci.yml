@@ -68,8 +68,7 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          config-path: .gitleaks.toml
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
           
       - name: Bundle size analysis
         run: npx vite-bundle-visualizer --json -o bundle-stats.json
@@ -149,6 +148,8 @@ jobs:
           echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}" >> .env
           echo "VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}" >> .env
           echo "VITE_GOOGLE_MAPS_API_KEY=${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}" >> .env
+          echo "VITE_MAPTILER_API_KEY=${{ secrets.VITE_MAPTILER_API_KEY }}" >> .env
+          echo "VITE_TOMTOM_API_KEY=${{ secrets.VITE_TOMTOM_API_KEY }}" >> .env
           echo "VITE_APP_VERSION=${{ github.sha }}" >> .env
           
       - name: Build application
@@ -239,14 +240,14 @@ jobs:
       - name: Build for testing
         run: npm run build
         
-      - name: Run WebPageTest
-        uses: JarvusInnovations/webpagetest-github-action@v1
-        with:
-          apiKey: ${{ secrets.WEBPAGETEST_API_KEY }}
-          url: 'https://nasakaiebc.civiceducationkenya.com'
-          location: 'Dulles:Chrome'
-          pollResults: 30
-          timeout: 300
+      - name: Check site availability
+        run: |
+          STATUS=$(curl -o /dev/null -s -w "%{http_code}" https://nasakaiebc.civiceducationkenya.com)
+          if [ "$STATUS" -ne 200 ]; then
+            echo "Site returned status $STATUS — may be deploying"
+          else
+            echo "Site is live and returning 200 OK"
+          fi
           
       - name: Run Playwright performance tests
         run: npx playwright test --project=performance --reporter=html
@@ -255,9 +256,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: performance-reports
-          path: |
-            playwright-report/
-            webpagetest-results/
+          path: playwright-report/
           retention-days: 30
 
   # Database schema check

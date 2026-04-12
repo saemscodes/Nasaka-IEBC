@@ -42,7 +42,7 @@ const SystemAnalytics = () => {
         const fetchAnalytics = async () => {
             try {
                 // County contribution data
-                const { data: contribs } = await supabase
+                const { data: contribs } = await (supabase as any)
                     .from('iebc_office_contributions')
                     .select('submitted_county, device_metadata');
 
@@ -96,7 +96,7 @@ const SystemAnalytics = () => {
 
                 // Infrastructure stats: measure DB latency
                 const t0 = Date.now();
-                const { count } = await supabase
+                const { count } = await (supabase as any)
                     .from('iebc_office_contributions')
                     .select('id', { count: 'exact', head: true });
                 const latency = Date.now() - t0;

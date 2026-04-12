@@ -38,11 +38,44 @@ export default async function handler(req: Request, env?: any): Promise<Response
             return handleAuthCallback(req, headers, env);
         case 'download':
             return handleDownload(req, headers, env);
+        case '404':
+            return handle404Service(req, headers);
         case 'usage':
             return handleUsage(req, headers, env);
         default:
             return errorResponse('Invalid service. Use ?service=[name]', 400);
     }
+}
+
+// ---- Contextual 404 Service Logic ----
+
+const knownRoutes = ['/', '/map', '/voter-registration', '/voter-services', '/boundary-review', '/election-resources', '/data-api', '/admin/contributions', '/admin/reset-password', '/sign-petition', '/verify-signature', '/privacy', '/terms'];
+const VARIANTS = {
+    playful: ["Can't find `{path}`. Our IEBC agents searched every constituency.", "404: `{path}` went on safari without telling anyone.", "We searched under every ballot box; `{path}` wasn't there."],
+    apologetic: ["We couldn't find `{path}` — pole sana.", "Sorry, but `{path}` seems to have wandered off the grid."],
+    investigative: ["`{path}` has been requested {count} times. Investigating constituency gap.", "Pattern detected: `{path}` is a repeat offender."],
+    suggest_fix: ["Did you mean `{bestMatch}`? We couldn't find `{path}`.", "Try `{bestMatch}` instead of `{path}`."]
+};
+
+function levenshtein(a, b) {
+    const dp = Array.from({ length: a.length + 1 }, (_, i) => Array(b.length + 1).fill(0));
+    for (let i = 0; i <= a.length; i++) dp[i][0] = i;
+    for (let j = 0; j <= b.length; j++) dp[0][j] = j;
+    for (let i = 1; i <= a.length; i++) {
+        for (let j = 1; j <= b.length; j++) {
+            dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+        }
+    }
+    return dp[a.length][b.length];
+}
+
+async function handle404Service(req, headers) {
+    const url = new URL(req.url);
+    const path = url.searchParams.get('path') || '/';
+    let bucket = 'playful';
+    const variants = VARIANTS[bucket];
+    const message = variants[Math.floor(Math.random() * variants.length)].replace(/{path}/g, path);
+    return Response.json({ message, bucket, path }, { headers });
 }
 
 // ---- Service Handlers (Ported logic) ----

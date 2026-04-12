@@ -1,6 +1,7 @@
 import React from 'react';
 import { Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
+import i18next from 'i18next';
 
 // ── Diaspora state config ─────────────────────────────────────────────────────
 const DIASPORA_COLOURS = {
@@ -163,7 +164,7 @@ const OfficeMarker = ({ office, isSelected, isNearest, onSelect }) => {
                 <>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                     <span style={{ background: cfg.badge, color: cfg.badgeText, fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 99, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      {cfg.label}
+                      {i18next.t(`office.${office.designation_state === 'iebc_confirmed' ? 'confirmed' : office.designation_state === 'embassy_probable' ? 'probable' : 'embassy'}`)}
                     </span>
                     <span style={{ fontSize: 10, color: '#9CA3AF' }}>
                       {(office.mission_type || '').replace('_', ' ')}
@@ -177,7 +178,7 @@ const OfficeMarker = ({ office, isSelected, isNearest, onSelect }) => {
                   </div>
                   {(office.designated_2017 || office.designated_2022) && (
                     <div style={{ marginBottom: 8, display: 'flex', gap: 4, alignItems: 'center' }}>
-                      <span style={{ fontSize: 10, color: '#9CA3AF' }}>Designated:</span>
+                      <span style={{ fontSize: 10, color: '#9CA3AF' }}>{i18next.t('office.designated')}:</span>
                       {office.designated_2017 && <span style={{ background: '#EFF4FF', color: '#1452CC', fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 99 }}>2017</span>}
                       {office.designated_2022 && <span style={{ background: '#EFF4FF', color: '#1452CC', fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 99 }}>2022</span>}
                     </div>
@@ -187,22 +188,22 @@ const OfficeMarker = ({ office, isSelected, isNearest, onSelect }) => {
                   {office.email && <a href={`mailto:${office.email}`} style={{ display: 'block', fontSize: 11, color: '#1E6BFF', marginBottom: 2 }}>✉️ {office.email}</a>}
                   {isConfirmed && office.registration_opens_at && (
                     <div style={{ marginTop: 8, padding: 8, background: '#F0FDF4', borderRadius: 8, fontSize: 11, color: '#166534' }}>
-                      <strong>Registration:</strong><br />
-                      {new Date(office.registration_opens_at).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      <strong>{i18next.t('office.voterRegTitle')}:</strong><br />
+                      {new Date(office.registration_opens_at).toLocaleDateString(i18next.language.includes('sw') ? 'sw-KE' : 'en-KE', { day: 'numeric', month: 'short', year: 'numeric' })}
                       {' → '}
                       {new Date(office.registration_closes_at).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </div>
                   )}
                   {isProbable && (
                     <div style={{ marginTop: 8, padding: 8, background: '#FFFBEB', borderRadius: 8, fontSize: 11, color: '#92400E' }}>
-                      <strong>⏳ Awaiting IEBC Confirmation</strong><br />
-                      Likely confirmed for 2027 based on previous cycles.
+                      <strong>⏳ {i18next.t('office.awaitingConfirmation')}</strong><br />
+                      {i18next.t('office.probableDesc', 'Likely confirmed for 2027 based on previous cycles.')}
                     </div>
                   )}
                   {!isConfirmed && !isProbable && (
                     <div style={{ marginTop: 8, padding: 8, background: '#EFF4FF', borderRadius: 8, fontSize: 11, color: '#1E40AF' }}>
-                      <strong>📋 Inquiry Centre</strong><br />
-                      Contact for diaspora voter registration queries.
+                      <strong>📋 {i18next.t('office.inquiryCentre')}</strong><br />
+                      {i18next.t('office.diasporaInfoDesc')}
                     </div>
                   )}
                   {office.distance && (
@@ -226,7 +227,7 @@ const OfficeMarker = ({ office, isSelected, isNearest, onSelect }) => {
               {office.office_location}
             </p>
             <p className="text-ios-gray-500 text-xs">
-              {office.county} County
+              {office.county} {i18next.t('office.countyLabel', 'County')}
             </p>
             {office.distance && (
               <p className="text-ios-blue text-xs font-medium mt-1">

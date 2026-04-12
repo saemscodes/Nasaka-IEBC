@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useMapEvents } from 'react-leaflet';
 import MapContainer from '@/components/IEBCOffice/MapContainer';
 import SearchBar from '@/components/IEBCOffice/SearchBar';
 import GeoJSONLayerManager, { searchNearbyOffices } from '@/components/IEBCOffice/GeoJSONLayerManager';
@@ -30,6 +31,68 @@ import '@maplibre/maplibre-gl-leaflet';
 import { SEOHead, slugify, deslugify } from '@/components/SEO/SEOHead';
 import { resolveLocation } from '@/lib/geocoding/pipeline';
 import { debounce } from '@/lib/searchUtils';
+
+const MapBoundsListener = ({ onBoundsChange }) => {
+  const map = useMapEvents({
+    moveend: () => {
+      const bounds = map.getBounds();
+      const zoom = map.getZoom();
+      onBoundsChange({
+        minLat: bounds.getSouth(),
+        minLng: bounds.getWest(),
+        maxLat: bounds.getNorth(),
+        maxLng: bounds.getEast()
+      }, zoom);
+    },
+    zoomend: () => {
+      const bounds = map.getBounds();
+      const zoom = map.getZoom();
+      onBoundsChange({
+        minLat: bounds.getSouth(),
+        minLng: bounds.getWest(),
+        maxLat: bounds.getNorth(),
+        maxLng: bounds.getEast()
+      }, zoom);
+    }
+  });
+  return null;
+};
+
+const MapZoomDisclaimer = ({ isVisible }) => (
+  <AnimatePresence>
+    {isVisible && (
+      <motion.div
+        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+        className="mb-3 pointer-events-none max-w-[260px] text-center"
+      >
+        <div
+          className="px-4 py-3 rounded-2xl shadow-2xl backdrop-blur-2xl flex items-center space-x-3 border"
+          style={{
+            background: 'linear-gradient(135deg, rgba(30, 107, 255, 0.9), rgba(20, 80, 200, 0.95))',
+            borderColor: 'rgba(255, 255, 255, 0.25)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3)'
+          }}
+        >
+          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center shrink-0 shadow-inner border border-white/10">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div className="flex flex-col items-start min-w-0">
+            <span className="text-[10px] font-black uppercase tracking-widest text-white/70 leading-none mb-1">
+              {t('splash.precisionViewTitle', 'Precision View')}
+            </span>
+            <span className="text-[12px] font-black text-white leading-tight">
+              {t('splash.precisionViewDesc', 'Zoom in (Level 12+) to see all 30k+ registration centres')}
+            </span>
+          </div>
+        </div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
 
 const IEBCOfficeMap = () => {
   const navigate = useNavigate();
@@ -62,7 +125,7 @@ const IEBCOfficeMap = () => {
   // CRITICAL: Determine if we have location access
   const hasLocationAccess = !!userLocation;
 
-  const { offices, loading, error, offlineWarning, isOffline, searchOffices, refetch } = useIEBCOffices();
+  const { offices, viewportOffices, loading, error, offlineWarning, isOffline, searchOffices, refetch, fetchInBounds } = useIEBCOffices();
   const {
     mapCenter,
     mapZoom,
@@ -100,6 +163,7 @@ const IEBCOfficeMap = () => {
   const [radiusCenter, setRadiusCenter] = useState(null);
   const [radiusKm, setRadiusKm] = useState(5);
   const [isRadiusAnimating, setIsRadiusAnimating] = useState(false);
+  const [showZoomDisclaimer, setShowZoomDisclaimer] = useState(false);
 
   // Handle URL query parameters from browser search bar
   useEffect(() => {
@@ -146,61 +210,119 @@ const IEBCOfficeMap = () => {
     const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_API_KEY;
     const TOMTOM_KEY = import.meta.env.VITE_TOMTOM_API_KEY;
 
-    // 1. MapTiler Standard (Vector)
-    // @ts-ignore
-    tileLayersRef.current.standard = L.maplibreGL({
-      style: `https://api.maptiler.com/maps/openstreetmap/style.json?key=${MAPTILER_KEY}`,
-      attribution: '&copy; <a href="https://www.maptiler.com/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      crossOrigin: true
-    });
+    // ── Shared config ──────────────────────────────────────────────────────────
+    const osmAttrib = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+    const mtAttrib = `&copy; <a href="https://www.maptiler.com/">MapTiler</a> ${osmAttrib}`;
+    const rasterOpts = { maxZoom: 20, updateWhenIdle: true, keepBuffer: 2, crossOrigin: true };
 
-    // 2. Esri Satellite (Raster)
+    // 1. MapTiler Standard (Vector) — requires MAPTILER_KEY
+    if (MAPTILER_KEY) {
+      // @ts-ignore
+      tileLayersRef.current.standard = L.maplibreGL({
+        style: `https://api.maptiler.com/maps/openstreetmap/style.json?key=${MAPTILER_KEY}`,
+        attribution: mtAttrib,
+        crossOrigin: true
+      });
+    } else {
+      tileLayersRef.current.standard = L.tileLayer(
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        { attribution: osmAttrib, ...rasterOpts }
+      );
+    }
+
+    // 2. Esri Satellite (Raster) — no key required
     tileLayersRef.current.satellite = L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
         attribution: '&copy; <a href="https://www.esri.com/">Esri</a>',
-        maxZoom: 19,
-        updateWhenIdle: true,
-        keepBuffer: 2,
-        crossOrigin: true
+        ...rasterOpts
       }
     );
 
-    // 3. MapTiler Dark (The "Community Favorite" from your source)
-    // @ts-ignore
-    tileLayersRef.current.dark = L.maplibreGL({
-      style: `https://api.maptiler.com/maps/openstreetmap-dark/style.json?key=${MAPTILER_KEY}`,
-      attribution: '&copy; <a href="https://www.maptiler.com/">MapTiler</a>'
-    });
+    // 3. TomTom Retro Style — requires TOMTOM_KEY
+    if (TOMTOM_KEY) {
+      // @ts-ignore
+      tileLayersRef.current.retro = L.tileLayer(
+        `https://{s}.api.tomtom.com/map/1/tile/basic/main/{z}/{x}/{y}.png?key=${TOMTOM_KEY}`,
+        {
+          attribution: '&copy; <a href="https://www.tomtom.com/">TomTom</a>',
+          subdomains: 'abcd',
+          ...rasterOpts
+        }
+      );
+    } else {
+      tileLayersRef.current.retro = L.tileLayer(
+        'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+        {
+          attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a> ' + osmAttrib,
+          subdomains: 'abcd',
+          ...rasterOpts
+        }
+      );
+    }
 
-    // 4. MapTiler Outdoor / Green
-    // @ts-ignore
-    tileLayersRef.current.green = L.maplibreGL({
-      style: `https://api.maptiler.com/maps/outdoor-v2/style.json?key=${MAPTILER_KEY}`,
-      attribution: '&copy; <a href="https://www.maptiler.com/">MapTiler</a>'
-    });
-
-    // 5. TomTom Retro Style (Historical/Classic feel)
-    // @ts-ignore
-    tileLayersRef.current.retro = L.tileLayer(
-      `https://{s}.api.tomtom.com/map/1/tile/basic/main/{z}/{x}/{y}.png?key=${TOMTOM_KEY}`,
+    // 7. Stadia Alidade Smooth — no key required ✨
+    tileLayersRef.current.stadia = L.tileLayer(
+      'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png',
       {
-        attribution: '&copy; <a href="https://www.tomtom.com/">TomTom</a>',
-        subdomains: 'abcd'
+        attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> ' + osmAttrib,
+        ...rasterOpts
       }
     );
 
-    // 6. MapTiler Voyager / Blue
-    // @ts-ignore
-    tileLayersRef.current.blue = L.maplibreGL({
-      style: `https://api.maptiler.com/maps/voyager/style.json?key=${MAPTILER_KEY}`,
-      attribution: '&copy; <a href="https://www.maptiler.com/">MapTiler</a>'
-    });
+    // 8. Stadia Alidade Smooth Dark — no key required 🌙
+    tileLayersRef.current['stadia-dark'] = L.tileLayer(
+      'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png',
+      {
+        attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> ' + osmAttrib,
+        ...rasterOpts
+      }
+    );
 
-    // Initial base map selection based on theme
-    const initialLayer = isDark ? 'dark' : 'standard';
+    // 9. CartoDB Positron (clean, minimal) — no key required 🗺️
+    tileLayersRef.current.carto = L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+      {
+        attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a> ' + osmAttrib,
+        subdomains: 'abcd',
+        ...rasterOpts
+      }
+    );
+
+    // 10. CartoDB Dark Matter — no key required 🌑
+    tileLayersRef.current['carto-dark'] = L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+      {
+        attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a> ' + osmAttrib,
+        subdomains: 'abcd',
+        ...rasterOpts
+      }
+    );
+
+    // 11. OpenTopoMap — no key required 🏔️
+    tileLayersRef.current.topo = L.tileLayer(
+      'https://tile.opentopomap.org/{z}/{x}/{y}.png',
+      {
+        attribution: '&copy; <a href="https://opentopomap.org">OpenTopoMap</a> ' + osmAttrib,
+        maxZoom: 17, updateWhenIdle: true, keepBuffer: 2, crossOrigin: true
+      }
+    );
+
+    // 12. Humanitarian OSM (HOT) — no key required ❤️
+    tileLayersRef.current.humanitarian = L.tileLayer(
+      'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+      {
+        attribution: '&copy; <a href="https://www.hotosm.org">Humanitarian OSM</a> ' + osmAttrib,
+        subdomains: 'abc',
+        ...rasterOpts
+      }
+    );
+
+    // Initial base map selection based on theme — carto-dark for dark mode (zero-key, always works)
+    const initialLayer = isDark ? 'carto-dark' : 'standard';
     tileLayersRef.current[initialLayer].addTo(map);
   }, [isDark]);
+
 
   // Enhanced office selection
   const handleOfficeSelect = useCallback(async (office) => {
@@ -348,8 +470,8 @@ const IEBCOfficeMap = () => {
 
         setTravelInsights({
           ...insights,
-          trafficCondition: insights.severity === 'low' ? 'Smooth traffic' :
-            insights.severity === 'medium' ? 'Moderate traffic' : 'Heavy traffic',
+          trafficCondition: insights.severity === 'low' ? t('bottomSheet.smoothTraffic', 'Smooth traffic') :
+            insights.severity === 'medium' ? t('bottomSheet.moderateTraffic', 'Moderate traffic') : t('bottomSheet.heavyTraffic', 'Heavy traffic'),
           trafficColor: insights.severity === 'low' ? 'text-green-600 dark:text-green-400' :
             insights.severity === 'medium' ? 'text-amber-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400',
           trafficIcon: 'car',
@@ -359,21 +481,21 @@ const IEBCOfficeMap = () => {
       } catch (err) {
         const trafficInfo = getTrafficInfo();
         setTravelInsights({
-          trafficCondition: trafficInfo?.description || 'Normal traffic',
+          trafficCondition: trafficInfo?.description || t('bottomSheet.normalTraffic', 'Normal traffic'),
           trafficIcon: trafficInfo?.icon || 'car',
           trafficColor: trafficInfo?.color || 'text-green-600 dark:text-green-400',
           routeDistance: (routes[0].summary.totalDistance / 1000).toFixed(1),
           routeTime: Math.round(routes[0].summary.totalTime / 60),
           severity: 'low',
           score: 10,
-          weatherDesc: 'Checking...',
+          weatherDesc: t('bottomSheet.checkingStatus', 'Checking...'),
           weatherIcon: 'cloudy'
         });
       }
     } else if (routes?.[0]) {
       const trafficInfo = getTrafficInfo();
       setTravelInsights({
-        trafficCondition: trafficInfo?.description || 'Normal traffic',
+        trafficCondition: trafficInfo?.description || t('bottomSheet.normalTraffic', 'Normal traffic'),
         trafficIcon: trafficInfo?.icon || 'car',
         trafficColor: trafficInfo?.color || 'text-green-500',
         routeDistance: (routes[0].summary.totalDistance / 1000).toFixed(1),
@@ -401,6 +523,16 @@ const IEBCOfficeMap = () => {
   const handleBaseMapChange = useCallback((mapId) => {
     setBaseMap(mapId);
   }, []);
+
+  const boundsChangeTimerRef = useRef(null);
+  const handleBoundsChange = useCallback((bounds, zoom) => {
+    // Debounce viewport fetches — animated zoom fires moveend+zoomend rapidly
+    if (boundsChangeTimerRef.current) clearTimeout(boundsChangeTimerRef.current);
+    boundsChangeTimerRef.current = setTimeout(() => {
+      fetchInBounds(bounds, zoom);
+    }, 300);
+    setShowZoomDisclaimer(zoom < 12 && mapMode === 'kenya');
+  }, [fetchInBounds, mapMode]);
 
   // Navigation handlers
   const handleBack = () => navigate(-1);
@@ -710,11 +842,11 @@ const IEBCOfficeMap = () => {
 
   // 🌓 Auto-switch base map based on theme (Sync with Global Theme)
   useEffect(() => {
-    // Only auto-switch if the user is currently on a "Standard" or "Dark" layer
-    // This allows them to stay on Satellite/Green/Retro if they manually picked it.
+    // Only auto-switch if the user is on Standard ↔ Carto-Dark (the managed pair).
+    // Any other manual selection (satellite, retro, stadia, topo, humanitarian, carto) is preserved.
     if (isDark && baseMap === 'standard') {
-      setBaseMap('dark');
-    } else if (!isDark && baseMap === 'dark') {
+      setBaseMap('carto-dark');
+    } else if (!isDark && baseMap === 'carto-dark') {
       setBaseMap('standard');
     }
   }, [isDark, baseMap]);
@@ -772,8 +904,7 @@ const IEBCOfficeMap = () => {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background">
-        <LoadingSpinner size="large" />
-        <p className="text-muted-foreground mt-4">{t('common.loading', 'Loading IEBC offices...')}</p>
+        <LoadingSpinner size="large" showPhrases={true} />
       </div>
     );
   }
@@ -956,7 +1087,8 @@ const IEBCOfficeMap = () => {
       </div>
 
       {/* Map Mode Toggle — Kenya / Diaspora */}
-      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 md:left-auto md:right-6 md:bottom-32 md:translate-x-0 z-[1000]">
+      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 md:left-auto md:right-6 md:bottom-32 md:translate-x-0 z-[1000] flex flex-col items-center md:items-end">
+        <MapZoomDisclaimer isVisible={showZoomDisclaimer} />
         <MapModeToggle mode={mapMode} onChange={handleMapModeChange} />
       </div>
 
@@ -1082,6 +1214,7 @@ const IEBCOfficeMap = () => {
         )}
       </AnimatePresence>
 
+
       {/* Floating Shortcut Card - Pops in right under the Route Badge ✊🏽🇰🇪 */}
       <AnimatePresence>
         {selectedOffice && currentRoute && (
@@ -1151,8 +1284,11 @@ const IEBCOfficeMap = () => {
           selectedOffice={selectedOffice}
           onNearbyOfficesFound={setNearbyOffices}
           baseMap={baseMap}
-          liveOffices={offices}
+          liveOffices={viewportOffices}
         />
+
+        {/* Viewport Bounds Listener */}
+        <MapBoundsListener onBoundsChange={handleBoundsChange} />
 
         {/* Last Tap Location Indicator - ONLY WITH LOCATION ACCESS */}
         {hasLocationAccess && lastTapLocation && (

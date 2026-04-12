@@ -1,9 +1,11 @@
 // src/components/IEBCOffice/ContributeLocationButton.jsx
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import ContributeLocationModal from './ContributeLocationModal';
 
 const ContributeLocationButton = ({ userLocation, onSuccess, variant = "default", showLabel = false, className = "" }) => {
+  const { t } = useTranslation('nasaka');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleSuccess = (result) => {
@@ -40,7 +42,7 @@ const ContributeLocationButton = ({ userLocation, onSuccess, variant = "default"
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsModalOpen(true)}
         className={buttonClasses}
-        aria-label="Contribute location data"
+        aria-label={t('contribute.ariaLabel', 'Contribute location data')}
       >
         <div className="flex items-center justify-center">
           <svg
@@ -59,7 +61,7 @@ const ContributeLocationButton = ({ userLocation, onSuccess, variant = "default"
             />
           </svg>
           {showLabel && (
-            <span className="ml-2 text-sm font-medium">Contribute Location</span>
+            <span className="ml-2 text-sm font-medium">{t('contribute.title', 'Contribute Location')}</span>
           )}
         </div>
       </motion.button>

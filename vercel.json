@@ -14,6 +14,16 @@
       "permanent": true
     },
     {
+      "source": "/docs",
+      "destination": "https://docs.nasakaiebc.civiceducationkenya.com/",
+      "permanent": true
+    },
+    {
+      "source": "/docs/(.*)",
+      "destination": "https://docs.nasakaiebc.civiceducationkenya.com/$1",
+      "permanent": true
+    },
+    {
       "source": "/IEBC.office",
       "destination": "/",
       "permanent": true
@@ -61,24 +71,52 @@
   ],
   "rewrites": [
     {
-      "source": "/api/v1/billing/paystack/:action",
-      "destination": "/api/v1/billing/paystack?action=:action"
+      "source": "/api/v1/locate",
+      "destination": "/api/v1/main?route=locate"
     },
     {
-      "source": "/api/v1/billing/pricing",
-      "destination": "/api/v1/billing/paystack?action=pricing"
+      "source": "/api/v1/boundary",
+      "destination": "/api/v1/main?route=boundary"
     },
     {
-      "source": "/api/v1/billing/initialize",
-      "destination": "/api/v1/billing/paystack?action=initialize"
+      "source": "/api/v1/coordinates",
+      "destination": "/api/v1/main?route=coordinates"
     },
     {
-      "source": "/api/v1/billing/verify",
-      "destination": "/api/v1/billing/paystack?action=verify"
+      "source": "/api/v1/counties",
+      "destination": "/api/v1/main?route=counties"
     },
     {
-      "source": "/api/v1/billing/webhook",
-      "destination": "/api/v1/billing/paystack?action=webhook"
+      "source": "/api/v1/health",
+      "destination": "/api/v1/main?route=health"
+    },
+    {
+      "source": "/api/v1/offices",
+      "destination": "/api/v1/main?route=offices"
+    },
+    {
+      "source": "/api/v1/offices/:id",
+      "destination": "/api/v1/main?route=offices&id=:id"
+    },
+    {
+      "source": "/api/v1/stats",
+      "destination": "/api/v1/main?route=stats"
+    },
+    {
+      "source": "/api/v1/status",
+      "destination": "/api/v1/main?route=status"
+    },
+    {
+      "source": "/api/v1/billing/paystack",
+      "destination": "/api/v1/billing/paystack"
+    },
+    {
+      "source": "/api/v1/enterprise/enquire",
+      "destination": "/api/services?service=enquire"
+    },
+    {
+      "source": "/api/v1/licenses/download",
+      "destination": "/api/services?service=download"
     },
     {
       "source": "/api/v1/auth/ceka/callback",
@@ -86,7 +124,7 @@
     },
     {
       "source": "/api/ai-proxy",
-      "destination": "/api/services?service=ai-proxy"
+      "destination": "/api/v1/main?route=ai-proxy"
     },
     {
       "source": "/api/create-signature-session",
@@ -109,16 +147,16 @@
       "destination": "/api/services?service=verify-voter"
     },
     {
-      "source": "/api/v1/enterprise/enquire",
-      "destination": "/api/services?service=enquire"
+      "source": "/api/404-message",
+      "destination": "/api/services?service=404"
     },
     {
-      "source": "/api/v1/licenses/download",
-      "destination": "/api/services?service=download"
+      "source": "/api/v1/(.*)",
+      "destination": "/api/v1/main?route=$1"
     },
     {
       "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "destination": "/api/services?service=$1"
     },
     {
       "source": "/(.*)",
@@ -134,8 +172,8 @@
           "value": "nosniff"
         },
         {
-          "key": "X-Frame-Options",
-          "value": "DENY"
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors 'self' https://www.civiceducationkenya.com https://civiceducationkenya.com https://civicedkenya.vercel.app"
         },
         {
           "key": "X-XSS-Protection",

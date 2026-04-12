@@ -75,7 +75,7 @@ export function SEOHead({
         ? Array.isArray(schema)
             ? schema
             : [schema]
-        : [generateWebsiteSchema(), generateFAQSchema()];
+        : [generateWebsiteSchema(), generateFAQSchema(), generateOrganizationSchema(), generateWebApplicationSchema()];
 
     const baseKeywords = "IEBC office, voter registration Kenya, where to register to vote, IEBC office near me, nearest IEBC office, IEBC constituency office, get registered Kenya, how to register as a voter, check voter registration, IEBC voter verification, transfer voter registration, IEBC contacts, IEBC office hours, IEBC office Nairobi, IEBC office Mombasa, IEBC office Kisumu, IEBC office Nakuru, IEBC office Eldoret, IEBC office Westlands, IEBC office Kasarani, IEBC office Embakasi, voter registration center, where to find IEBC office, visit IEBC constituency office, Investigate, Expose, Empower, Piga Firimbi, Uncensored Mtaani, The Deep Dive, Kanjo Kingdom, The Profiteers, Pandora Papers, Fertile Deception, Title Deals, Fatal Detour, Stolen Steps, Invisible Eyes, Femicide Crisis, Carbon Colony, Carbon Credits, Accountability, Fact-checking, Verification, Digital Surveillance, Shahara, Blow the Whistle, Extrajudicial Killings, Human Rights, Public Finance, Corruption, Land Rights, Ghetto Gava, Inspector Fisi, Saving Esther, The Big Picture, For Facts Sake, Sex Is, Thao, Where Are Our Children, Captured, Lost In The System, Invisible Chains, Sex For Gold, Protection for a Price, The Plunder Route to Panama, The Associates, Public Disservice, The Computer Misuse and Cybercrimes Act 2018, 2022 Presidential Election Petitions, Burden of Bullets, Built to Break, The Burning Question, My Cancer Story, Ghetto Rescue, Trapped in Debt, Ghost Hospitals, SHA 11B Fraud, Medical Tragedies, State Surveillance, Digital Privacy, Maasai Land Ownership, Counterfeit Fertilizer, Nairobi City Inspectorate, South Sudan, John Allan Namu";
     const finalKeywords = keywords ? `${keywords}, ${baseKeywords}` : baseKeywords;
@@ -293,5 +293,64 @@ export function generateBreadcrumbSchema(
             name: item.name,
             item: item.url.startsWith('http') ? item.url : `${SITE_URL}${item.url}`,
         })),
+    };
+}
+
+export function generateOrganizationSchema() {
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'Organization',
+        name: 'Civic Education Kenya (CEKA)',
+        alternateName: 'CEKA',
+        url: 'https://civiceducationkenya.com',
+        logo: `${SITE_URL}/1.webp`,
+        description: 'Civic Education Kenya (CEKA) builds digital civic tools that empower Kenyan citizens with transparent, verifiable access to public institutions, starting with the Independent Electoral and Boundaries Commission (IEBC).',
+        foundingDate: '2024',
+        areaServed: {
+            '@type': 'Country',
+            name: 'Kenya',
+        },
+        sameAs: [
+            'https://twitter.com/CivicEdKenya',
+        ],
+        contactPoint: {
+            '@type': 'ContactPoint',
+            contactType: 'customer support',
+            availableLanguage: ['English', 'Swahili'],
+        },
+    };
+}
+
+export function generateWebApplicationSchema() {
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'WebApplication',
+        name: 'Nasaka IEBC',
+        alternateName: 'Nasaka',
+        url: SITE_URL,
+        applicationCategory: 'GovernmentApplication',
+        operatingSystem: 'Any',
+        browserRequirements: 'Requires JavaScript. Requires HTML5.',
+        description: 'Interactive map and civic platform for locating, verifying, and navigating to all IEBC voter registration centres across Kenya\'s 47 counties, 290 constituencies, and 1,500+ wards — plus diaspora registration centres worldwide.',
+        offers: {
+            '@type': 'Offer',
+            price: '0',
+            priceCurrency: 'KES',
+        },
+        featureList: [
+            'Interactive office map with satellite + street views',
+            'Turn-by-turn routing to nearest IEBC office',
+            'Real-time fare estimates (Uber, Bolt, boda-boda)',
+            'Travel difficulty scoring with weather integration',
+            'Community-verified office locations',
+            'Diaspora registration centres worldwide',
+            'Offline route caching for low-connectivity areas',
+            'Progressive Web App (PWA) with install support',
+        ],
+        creator: {
+            '@type': 'Organization',
+            name: 'Civic Education Kenya (CEKA)',
+        },
+        inLanguage: ['en-KE', 'sw-KE'],
     };
 }

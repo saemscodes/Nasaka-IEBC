@@ -238,6 +238,8 @@ const OfficeBottomSheet = ({
   const [dragY, setDragY] = useState(0);
   const [showUberModal, setShowUberModal] = useState(false);
   const [showFareDetails, setShowFareDetails] = useState(false);
+  const [fareExpanded, setFareExpanded] = useState(false);
+  const [travelExpanded, setTravelExpanded] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isCollapsingForModal, setIsCollapsingForModal] = useState(false);
   const dragControls = useDragControls();
@@ -484,7 +486,7 @@ const OfficeBottomSheet = ({
                   <p className={`text-sm mt-1 line-clamp-1 transition-colors duration-300 ${isDark ? 'text-ios-gray-300' : 'text-muted-foreground'
                     }`}>
                     {isDiaspora
-                      ? `${office.city}, ${office.country}`
+                      ? [office.city, office.country].filter(Boolean).join(', ') || t('office.diasporaLocation', 'Diaspora Centre')
                       : (office.constituency_name && office.county
                         ? `${office.constituency_name}, ${office.county}`
                         : office.county || office.constituency_name || t('office.location', 'Location'))
@@ -560,7 +562,9 @@ const OfficeBottomSheet = ({
                     }`}>
                     <h2 className={`text-2xl font-bold transition-colors duration-300 ${isDark ? 'text-white' : 'text-foreground'
                       }`}>
-                      {office.office_name || office.constituency_name || t('office.officeName', 'IEBC Office')}
+                      {isDiaspora
+                        ? (office.mission_name || t('office.diasporaTitle', 'Diaspora Centre'))
+                        : (office.office_name || office.constituency_name || t('office.officeName', 'IEBC Office'))}
                     </h2>
                     {(() => {
                       const dn = getOfficeDisplayName(office);
@@ -635,326 +639,422 @@ const OfficeBottomSheet = ({
 
                   {/* FARE ESTIMATES CARD - ONLY SHOW IF LOCATION ACCESS GRANTED AND NOT DIASPORA */}
                   {hasLocationAccess && fareEstimates && !isDiaspora && (
-                    <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark
+                    <div className={`rounded-xl border transition-colors duration-300 overflow-hidden ${isDark
                       ? 'bg-gradient-to-br from-green-900/20 to-blue-900/20 border-green-700/30'
                       : 'bg-gradient-to-br from-green-50 to-blue-50 border-green-200'
                       }`}>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-2">
-                          <IconWallet className="w-5 h-5" />
-                          <div>
-                            <h4 className={`text-sm font-semibold ${isDark ? 'text-green-300' : 'text-green-800'
-                              }`}>
-                              {t('bottomSheet.estimatedRideCost', 'Estimated Ride Cost')}
-                            </h4>
-                            <div className="flex items-center space-x-2 mt-0.5">
-                              <span className={`text-xs ${trafficInfo?.color || 'text-gray-500'}`}>
-                                {trafficInfo?.icon?.includes('sun') ? <IconSun className="w-4 h-4 inline-block mr-1" /> : (trafficInfo?.icon?.includes('cloud') ? <IconRain className="w-4 h-4 inline-block mr-1" /> : <IconCar className="w-4 h-4 inline-block mr-1" />)}
-                                {trafficInfo?.description || t('bottomSheet.normalTraffic', 'Normal traffic')}
-                              </span>
-                              <span className={`text-xs ${isDark ? 'text-ios-gray-400' : 'text-gray-600'
-                                }`}>
-                                {distanceToOffice?.toFixed(1)} km
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => setShowFareDetails(!showFareDetails)}
-                          className={`text-xs px-3 py-1 rounded-full transition-colors ${isDark
-                            ? 'bg-ios-gray-700 text-ios-gray-300 hover:bg-ios-gray-600'
-                            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-                            }`}
-                        >
-                          {showFareDetails ? t('bottomSheet.hide', 'Hide') : t('bottomSheet.showAll', 'Show All')}
-                        </button>
-                      </div>
-
-                      {/* Cheapest Option Highlight */}
-                      {cheapestFare && (
-                        <div className={`rounded-lg p-3 mb-3 ${isDark ? 'bg-black/30' : 'bg-white/80'
-                          }`}>
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className={`text-xs font-medium ${isDark ? 'text-ios-gray-300' : 'text-gray-600'
-                                }`}>
-                                <IconSun className="w-3 h-3 inline-block mr-1" />
-                                {t('bottomSheet.cheapestOption', 'Cheapest Option')}
-                              </p>
-                              <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'
-                                }`}>
-                                {renderIcon(cheapestFare.icon)} {cheapestFare.displayName}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className={`text-2xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'
-                                }`}>
+                      {/* Summary Pill (collapsed) */}
+                      <button
+                        onClick={() => setFareExpanded(!fareExpanded)}
+                        className="w-full flex items-center justify-between p-4 text-left active:opacity-80 transition-opacity"
+                      >
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <IconWallet className="w-5 h-5 flex-shrink-0" />
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            {cheapestFare && (
+                              <span className={`text-xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>
                                 {formatFare(cheapestFare.total)}
-                              </p>
-                              <p className={`text-xs ${isDark ? 'text-ios-gray-400' : 'text-gray-500'
-                                }`}>
-                                ~{cheapestFare.estimatedMinutes} {t('bottomSheet.estimatedTime', 'min')}
-                              </p>
-                            </div>
+                              </span>
+                            )}
+                            <span className={`text-xs ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
+                              {distanceToOffice?.toFixed(1)} km
+                            </span>
+                            {cheapestFare && (
+                              <span className={`text-xs ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
+                                ~{cheapestFare.estimatedMinutes} min
+                              </span>
+                            )}
                           </div>
                         </div>
-                      )}
+                        <svg className={`w-4 h-4 flex-shrink-0 transition-transform duration-300 ${fareExpanded ? 'rotate-90' : ''} ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
 
-                      {/* Detailed Fare Breakdown */}
+                      {/* Extended Content */}
                       <AnimatePresence>
-                        {showFareDetails && fareEstimates && (
+                        {fareExpanded && (
                           <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="space-y-3 mt-3"
+                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                            className="overflow-hidden"
                           >
-                            {/* Uber Options */}
-                            <div>
-                              <p className={`text-xs font-semibold mb-2 ${isDark ? 'text-ios-gray-300' : 'text-gray-700'
-                                }`}>
-                                {t('bottomSheet.uberServices', 'Uber Services')}
-                              </p>
-                              <div className="grid grid-cols-2 gap-2">
-                                {Object.entries(fareEstimates.uber).map(([key, fare]) => (
-                                  <div
-                                    key={key}
-                                    className={`p-3 rounded-lg border ${isDark
-                                      ? 'bg-black/20 border-gray-700'
-                                      : 'bg-white/60 border-gray-200'
-                                      }`}
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <div>
-                                        <div className="flex items-center space-x-2">
-                                          <span className="text-sm">{renderIcon(fare.icon)}</span>
-                                          <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'
-                                            }`}>
-                                            {fare.displayName}
-                                          </span>
-                                        </div>
-                                        <p className={`text-xs mt-1 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'
-                                          }`}>
-                                          {fare.description}
-                                        </p>
-                                      </div>
-                                      <div className="text-right">
-                                        <p className={`text-sm font-bold ${isDark ? 'text-green-400' : 'text-green-600'
-                                          }`}>
-                                          {formatFare(fare.total)}
-                                        </p>
-                                        {fare.trafficSurcharge > 0 && (
-                                          <p className={`text-xs ${isDark ? 'text-orange-400' : 'text-orange-600'
-                                            }`}>
-                                            +{formatFare(fare.trafficSurcharge)}
-                                          </p>
-                                        )}
-                                      </div>
+                            <div className="px-4 pb-4">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center space-x-2">
+                                  <div>
+                                    <h4 className={`text-sm font-semibold ${isDark ? 'text-green-300' : 'text-green-800'
+                                      }`}>
+                                      {t('bottomSheet.estimatedRideCost', 'Estimated Ride Cost')}
+                                    </h4>
+                                    <div className="flex items-center space-x-2 mt-0.5">
+                                      <span className={`text-xs ${trafficInfo?.color || 'text-gray-500'}`}>
+                                        {trafficInfo?.icon?.includes('sun') ? <IconSun className="w-4 h-4 inline-block mr-1" /> : (trafficInfo?.icon?.includes('cloud') ? <IconRain className="w-4 h-4 inline-block mr-1" /> : <IconCar className="w-4 h-4 inline-block mr-1" />)}
+                                        {trafficInfo?.description || t('bottomSheet.normalTraffic', 'Normal traffic')}
+                                      </span>
+                                      <span className={`text-xs ${isDark ? 'text-ios-gray-400' : 'text-gray-600'
+                                        }`}>
+                                        {distanceToOffice?.toFixed(1)} km
+                                      </span>
                                     </div>
                                   </div>
-                                ))}
+                                </div>
+                                <button
+                                  onClick={() => setShowFareDetails(!showFareDetails)}
+                                  className={`text-xs px-3 py-1 rounded-full transition-colors ${isDark
+                                    ? 'bg-ios-gray-700 text-ios-gray-300 hover:bg-ios-gray-600'
+                                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                                    }`}
+                                >
+                                  {showFareDetails ? t('bottomSheet.hide', 'Hide') : t('bottomSheet.showAll', 'Show All')}
+                                </button>
                               </div>
-                            </div>
 
-                            {/* Bolt Options */}
-                            {fareEstimates.bolt && (
-                              <div>
-                                <p className={`text-xs font-semibold mb-2 ${isDark ? 'text-ios-gray-300' : 'text-gray-700'
+                              {/* Cheapest Option Highlight */}
+                              {cheapestFare && (
+                                <div className={`rounded-lg p-3 mb-3 ${isDark ? 'bg-black/30' : 'bg-white/80'
                                   }`}>
-                                  {t('bottomSheet.boltServices', 'Bolt Services')}
-                                </p>
-                                <div className="grid grid-cols-2 gap-2">
-                                  {Object.entries(fareEstimates.bolt).map(([key, fare]) => (
-                                    <div
-                                      key={key}
-                                      className={`p-3 rounded-lg border ${isDark
-                                        ? 'bg-black/20 border-gray-700'
-                                        : 'bg-white/60 border-gray-200'
-                                        }`}
-                                    >
-                                      <div className="flex items-center justify-between">
-                                        <div>
-                                          <div className="flex items-center space-x-2">
-                                            <span className="text-sm">{renderIcon(fare.icon)}</span>
-                                            <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'
-                                              }`}>
-                                              {fare.displayName}
-                                            </span>
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <p className={`text-xs font-medium ${isDark ? 'text-ios-gray-300' : 'text-gray-600'
+                                        }`}>
+                                        <IconSun className="w-3 h-3 inline-block mr-1" />
+                                        {t('bottomSheet.cheapestOption', 'Cheapest Option')}
+                                      </p>
+                                      <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'
+                                        }`}>
+                                        {renderIcon(cheapestFare.icon)} {cheapestFare.displayName}
+                                      </p>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className={`text-2xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'
+                                        }`}>
+                                        {formatFare(cheapestFare.total)}
+                                      </p>
+                                      <p className={`text-xs ${isDark ? 'text-ios-gray-400' : 'text-gray-500'
+                                        }`}>
+                                        ~{cheapestFare.estimatedMinutes} {t('bottomSheet.estimatedTime', 'min')}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Detailed Fare Breakdown */}
+                              <AnimatePresence>
+                                {showFareDetails && fareEstimates && (
+                                  <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="space-y-3 mt-3"
+                                  >
+                                    {/* Uber Options */}
+                                    <div>
+                                      <p className={`text-xs font-semibold mb-2 ${isDark ? 'text-ios-gray-300' : 'text-gray-700'
+                                        }`}>
+                                        {t('bottomSheet.uberServices', 'Uber Services')}
+                                      </p>
+                                      <div className="grid grid-cols-2 gap-2">
+                                        {Object.entries(fareEstimates.uber).map(([key, fare]) => (
+                                          <div
+                                            key={key}
+                                            className={`p-3 rounded-lg border ${isDark
+                                              ? 'bg-black/20 border-gray-700'
+                                              : 'bg-white/60 border-gray-200'
+                                              }`}
+                                          >
+                                            <div className="flex items-center justify-between">
+                                              <div>
+                                                <div className="flex items-center space-x-2">
+                                                  <span className="text-sm">{renderIcon(fare.icon)}</span>
+                                                  <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'
+                                                    }`}>
+                                                    {fare.displayName}
+                                                  </span>
+                                                </div>
+                                                <p className={`text-xs mt-1 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'
+                                                  }`}>
+                                                  {fare.description}
+                                                </p>
+                                              </div>
+                                              <div className="text-right">
+                                                <p className={`text-sm font-bold ${isDark ? 'text-green-400' : 'text-green-600'
+                                                  }`}>
+                                                  {formatFare(fare.total)}
+                                                </p>
+                                                {fare.trafficSurcharge > 0 && (
+                                                  <p className={`text-xs ${isDark ? 'text-orange-400' : 'text-orange-600'
+                                                    }`}>
+                                                    +{formatFare(fare.trafficSurcharge)}
+                                                  </p>
+                                                )}
+                                              </div>
+                                            </div>
                                           </div>
-                                          <p className={`text-xs mt-1 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'
-                                            }`}>
-                                            {fare.description}
-                                          </p>
-                                        </div>
-                                        <div className="text-right">
-                                          <p className={`text-sm font-bold ${isDark ? 'text-green-400' : 'text-green-600'
-                                            }`}>
-                                            {formatFare(fare.total)}
-                                          </p>
-                                          {fare.trafficSurcharge > 0 && (
-                                            <p className={`text-xs ${isDark ? 'text-orange-400' : 'text-orange-600'
-                                              }`}>
-                                              +{formatFare(fare.trafficSurcharge)}
-                                            </p>
-                                          )}
-                                        </div>
+                                        ))}
                                       </div>
                                     </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
 
-                            {/* Traffic Info */}
-                            {fareEstimates.traffic?.multiplier > 1 && (
-                              <div className={`text-xs p-2 rounded mt-2 ${isDark
-                                ? 'bg-orange-900/20 text-orange-300'
-                                : 'bg-orange-50 text-orange-700'
+                                    {/* Bolt Options */}
+                                    {fareEstimates.bolt && (
+                                      <div>
+                                        <p className={`text-xs font-semibold mb-2 ${isDark ? 'text-ios-gray-300' : 'text-gray-700'
+                                          }`}>
+                                          {t('bottomSheet.boltServices', 'Bolt Services')}
+                                        </p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                          {Object.entries(fareEstimates.bolt).map(([key, fare]) => (
+                                            <div
+                                              key={key}
+                                              className={`p-3 rounded-lg border ${isDark
+                                                ? 'bg-black/20 border-gray-700'
+                                                : 'bg-white/60 border-gray-200'
+                                                }`}
+                                            >
+                                              <div className="flex items-center justify-between">
+                                                <div>
+                                                  <div className="flex items-center space-x-2">
+                                                    <span className="text-sm">{renderIcon(fare.icon)}</span>
+                                                    <span className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'
+                                                      }`}>
+                                                      {fare.displayName}
+                                                    </span>
+                                                  </div>
+                                                  <p className={`text-xs mt-1 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'
+                                                    }`}>
+                                                    {fare.description}
+                                                  </p>
+                                                </div>
+                                                <div className="text-right">
+                                                  <p className={`text-sm font-bold ${isDark ? 'text-green-400' : 'text-green-600'
+                                                    }`}>
+                                                    {formatFare(fare.total)}
+                                                  </p>
+                                                  {fare.trafficSurcharge > 0 && (
+                                                    <p className={`text-xs ${isDark ? 'text-orange-400' : 'text-orange-600'
+                                                      }`}>
+                                                      +{formatFare(fare.trafficSurcharge)}
+                                                    </p>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Traffic Info */}
+                                    {fareEstimates.traffic?.multiplier > 1 && (
+                                      <div className={`text-xs p-2 rounded mt-2 ${isDark
+                                        ? 'bg-orange-900/20 text-orange-300'
+                                        : 'bg-orange-50 text-orange-700'
+                                        }`}>
+                                        <IconSun className="w-4 h-4 inline-block mr-1" />
+                                        {fareEstimates.traffic.description} - {t('bottomSheet.trafficSurchargeIncluded', 'Prices include traffic surcharge')}
+                                      </div>
+                                    )}
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+
+                              {/* Disclaimer */}
+                              <p className={`text-xs mt-3 italic ${isDark ? 'text-ios-gray-400' : 'text-gray-500'
                                 }`}>
-                                <IconSun className="w-4 h-4 inline-block mr-1" />
-                                {fareEstimates.traffic.description} - {t('bottomSheet.trafficSurchargeIncluded', 'Prices include traffic surcharge')}
-                              </div>
-                            )}
+                                {FARE_DISCLAIMER.en}
+                              </p>
+                            </div>
                           </motion.div>
                         )}
                       </AnimatePresence>
-
-                      {/* Disclaimer */}
-                      <p className={`text-xs mt-3 italic ${isDark ? 'text-ios-gray-400' : 'text-gray-500'
-                        }`}>
-                        {FARE_DISCLAIMER.en}
-                      </p>
                     </div>
                   )}
                   {/* ── TRAVEL DIFFICULTY CARD ── */}
                   {travelInsights && (
-                    <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark
+                    <div className={`rounded-xl border transition-colors duration-300 overflow-hidden ${isDark
                       ? 'bg-gradient-to-br from-blue-900/20 to-blue-900/20 border-blue-700/30'
                       : 'bg-gradient-to-br from-blue-50 to-blue-50 border-blue-200'
                       }`}>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-2">
-                          <IconCompass className="w-5 h-5" />
-                          <div>
-                            <h4 className={`text-sm font-semibold ${isDark ? 'text-blue-300' : 'text-blue-800'}`}>
-                              Travel Difficulty
-                            </h4>
-                            <p className={`text-xs mt-0.5 ${isDark ? 'text-ios-gray-400' : 'text-gray-600'}`}>
-                              Real-time conditions analysis
-                            </p>
-                          </div>
-                        </div>
-                        <span className={`text-xl font-bold px-3 py-1 rounded-xl ${travelInsights.severity === 'low'
-                          ? isDark ? 'bg-green-900/40 text-green-400' : 'bg-green-100 text-green-700'
-                          : travelInsights.severity === 'medium'
-                            ? isDark ? 'bg-yellow-900/40 text-yellow-400' : 'bg-yellow-100 text-yellow-700'
-                            : isDark ? 'bg-red-900/40 text-red-400' : 'bg-red-100 text-red-700'
-                          }`}>
-                          {travelInsights.score}
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2">
-                        {/* Weather */}
-                        <div className={`p-2.5 rounded-lg ${isDark ? 'bg-black/20' : 'bg-white/60'
-                          }`}>
-                          <p className={`text-xs font-medium ${isDark ? 'text-ios-gray-300' : 'text-gray-700'}`}>
-                            Weather
-                          </p>
-                          <p className={`text-sm font-semibold mt-0.5 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            {travelInsights.weatherDesc}
-                          </p>
+                      {/* Summary Pill (collapsed) */}
+                      <button
+                        onClick={() => setTravelExpanded(!travelExpanded)}
+                        className="w-full flex items-center justify-between p-4 text-left active:opacity-80 transition-opacity"
+                      >
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <IconCompass className="w-5 h-5 flex-shrink-0" />
+                          <span className={`text-xl font-bold ${travelInsights.severity === 'low'
+                            ? isDark ? 'text-green-400' : 'text-green-700'
+                            : travelInsights.severity === 'medium'
+                              ? isDark ? 'text-yellow-400' : 'text-yellow-700'
+                              : isDark ? 'text-red-400' : 'text-red-700'
+                            }`}>
+                            {travelInsights.score}<span className="text-xs font-medium opacity-60">/100</span>
+                          </span>
+                          {travelInsights.weatherDesc && (
+                            <span className={`text-xs ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
+                              {travelInsights.weatherDesc}
+                            </span>
+                          )}
                           {travelInsights.temperature !== null && (
-                            <p className={`text-xs mt-0.5 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
+                            <span className={`text-xs ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
                               {travelInsights.temperature}°C
-                            </p>
+                            </span>
                           )}
                         </div>
+                        <svg className={`w-4 h-4 flex-shrink-0 transition-transform duration-300 ${travelExpanded ? 'rotate-90' : ''} ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
 
-                        {/* Wind */}
-                        <div className={`p-2.5 rounded-lg ${isDark ? 'bg-black/20' : 'bg-white/60'
-                          }`}>
-                          <p className={`text-xs font-medium ${isDark ? 'text-ios-gray-300' : 'text-gray-700'}`}>
-                            Conditions
-                          </p>
-                          {travelInsights.windSpeed !== null && (
-                            <p className={`text-sm font-semibold mt-0.5 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                              <IconWindy className="w-4 h-4 inline-block mr-1" />
-                              {travelInsights.windSpeed} km/h
-                            </p>
-                          )}
-                          {travelInsights.precipProb !== null && travelInsights.precipProb > 0 && (
-                            <p className={`text-xs mt-0.5 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
-                              <IconRain className="w-4 h-4 inline-block mr-1" />
-                              {travelInsights.precipProb}% rain
-                            </p>
-                          )}
-                        </div>
-                      </div>
+                      {/* Extended Content */}
+                      <AnimatePresence>
+                        {travelExpanded && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="px-4 pb-4">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center space-x-2">
+                                  <div>
+                                    <h4 className={`text-sm font-semibold ${isDark ? 'text-blue-300' : 'text-blue-800'}`}>
+                                      {t('bottomSheet.travelDifficulty', 'Travel Difficulty')}
+                                    </h4>
+                                    <p className={`text-xs mt-0.5 ${isDark ? 'text-ios-gray-400' : 'text-gray-600'}`}>
+                                      {t('bottomSheet.realTimeAnalysis', 'Real-time conditions analysis')}
+                                    </p>
+                                  </div>
+                                </div>
+                                <span className={`text-xl font-bold px-3 py-1 rounded-xl ${travelInsights.severity === 'low'
+                                  ? isDark ? 'bg-green-900/40 text-green-400' : 'bg-green-100 text-green-700'
+                                  : travelInsights.severity === 'medium'
+                                    ? isDark ? 'bg-yellow-900/40 text-yellow-400' : 'bg-yellow-100 text-yellow-700'
+                                    : isDark ? 'bg-red-900/40 text-red-400' : 'bg-red-100 text-red-700'
+                                  }`}>
+                                  {travelInsights.score}
+                                </span>
+                              </div>
 
-                      {/* Score Explanation */}
-                      <p className={`text-xs mt-3 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
-                        Score: 0 (easiest) → 100 (hardest). Factors: distance, time, traffic, weather.
-                      </p>
+                              <div className="grid grid-cols-2 gap-2">
+                                {/* Weather */}
+                                <div className={`p-2.5 rounded-lg ${isDark ? 'bg-black/20' : 'bg-white/60'
+                                  }`}>
+                                  <p className={`text-xs font-medium ${isDark ? 'text-ios-gray-300' : 'text-gray-700'}`}>
+                                    {t('offline.weather', 'Weather')}
+                                  </p>
+                                  <p className={`text-sm font-semibold mt-0.5 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                    {travelInsights.weatherDesc}
+                                  </p>
+                                  {travelInsights.temperature !== null && (
+                                    <p className={`text-xs mt-0.5 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
+                                      {travelInsights.temperature}°C
+                                    </p>
+                                  )}
+                                </div>
 
-                      {travelInsights.stale && (
-                        <p className={`text-xs mt-1 italic ${isDark ? 'text-ios-gray-500' : 'text-gray-400'}`}>
-                          ⏱ Some data may be stale — check again when online
-                        </p>
-                      )}
+                                {/* Wind */}
+                                <div className={`p-2.5 rounded-lg ${isDark ? 'bg-black/20' : 'bg-white/60'
+                                  }`}>
+                                  <p className={`text-xs font-medium ${isDark ? 'text-ios-gray-300' : 'text-gray-700'}`}>
+                                    {t('offline.traffic', 'Conditions')}
+                                  </p>
+                                  {travelInsights.windSpeed !== null && (
+                                    <p className={`text-sm font-semibold mt-0.5 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                      <IconWindy className="w-4 h-4 inline-block mr-1" />
+                                      {travelInsights.windSpeed} km/h
+                                    </p>
+                                  )}
+                                  {travelInsights.precipProb !== null && travelInsights.precipProb > 0 && (
+                                    <p className={`text-xs mt-0.5 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
+                                      <IconRain className="w-4 h-4 inline-block mr-1" />
+                                      {travelInsights.precipProb}% rain
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
 
-                      {/* AI Intelligence Layer Display — Nasaka Blue Theme */}
-                      {travelInsights.aiScore !== null && travelInsights.aiScore !== undefined && (
-                        <div className={`mt-4 p-3 rounded-xl border ${isDark ? 'bg-[#0b63c6]/10 border-[#0b63c6]/30' : 'bg-blue-50 border-blue-200'}`}>
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <div className={`w-2 h-2 rounded-full ${travelInsights.aiConfidence === 'high' ? 'bg-green-500' : travelInsights.aiConfidence === 'medium' ? 'bg-yellow-500' : 'bg-red-500'} animate-pulse`} />
-                              <span className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-blue-400' : 'text-[#0b63c6]'}`}>
-                                AI Intelligence
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              {travelInsights.aiGroundTruthVerified && (
-                                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-600 dark:text-green-400 font-bold">✓ Ground Truth</span>
+                              {/* Score Explanation */}
+                              <p className={`text-xs mt-3 ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
+                                {t('bottomSheet.travelScoreExplanation', 'Score: 0 (easiest) → 100 (hardest). Factors: distance, time, traffic, weather.')}
+                              </p>
+
+                              {travelInsights.stale && (
+                                <p className={`text-xs mt-1 italic ${isDark ? 'text-ios-gray-500' : 'text-gray-400'}`}>
+                                  {t('bottomSheet.staleDataWarning', '⏱ Some data may be stale — check again when online')}
+                                </p>
                               )}
-                              <span className={`text-lg font-black ${travelInsights.aiScore <= 25 ? (isDark ? 'text-green-400' : 'text-green-600')
-                                : travelInsights.aiScore <= 50 ? (isDark ? 'text-yellow-400' : 'text-yellow-600')
-                                  : travelInsights.aiScore <= 75 ? (isDark ? 'text-orange-400' : 'text-orange-600')
-                                    : (isDark ? 'text-red-400' : 'text-red-600')
-                                }`}>{travelInsights.aiScore}<span className="text-xs font-medium opacity-60">/100</span></span>
+
+                              {/* AI Intelligence Layer Display — Nasaka Blue Theme */}
+                              {travelInsights.aiScore !== null && travelInsights.aiScore !== undefined && (
+                                <div className={`mt-4 p-3 rounded-xl border ${isDark ? 'bg-[#0b63c6]/10 border-[#0b63c6]/30' : 'bg-blue-50 border-blue-200'}`}>
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                      <div className={`w-2 h-2 rounded-full ${travelInsights.aiConfidence === 'high' ? 'bg-green-500' : travelInsights.aiConfidence === 'medium' ? 'bg-yellow-500' : 'bg-red-500'} animate-pulse`} />
+                                      <span className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-blue-400' : 'text-[#0b63c6]'}`}>
+                                        {t('bottomSheet.aiIntelligence', 'AI Intelligence')}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                      {travelInsights.aiGroundTruthVerified && (
+                                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-600 dark:text-green-400 font-bold">✓ {t('bottomSheet.groundTruth', 'Ground Truth')}</span>
+                                      )}
+                                      <span className={`text-lg font-black ${travelInsights.aiScore <= 25 ? (isDark ? 'text-green-400' : 'text-green-600')
+                                        : travelInsights.aiScore <= 50 ? (isDark ? 'text-yellow-400' : 'text-yellow-600')
+                                          : travelInsights.aiScore <= 75 ? (isDark ? 'text-orange-400' : 'text-orange-600')
+                                            : (isDark ? 'text-red-400' : 'text-red-600')
+                                        }`}>{travelInsights.aiScore}<span className="text-xs font-medium opacity-60">/100</span></span>
+                                    </div>
+                                  </div>
+                                  {travelInsights.aiReason && (
+                                    <p className={`text-xs leading-relaxed ${isDark ? 'text-blue-100/70' : 'text-blue-900/70'}`}>
+                                      {travelInsights.aiReason}
+                                    </p>
+                                  )}
+                                  {travelInsights.aiGroundTruthNote && (
+                                    <p className={`text-[10px] mt-1.5 italic ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
+                                      🌍 {travelInsights.aiGroundTruthNote}
+                                    </p>
+                                  )}
+                                  <div className={`text-[9px] mt-2 flex items-center gap-1 ${isDark ? 'text-ios-gray-500' : 'text-gray-400'}`}>
+                                    <span>{t('bottomSheet.poweredBy', 'Powered by')}</span>
+                                    <span className="font-bold uppercase text-[#0b63c6]">{
+                                      travelInsights.aiProvider === 'consensus' ? 'Nasaka Consensus'
+                                        : travelInsights.aiProvider === 'mistral' ? 'Mistral-7B'
+                                          : travelInsights.aiProvider === 'groq' ? 'Groq/Llama 3'
+                                            : travelInsights.aiProvider === 'gemini' ? 'Gemini'
+                                              : travelInsights.aiProvider === 'cached' ? 'Cached'
+                                                : 'Algorithm'
+                                    }</span>
+                                    <span>•</span>
+                                    <span>{travelInsights.aiConfidence} {t('bottomSheet.confidence', 'confidence')}</span>
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                          </div>
-                          {travelInsights.aiReason && (
-                            <p className={`text-xs leading-relaxed ${isDark ? 'text-blue-100/70' : 'text-blue-900/70'}`}>
-                              {travelInsights.aiReason}
-                            </p>
-                          )}
-                          {travelInsights.aiGroundTruthNote && (
-                            <p className={`text-[10px] mt-1.5 italic ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
-                              🌍 {travelInsights.aiGroundTruthNote}
-                            </p>
-                          )}
-                          <div className={`text-[9px] mt-2 flex items-center gap-1 ${isDark ? 'text-ios-gray-500' : 'text-gray-400'}`}>
-                            <span>Powered by</span>
-                            <span className="font-bold uppercase text-[#0b63c6]">{
-                              travelInsights.aiProvider === 'consensus' ? 'Nasaka Consensus'
-                                : travelInsights.aiProvider === 'mistral' ? 'Mistral-7B'
-                                  : travelInsights.aiProvider === 'groq' ? 'Groq/Llama 3'
-                                    : travelInsights.aiProvider === 'gemini' ? 'Gemini'
-                                      : travelInsights.aiProvider === 'cached' ? 'Cached'
-                                        : 'Algorithm'
-                            }</span>
-                            <span>•</span>
-                            <span>{travelInsights.aiConfidence} confidence</span>
-                          </div>
-                        </div>
-                      )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   )}
 
                   {/* Location Information */}
                   <div className="space-y-2">
-                    {office.constituency_name && (
+                    {isDiaspora ? (
+                      (office.city || office.country) && (
+                        <div className="flex items-center text-sm">
+                          <span className={isDark ? 'text-ios-gray-400' : 'text-gray-500'}>
+                            <IconPin className="w-4 h-4 inline-block mr-1 opacity-70" />
+                            {[office.city, office.country].filter(Boolean).join(', ')}
+                          </span>
+                        </div>
+                      )
+                    ) : office.constituency_name && (
                       <div className="flex items-center text-sm">
                         <span className={isDark ? 'text-ios-gray-400' : 'text-gray-500'}>
                           <IconPin className="w-4 h-4 inline-block mr-1 opacity-70" />

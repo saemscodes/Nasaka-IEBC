@@ -2,6 +2,8 @@
 // REAL 2024-2025 pricing data for Kenya ride-hailing services
 // Based on verified August 2024 pricing updates
 
+import i18next from 'i18next';
+
 /**
  * Current Kenya pricing structure (as of August 2024)
  * Sources: Semafor Africa, Business Daily Kenya, TechCabal
@@ -360,6 +362,7 @@ export function estimateTravelTime(distanceKm) {
  * DISCLAIMER TEXT - Important for users
  */
 export const FARE_DISCLAIMER = {
-  en: "Estimated fares based on August 2024 rates. Actual fare may vary due to real-time demand, route taken, and traffic conditions. Final price shown in the app before confirming your ride.",
-  sw: "Bei zilizokadiria kulingana na viwango vya Agosti 2024. Bei halisi inaweza kutofautiana kutokana na mahitaji ya wakati halisi, njia iliyochukuliwa, na hali ya trafiki. Bei ya mwisho inaonyeshwa kwenye programu kabla ya kuthibitisha safari yako."
+  get text() {
+    return i18next.t('bottomSheet.fareDisclaimer', "Estimated fares based on August 2024 rates. Actual fare may vary due to real-time demand, route taken, and traffic conditions. Final price shown in the app before confirming your ride.");
+  }
 };

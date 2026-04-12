@@ -19,19 +19,19 @@ const KenyaHeatMap = () => {
 
   const fetchMapStatistics = async () => {
     try {
-      const { data: counties, error: countiesError } = await supabase
+      const { data: counties, error: countiesError } = await (supabase as any)
         .from('counties')
         .select('*');
 
       if (countiesError) throw countiesError;
 
-      const { data: constituencies, error: constituenciesError } = await supabase
+      const { data: constituencies, error: constituenciesError } = await (supabase as any)
         .from('constituencies')
         .select('*');
 
       if (constituenciesError) throw constituenciesError;
 
-      const totalVoters = counties?.reduce((sum, county) => 
+      const totalVoters = counties?.reduce((sum, county) =>
         sum + (county.total_count || 0), 0) || 0; // Use registration_target
 
       setMapStats({
@@ -60,8 +60,8 @@ const KenyaHeatMap = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <div className="w-full h-[500px] rounded-lg overflow-hidden border border-green-200 dark:border-green-700">
-                <iframe 
-                  src="https://www.google.com/maps/d/embed?mid=1YZGfnjJj9Ajzu6xhWEF_sg_RFB0j7NY&ehbc=2E312F&noprof=1" 
+                <iframe
+                  src="https://www.google.com/maps/d/embed?mid=1YZGfnjJj9Ajzu6xhWEF_sg_RFB0j7NY&ehbc=2E312F&noprof=1"
                   width="100%"
                   height="100%"
                   frameBorder="0"

@@ -32,9 +32,9 @@ export class SignatureFlowService {
   static async processSignature(data: SignatureFlowData, petitionTitle?: string): Promise<SignatureResult> {
     try {
       console.log('🚀 Starting signature processing with crypto integration');
-      
+
       // Check for duplicate signatures
-      const { data: existingSignature, error: checkError } = await supabase
+      const { data: existingSignature, error: checkError } = await (supabase as any)
         .from('signatures')
         .select('id')
         .eq('petition_id', data.petitionId)
@@ -71,7 +71,7 @@ export class SignatureFlowService {
       const keyInfo = await getKeyInfo();
 
       // Create signature record with crypto data
-      const { data: signature, error: signatureError } = await supabase
+      const { data: signature, error: signatureError } = await (supabase as any)
         .from('signatures')
         .insert({
           petition_id: data.petitionId,
@@ -128,7 +128,7 @@ export class SignatureFlowService {
       };
 
       const blockchainHash = await BlockchainService.generateBlockchainHash(blockchainHashData);
-      
+
       // Store blockchain hash
       await BlockchainService.storeBlockchainHash(signature.id, blockchainHash);
 
@@ -147,7 +147,7 @@ export class SignatureFlowService {
       console.log('📱 QR receipt generated');
 
       // Create comprehensive audit trail entry
-      await supabase
+      await (supabase as any)
         .from('audit_trail')
         .insert({
           action_type: 'signature_created_with_crypto',
@@ -158,11 +158,11 @@ export class SignatureFlowService {
             voter_ward: data.ward,
             receipt_code: qrResult.receiptCode,
             blockchain_hash: blockchainHash,
-            crypto_signature_hash: await this.hashString(cryptoResult.signature),
+            crypto_signature_hash: await (this as any).hashString(cryptoResult.signature),
             key_version: cryptoResult.keyVersion,
             device_id: cryptoResult.deviceId,
             verification_method: 'ECDSA-P384-SHA384',
-            ip_address: await this.getClientIP(),
+            ip_address: await (this as any).getClientIP(),
             user_agent: navigator.userAgent,
             crypto_verified: true
           }
@@ -200,9 +200,9 @@ export class SignatureFlowService {
   }> {
     try {
       console.log('🔍 Starting signature verification...');
-      
+
       const qrResult = await QRCodeService.verifyQRReceipt(receiptCode, lastFourDigits);
-      
+
       if (!qrResult.isValid || !qrResult.data) {
         return qrResult;
       }
@@ -210,7 +210,7 @@ export class SignatureFlowService {
       console.log('📱 QR receipt verified');
 
       // Get signature with crypto data
-      const { data: signature } = await supabase
+      const { data: signature } = await (supabase as any)
         .from('signatures')
         .select('blockchain_hash, signature_certificate, verification_status')
         .eq('id', qrResult.data.signatureId)

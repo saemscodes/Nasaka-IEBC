@@ -18,6 +18,33 @@ import { useMapControls } from '../../hooks/useMapControls';
 import { findNearestOffice, findNearestOffices } from '../../utils/geoUtils';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Thermometer, Wind, CloudRain, ChevronRight } from 'lucide-react';
+import { useMapEvents } from 'react-leaflet';
+
+const MapBoundsListener = ({ onBoundsChange }) => {
+  const map = useMapEvents({
+    moveend: () => {
+      const bounds = map.getBounds();
+      const zoom = map.getZoom();
+      onBoundsChange({
+        minLat: bounds.getSouth(),
+        minLng: bounds.getWest(),
+        maxLat: bounds.getNorth(),
+        maxLng: bounds.getEast()
+      }, zoom);
+    },
+    zoomend: () => {
+      const bounds = map.getBounds();
+      const zoom = map.getZoom();
+      onBoundsChange({
+        minLat: bounds.getSouth(),
+        minLng: bounds.getWest(),
+        maxLat: bounds.getNorth(),
+        maxLng: bounds.getEast()
+      }, zoom);
+    }
+  });
+  return null;
+};
 
 const EnhancedIEBCOfficeMap = () => {
   const { t } = useTranslation('nasaka');
@@ -26,7 +53,7 @@ const EnhancedIEBCOfficeMap = () => {
   const userLocation = state?.userLocation;
   const manualEntry = state?.manualEntry;
 
-  const { offices, loading, error, searchOffices } = useIEBCOffices();
+  const { offices, viewportOffices, loading, error, searchOffices, fetchInBounds } = useIEBCOffices();
   const {
     mapCenter,
     mapZoom,
@@ -136,6 +163,10 @@ const EnhancedIEBCOfficeMap = () => {
     );
   }, []);
 
+  const handleBoundsChange = useCallback((bounds, zoom) => {
+    fetchInBounds(bounds, zoom);
+  }, [fetchInBounds]);
+
   const handleBack = () => {
     navigate(-1);
   };
@@ -163,8 +194,7 @@ const EnhancedIEBCOfficeMap = () => {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-ios-bg">
-        <LoadingSpinner size="large" />
-        <p className="text-ios-gray-600 mt-4">Loading IEBC offices...</p>
+        <LoadingSpinner size="large" showPhrases={true} />
       </div>
     );
   }
@@ -217,7 +247,11 @@ const EnhancedIEBCOfficeMap = () => {
           activeLayers={activeLayers}
           onOfficeSelect={handleOfficeSelect}
           selectedOffice={selectedOffice}
+          liveOffices={viewportOffices}
         />
+
+        {/* Viewport Bounds Listener */}
+        <MapBoundsListener onBoundsChange={handleBoundsChange} />
 
         {/* Routing System */}
         {userLocation && selectedOffice && (

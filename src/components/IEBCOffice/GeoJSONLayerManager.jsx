@@ -146,25 +146,38 @@ const GeoJSONLayerManager = ({
           verified: office.verified,
           formatted_address: office.formatted_address,
           displayName: office.displayName,
+          office_type: office.office_type,
           type: office.type || (office.designation_state ? 'diaspora' : 'office')
         }
       }))
     };
   }, [liveOffices]);
 
-  const createOfficeIcon = (isSelected = false) => {
+  const createOfficeIcon = (properties, isSelected = false, zoom = 14) => {
+    const isCentre = properties.office_type === 'REGISTRATION_CENTRE';
+    const color = isCentre ? '#34C759' : '#007AFF'; // Green for centres, Blue for offices
+
+    // DYNAMIC SCALING ✊🏽🇰🇪
+    let size = 24;
+    if (zoom < 10) size = 16;
+    else if (zoom < 13) size = 20;
+    else if (zoom > 16) size = 32;
+
+    const innerSize = Math.max(8, Math.floor(size / 3));
+
     return L.divIcon({
       html: `
         <div class="relative">
-          <div class="w-6 h-6 bg-primary rounded-full border-2 border-background shadow-lg flex items-center justify-center ${isSelected ? 'scale-125 ring-2 ring-primary ring-opacity-50' : ''}">
-            <div class="w-2 h-2 bg-background rounded-full"></div>
+          <div class="rounded-full border-2 border-background shadow-lg flex items-center justify-center ${isSelected ? 'ring-2 ring-opacity-50' : ''}" 
+               style="background-color: ${color}; width: ${size}px; height: ${size}px; ${isSelected ? `ring-color: ${color}; transform: scale(1.25);` : ''}">
+            <div class="bg-background rounded-full" style="width: ${innerSize}px; height: ${innerSize}px;"></div>
           </div>
-          ${isSelected ? '<div class="absolute inset-0 rounded-full bg-primary animate-ping opacity-20"></div>' : ''}
+          ${isSelected ? `<div class="absolute inset-0 rounded-full animate-ping opacity-20" style="background-color: ${color}"></div>` : ''}
         </div>
       `,
-      className: `office-marker ${isSelected ? 'selected' : ''}`,
-      iconSize: [24, 24],
-      iconAnchor: [12, 12]
+      className: `office-marker ${isSelected ? 'selected' : ''} ${isCentre ? 'is-centre' : 'is-office'}`,
+      iconSize: [size, size],
+      iconAnchor: [size / 2, size / 2]
     });
   };
 
@@ -202,8 +215,9 @@ const GeoJSONLayerManager = ({
       },
       pointToLayer: (feature, latlng) => {
         const isSelected = selectedOffice && selectedOffice.id === feature.properties.id;
+        const currentZoom = map.getZoom();
         return L.marker(latlng, {
-          icon: createOfficeIcon(isSelected)
+          icon: createOfficeIcon(feature.properties, isSelected, currentZoom)
         });
       }
     },
@@ -221,7 +235,7 @@ const GeoJSONLayerManager = ({
       pointToLayer: (feature, latlng) => {
         const isSelected = selectedOffice && selectedOffice.id === feature.properties.id;
         return L.marker(latlng, {
-          icon: createOfficeIcon(isSelected)
+          icon: createOfficeIcon(feature.properties, isSelected)
         });
       }
     },
@@ -315,6 +329,12 @@ const GeoJSONLayerManager = ({
       }
 
       if (!config?.url) {
+        // If it's the iebc-offices layer and we have data, just use it
+        if (layerId === 'iebc-offices' && liveOfficesGeoJSON.features.length >= 0) {
+          setLayerData(prev => ({ ...prev, [layerId]: liveOfficesGeoJSON }));
+          setLoading(prev => ({ ...prev, [layerId]: false }));
+          return;
+        }
         throw new Error(`No URL configured for layer: ${layerId}`);
       }
 
@@ -918,41 +938,54 @@ const GeoJSONLayerManager = ({
                   showCoverageOnHover={false}
                   key={`cluster-${layerId}-${data.features.length}`}
                 >
-                  {data.features.map((feature, idx) => {
-                    const [lng, lat] = feature.geometry.coordinates;
-                    const isSelected = selectedOffice && selectedOffice.id === feature.properties.id;
-                    const icon = feature.properties.type === 'diaspora'
-                      ? createDiasporaIcon(feature.properties, isSelected)
-                      : createOfficeIcon(isSelected);
+                  {data.features
+                    .filter(feature => {
+                      // TIERED RENDERING LOGIC:
+                      // Show CONSTITUENCY_OFFICE at all zoom levels
+                      // Show REGISTRATION_CENTRE only at Zoom >= 12
+                      // Show DIASPORA at all zoom levels
+                      if (feature.properties.type === 'diaspora') return true;
 
-                    return (
-                      <Marker
-                        key={`${feature.properties.id}-${idx}`}
-                        position={[lat, lng]}
-                        icon={icon}
-                        eventHandlers={{
-                          click: async () => {
-                            let office = feature.properties;
-                            if (office.type !== 'diaspora' && !office.office_location) {
-                              try {
-                                const { data: dbData } = await supabase
-                                  .from('iebc_offices')
-                                  .select('*')
-                                  .eq('id', office.id)
-                                  .single();
-                                if (dbData) office = { ...office, ...dbData };
-                              } catch (e) { }
+                      const currentZoom = map.getZoom();
+                      const isCentre = feature.properties.office_type === 'REGISTRATION_CENTRE';
+                      if (isCentre && currentZoom < 12) return false;
+                      return true;
+                    })
+                    .map((feature, idx) => {
+                      const [lng, lat] = feature.geometry.coordinates;
+                      const isSelected = selectedOffice && selectedOffice.id === feature.properties.id;
+                      const icon = feature.properties.type === 'diaspora'
+                        ? createDiasporaIcon(feature.properties, isSelected)
+                        : createOfficeIcon(feature.properties, isSelected);
+
+                      return (
+                        <Marker
+                          key={`${feature.properties.id}-${idx}`}
+                          position={[lat, lng]}
+                          icon={icon}
+                          eventHandlers={{
+                            click: async () => {
+                              let office = feature.properties;
+                              if (office.type !== 'diaspora' && !office.office_location) {
+                                try {
+                                  const { data: dbData } = await supabase
+                                    .from('iebc_offices')
+                                    .select('*')
+                                    .eq('id', office.id)
+                                    .single();
+                                  if (dbData) office = { ...office, ...dbData };
+                                } catch (e) { }
+                              }
+                              if (onOfficeSelect) onOfficeSelect(office);
                             }
-                            if (onOfficeSelect) onOfficeSelect(office);
-                          }
-                        }}
-                      >
-                        <Popup maxWidth={320}>
-                          <div dangerouslySetInnerHTML={{ __html: createPopupContent(feature.properties, [lng, lat]) }} />
-                        </Popup>
-                      </Marker>
-                    );
-                  })}
+                          }}
+                        >
+                          <Popup maxWidth={320}>
+                            <div dangerouslySetInnerHTML={{ __html: createPopupContent(feature.properties, [lng, lat]) }} />
+                          </Popup>
+                        </Marker>
+                      );
+                    })}
                 </MarkerClusterGroup>
               ) : (
                 <GeoJSON

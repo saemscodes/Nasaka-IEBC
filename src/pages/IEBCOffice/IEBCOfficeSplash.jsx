@@ -713,7 +713,7 @@ const IEBCOfficeSplash = () => {
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.6 }}
                         >
-                            Your location data is processed locally and never stored on our servers.
+                            {t('splash.locationPrivacyNote', 'Your location data is processed locally and never stored on our servers.')}
                         </motion.p>
                     </TextShadowLayer>
                 </div>
@@ -732,7 +732,7 @@ const IEBCOfficeSplash = () => {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.7 }}
                     >
-                        © {new Date().getFullYear()} Civic Education Kenya. All rights reserved.
+                        {t('splash.copyright', { year: new Date().getFullYear(), defaultValue: `© ${new Date().getFullYear()} Civic Education Kenya. All rights reserved.` })}
                     </motion.p>
                     <motion.div
                         className="flex items-center justify-center gap-2 mt-1.5"

@@ -106,9 +106,9 @@ const ModerationPanel = () => {
         try {
             let result;
             if (action === 'verify') {
-                result = await supabase.rpc('promote_contribution_to_office', {
+                result = await (supabase as any).rpc('moderate_contribution', {
                     p_contribution_id: id,
-                    p_admin_id: 'admin_nexus',
+                    p_admin_id: 'admin',
                     p_office_data: {}
                 });
             } else if (action === 'reject' || action === 'archive') {

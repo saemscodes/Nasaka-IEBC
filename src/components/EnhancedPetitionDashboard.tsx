@@ -47,7 +47,7 @@ const EnhancedPetitionDashboard = () => {
 
   const fetchPetitions = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('petitions')
         .select('*')
         .eq('status', 'active')
@@ -69,7 +69,7 @@ const EnhancedPetitionDashboard = () => {
 
   const fetchPetitionStats = async () => {
     try {
-      const { data: signatures, error } = await supabase
+      const { data: signatures, error } = await (supabase as any)
         .from('signatures')
         .select('petition_id, ward, verification_status');
 
@@ -77,9 +77,9 @@ const EnhancedPetitionDashboard = () => {
 
       const stats: { [key: string]: PetitionStats } = {};
       const wardSets: { [key: string]: Set<string> } = {};
-      
+
       // Initialize stats
-      signatures?.forEach(sig => {
+      (signatures as any)?.forEach((sig: any) => {
         if (!stats[sig.petition_id]) {
           stats[sig.petition_id] = {
             current_signatures: 0,
@@ -90,7 +90,7 @@ const EnhancedPetitionDashboard = () => {
           wardSets[sig.petition_id] = new Set();
         }
         stats[sig.petition_id].current_signatures++;
-        
+
         // Add ward to set
         if (sig.ward) {
           wardSets[sig.petition_id].add(sig.ward);
@@ -109,10 +109,10 @@ const EnhancedPetitionDashboard = () => {
   };
 
   const handleCreatePetition = () => {
-    const event = new CustomEvent('tab-navigation', { 
-      detail: { 
+    const event = new CustomEvent('tab-navigation', {
+      detail: {
         tabId: 'wizard'
-      } 
+      }
     });
     window.dispatchEvent(event);
   };
@@ -137,7 +137,7 @@ const EnhancedPetitionDashboard = () => {
       .reduce((sum, stats) => sum + stats.current_signatures, 0);
     const averageCompliance = Object.values(petitionStats)
       .reduce((sum, stats) => sum + stats.compliance_score, 0) / totalPetitions || 0;
-    
+
     return { totalPetitions, totalSignatures, averageCompliance };
   };
 
@@ -200,7 +200,7 @@ const EnhancedPetitionDashboard = () => {
                         <div className="text-base font-bold dark:text-green-100 text-green-100">{petition.mp_name}</div>
                         <div className="text-sm dark:text-green-200 text-green-200">{daysLeft} days left</div>
                       </div>
-                      <Button 
+                      <Button
                         className="text-sm px-4 py-2 bg-green-600 hover:bg-green-700 text-white"
                         onClick={() => handleJoinPetition(petition.id)}
                       >
@@ -234,10 +234,10 @@ const EnhancedPetitionDashboard = () => {
                 const signatureProgress = stats ? (stats.current_signatures / petition.signature_target) * 100 : 0;
                 const wardProgress = stats ? (stats.wards_covered / petition.ward_target) * 100 : 0;
                 const daysLeft = Math.ceil((new Date(petition.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                
+
                 return (
-                  <div 
-                    key={petition.id} 
+                  <div
+                    key={petition.id}
                     className="space-y-4 p-4 dark:bg-green-900/20 bg-green-900/20 rounded-xl cursor-pointer hover:bg-green-900/30 dark:hover:bg-green-900/30 transition-colors"
                     onClick={() => handleOpenPetitionModal(petition)} // Added click handler
                   >
@@ -247,7 +247,7 @@ const EnhancedPetitionDashboard = () => {
                         {petition.constituency}
                       </Badge>
                     </div>
-                    
+
                     {/* Signature Progress */}
                     <div className="space-y-2">
                       <div className="flex justify-between">
@@ -265,14 +265,14 @@ const EnhancedPetitionDashboard = () => {
                           </div>
                         </div>
                         <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-green-800 dark:bg-white">
-                           <div 
-                             style={{ width: `${signatureProgress}%` }}
-                             className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500"
-                           ></div>
+                          <div
+                            style={{ width: `${signatureProgress}%` }}
+                            className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500"
+                          ></div>
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Ward Distribution */}
                     <div className="space-y-2">
                       <div className="flex justify-between">
@@ -283,14 +283,14 @@ const EnhancedPetitionDashboard = () => {
                       </div>
                       <div className="relative pt-1">
                         <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200 dark:bg-green-800">
-                          <div 
+                          <div
                             style={{ width: `${wardProgress}%` }}
                             className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500"
                           ></div>
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Deadline */}
                     <div className="flex items-center space-x-2">
                       <Clock className="w-4 h-4 dark:text-green-300 text-green-300" />
@@ -360,9 +360,9 @@ const EnhancedPetitionDashboard = () => {
           border-radius: 3px;
         }
       `}</style>
-      
+
       {/* MagicBento Dashboard */}
-      <MagicBento 
+      <MagicBento
         cardData={bentoData}
         textAutoHide={true}
         enableStars={true}
@@ -395,29 +395,29 @@ const EnhancedPetitionDashboard = () => {
       {/* Petition Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-12">
         <TabsList className="grid w-full grid-cols-4 gap-2 h-auto p-1 bg-green-900/20 rounded-xl">
-          <TabsTrigger 
-            value="active" 
+          <TabsTrigger
+            value="active"
             className="text-base px-4 py-3 data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-lg"
           >
             <span className="hidden sm:inline">Active Petitions</span>
             <span className="sm:hidden">Active</span>
           </TabsTrigger>
-          <TabsTrigger 
-            value="urgent" 
+          <TabsTrigger
+            value="urgent"
             className="text-base px-4 py-3 data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-lg"
           >
             <span className="hidden sm:inline">Urgent Deadlines</span>
             <span className="sm:hidden">Urgent</span>
           </TabsTrigger>
-          <TabsTrigger 
-            value="successful" 
+          <TabsTrigger
+            value="successful"
             className="text-base px-4 py-3 data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-lg"
           >
             <span className="hidden sm:inline">Near Success</span>
             <span className="sm:hidden">Incomplete</span>
           </TabsTrigger>
-          <TabsTrigger 
-            value="create" 
+          <TabsTrigger
+            value="create"
             className="text-base px-4 py-3 data-[state=active]:bg-green-600 data-[state=active]:text-white rounded-lg"
           >
             <span className="hidden sm:inline">Start New</span>
@@ -428,8 +428,8 @@ const EnhancedPetitionDashboard = () => {
         <TabsContent value="active" className="mt-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {petitions.map(petition => (
-              <PetitionCard 
-                key={petition.id} 
+              <PetitionCard
+                key={petition.id}
                 petition={{
                   ...petition,
                   current_signatures: petitionStats[petition.id]?.current_signatures || 0,
@@ -458,7 +458,7 @@ const EnhancedPetitionDashboard = () => {
                   </div>
                   <p className="text-green-300 mb-6 text-lg">{petition.description}</p>
                   <div className="flex justify-center">
-                    <Button 
+                    <Button
                       className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base"
                       onClick={() => handleJoinPetition(petition.id)}
                     >
@@ -500,7 +500,7 @@ const EnhancedPetitionDashboard = () => {
                       This petition is making excellent progress! Help push it over the constitutional threshold.
                     </p>
                     <div className="flex justify-center">
-                      <Button 
+                      <Button
                         className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base"
                         onClick={() => handleJoinPetition(petition.id)}
                       >
@@ -522,7 +522,7 @@ const EnhancedPetitionDashboard = () => {
             <p className="text-green-700 dark:text-green-200 mb-8 text-lg text-center">
               Initiate a constitutionally compliant MP recall petition with full legal documentation
             </p>
-            
+
             <div className="space-y-8 max-w-3xl mx-auto">
               <div className="border border-green-500/50 rounded-xl p-6 bg-green-900/20">
                 <div className="flex items-start">
