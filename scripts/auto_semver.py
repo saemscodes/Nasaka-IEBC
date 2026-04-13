@@ -19,42 +19,41 @@ def get_git_info():
 
 def analyze_diff(last_hash, current_hash, commit_msg):
     try:
-        # Manual Override Check
-        if '[MAJOR]' in commit_msg.upper():
+        # Manual Override Check (New Nomenclature)
+        msg_upper = commit_msg.upper()
+        if '[MAJOR]' in msg_upper:
             return 'major'
+        if '[MID]' in msg_upper:
+            return 'minor'
+        if '[MINI]' in msg_upper:
+            return 'patch'
         
-        diff_stat = subprocess.check_output(['git', 'diff', '--stat', last_hash, current_hash]).decode('utf-8')
         diff_summary = subprocess.check_output(['git', 'diff', '--shortstat', last_hash, current_hash]).decode('utf-8')
         
-        # Grading Logic (Recalibrated for Nasaka Stability)
-        # Patch: Small bugfixes, localization tweaks, or UI adjustments (< 500 lines)
-        # Minor: New features, significant logic updates, or data schema patches (> 500 lines / 15 files)
-        # Major: Massive overhauls, "Christmas Themes", or full native app transitions (> 5000 lines / 150 files)
+        # Grading Logic (Strict Nasaka Hierarchical Scaling)
+        # MINI: < 100 lines AND < 10 files
+        # MID: 100 - 4000 lines OR 10 - 90 files
+        # MAJOR: > 4000 lines OR > 90 files
         
-        is_major = False
-        is_minor = False
-        
-        # Check for new files (Minor)
-        if ' create mode ' in subprocess.check_output(['git', 'diff', '--summary', last_hash, current_hash]).decode('utf-8'):
-            is_minor = True
-            
         # Check diff size
         match = re.search(r'(\d+) files? changed(?:, (\d+) insertions?\(\+\))?(?:, (\d+) deletions?\(-\))?', diff_summary)
         if match:
             files_changed = int(match.group(1))
             insertions = int(match.group(2)) if match.group(2) else 0
             deletions = int(match.group(3)) if match.group(3) else 0
+            total_lines = insertions + deletions
             
-            # Recalibrated Thresholds
-            if files_changed > 15 or (insertions + deletions) > 500:
-                is_minor = True
-            
-            # MAJOR is reserved for sweeping changes that alter the "feel" of the app
-            if files_changed > 150 or (insertions + deletions) > 5000:
-                is_major = True
+            # 1. Check for MAJOR
+            if files_changed > 90 or total_lines > 4000:
+                return 'major'
                 
-        if is_major: return 'major'
-        if is_minor: return 'minor'
+            # 2. Check for MID
+            if files_changed >= 10 or total_lines >= 100:
+                return 'minor'
+                
+            # 3. Default to MINI
+            return 'patch'
+            
         return 'patch'
     except Exception as e:
         print(f"Error analyzing diff: {e}")
@@ -66,12 +65,15 @@ def bump_version(current_version, grade):
         major += 1
         minor = 0
         patch = 0
+        grade_label = 'MAJOR'
     elif grade == 'minor':
         minor += 1
         patch = 0
+        grade_label = 'MID'
     else:
         patch += 1
-    return f"{major}.{minor}.{patch}"
+        grade_label = 'MINI'
+    return f"{major}.{minor}.{patch}", grade_label
 
 def update_files(new_version, current_hash_short):
     # Update version.json
@@ -113,9 +115,9 @@ def main():
         return
 
     grade = analyze_diff(last_hash, current_hash, commit_msg)
-    new_version = bump_version(state['version'], grade)
+    new_version, grade_label = bump_version(state['version'], grade)
     
-    print(f"Bumping version: {state['version']} -> {new_version} ({grade})")
+    print(f"Bumping version: {state['version']} -> {new_version} ({grade_label})")
     update_files(new_version, current_hash_short)
 
 if __name__ == "__main__":
