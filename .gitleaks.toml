@@ -115,9 +115,6 @@ stopwords = [
   "your-key-here",
   "YOUR_KEY_HERE"
 ]
-
-# Ignore specific commits
-[allowlist]
 commits = [
   "initial-commit",
   "setup-project",
