@@ -76,15 +76,15 @@ const GlassCard = ({ children, className = "", hoverEffect = true }) => {
   const { theme } = useTheme();
   return (
     <motion.div
-      whileHover={hoverEffect ? { y: -8, scale: 1.01 } : {}}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      whileHover={hoverEffect ? { y: -8, scale: 1.01, translateZ: 0 } : {}}
+      transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
       className={`
         relative overflow-hidden rounded-[2.5rem] border transition-all duration-500
         ${theme === 'dark'
-          ? 'bg-[#0A0C14]/80 border-[#1E6BFF]/20 shadow-[0_20px_50px_rgba(0,5,20,0.6),inset_0_1px_0_rgba(255,255,255,0.05)]'
+          ? 'bg-[#0B101E]/60 border-[#1E6BFF]/30 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.1)]'
           : 'bg-white/95 border-[#1E6BFF]/15 shadow-[0_20px_45px_rgba(0,10,40,0.08),inset_0_1px_0_rgba(255,255,255,0.8)]'
         }
-        backdrop-blur-3xl saturate-150
+        backdrop-blur-3xl saturate-150 will-change-[backdrop-filter,transform]
         ${className}
       `}
     >
@@ -202,9 +202,11 @@ const FeedbackCarousel = () => {
         dragConstraints={{ left: -4000, right: 0 }}
         onDragStart={() => setIsPaused(true)}
         onDragEnd={() => setIsPaused(false)}
+        whileInView={{ opacity: 1 }}
+        viewport={{ margin: "200px" }}
         animate={controls}
         variants={marqueeVariants}
-        className="flex gap-8 whitespace-nowrap"
+        className="flex gap-8 whitespace-nowrap will-change-transform"
       >
         {displayItems.map((f, i) => (
           <GlassCard key={i} className="inline-flex flex-col min-w-[350px] md:min-w-[450px] px-8 md:px-10 py-10 md:py-12 border-[#1E6BFF]/15" hoverEffect={false}>
@@ -230,10 +232,11 @@ const About = () => {
   const { theme } = useTheme();
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
 
-  const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.2]);
-  const contentY = useTransform(scrollYProgress, [0, 1], [0, 100]);
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.75, 1], [1, 1, 0]);
+  const bgScale = useTransform(smoothProgress, [0, 1], [1, 1.15]);
+  const contentY = useTransform(smoothProgress, [0, 1], [0, 80]);
+  const contentOpacity = useTransform(smoothProgress, [0, 0.8, 1], [1, 1, 0]);
 
   const { location: geoLoc, loading: geoLoading, error: geoError, requestLocation } = useGeolocation();
   
@@ -256,20 +259,33 @@ const About = () => {
   }, []);
 
   return (
-    <div className={`min-h-screen relative selection:bg-[#1E6BFF] selection:text-white transition-colors duration-1000 ${theme === 'dark' ? 'bg-[#000000] text-white' : 'bg-[#F2F2F7] text-[#1C1C1E]'}`}>
-      <style>{`
+    <div className={`min-h-screen relative overflow-x-hidden w-full selection:bg-[#1E6BFF] selection:text-white transition-colors duration-1000 ${theme === 'dark' ? 'bg-[#02040A] text-white' : 'bg-[#F2F2F7] text-[#1C1C1E]'}`}>
+      {/* 1. SCALING BACKGROUND - DECOUPLED FROM LAYOUT FLOW */}
+      <motion.div
+        style={{ scale: bgScale }}
+        className="fixed inset-0 topo-bg pointer-events-none z-0 transform-gpu"
+      />
 
+      {/* ATMOSPHERIC GLOWS FOR DARK MODE */}
+      {theme === 'dark' && (
+        <div className="fixed inset-0 pointer-events-none z-0">
+          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#1E6BFF]/10 blur-[150px] rounded-full" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#1E6BFF]/5 blur-[120px] rounded-full" />
+        </div>
+      )}
+
+      <style>{`
         .topo-bg {
           background-image: url('/topo-bg.svg');
           background-size: cover;
           background-position: center;
-          opacity: 0.18;
+          opacity: 0.15;
           filter: contrast(1.1);
         }
         .dark .topo-bg {
-          filter: invert(1) brightness(1.2) saturate(0.5);
-          opacity: 0.35;
-          box-shadow: inset 0 0 100px rgba(30, 107, 255, 0.1);
+          filter: invert(1) hue-rotate(185deg) brightness(1.2) saturate(1.8);
+          opacity: 0.12;
+          mix-blend-mode: color-dodge;
         }
         .skeuo-button {
           box-shadow: 
@@ -289,13 +305,10 @@ const About = () => {
       `}</style>
 
       {/* TOPOGRAPHIC BACKGROUND LAYER */}
-      <motion.div
-        style={{ scale: bgScale }}
-        className="fixed inset-0 topo-bg pointer-events-none z-0"
-      />
+
 
       {/* NAVIGATION BAR */}
-      <nav className="sticky top-4 z-[100] max-w-[95%] md:max-w-7xl mx-auto rounded-[2.5rem] border border-white/20 backdrop-blur-3xl bg-white/60 dark:bg-black/60 shadow-2xl overflow-hidden px-4 md:px-10 py-4 mb-10">
+      <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-[95%] max-w-7xl rounded-[2.5rem] border border-white/20 backdrop-blur-3xl bg-white/60 dark:bg-black/60 shadow-2xl overflow-hidden px-4 md:px-10 py-4">
         <div className="flex items-center justify-between">
           <motion.button
             whileHover={{ x: -2, scale: 1.02 }}
@@ -307,10 +320,21 @@ const About = () => {
             <span className="font-black text-[10px] md:text-xs uppercase tracking-[0.1em] md:tracking-[0.15em] text-[#1E6BFF]">Back</span>
           </motion.button>
 
-          <div className="flex items-center gap-3 md:gap-4">
-            <img src="/assets/nasaka-cut-nobg.png" alt="NASAKA" className="h-6 md:h-12 w-auto object-contain" />
-            <div className="hidden sm:flex px-2 md:px-3 py-1 bg-[#1E6BFF] text-white text-[8px] md:text-[9px] font-black rounded-lg shadow-lg border border-white/20">PRO</div>
-          </div>
+          <motion.button
+            whileHover={{ scale: 1.05, translateZ: 0 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="flex items-center gap-3 md:gap-4 focus:outline-none"
+          >
+            <div className="overflow-hidden flex items-center justify-center will-change-transform">
+              <img 
+                src="/assets/nasaka-cut-nobg.png" 
+                alt="NASAKA" 
+                className="h-6 md:h-12 w-auto object-contain scale-[1.15] transform-gpu -ml-1 md:-ml-2" 
+              />
+            </div>
+          </motion.button>
 
           <motion.button
             whileHover={{ scale: 1.05, y: -1 }}
@@ -338,11 +362,12 @@ const About = () => {
             </p>
             <div className="flex flex-wrap gap-4 md:gap-8">
               <motion.button
-                whileHover={{ scale: 1.05, y: -5 }}
+                whileHover={{ scale: 1.02, y: -4, translateZ: 0 }}
                 whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
                 onClick={handleFindOffice}
                 disabled={geoLoading}
-                className={`px-8 md:px-12 py-5 md:py-7 skeuo-button text-white rounded-[2rem] md:rounded-[3rem] font-black text-lg md:text-2xl shadow-3xl flex items-center gap-4 md:gap-6 ${geoLoading ? 'opacity-80 cursor-wait' : ''}`}
+                className={`px-8 md:px-12 py-5 md:py-7 skeuo-button text-white rounded-[2rem] md:rounded-[3rem] font-black text-lg md:text-2xl shadow-3xl flex items-center gap-4 md:gap-6 will-change-transform ${geoLoading ? 'opacity-80 cursor-wait' : ''}`}
               >
                 {geoLoading ? 'Locating...' : 'Find My Office'}
                 <ArrowRight size={22} strokeWidth={3} className={geoLoading ? 'animate-pulse' : ''} />
@@ -431,8 +456,8 @@ const About = () => {
               { title: "Let's Get You There", icon: "car-svgrepo-com (5).svg", desc: "Breaking it all down: distance, pricing estimates, weather, difficulty of terrain - summarized for you. No more excuses!" },
               { title: "Global Reach", icon: "hand-svgrepo-com (1).svg", desc: "Whether you are in Dubai or Dallas, we've got you covered. Trusted by Kenyans and fans across the globe." }
             ].map((f, i) => (
-              <GlassCard key={i} className="px-6 md:px-8 py-10 md:py-12 flex flex-col h-full border-[#1E6BFF]/30">
-                <div className={`w-20 h-20 md:w-24 md:h-24 rounded-2xl md:rounded-[2rem] flex items-center justify-center mb-8 md:mb-10 shadow-[0_15px_35px_rgba(30,107,255,0.2)] border border-[#1E6BFF]/20 backdrop-blur-xl ${theme === 'dark' ? 'bg-[#1E6BFF]/20' : 'bg-[#1E6BFF]/10'}`}>
+              <GlassCard key={i} className="px-6 md:px-8 py-10 md:py-12 flex flex-col h-full border-[#1E6BFF]/30 shadow-2xl transition-all duration-500 hover:border-[#1E6BFF]/60 will-change-transform">
+                <div className={`w-20 h-20 md:w-24 md:h-24 rounded-2xl md:rounded-[2rem] flex items-center justify-center mb-8 md:mb-10 shadow-[0_20px_40px_rgba(30,107,255,0.25)] border border-[#1E6BFF]/30 backdrop-blur-xl ${theme === 'dark' ? 'bg-[#1E6BFF]/30 ring-8 ring-[#1E6BFF]/5' : 'bg-[#1E6BFF]/10'} will-change-[backdrop-filter]`}>
                   <LocalIcon name={f.icon} size={56} className={theme === 'dark' ? 'brightness-0 invert opacity-100' : ''} style={theme === 'light' ? { filter: 'invert(20%) sepia(85%) saturate(3959%) hue-rotate(215deg) brightness(90%) contrast(101%)' } : {}} />
                 </div>
                 <h3 className="text-2xl md:text-4xl font-black mb-6 md:mb-8 tracking-tighter leading-none">{f.title}</h3>
@@ -521,8 +546,20 @@ const About = () => {
       {/* FOOTER */}
       <footer className="py-24 md:py-32 px-6 md:px-10 border-t-4 border-[#1E6BFF]/20 z-10 relative bg-white/50 dark:bg-black/50 backdrop-blur-3xl rounded-t-[3rem] md:rounded-t-[5rem]">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-16 md:gap-24">
-          <div className="col-span-1 md:col-span-2">
-            <img src="/assets/nasaka-cut-nobg.png" alt="NASAKA" className="h-10 md:h-16 w-auto mb-8 md:mb-10 object-contain" />
+          <div className="col-span-1 md:col-span-2 flex flex-col items-start">
+            <motion.div
+              whileHover={{ scale: 1.02, x: 5, translateZ: 0 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.3 }}
+              onClick={() => navigate('/')}
+              className="inline-block cursor-pointer mb-8 md:mb-10"
+            >
+              <img 
+                src="/assets/nasaka-cut-nobg.png" 
+                alt="NASAKA" 
+                className="h-10 md:h-16 w-auto object-contain scale-[1.1] transform-gpu origin-left will-change-transform -ml-2 md:-ml-3" 
+              />
+            </motion.div>
             <p className="text-xl md:text-2xl font-bold opacity-80 mb-10 md:mb-12 max-w-md leading-relaxed">
               Advancing civic transparency through open data and community-led mapping across Kenya.
             </p>
@@ -564,7 +601,7 @@ const About = () => {
           </div>
         </div>
         <div className="max-w-7xl mx-auto mt-20 md:mt-32 pt-16 md:pt-20 border-t-2 border-[#1E6BFF]/10 flex flex-col md:flex-row justify-between items-center gap-10 md:gap-12">
-          <p className="text-sm md:text-base font-black opacity-50 uppercase tracking-[0.2em] md:tracking-[0.3em] text-center md:text-left">© 2026 CEKA • NASAKA V6.4.0</p>
+          <p className="text-sm md:text-base font-black opacity-50 uppercase tracking-[0.2em] md:tracking-[0.3em] text-center md:text-left">© 2026 CEKA • NASAKA V6.4.1</p>
           <motion.a
             href="https://status.nasakaiebc.civiceducationkenya.com"
             target="_blank"
