@@ -114,7 +114,7 @@ export default async function handler(req: Request, env?: any): Promise<Response
 
 // ---- ROUTE HANDLERS ----
 
-async function handleHealth(baseUrl: string) {
+export async function handleHealth(baseUrl: string) {
     return Response.json({
         status: "operational",
         services: { database_connectivity: baseUrl ? "configured" : "missing" },
@@ -123,7 +123,7 @@ async function handleHealth(baseUrl: string) {
     }, { headers: { ...corsHeaders(), 'Cache-Control': 'no-store' } });
 }
 
-async function handleStats(req: Request, baseUrl: string, key: string, logger: any) {
+export async function handleStats(req: Request, baseUrl: string, key: string, logger: any) {
     const auth = await validateApiKey(req, { required: false });
     const resp = await fetch(`${baseUrl}/rest/v1/rpc/get_api_stats`, {
         method: 'POST',
@@ -147,7 +147,7 @@ async function handleStats(req: Request, baseUrl: string, key: string, logger: a
     return Response.json({ data: await resp.json() }, { headers: { ...corsHeaders(), 'Cache-Control': 's-maxage=3600' } });
 }
 
-async function handleCounties(req: Request, baseUrl: string, key: string, logger: any) {
+export async function handleCounties(req: Request, baseUrl: string, key: string, logger: any) {
     const resp = await fetch(`${baseUrl}/rest/v1/counties?select=*&order=county_name.asc`, {
         headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
     });
@@ -155,7 +155,7 @@ async function handleCounties(req: Request, baseUrl: string, key: string, logger
     return Response.json({ data: await resp.json() }, { headers: { ...corsHeaders(), 'Cache-Control': 's-maxage=86400' } });
 }
 
-async function handleStatus(req: Request, baseUrl: string, key: string) {
+export async function handleStatus(req: Request, baseUrl: string, key: string) {
     const url = new URL(req.url);
     const county = url.searchParams.get('county');
     let qUrl = `${baseUrl}/rest/v1/iebc_offices?select=id,constituency,county,office_location,formatted_address,verified,geocode_status,latitude,longitude&order=county.asc`;
@@ -170,7 +170,7 @@ async function handleStatus(req: Request, baseUrl: string, key: string) {
     return Response.json({ data: enriched, total: enriched.length }, { headers: corsHeaders() });
 }
 
-async function handleCoordinates(req: Request, baseUrl: string, key: string) {
+export async function handleCoordinates(req: Request, baseUrl: string, key: string) {
     const url = new URL(req.url);
     const county = url.searchParams.get('county');
     const table = url.searchParams.get('table') || 'iebc_offices';
@@ -183,7 +183,7 @@ async function handleCoordinates(req: Request, baseUrl: string, key: string) {
     return Response.json({ data, total: data.length }, { headers: corsHeaders() });
 }
 
-async function handleLocate(req: Request, baseUrl: string, key: string, logger: any, startTime: number, env?: any) {
+export async function handleLocate(req: Request, baseUrl: string, key: string, logger: any, startTime: number, env?: any) {
     const url = new URL(req.url);
     const rawLat = parseFloat(url.searchParams.get('lat') || '');
     const rawLng = parseFloat(url.searchParams.get('lng') || '');
@@ -248,7 +248,7 @@ async function handleLocate(req: Request, baseUrl: string, key: string, logger: 
     return Response.json({ data: [], layer: 'none', message: 'Location outside service area' }, { headers: corsHeaders() });
 }
 
-async function handleBoundary(req: Request, baseUrl: string, key: string) {
+export async function handleBoundary(req: Request, baseUrl: string, key: string) {
     const url = new URL(req.url);
     const lat = parseFloat(url.searchParams.get('lat') || '');
     const lng = parseFloat(url.searchParams.get('lng') || '');
@@ -264,7 +264,7 @@ async function handleBoundary(req: Request, baseUrl: string, key: string) {
     return Response.json({ data: { constituency: nearest?.name, county: nearest?.counties?.name } }, { headers: corsHeaders() });
 }
 
-async function handleOffices(req: Request, baseUrl: string, key: string, logger: any, startTime: number) {
+export async function handleOffices(req: Request, baseUrl: string, key: string, logger: any, startTime: number) {
     const url = new URL(req.url);
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '50'), 200);
     const resp = await fetch(`${baseUrl}/rest/v1/iebc_offices?select=*&limit=${limit}`, {
@@ -273,14 +273,14 @@ async function handleOffices(req: Request, baseUrl: string, key: string, logger:
     return Response.json({ data: await resp.json() }, { headers: corsHeaders() });
 }
 
-async function handleOfficeById(req: Request, baseUrl: string, key: string, id: string) {
+export async function handleOfficeById(req: Request, baseUrl: string, key: string, id: string) {
     const resp = await fetch(`${baseUrl}/rest/v1/iebc_offices?id=eq.${id}&select=*`, {
         headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Prefer': 'plurality=singular' }
     });
     return Response.json({ data: await resp.json() }, { headers: corsHeaders() });
 }
 
-async function handleAIProxy(req: Request, env?: any) {
+export async function handleAIProxy(req: Request, env?: any) {
     if (req.method !== 'POST') return errorResponse('Method not allowed', 405);
 
     try {

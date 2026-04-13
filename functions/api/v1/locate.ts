@@ -1,5 +1,8 @@
-import handler from '../../../api/v1/locate';
+import { handleLocate } from '../../../api/v1/main';
+import { createLogger } from '../../../src/api-lib/logger';
 
 export const onRequest: any = async (context: any) => {
-    return handler(context.request, context.env);
+    const logger = createLogger(context.request);
+    const startTime = Date.now();
+    return handleLocate(context.request, context.env.VITE_SUPABASE_URL || context.env.SUPABASE_URL, context.env.SUPABASE_SERVICE_ROLE_KEY, logger, startTime, context.env);
 };

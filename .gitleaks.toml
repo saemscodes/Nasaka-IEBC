@@ -117,8 +117,8 @@ stopwords = [
 ]
 
 # Ignore specific commits
-[allowlist.commits]
-[
+[allowlist]
+commits = [
   "initial-commit",
   "setup-project",
   "add-readme"
