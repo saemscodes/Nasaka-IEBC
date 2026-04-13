@@ -58,7 +58,7 @@ const MapBoundsListener = ({ onBoundsChange }) => {
   return null;
 };
 
-const MapZoomDisclaimer = ({ isVisible }) => (
+const MapZoomDisclaimer = ({ isVisible, t }) => (
   <AnimatePresence>
     {isVisible && (
       <motion.div
@@ -164,26 +164,6 @@ const IEBCOfficeMap = () => {
   const [radiusKm, setRadiusKm] = useState(5);
   const [isRadiusAnimating, setIsRadiusAnimating] = useState(false);
   const [showZoomDisclaimer, setShowZoomDisclaimer] = useState(false);
-
-  // Handle URL query parameters from browser search bar
-  useEffect(() => {
-    if (urlQueryParam && !urlQueryProcessed && !loading) {
-      console.info('[Nasaka] Processing browser URL search query:', urlQueryParam);
-      setSearchQuery(urlQueryParam);
-      setUrlQueryProcessed(true);
-
-      // Auto-trigger search optimization
-      const results = searchOffices(urlQueryParam);
-      if (results && results.length > 0) {
-        setSearchResults(results);
-        // If exact match (e.g. county name), zoom to first result
-        const first = results[0];
-        if (first.latitude && first.longitude) {
-          flyToLocation(first.latitude, first.longitude, 12);
-        }
-      }
-    }
-  }, [urlQueryParam, urlQueryProcessed, loading, searchOffices, setSearchQuery, flyToLocation]);
 
   // Uber-style state machine for map zoom transitions
   const { mapState, dispatchMap } = useMapStateMachine();
@@ -430,12 +410,13 @@ const IEBCOfficeMap = () => {
 
   // Double-tap handler for area search
   const handleDoubleTap = useCallback(async (latlng) => {
-    if (!hasLocationAccess) return;
-
+    // We bypass hasLocationAccess here because double-tap provides explicit coordinates
+    // and URL redirection flow should work even if user hasn't shared their *current* location yet
     setIsSearchingNearby(true);
     setLastTapLocation(latlng);
 
     try {
+      console.info('[Nasaka] Searching nearby offices for:', latlng);
       const nearby = await searchNearbyOffices(latlng.lat, latlng.lng, 5000);
       setNearbyOffices(nearby);
       setSearchResults(nearby);
@@ -458,10 +439,11 @@ const IEBCOfficeMap = () => {
         setLastTapLocation(null);
       }, 3000);
     } catch (error) {
+      console.warn('[Nasaka] Nearby search failed:', error);
     } finally {
       setIsSearchingNearby(false);
     }
-  }, [hasLocationAccess, openListPanel]);
+  }, [openListPanel]);
 
   // Handle route found event
   const handleRouteFound = useCallback(async (routes) => {
@@ -715,6 +697,47 @@ const IEBCOfficeMap = () => {
     };
   }, [hasLocationAccess, isDraggingRouteBadge, routeBadgePosition]);
 
+  // Handle URL query parameters from browser search bar (Safe reference after initializations)
+  useEffect(() => {
+    if (loading) return;
+
+    // 1. Handle legacy route-based query (:query)
+    if (urlQueryParam && !urlQueryProcessed) {
+      console.info('[Nasaka] Processing browser URL search query:', urlQueryParam);
+      setSearchQuery(urlQueryParam);
+      setUrlQueryProcessed(true);
+
+      // Auto-trigger search optimization
+      const results = searchOffices(urlQueryParam);
+      if (results && results.length > 0) {
+        setSearchResults(results);
+        // If exact match (e.g. county name), zoom to first result
+        const first = results[0];
+        if (first.latitude && first.longitude) {
+          flyToLocation(first.latitude, first.longitude, 12);
+        }
+      }
+      return;
+    }
+
+    // 2. Handle 'search=nearest' parameter (e.g. from About page flow)
+    const searchMode = searchParams.get('search');
+    const urlLat = searchParams.get('lat');
+    const urlLng = searchParams.get('lng');
+
+    if (searchMode === 'nearest' && urlLat && urlLng && !urlQueryProcessed) {
+      console.info('[Nasaka] Processing nearest office flow from URL params');
+      const lat = parseFloat(urlLat);
+      const lng = parseFloat(urlLng);
+
+      if (!isNaN(lat) && !isNaN(lng)) {
+        // Trigger the nearby search logic (same as double-tap)
+        handleDoubleTap({ lat, lng });
+        setUrlQueryProcessed(true);
+      }
+    }
+  }, [urlQueryParam, searchParams, urlQueryProcessed, loading, searchOffices, setSearchQuery, flyToLocation, handleDoubleTap]);
+
   // ─── Computational Hooks (useMemo) ──────────────────────────────────────────
 
   // Find nearest office
@@ -911,7 +934,7 @@ const IEBCOfficeMap = () => {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background">
-        <LoadingSpinner size="large" showPhrases={true} />
+        <LoadingSpinner size="large" showPhrases={true} className="w-full" />
       </div>
     );
   }
@@ -1095,7 +1118,7 @@ const IEBCOfficeMap = () => {
 
       {/* Map Mode Toggle — Kenya / Diaspora */}
       <div className="fixed bottom-24 left-1/2 -translate-x-1/2 md:left-auto md:right-6 md:bottom-32 md:translate-x-0 z-[1000] flex flex-col items-center md:items-end">
-        <MapZoomDisclaimer isVisible={showZoomDisclaimer} />
+        <MapZoomDisclaimer isVisible={showZoomDisclaimer} t={t} />
         <MapModeToggle mode={mapMode} onChange={handleMapModeChange} />
       </div>
 

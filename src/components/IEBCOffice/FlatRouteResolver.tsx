@@ -16,7 +16,7 @@ import { toDecimalDegrees } from '@/utils/geoUtils';
  * 4. Geographical Fallback: Resolve via geocoding -> Find nearest Ward -> Redirect.
  */
 const WHITELIST = [
-    'map', 'voter-services', 'boundary-review', 'election-resources',
+    'map', 'about', 'voter-services', 'boundary-review', 'election-resources',
     'data-api', 'voter-registration', 'pricing', 'docs',
     'auth', 'privacy', 'terms', 'admin', '404', 'api', 'dashboard'
 ];

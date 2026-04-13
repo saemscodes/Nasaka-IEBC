@@ -448,11 +448,11 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     try {
       // @ts-expect-error — custom RPC function not in generated Supabase types
       const { data, error } = await supabase.rpc('get_offices_in_bounds', {
-        min_lat: bounds.minLat,
-        min_lng: bounds.minLng,
-        max_lat: bounds.maxLat,
-        max_lng: bounds.maxLng,
-        zoom_level: zoom
+        min_lat: Number(bounds.minLat),
+        min_lng: Number(bounds.minLng),
+        max_lat: Number(bounds.maxLat),
+        max_lng: Number(bounds.maxLng),
+        zoom_level: Math.round(zoom)
       });
 
       if (error) throw error;

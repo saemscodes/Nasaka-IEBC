@@ -52,7 +52,26 @@ const resources: LanguageResources = {
         filter: "Filter",
         select: "Select",
         optional: "Optional",
-        required: "Required"
+        required: "Required",
+        loadingPhrases: [
+          "Getting you on the map shortly…",
+          "Won't be long now…",
+          "Preparing your civic toolkit…",
+          "Scanning 30,000+ registration centres…",
+          "Kenya has 290 constituencies — we know them all…",
+          "Mapping every ward, every office…",
+          "Finding the nearest IEBC office to you…",
+          "Connecting to live data…",
+          "Crunching the latest boundary data…",
+          "Almost there — hang tight…",
+          "Your vote matters — let's find where to register…",
+          "Loading real-time office status…",
+          "Optimizing route intelligence…",
+          "Cross-referencing Kenya Gazette data…",
+          "Pulling in diaspora registration centres worldwide…",
+          "Verifying office coordinates with satellite imagery…",
+          "One moment — democracy is loading…",
+        ]
       },
       splash: {
         title: "NASAKA",
@@ -66,7 +85,11 @@ const resources: LanguageResources = {
         locating: "Getting your location...",
         visitCeka: "Visit CEKA Community",
         switchToLight: "Switch to light mode",
-        switchToDark: "Switch to dark mode"
+        switchToDark: "Switch to dark mode",
+        locationPrivacyNote: "Your location data is processed locally and never stored on our servers.",
+        copyright: "© {{year}} Civic Education Kenya. All rights reserved.",
+        precisionViewTitle: "Precision View",
+        precisionViewDesc: "Zoom in (Level 12+) to see all 30k+ registration centres"
       },
       search: {
         placeholder: "Search IEBC offices by county, constituency, or location...",
@@ -229,6 +252,7 @@ const resources: LanguageResources = {
       },
       contribute: {
         title: "Contribute Missing Office Location",
+        ariaLabel: "Contribute location data",
         description: "Help us map all IEBC offices across Kenya by contributing accurate location data.",
         close: "Close",
         selectCounty: "1. Select County",

@@ -294,6 +294,37 @@ const CekaLogoButton = () => {
     );
 };
 
+// About Button Component - Top Left (next to CEKA)
+const AboutButton = ({ theme, onClick }) => {
+    return (
+        <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onClick}
+            className={`relative w-10 h-10 rounded-full shadow-lg border flex items-center justify-center transition-all duration-300 overflow-hidden ${theme === 'dark'
+                ? 'bg-[#1C1C1E] shadow-[0_24px_48px_rgba(0,0,0,0.35),0_12px_24px_rgba(0,0,0,0.25),0_0_0_1px_rgba(255,255,255,0.1)] border-[#38383A]'
+                : 'bg-white shadow-[0_24px_48px_rgba(0,0,0,0.18),0_12px_24px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.05)] border-[#D8D8DC]'
+                }`}
+            aria-label="About Nasaka IEBC"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`w-5 h-5 ${theme === 'dark' ? 'text-white' : 'text-ios-gray-900'}`}
+            >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+        </motion.button>
+    );
+};
+
 // Perf 3: TextShadowLayer — CSS text-shadow replaces blurred sibling div
 const TextShadowLayer = ({ children, className = "" }) => {
     const { theme } = useTheme();
@@ -549,7 +580,10 @@ const IEBCOfficeSplash = () => {
             <OfflineBanner className="absolute top-0 left-0 right-0 z-30" compact />
             {/* Top Control Bar - Full width with equal edge padding and proper spacing */}
             <div className="absolute top-4 left-0 right-0 z-20 flex justify-between items-center px-6">
-                <CekaLogoButton />
+                <div className="flex space-x-3">
+                    <CekaLogoButton />
+                    <AboutButton theme={theme} onClick={() => navigate('/about')} />
+                </div>
                 <div className="flex space-x-3">
                     <LanguageSwitcher variant="splash" />
                     <ThemeToggle />
@@ -713,7 +747,7 @@ const IEBCOfficeSplash = () => {
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.6 }}
                         >
-                            {t('splash.locationPrivacyNote', 'Your location data is processed locally and never stored on our servers.')}
+                            Your location data is processed locally and never stored on our servers.
                         </motion.p>
                     </TextShadowLayer>
                 </div>
@@ -732,7 +766,7 @@ const IEBCOfficeSplash = () => {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.7 }}
                     >
-                        {t('splash.copyright', { year: new Date().getFullYear(), defaultValue: `© ${new Date().getFullYear()} Civic Education Kenya. All rights reserved.` })}
+                        © {new Date().getFullYear()} Civic Education Kenya. All rights reserved.
                     </motion.p>
                     <motion.div
                         className="flex items-center justify-center gap-2 mt-1.5"

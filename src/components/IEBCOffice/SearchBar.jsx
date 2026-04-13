@@ -181,6 +181,29 @@ const SearchBar = ({
         longitude: r.longitude
       }));
 
+      // 🚀 RESTORE HIGHLIGHTS: Hybrid Mini-Match Logic
+      // We run a local Fuse search on the small subset (10-20 items) 
+      // to generate the match indices for yellow highlighting.
+      if (formattedSuggestions.length > 0) {
+        const miniFuseOptions = {
+          keys: ['name', 'subtitle', 'county', 'constituency_name', 'office_location'],
+          threshold: 0.4,
+          includeMatches: true,
+          minMatchCharLength: 1
+        };
+        const miniFuse = new Fuse(formattedSuggestions, miniFuseOptions);
+        const miniResults = miniFuse.search(searchTerm);
+
+        // Map matches back to our suggestions
+        formattedSuggestions = formattedSuggestions.map(sugg => {
+          const match = miniResults.find(m => 
+            (m.item.id && sugg.id && m.item.id === sugg.id) || 
+            (m.item.name === sugg.name && m.item.subtitle === sugg.subtitle)
+          );
+          return match ? { ...sugg, matches: match.matches } : sugg;
+        });
+      }
+
       // Add search query suggestion (the "Search for '...'" option)
       if (searchTerm.length > 2) {
         formattedSuggestions.push({
@@ -484,6 +507,7 @@ const SearchBar = ({
                 damping: 30
               }}
             >
+              {isLoading ? (
                 <div className={`p-6 text-center transition-colors duration-300 ${theme === 'dark' ? 'text-ios-dark-text-secondary' : 'text-ios-light-text-secondary'
                    }`}>
                    <div className={`inline-block animate-spin rounded-full h-6 w-6 border-b-2 ${theme === 'dark' ? 'border-ios-blue-dark' : 'border-ios-blue'

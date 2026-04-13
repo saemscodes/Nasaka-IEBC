@@ -37,6 +37,7 @@ const ApiKeysDashboard = React.lazy(() => import('./pages/Dashboard/ApiKeys'));
 const Auth = React.lazy(() => import('./pages/Auth'));
 const AuthCallback = React.lazy(() => import('./pages/AuthCallback'));
 const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
+const About = React.lazy(() => import('./pages/IEBCOffice/About'));
 import FlatRouteResolver from './components/IEBCOffice/FlatRouteResolver';
 import { AuthProvider } from './hooks/useAuth';
 
@@ -511,6 +512,7 @@ const AppContent = () => {
         <Route path="/election-resources" element={<React.Suspense fallback={<LoadingState />}><ElectionResources /></React.Suspense>} />
         <Route path="/data-api" element={<React.Suspense fallback={<LoadingState />}><DataAPI /></React.Suspense>} />
         <Route path="/voter-registration" element={<React.Suspense fallback={<LoadingState />}><VoterRegistration /></React.Suspense>} />
+        <Route path="/about" element={<React.Suspense fallback={<LoadingState />}><About /></React.Suspense>} />
 
         {/* ✅ B2B BILLING & DASHBOARD ROUTES */}
         <Route path="/pricing" element={<React.Suspense fallback={<LoadingState />}><Pricing /></React.Suspense>} />
