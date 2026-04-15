@@ -224,11 +224,11 @@ export const AuthModal = ({
                     <Button
                         type="button"
                         onClick={handleCekaOAuth}
-                        className="w-full h-14 rounded-2xl bg-gradient-to-r from-[#1E6BFF]/10 to-[#1E6BFF]/5 border border-[#1E6BFF]/20 text-[#1E6BFF] font-black hover:bg-[#1E6BFF]/10 transition-all flex items-center justify-center gap-3 group"
+                        className="w-full h-14 rounded-2xl bg-[#007AFF] text-white font-bold hover:bg-[#0055CC] active:scale-[0.98] transition-all shadow-lg shadow-[#007AFF]/20 flex items-center justify-center gap-3 group"
                         style={{ fontFamily: 'var(--font-display)' }}
                     >
-                        <img src="/ceka-logo-colored.png" alt="" className="h-5 w-auto" />
-                        <span className="text-[11px] uppercase tracking-[0.2em]">Continue with CEKA</span>
+                        <img src="/ceka-logo-colored.png" alt="" className="h-5 w-auto brightness-0 invert" />
+                        <span className="text-[17px] tracking-tight">Continue with CEKA</span>
                     </Button>
                     
                     <div className="relative my-8">
@@ -357,15 +357,15 @@ export const AuthModal = ({
                 <Button
                     type="submit"
                     disabled={loading || (mode === 'forgot' && resetCooldown > 0)}
-                    className="w-full h-12 rounded-2xl bg-[#007AFF] text-white font-bold hover:bg-[#0055CC] active:scale-[0.98] transition-all shadow-lg shadow-[#007AFF]/20"
+                    className="w-full h-14 rounded-2xl bg-[#007AFF] text-white font-bold hover:bg-[#0055CC] active:scale-[0.98] transition-all shadow-lg shadow-[#007AFF]/20 flex items-center justify-center"
                     style={{ fontFamily: 'var(--font-display)' }}
                 >
-                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
-                        <>
+                    {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+                        <span className="text-[17px] tracking-tight">
                             {mode === 'signin' && 'Sign In'}
                             {mode === 'signup' && 'Create Account'}
                             {mode === 'forgot' && (resetCooldown > 0 ? `Resend in ${resetCooldown}s` : 'Send Reset Link')}
-                        </>
+                        </span>
                     )}
                 </Button>
 
