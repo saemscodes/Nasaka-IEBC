@@ -11,7 +11,14 @@ export const config = { runtime: 'nodejs' };
  */
 
 const getEnv = (name: string, env?: any) => {
-    return env?.[name] || process.env?.[name];
+    const val = env?.[name] || env?.[`VITE_${name}`];
+    if (val) return val;
+    try {
+        if (typeof process !== 'undefined' && process.env) {
+            return process.env[name] || process.env[`VITE_${name}`];
+        }
+    } catch { }
+    return undefined;
 };
 
 export default async function handler(req: Request, env?: any): Promise<Response> {
@@ -27,7 +34,7 @@ export default async function handler(req: Request, env?: any): Promise<Response
     if (service === 'auth-callback' || service === '404' || service === 'enquire') {
         // Enquire is public lead gen
     } else {
-        const auth = await validateApiKey(req, { required: false });
+        const auth = await validateApiKey(req, { required: false, env });
         if (!auth.valid) {
             return errorResponse(auth.error, auth.status || 401);
         }
@@ -132,7 +139,7 @@ async function handleAiProxy(req: Request, headers: any, env: any, startTime: nu
     const result = await response.json();
     
     const auth = (req as any).auth;
-    if (auth) logApiUsage(auth.keyId, auth.tier, '/proxy/ai', 'POST', response.status, startTime, req, 10);
+    if (auth) logApiUsage(auth.keyId, auth.tier, '/proxy/ai', 'POST', response.status, startTime, req, env, 10);
     
     return Response.json(result, { headers });
 }
@@ -142,7 +149,7 @@ async function handleSignatureSession(req: Request, headers: any, env: any, star
     const body = await req.json();
     
     const auth = (req as any).auth;
-    if (auth) logApiUsage(auth.keyId, auth.tier, '/services/signature', 'POST', 200, startTime, req, 2);
+    if (auth) logApiUsage(auth.keyId, auth.tier, '/services/signature', 'POST', 200, startTime, req, env, 2);
     
     return Response.json({ success: true, sessionId: `sig_${Date.now()}`, redirectUrl: "/sign" }, { headers });
 }
@@ -151,7 +158,7 @@ async function handlePetitionStats(req: Request, headers: any, env: any, startTi
     if (req.method !== 'GET') return errorResponse('Method not allowed', 405);
     
     const auth = (req as any).auth;
-    if (auth) logApiUsage(auth.keyId, auth.tier, '/services/petition-stats', 'GET', 200, startTime, req, 1);
+    if (auth) logApiUsage(auth.keyId, auth.tier, '/services/petition-stats', 'GET', 200, startTime, req, env, 1);
 
     return Response.json({
         totalSignatures: 8750,
@@ -166,7 +173,7 @@ async function handleWorkflow(req: Request, headers: any, env: any, startTime: n
     const { scriptId } = await req.json();
     
     const auth = (req as any).auth;
-    if (auth) logApiUsage(auth.keyId, auth.tier, '/services/workflow', 'POST', 200, startTime, req, 5);
+    if (auth) logApiUsage(auth.keyId, auth.tier, '/services/workflow', 'POST', 200, startTime, req, env, 5);
 
     return Response.json({ success: true, message: `Dispatched ${scriptId}` }, { headers });
 }
@@ -176,7 +183,7 @@ async function handleVerifyVoter(req: Request, headers: any, env: any, startTime
     const { nationalId } = await req.json();
     
     const auth = (req as any).auth;
-    if (auth) logApiUsage(auth.keyId, auth.tier, '/services/verify-voter', 'POST', 200, startTime, req, 3);
+    if (auth) logApiUsage(auth.keyId, auth.tier, '/services/verify-voter', 'POST', 200, startTime, req, env, 3);
 
     return Response.json({ verified: true, voterDetails: { name: "John Doe", nationalId } }, { headers });
 }
@@ -445,7 +452,7 @@ async function handleDownload(req: Request, headers: any, env: any, startTime: n
     }
 
     const auth = (req as any).auth;
-    if (auth) logApiUsage(auth.keyId, auth.tier, '/services/download', 'GET', 200, startTime, req, 50); // Heavy weight for downloads
+    if (auth) logApiUsage(auth.keyId, auth.tier, '/services/download', 'GET', 200, startTime, req, env, 50); // Heavy weight for downloads
 
     return Response.json({ success: true, download_url: lic.download_url }, { headers });
 }
@@ -478,7 +485,7 @@ async function handleUsage(req: Request, headers: any, env: any, startTime: numb
         const requests = data?.usage?.edgeRequests?.total ?? 0;
 
         const auth = (req as any).auth;
-        if (auth) logApiUsage(auth.keyId, auth.tier, '/services/usage', 'GET', 200, startTime, req, 1);
+        if (auth) logApiUsage(auth.keyId, auth.tier, '/services/usage', 'GET', 200, startTime, req, env, 1);
 
         return Response.json({ requests }, {
             headers: {

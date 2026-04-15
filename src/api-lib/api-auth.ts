@@ -60,10 +60,22 @@ export const TIER_LIMITS: Record<string, TierMetadata> = {
 const GATED_ENDPOINTS = ['/api/v1/boundary', '/api/v1/enterprise'];
 const GATED_FORMATS = ['csv', 'geojson'];
 
+// ---- Universal Environment Helper ----
+const getEnv = (name: string, env?: any) => {
+    const val = env?.[name] || env?.[`VITE_${name}`];
+    if (val) return val;
+    try {
+        if (typeof process !== 'undefined' && process.env) {
+            return process.env[name] || process.env[`VITE_${name}`];
+        }
+    } catch { }
+    return undefined;
+};
+
 // ---- Upstash Redis Rate Limiter ----
-async function checkBurstRate(keyId: string, tier: string): Promise<{ allowed: boolean; retryAfter?: number }> {
-    const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
-    const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+async function checkBurstRate(keyId: string, tier: string, env_context?: any): Promise<{ allowed: boolean; retryAfter?: number }> {
+    const UPSTASH_URL = getEnv('UPSTASH_REDIS_REST_URL', env_context);
+    const UPSTASH_TOKEN = getEnv('UPSTASH_REDIS_REST_TOKEN', env_context);
 
     if (!UPSTASH_URL || !UPSTASH_TOKEN) {
         // If Redis not configured, allow through (graceful degradation)
@@ -174,10 +186,11 @@ function checkFeatureAccess(tier: string, req: Request): { allowed: boolean; mes
 }
 
 // ---- Main Validation Function ----
-export async function validateApiKey(req: Request, options: { required?: boolean } = { required: true }) {
+export async function validateApiKey(req: Request, options: { required?: boolean; env?: any } = { required: true }) {
+    const env = options.env;
     // 0. Maintenance Mode Check (Global)
     try {
-        if (process.env.MAINTENANCE_MODE === 'true') {
+        if (getEnv('MAINTENANCE_MODE', env) === 'true') {
             return { valid: false as const, error: 'System is under planned maintenance. Please try again soon.', status: 503 };
         }
     } catch { /* fail open */ }
@@ -192,7 +205,7 @@ export async function validateApiKey(req: Request, options: { required?: boolean
 
     if (isPublic) {
         // Apply strict IP-based rate limiting for guest access
-        const burstCheck = await checkBurstRate(ip.split(',')[0].trim(), 'public');
+        const burstCheck = await checkBurstRate(ip.split(',')[0].trim(), 'public', env);
         if (!burstCheck.allowed) {
             return {
                 valid: false as const,
@@ -213,12 +226,15 @@ export async function validateApiKey(req: Request, options: { required?: boolean
     // SHA-256 hash of the raw key
     const encoder = new TextEncoder();
     const data = encoder.encode(apiKey);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    
+    // Polyfill crypto for environments where it is not global (Legacy Node.js)
+    const cryptoObj = typeof crypto !== 'undefined' ? crypto : (await import('crypto')).webcrypto;
+    const hashBuffer = await (cryptoObj as any).subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-    const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const SUPABASE_URL = getEnv('SUPABASE_URL', env);
+    const SUPABASE_KEY = getEnv('SUPABASE_SERVICE_ROLE_KEY', env);
 
     if (!SUPABASE_URL || !SUPABASE_KEY) {
         return { valid: false as const, error: 'Server misconfiguration', status: 500 };
@@ -300,16 +316,6 @@ export async function validateApiKey(req: Request, options: { required?: boolean
         };
     }
 
-    // Step 7: Burst rate check via Upstash Redis
-    const burstCheck = await checkBurstRate(k.id, k.tier);
-    if (!burstCheck.allowed) {
-        return {
-            valid: false as const,
-            error: `Rate limit exceeded. Max ${TIER_LIMITS[k.tier]?.burst || 2} req/s for ${k.tier} tier.`,
-            retryAfter: burstCheck.retryAfter,
-            status: 429
-        };
-    }
 
     // Step 8: Monthly quota check
     const metadata = TIER_LIMITS[k.tier] || TIER_LIMITS.public;
@@ -327,8 +333,8 @@ export async function validateApiKey(req: Request, options: { required?: boolean
 
     // ---- Keystone: Populate Redis Cache for Edge Middleware ----
     // Do not await — fire and forget
-    const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
-    const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+    const UPSTASH_URL = getEnv('UPSTASH_REDIS_REST_URL', env);
+    const UPSTASH_TOKEN = getEnv('UPSTASH_REDIS_REST_TOKEN', env);
     if (UPSTASH_URL && UPSTASH_TOKEN) {
         fetch(`${UPSTASH_URL}/set/tier:${hashHex}`, {
             method: 'POST',
@@ -342,6 +348,16 @@ export async function validateApiKey(req: Request, options: { required?: boolean
         }).catch(() => { });
     }
 
+    // Burst rate check via Upstash Redis
+    const burstCheck = await checkBurstRate(k.id, k.tier, env);
+    if (!burstCheck.allowed) {
+        return {
+            valid: false as const,
+            error: `Rate limit exceeded. Max ${TIER_LIMITS[k.tier]?.burst || 2} req/s for ${k.tier} tier.`,
+            retryAfter: burstCheck.retryAfter,
+            status: 429
+        };
+    }
     return {
         valid: true as const,
         keyId: k.id as string,
@@ -352,9 +368,9 @@ export async function validateApiKey(req: Request, options: { required?: boolean
 }
 
 // ---- Credit Deduction (fire-and-forget) ----
-export async function deductCredits(keyId: string, weight: number = 1) {
-    const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+export async function deductCredits(keyId: string, weight: number = 1, env?: any) {
+    const SUPABASE_URL = getEnv('SUPABASE_URL', env);
+    const SUPABASE_KEY = getEnv('SUPABASE_SERVICE_ROLE_KEY', env);
     if (!SUPABASE_URL || !SUPABASE_KEY || weight <= 0) return;
 
     // Call RPC to atomically decrement credits_balance
@@ -370,9 +386,9 @@ export async function deductCredits(keyId: string, weight: number = 1) {
 }
 
 // ---- Usage Logging (fire-and-forget) ----
-export async function logApiUsage(keyId: string, tier: string, endpoint: string, method: string, status: number, startTime: number, req: Request, weightOverride?: number) {
-    const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+export async function logApiUsage(keyId: string, tier: string, endpoint: string, method: string, status: number, startTime: number, req: Request, env?: any, weightOverride?: number) {
+    const SUPABASE_URL = getEnv('SUPABASE_URL', env);
+    const SUPABASE_KEY = getEnv('SUPABASE_SERVICE_ROLE_KEY', env);
     if (!SUPABASE_URL || !SUPABASE_KEY) return;
 
     const duration = Date.now() - startTime;

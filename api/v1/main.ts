@@ -4,7 +4,14 @@ import { validateApiKey, errorResponse, corsHeaders, logApiUsage, deductCredits,
 import { createLogger } from '../../src/api-lib/logger';
 
 const getEnv = (name: string, env?: any) => {
-    return env?.[name] || process.env?.[name];
+    const val = env?.[name] || env?.[`VITE_${name}`];
+    if (val) return val;
+    try {
+        if (typeof process !== 'undefined' && process.env) {
+            return process.env[name] || process.env[`VITE_${name}`];
+        }
+    } catch { }
+    return undefined;
 };
 
 // Canonical 47 Kenyan counties — normalize variants
@@ -77,7 +84,7 @@ export default async function handler(req: Request, env?: any): Promise<Response
         // Public routes skip validation
         if (route === 'health') return handleHealth(SUPABASE_URL);
 
-        const auth = await validateApiKey(req, { required: false });
+        const auth = await validateApiKey(req, { required: false, env });
         if (!auth.valid) {
              return errorResponse(auth.error, auth.status || 401, { retryAfter: auth.retryAfter });
         }
@@ -85,27 +92,27 @@ export default async function handler(req: Request, env?: any): Promise<Response
         // --- Phase 2: Route Dispatching ---
         switch (route) {
             case 'stats':
-                return handleStats(req, SUPABASE_URL, SUPABASE_KEY, logger, startTime, auth);
+                return handleStats(req, SUPABASE_URL, SUPABASE_KEY, logger, startTime, auth, env);
 
             case 'counties':
-                return handleCounties(req, SUPABASE_URL, SUPABASE_KEY, logger, startTime, auth);
+                return handleCounties(req, SUPABASE_URL, SUPABASE_KEY, logger, startTime, auth, env);
 
             case 'status':
-                return handleStatus(req, SUPABASE_URL, SUPABASE_ANON, startTime, auth);
+                return handleStatus(req, SUPABASE_URL, SUPABASE_ANON, startTime, auth, env);
 
             case 'locate':
-                return handleLocate(req, SUPABASE_URL, SUPABASE_KEY, logger, startTime, auth);
+                return handleLocate(req, SUPABASE_URL, SUPABASE_KEY, logger, startTime, auth, env);
 
             case 'boundary':
-                return handleBoundary(req, SUPABASE_URL, SUPABASE_ANON, startTime, auth);
+                return handleBoundary(req, SUPABASE_URL, SUPABASE_ANON, startTime, auth, env);
 
             case 'coordinates':
-                return handleCoordinates(req, SUPABASE_URL, SUPABASE_ANON, startTime, auth);
+                return handleCoordinates(req, SUPABASE_URL, SUPABASE_ANON, startTime, auth, env);
 
             case 'offices':
                 const id = url.searchParams.get('id');
-                if (id) return handleOfficeById(req, SUPABASE_URL, SUPABASE_KEY, id, startTime, auth);
-                return handleOffices(req, SUPABASE_URL, SUPABASE_KEY, logger, startTime, auth);
+                if (id) return handleOfficeById(req, SUPABASE_URL, SUPABASE_KEY, id, startTime, auth, env);
+                return handleOffices(req, SUPABASE_URL, SUPABASE_KEY, logger, startTime, auth, env);
 
             case 'ai-proxy':
                 return handleAIProxy(req, env, startTime, auth);
@@ -130,7 +137,7 @@ export async function handleHealth(baseUrl: string) {
     }, { headers: { ...corsHeaders(), 'Cache-Control': 'no-store' } });
 }
 
-export async function handleStats(req: Request, baseUrl: string, key: string, logger: any, startTime: number, auth: any) {
+export async function handleStats(req: Request, baseUrl: string, key: string, logger: any, startTime: number, auth: any, env: any) {
     const resp = await fetch(`${baseUrl}/rest/v1/rpc/get_api_stats`, {
         method: 'POST',
         headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' }
@@ -153,11 +160,11 @@ export async function handleStats(req: Request, baseUrl: string, key: string, lo
         result = await resp.json();
     }
 
-    logApiUsage(auth.keyId, auth.tier, '/api/v1/stats', req.method, 200, startTime, req);
+    logApiUsage(auth.keyId, auth.tier, '/api/v1/stats', req.method, 200, startTime, req, env);
     return Response.json({ data: result }, { headers: { ...corsHeaders(), 'Cache-Control': 's-maxage=3600' } });
 }
 
-export async function handleCounties(req: Request, baseUrl: string, key: string, logger: any, startTime: number, auth: any) {
+export async function handleCounties(req: Request, baseUrl: string, key: string, logger: any, startTime: number, auth: any, env: any) {
     const resp = await fetch(`${baseUrl}/rest/v1/counties?select=*&order=county_name.asc`, {
         headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
     });
@@ -165,11 +172,11 @@ export async function handleCounties(req: Request, baseUrl: string, key: string,
     if (!resp.ok) return Response.json({ data: [{ id: 1, county_name: 'MOMBASA' }], meta: { warning: 'Live data unavailable' } }, { headers: corsHeaders() });
     
     const data = await resp.json();
-    logApiUsage(auth.keyId, auth.tier, '/api/v1/counties', req.method, 200, startTime, req);
+    logApiUsage(auth.keyId, auth.tier, '/api/v1/counties', req.method, 200, startTime, req, env);
     return Response.json({ data }, { headers: { ...corsHeaders(), 'Cache-Control': 's-maxage=86400' } });
 }
 
-export async function handleStatus(req: Request, baseUrl: string, key: string, startTime: number, auth: any) {
+export async function handleStatus(req: Request, baseUrl: string, key: string, startTime: number, auth: any, env: any) {
     const url = new URL(req.url);
     const county = url.searchParams.get('county');
     let qUrl = `${baseUrl}/rest/v1/iebc_offices?select=id,constituency,county,office_location,formatted_address,verified,geocode_status,latitude,longitude&order=county.asc`;
@@ -182,11 +189,11 @@ export async function handleStatus(req: Request, baseUrl: string, key: string, s
         registration_open: !!o.verified
     }));
     
-    logApiUsage(auth.keyId, auth.tier, '/api/v1/status', 'GET', 200, startTime, req);
+    logApiUsage(auth.keyId, auth.tier, '/api/v1/status', 'GET', 200, startTime, req, env);
     return Response.json({ data: enriched, total: enriched.length }, { headers: corsHeaders() });
 }
 
-export async function handleCoordinates(req: Request, baseUrl: string, key: string, startTime: number, auth: any) {
+export async function handleCoordinates(req: Request, baseUrl: string, key: string, startTime: number, auth: any, env: any) {
     const url = new URL(req.url);
     const county = url.searchParams.get('county');
     const table = url.searchParams.get('table') || 'iebc_offices';
@@ -197,11 +204,11 @@ export async function handleCoordinates(req: Request, baseUrl: string, key: stri
     const resp = await fetch(qUrl, { headers: { 'apikey': key, 'Authorization': `Bearer ${key}` } });
     const data = await resp.json();
     
-    logApiUsage(auth.keyId, auth.tier, '/api/v1/coordinates', 'GET', 200, startTime, req);
+    logApiUsage(auth.keyId, auth.tier, '/api/v1/coordinates', 'GET', 200, startTime, req, env);
     return Response.json({ data, total: data.length }, { headers: corsHeaders() });
 }
 
-export async function handleLocate(req: Request, baseUrl: string, key: string, logger: any, startTime: number, auth: any) {
+export async function handleLocate(req: Request, baseUrl: string, key: string, logger: any, startTime: number, auth: any, env: any) {
     const url = new URL(req.url);
     const rawLat = parseFloat(url.searchParams.get('lat') || '');
     const rawLng = parseFloat(url.searchParams.get('lng') || '');
@@ -261,11 +268,11 @@ export async function handleLocate(req: Request, baseUrl: string, key: string, l
         }
     }
 
-    logApiUsage(auth.keyId, auth.tier, '/api/v1/locate', 'GET', 200, startTime, req);
+    logApiUsage(auth.keyId, auth.tier, '/api/v1/locate', 'GET', 200, startTime, req, env);
     return Response.json(result, { headers: corsHeaders() });
 }
 
-export async function handleBoundary(req: Request, baseUrl: string, key: string, startTime: number, auth: any) {
+export async function handleBoundary(req: Request, baseUrl: string, key: string, startTime: number, auth: any, env: any) {
     const url = new URL(req.url);
     const lat = parseFloat(url.searchParams.get('lat') || '');
     const lng = parseFloat(url.searchParams.get('lng') || '');
@@ -279,11 +286,11 @@ export async function handleBoundary(req: Request, baseUrl: string, key: string,
         if (d < minDist) { minDist = d; nearest = c; }
     }
     
-    logApiUsage(auth.keyId, auth.tier, '/api/v1/boundary', 'GET', 200, startTime, req);
+    logApiUsage(auth.keyId, auth.tier, '/api/v1/boundary', 'GET', 200, startTime, req, env);
     return Response.json({ data: { constituency: nearest?.name, county: nearest?.counties?.name } }, { headers: corsHeaders() });
 }
 
-export async function handleOffices(req: Request, baseUrl: string, key: string, logger: any, startTime: number, auth: any) {
+export async function handleOffices(req: Request, baseUrl: string, key: string, logger: any, startTime: number, auth: any, env: any) {
     const url = new URL(req.url);
     const limit = Math.min(parseInt(url.searchParams.get('limit') || (auth.tier === 'public' ? '5' : '50')), 200);
     
@@ -310,7 +317,7 @@ export async function handleOffices(req: Request, baseUrl: string, key: string, 
         data = data.slice(0, 5);
     }
 
-    logApiUsage(auth.keyId, auth.tier, '/api/v1/offices', 'GET', 200, startTime, req);
+    logApiUsage(auth.keyId, auth.tier, '/api/v1/offices', 'GET', 200, startTime, req, env);
     
     return Response.json({ 
         data, 
@@ -322,12 +329,12 @@ export async function handleOffices(req: Request, baseUrl: string, key: string, 
     }, { headers: corsHeaders() });
 }
 
-export async function handleOfficeById(req: Request, baseUrl: string, key: string, id: string, startTime: number, auth: any) {
+export async function handleOfficeById(req: Request, baseUrl: string, key: string, id: string, startTime: number, auth: any, env: any) {
     const resp = await fetch(`${baseUrl}/rest/v1/iebc_offices?id=eq.${id}&select=*`, {
         headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Prefer': 'plurality=singular' }
     });
     
-    logApiUsage(auth.keyId, auth.tier, `/api/v1/offices/${id}`, 'GET', 200, startTime, req);
+    logApiUsage(auth.keyId, auth.tier, `/api/v1/offices/${id}`, 'GET', 200, startTime, req, env);
     return Response.json({ data: await resp.json() }, { headers: corsHeaders() });
 }
 
@@ -376,7 +383,7 @@ export async function handleAIProxy(req: Request, env: any, startTime: number, a
         });
 
         const data = await aiResp.json();
-        logApiUsage(auth.keyId, auth.tier, '/api/v1/ai-proxy', 'POST', aiResp.status, startTime, req, 10); // Fixed weight for AI
+        logApiUsage(auth.keyId, auth.tier, '/api/v1/ai-proxy', 'POST', aiResp.status, startTime, req, env, 10); // Fixed weight for AI
         return Response.json(data, { status: aiResp.status, headers: corsHeaders() });
     } catch (err: any) {
         return errorResponse(err.message, 500);
