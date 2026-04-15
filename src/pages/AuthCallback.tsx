@@ -50,8 +50,8 @@ const AuthCallback = () => {
                     const response = await fetch(CEKA_TOKEN_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            code, 
+                        body: JSON.stringify({
+                            code,
                             redirect_uri: CEKA_REDIRECT_URI,
                             code_verifier
                         }),
@@ -63,7 +63,7 @@ const AuthCallback = () => {
                     }
 
                     const data = await response.json();
-                    
+
                     if (data.access_token) {
                         const { error: sessionError } = await cekaSupabase.auth.setSession({
                             access_token: data.access_token,
@@ -71,7 +71,7 @@ const AuthCallback = () => {
                         });
 
                         if (sessionError) throw sessionError;
-                        
+
                         // Clean up PKCE state
                         sessionStorage.removeItem('ceka_oauth_state');
                         toast.success('CEKA Identity Verified');
@@ -167,7 +167,7 @@ const AuthCallback = () => {
                     </div>
                     <div>
                         <p className="text-blue-500 font-black tracking-[0.4em] uppercase text-[10px] mb-2">Verifying Identity</p>
-                        <p className="text-white/40 font-bold text-xs tracking-tight">Marriage Handshake in Progress...</p>
+                        <p className="text-white/40 font-bold text-xs tracking-tight">Sync Handshake in Progress...</p>
                     </div>
                 </div>
             </div>
