@@ -195,10 +195,39 @@ export const AuthModal = ({
     const inputBg = isDark ? 'bg-[#1C1C1E] border-[#38383A]' : 'bg-[#F2F2F7] border-[#E5E5EA]';
     const inputFocus = 'focus:border-[#007AFF] focus:ring-1 focus:ring-[#007AFF]/30';
 
-    const handleCekaOAuth = () => {
+    const handleCekaOAuth = async () => {
+        // --- PKCE Generation ---
+        const generateRandomString = (length: number) => {
+            const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456787-._~';
+            let text = '';
+            for (let i = 0; i < length; i++) {
+                text += possible.charAt(Math.floor(Math.random() * possible.length));
+            }
+            return text;
+        };
+
+        const sha256 = async (plain: string) => {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(plain);
+            return window.crypto.subtle.digest('SHA-256', data);
+        };
+
+        const base64urlencode = (a: ArrayBuffer) => {
+            return btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(a))))
+                .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        };
+
+        const code_verifier = generateRandomString(128);
+        const challengeBuffer = await sha256(code_verifier);
+        const code_challenge = base64urlencode(challengeBuffer);
+
+        // Store verifier for later use in AuthCallback
+        sessionStorage.setItem('ceka_oauth_verifier', code_verifier);
+
         const state = Math.random().toString(36).substring(7);
         sessionStorage.setItem('ceka_oauth_state', state);
-        const authUrl = `${CEKA_OAUTH_URL}?client_id=${CEKA_CLIENT_ID}&redirect_uri=${encodeURIComponent(CEKA_REDIRECT_URI)}&response_type=code&scope=openid%20profile%20email&state=${state}`;
+
+        const authUrl = `${CEKA_OAUTH_URL}?client_id=${CEKA_CLIENT_ID}&redirect_uri=${encodeURIComponent(CEKA_REDIRECT_URI)}&response_type=code&scope=openid%20profile%20email&state=${state}&code_challenge=${code_challenge}&code_challenge_method=S256`;
         window.location.href = authUrl;
     };
 

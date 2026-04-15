@@ -27,15 +27,33 @@ const AuthCallback = () => {
             // If there's a 'code' from CEKA but no Supabase internal '__auth_token' match,
             // it's a redirect from CEKA to authorize the sandbox.
             const code = searchParams.get('code');
+            const rawState = searchParams.get('state') || '';
+
             if (code && !errorParam) {
                 try {
                     console.log('[AuthCallback] Exchanging CEKA OAuth code for session...');
+
+                    // CEKA server-side PKCE encodes verifier as: "originalState||verifier"
+                    // Fall back to client-side generated verifier stored in sessionStorage
+                    let code_verifier: string | null = null;
+                    if (rawState.includes('||')) {
+                        const parts = rawState.split('||');
+                        code_verifier = parts[1] || null;
+                        console.log('[AuthCallback] Extracted PKCE verifier from CEKA state param.');
+                    } else {
+                        code_verifier = sessionStorage.getItem('ceka_oauth_verifier');
+                        console.log('[AuthCallback] Using client-side PKCE verifier from sessionStorage.');
+                    }
+                    // Clean up to prevent reuse
+                    sessionStorage.removeItem('ceka_oauth_verifier');
+
                     const response = await fetch(CEKA_TOKEN_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
                             code, 
-                            redirect_uri: CEKA_REDIRECT_URI 
+                            redirect_uri: CEKA_REDIRECT_URI,
+                            code_verifier
                         }),
                     });
 
@@ -54,6 +72,8 @@ const AuthCallback = () => {
 
                         if (sessionError) throw sessionError;
                         
+                        // Clean up PKCE state
+                        sessionStorage.removeItem('ceka_oauth_state');
                         toast.success('CEKA Identity Verified');
                         navigate('/docs#sandbox', { replace: true });
                         return;
