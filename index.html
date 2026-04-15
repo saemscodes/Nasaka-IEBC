@@ -2,6 +2,20 @@
 <html lang="en" class="no-js">
 
 <head>
+  <!-- THEME INIT: blocking script runs before any paint to eliminate white flash -->
+  <script>
+    (function(){
+      try {
+        var saved = localStorage.getItem('theme');
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = saved || (prefersDark ? 'dark' : 'light');
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(theme);
+        // Set a CSS variable so the initial background matches before React loads
+        document.documentElement.style.setProperty('--initial-bg', theme === 'dark' ? '#02040A' : '#F2F2F7');
+      } catch(e){}
+    })();
+  </script>
   <meta charset="UTF-8" />
   <base href="/" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />

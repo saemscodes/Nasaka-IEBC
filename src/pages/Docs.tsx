@@ -462,13 +462,15 @@ const Docs = () => {
                         geocoded, verified, and served through a production-grade REST API with tiered access.
                     </p>
                     <div className="flex items-center justify-center gap-4 flex-wrap">
-                        <a
-                            href="#sandbox"
+                        <button
+                            onClick={() => {
+                                document.getElementById('sandbox')?.scrollIntoView({ behavior: 'smooth' });
+                            }}
                             className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-white bg-[#007AFF] hover:bg-[#0055CC] hover:shadow-xl hover:shadow-[#007AFF]/20 active:scale-[0.98] transition-all"
                         >
                             <Play className="w-4 h-4" />
                             Try the Sandbox
-                        </a>
+                        </button>
                         <Link
                             to="/pricing"
                             className={`inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-bold border ${cardBorder} ${isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'} transition-all`}

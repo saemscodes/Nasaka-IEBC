@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, XCircle } from 'lucide-react';
+import { Loader2, XCircle, Fingerprint } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { cekaSupabase, CEKA_TOKEN_URL, CEKA_REDIRECT_URI } from '@/integrations/ceka/client';
 import { toast } from 'sonner';
 
 const AuthCallback = () => {
@@ -27,11 +28,41 @@ const AuthCallback = () => {
             // it's a redirect from CEKA to authorize the sandbox.
             const code = searchParams.get('code');
             if (code && !errorParam) {
-                console.log('[AuthCallback] Detected CEKA OAuth code, redirecting to sandbox...');
-                // We redirect to the docs page with the code in the hash fragment or query
-                // SandboxWidget will pick this up to initialize the session
-                navigate(`/docs?code=${code}#sandbox`, { replace: true });
-                return;
+                try {
+                    console.log('[AuthCallback] Exchanging CEKA OAuth code for session...');
+                    const response = await fetch(CEKA_TOKEN_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            code, 
+                            redirect_uri: CEKA_REDIRECT_URI 
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Failed to exchange token');
+                    }
+
+                    const data = await response.json();
+                    
+                    if (data.access_token) {
+                        const { error: sessionError } = await cekaSupabase.auth.setSession({
+                            access_token: data.access_token,
+                            refresh_token: data.refresh_token
+                        });
+
+                        if (sessionError) throw sessionError;
+                        
+                        toast.success('CEKA Identity Verified');
+                        navigate('/docs#sandbox', { replace: true });
+                        return;
+                    }
+                } catch (err: any) {
+                    console.error('[AuthCallback] CEKA Exchange Error:', err);
+                    setError(`CEKA Authentication Failed: ${err.message}`);
+                    return;
+                }
             }
 
             // 2. Handle standard OAuth errors (both Supabase and CEKA)
@@ -107,10 +138,17 @@ const AuthCallback = () => {
 
     if (isProcessing || authLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-ios-gray-50 dark:bg-ios-gray-900">
-                <div className="text-center space-y-6">
-                    <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto" />
-                    <p className="text-muted-foreground font-bold tracking-tight uppercase text-xs">Completing Secure Authenication...</p>
+            <div className="min-h-screen flex items-center justify-center bg-[#02040A]">
+                <div className="text-center space-y-8">
+                    <div className="relative flex items-center justify-center">
+                        <div className="absolute w-24 h-24 rounded-full border border-blue-500/30 animate-ping" />
+                        <div className="absolute w-20 h-20 rounded-full border-2 border-blue-500/50 fingerprint-loader" />
+                        <Fingerprint className="w-16 h-16 text-blue-500 relative z-10" />
+                    </div>
+                    <div>
+                        <p className="text-blue-500 font-black tracking-[0.4em] uppercase text-[10px] mb-2">Verifying Identity</p>
+                        <p className="text-white/40 font-bold text-xs tracking-tight">Marriage Handshake in Progress...</p>
+                    </div>
                 </div>
             </div>
         );

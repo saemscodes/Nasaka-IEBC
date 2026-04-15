@@ -133,12 +133,14 @@ const IEBCOfficeMap = () => {
     isListPanelOpen,
     searchQuery,
     mapRef,
-    flyToOffice,
-    flyToLocation,
-    setSelectedOffice,
-    setSearchQuery,
-    openListPanel,
-    closeListPanel
+    actions: {
+      flyToOffice,
+      flyToLocation,
+      setSelectedOffice,
+      setSearchQuery,
+      openListPanel,
+      closeListPanel,
+    },
   } = useMapControls();
 
   // Enhanced state management

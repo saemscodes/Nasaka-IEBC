@@ -9,7 +9,7 @@ export const cekaSupabase = createClient(CEKA_SUPABASE_URL, CEKA_SUPABASE_ANON_K
     auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: false,
+        detectSessionInUrl: true,
         storage: typeof window !== 'undefined' ? window.localStorage : undefined,
         storageKey: 'nasaka-ceka-auth-token',
         flowType: 'pkce',
@@ -35,12 +35,14 @@ const getEnvVar = (name: string) => {
     return undefined;
 };
 
-export const CEKA_CLIENT_ID = getEnvVar('VITE_CEKA_CLIENT_ID') || 'nasaka-iebc-v1';
+export const CEKA_CLIENT_ID = getEnvVar('VITE_CEKA_CLIENT_ID') || 'd356516d-3cc7-427a-98eb-49f4ec18adbf';
 
 export const getRedirectUri = (origin?: string) => {
+    // Priority: Explicit origin > window origin > Production fallback
     const base = origin || (typeof window !== 'undefined' ? window.location.origin : 'https://nasakaiebc.civiceducationkenya.com');
-    return `${base}/auth/callback`;
+    // Ensure no trailing slash on base before appending path
+    return `${base.replace(/\/$/, '')}/auth/callback`;
 };
 
-// Legacy Export for backward compat
-export const CEKA_REDIRECT_URI = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : 'https://nasakaiebc.civiceducationkenya.com/auth/callback';
+// Standard Redirect URI for consistency across components
+export const CEKA_REDIRECT_URI = getRedirectUri();

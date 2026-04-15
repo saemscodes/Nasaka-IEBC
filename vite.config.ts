@@ -288,6 +288,25 @@ export default defineConfig(({ mode }) => ({
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    },
+    // Proxy /api/* to Vercel dev server (port 3000) — keeps API routes
+    // completely outside of Vite's SPA/React-Router fallback.
+    // Run `vercel dev` in a separate terminal for this to work locally.
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+        configure: (proxy) => {
+          proxy.on('error', (_err, _req, res) => {
+            // Vercel dev not running — return a helpful 503 instead of crashing
+            if (!res.headersSent) {
+              (res as any).writeHead(503, { 'Content-Type': 'application/json' });
+              (res as any).end(JSON.stringify({ error: 'API server unavailable. Run `vercel dev` in a separate terminal to enable /api/* routes locally.' }));
+            }
+          });
+        }
+      }
     }
   },
 

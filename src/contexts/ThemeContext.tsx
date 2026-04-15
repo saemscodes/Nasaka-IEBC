@@ -27,18 +27,20 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   children, 
   defaultTheme = 'light' 
 }) => {
-  const [theme, setTheme] = useState<Theme>(defaultTheme);
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (savedTheme) {
-      setTheme(savedTheme);
-    } else if (systemPrefersDark) {
-      setTheme('dark');
+  // Lazy initializer: reads localStorage synchronously on first render.
+  // Pair with the blocking inline script in index.html to guarantee zero flash.
+  const [theme, setTheme] = useState<Theme>(() => {
+    try {
+      const saved = localStorage.getItem('theme') as Theme;
+      if (saved === 'dark' || saved === 'light') return saved;
+      if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark';
+      }
+    } catch {
+      // Private browsing or SSR — fall through
     }
-  }, []);
+    return defaultTheme;
+  });
 
   useEffect(() => {
     const root = window.document.documentElement;

@@ -86,37 +86,55 @@ export default async function handler(req: Request, env: any): Promise<Response>
     }
 
     try {
-        const { code, state } = await req.json();
+        const body = await req.json();
+        const { code, access_token } = body;
 
-        if (!code) {
-            return Response.json({ error: 'Missing authorization code' }, { status: 400, headers: corsHeaders() });
+        if (!code && !access_token) {
+            return Response.json({ error: 'Missing authorization code or access token' }, { status: 400, headers: corsHeaders() });
         }
 
-        // 1. Exchange Code for User Identity with CEKA
-        const clientSecret = env?.CEKA_CLIENT_SECRET || process.env.CEKA_CLIENT_SECRET;
-        if (!clientSecret) {
-            console.error('[Sandbox-Init] CEKA_CLIENT_SECRET not configured');
-            return Response.json({ error: 'Server configuration error' }, { status: 500, headers: corsHeaders() });
+        let email: string;
+        let name: string;
+        let cekaUserId: string;
+
+        if (access_token) {
+            // ── Path A: Verify CEKA JWT directly (inline password auth flow) ──
+            const CEKA_SUPABASE_URL = 'https://cajrvemigxghnfmyopiy.supabase.co';
+            const CEKA_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhanJ2ZW1pZ3hnaG5mbXlvcGl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQyOTU1OTAsImV4cCI6MjA1OTg3MTU5MH0.sgItW4OBC9i-eKnnUDxdMB6qgGdXyiKAD9c6C2u40As';
+            const userResp = await fetch(`${CEKA_SUPABASE_URL}/auth/v1/user`, {
+                headers: {
+                    'Authorization': `Bearer ${access_token}`,
+                    'apikey': CEKA_SUPABASE_ANON_KEY,
+                },
+            });
+            if (!userResp.ok) {
+                return Response.json({ error: 'Invalid CEKA session token. Please sign in again.' }, { status: 401, headers: corsHeaders() });
+            }
+            const cekaUserData = await userResp.json();
+            email = cekaUserData.email;
+            name = cekaUserData.user_metadata?.full_name || cekaUserData.user_metadata?.name || email.split('@')[0];
+            cekaUserId = cekaUserData.id;
+        } else {
+            // ── Path B: OAuth code exchange (legacy — kept for backward compat) ──
+            const clientSecret = env?.CEKA_CLIENT_SECRET || process.env.CEKA_CLIENT_SECRET;
+            if (!clientSecret) {
+                console.error('[Sandbox-Init] CEKA_CLIENT_SECRET not configured');
+                return Response.json({ error: 'Server configuration error' }, { status: 500, headers: corsHeaders() });
+            }
+            const exchangeResponse = await fetch(CEKA_TOKEN_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ grant_type: 'authorization_code', code, client_id: CEKA_CLIENT_ID, client_secret: clientSecret }),
+            });
+            if (!exchangeResponse.ok) {
+                const errorData = await exchangeResponse.json();
+                return Response.json({ error: 'OAuth exchange failed', details: errorData.message }, { status: 401, headers: corsHeaders() });
+            }
+            const authData = await exchangeResponse.json();
+            email = authData.user.email;
+            name = authData.user.name;
+            cekaUserId = authData.user.id;
         }
-
-        const exchangeResponse = await fetch(CEKA_TOKEN_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                grant_type: 'authorization_code',
-                code,
-                client_id: CEKA_CLIENT_ID,
-                client_secret: clientSecret
-            })
-        });
-
-        if (!exchangeResponse.ok) {
-            const errorData = await exchangeResponse.json();
-            return Response.json({ error: 'OAuth exchange failed', details: errorData.message }, { status: 401, headers: corsHeaders() });
-        }
-
-        const authData = await exchangeResponse.json();
-        const { email, name, id: cekaUserId } = authData.user;
 
         // 2. Rate limit: max 3 active sessions per email
         cleanupSessions();

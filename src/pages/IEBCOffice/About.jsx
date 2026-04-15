@@ -194,8 +194,8 @@ const FeedbackCarousel = () => {
 
   return (
     <div className="relative overflow-hidden py-16 w-full px-4 group !cursor-grab active:!cursor-grabbing">
-      <div className={`absolute left-0 top-0 bottom-0 w-32 md:w-64 z-10 pointer-events-none bg-gradient-to-r ${theme === 'dark' ? 'from-[#000000] via-[#000000]/50 to-transparent' : 'from-[#F2F2F7] via-[#F2F2F7]/50 to-transparent'}`} />
-      <div className={`absolute right-0 top-0 bottom-0 w-32 md:w-64 z-10 pointer-events-none bg-gradient-to-l ${theme === 'dark' ? 'from-[#000000] via-[#000000]/50 to-transparent' : 'from-[#F2F2F7] via-[#F2F2F7]/50 to-transparent'}`} />
+      <div className={`absolute left-0 top-0 bottom-0 w-32 md:w-64 z-10 pointer-events-none bg-gradient-to-r ${theme === 'dark' ? 'from-[#02040A] via-[#02040A]/60 to-transparent' : 'from-[#F2F2F7] via-[#F2F2F7]/60 to-transparent'}`} />
+      <div className={`absolute right-0 top-0 bottom-0 w-32 md:w-64 z-10 pointer-events-none bg-gradient-to-l ${theme === 'dark' ? 'from-[#02040A] via-[#02040A]/60 to-transparent' : 'from-[#F2F2F7] via-[#F2F2F7]/60 to-transparent'}`} />
       
       <motion.div
         drag="x"
@@ -575,9 +575,17 @@ const About = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ y: -3, scale: 1.1 }}
-                  className="w-12 h-12 md:w-16 md:h-16 rounded-2xl md:rounded-[1.5rem] bg-gradient-to-br from-white to-[#F2F2F7] dark:from-[#1C1C1E] dark:to-black flex items-center justify-center border-2 border-[#1E6BFF]/20 shadow-xl"
+                  className={`w-12 h-12 md:w-16 md:h-16 rounded-2xl md:rounded-[1.5rem] flex items-center justify-center border-2 shadow-xl transition-all duration-300 ${
+                    theme === 'dark'
+                      ? 'bg-gradient-to-br from-[#1E6BFF]/20 to-[#0A1128] border-[#1E6BFF]/40 hover:border-[#1E6BFF]/70 hover:shadow-[0_8px_30px_rgba(30,107,255,0.35)]'
+                      : 'bg-gradient-to-br from-white to-[#F2F2F7] border-[#1E6BFF]/20 hover:shadow-xl'
+                  }`}
                 >
-                  <LocalIcon name={icon.name} size={24} />
+                  <LocalIcon
+                    name={icon.name}
+                    size={24}
+                    className={theme === 'dark' ? 'brightness-0 invert' : ''}
+                  />
                 </motion.a>
               ))}
             </div>
@@ -601,7 +609,7 @@ const About = () => {
           </div>
         </div>
         <div className="max-w-7xl mx-auto mt-20 md:mt-32 pt-16 md:pt-20 border-t-2 border-[#1E6BFF]/10 flex flex-col md:flex-row justify-between items-center gap-10 md:gap-12">
-          <p className="text-sm md:text-base font-black opacity-50 uppercase tracking-[0.2em] md:tracking-[0.3em] text-center md:text-left">© 2026 CEKA • NASAKA V7.0.0</p>
+          <p className="text-sm md:text-base font-black opacity-50 uppercase tracking-[0.2em] md:tracking-[0.3em] text-center md:text-left">© 2026 CEKA • NASAKA V7.1.0</p>
           <motion.a
             href="https://status.nasakaiebc.civiceducationkenya.com"
             target="_blank"
