@@ -2,19 +2,62 @@
 // Nasaka IEBC B2B API — Authentication, Rate Limiting, Feature Gating
 // Uses Upstash Redis for burst rate limiting; Supabase for quota tracking.
 
-// ---- Tier Definitions ----
-export const TIER_LIMITS: Record<string, { monthly: number; burst: number }> = {
-    jamii: { monthly: 5000, burst: 2 },
-    mwananchi: { monthly: 100000, burst: 10 },
-    taifa: { monthly: 500000, burst: 30 },
-    serikali: { monthly: 10000000, burst: 100 },
-    enterprise: { monthly: 500000, burst: 30 },
-    // Global Public (Guest) tier — strictly for keyless requests
-    public: { monthly: 0, burst: 1 } // 1 request per second max for anonymous
+// ---- Tier Definitions & Feature Gates ----
+export interface TierMetadata {
+    monthly: number;
+    burst: number;
+    weight_multiplier: number;
+    allowed_filters: string[];
+    features: string[];
+}
+
+export const TIER_LIMITS: Record<string, TierMetadata> = {
+    public: { 
+        monthly: 0, 
+        burst: 1, 
+        weight_multiplier: 2.0, // High cost for anonymous
+        allowed_filters: [], // No filtering allowed for guests
+        features: ['basic_json']
+    },
+    jamii: { 
+        monthly: 5000, 
+        burst: 2, 
+        weight_multiplier: 1.2,
+        allowed_filters: ['county'], 
+        features: ['basic_json', 'search']
+    },
+    mwananchi: { 
+        monthly: 100000, 
+        burst: 10, 
+        weight_multiplier: 1.0,
+        allowed_filters: ['county', 'constituency'], 
+        features: ['basic_json', 'search', 'csv_export']
+    },
+    taifa: { 
+        monthly: 500000, 
+        burst: 30, 
+        weight_multiplier: 0.9,
+        allowed_filters: ['county', 'constituency', 'ward'], 
+        features: ['basic_json', 'search', 'csv_export', 'geojson_export', 'priority_support']
+    },
+    serikali: { 
+        monthly: 10000000, 
+        burst: 100, 
+        weight_multiplier: 0.8,
+        allowed_filters: ['all'], 
+        features: ['all']
+    },
+    enterprise: { 
+        monthly: 500000, 
+        burst: 30, 
+        weight_multiplier: 1.0,
+        allowed_filters: ['all'], 
+        features: ['all']
+    }
 };
 
 // Endpoints restricted from Jamii tier
-const GATED_ENDPOINTS = ['/api/v1/boundary'];
+const GATED_ENDPOINTS = ['/api/v1/boundary', '/api/v1/enterprise'];
 const GATED_FORMATS = ['csv', 'geojson'];
 
 // ---- Upstash Redis Rate Limiter ----
@@ -62,30 +105,68 @@ async function checkBurstRate(keyId: string, tier: string): Promise<{ allowed: b
     }
 }
 
-// ---- Feature Gating ----
+// ---- Dynamic Pricing & Credit Logic ----
+export function calculateRequestWeight(req: Request, tier: string): number {
+    const url = new URL(req.url);
+    const pathname = url.pathname;
+    const format = url.searchParams.get('format');
+    const metadata = TIER_LIMITS[tier] || TIER_LIMITS.public;
+
+    let weight = 1.0;
+
+    // 1. Data Intensity Weight
+    if (pathname.includes('/boundary')) weight = 5.0;
+    if (pathname.includes('/stats')) weight = 2.0;
+    if (format === 'csv') weight = 3.0;
+    if (format === 'geojson') weight = 5.0;
+
+    // 2. Peak Hour Surge (Strict Mode)
+    // Surge 1.5x during 10 AM - 4 PM EAT (Election Window)
+    try {
+        const now = new Date();
+        const hour = now.getUTCHours() + 3; // Normalize to EAT (UTC+3)
+        if (hour >= 10 && hour <= 16) {
+            weight *= 1.5;
+        }
+    } catch { /* ignore if date fails */ }
+
+    // 3. Tier Multiplier (Rewarding higher tiers with lower per-request costs)
+    weight *= metadata.weight_multiplier;
+
+    return Math.round(weight * 100) / 100;
+}
+
+// ---- Feature Gating (Strict Mode) ----
 function checkFeatureAccess(tier: string, req: Request): { allowed: boolean; message?: string } {
     const url = new URL(req.url);
     const pathname = url.pathname;
     const format = url.searchParams.get('format');
+    const metadata = TIER_LIMITS[tier] || TIER_LIMITS.public;
 
-    // Jamii (free) tier restrictions
-    if (tier === 'jamii' || tier === 'free') {
-        // Block gated endpoints
-        for (const ep of GATED_ENDPOINTS) {
-            if (pathname.startsWith(ep)) {
-                return {
-                    allowed: false,
-                    message: `This endpoint requires Mwananchi tier or above.`
+    // 1. Check Gated Endpoints
+    for (const ep of GATED_ENDPOINTS) {
+        if (pathname.startsWith(ep) && !metadata.features.includes('all') && !metadata.features.includes('enterprise')) {
+            return { allowed: false, message: `Access to ${ep} requires a professional tier.` };
+        }
+    }
+
+    // 2. Check Gated Formats
+    if (format && GATED_FORMATS.includes(format.toLowerCase())) {
+        if (!metadata.features.includes(`${format.toLowerCase()}_export`) && !metadata.features.includes('all')) {
+            return { allowed: false, message: `Export format '${format}' requires Taifa tier or above.` };
+        }
+    }
+
+    // 3. Check Granular Filtering (Strict Mode)
+    const filters = Array.from(url.searchParams.keys()).filter(k => k !== 'limit' && k !== 'offset' && k !== 'route' && k !== 'X-API-Key');
+    if (filters.length > 0 && !metadata.allowed_filters.includes('all')) {
+        for (const f of filters) {
+            if (!metadata.allowed_filters.includes(f)) {
+                return { 
+                    allowed: false, 
+                    message: `Filtering by '${f}' is restricted on the ${tier} tier. Upgrade for granular data access.` 
                 };
             }
-        }
-
-        // Block gated formats (csv, geojson)
-        if (format && GATED_FORMATS.includes(format.toLowerCase())) {
-            return {
-                allowed: false,
-                message: `Export format '${format}' requires Mwananchi tier or above.`
-            };
         }
     }
 
@@ -231,8 +312,9 @@ export async function validateApiKey(req: Request, options: { required?: boolean
     }
 
     // Step 8: Monthly quota check
-    const monthlyLimit = TIER_LIMITS[k.tier]?.monthly || 5000;
-    if (k.monthly_request_count > monthlyLimit) {
+    const metadata = TIER_LIMITS[k.tier] || TIER_LIMITS.public;
+    const monthlyLimit = metadata.monthly;
+    if (k.monthly_request_count > monthlyLimit && metadata.monthly > 0) {
         return {
             valid: false as const,
             error: `Monthly quota of ${monthlyLimit.toLocaleString()} requests exhausted. Upgrade at https://nasakaiebc.civiceducationkenya.com/pricing`,
@@ -288,7 +370,7 @@ export async function deductCredits(keyId: string, weight: number = 1) {
 }
 
 // ---- Usage Logging (fire-and-forget) ----
-export async function logApiUsage(keyId: string, endpoint: string, method: string, status: number, startTime: number, req: Request, weightOverride?: number) {
+export async function logApiUsage(keyId: string, tier: string, endpoint: string, method: string, status: number, startTime: number, req: Request, weightOverride?: number) {
     const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
     const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!SUPABASE_URL || !SUPABASE_KEY) return;
@@ -303,13 +385,8 @@ export async function logApiUsage(keyId: string, endpoint: string, method: strin
     const ipHashArray = Array.from(new Uint8Array(ipHashBuffer));
     const ipHash = ipHashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
 
-    // Determine request weight
-    let requestWeight = weightOverride || 1;
-    if (!weightOverride) {
-        const url = new URL(req.url);
-        if (url.pathname.includes('/boundary')) requestWeight = 5;
-        if (url.searchParams.get('format') === 'csv') requestWeight = 3;
-    }
+    // Determine request weight via the Peak Pricing Engine
+    let requestWeight = weightOverride || calculateRequestWeight(req, tier);
 
     // Fire-and-forget — do not await
     fetch(`${SUPABASE_URL}/rest/v1/nasaka_usage_log`, {

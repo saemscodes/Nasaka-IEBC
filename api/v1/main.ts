@@ -1,6 +1,6 @@
 export const config = { runtime: 'nodejs' };
 
-import { validateApiKey, errorResponse, corsHeaders, logApiUsage, deductCredits } from '../../src/api-lib/api-auth';
+import { validateApiKey, errorResponse, corsHeaders, logApiUsage, deductCredits, calculateRequestWeight } from '../../src/api-lib/api-auth';
 import { createLogger } from '../../src/api-lib/logger';
 
 const getEnv = (name: string, env?: any) => {
@@ -73,35 +73,42 @@ export default async function handler(req: Request, env?: any): Promise<Response
     }
 
     try {
-        switch (route) {
-            case 'health':
-                return handleHealth(SUPABASE_URL);
+        // --- Phase 1: Authentication & Tiering (Strict Mode) ---
+        // Public routes skip validation
+        if (route === 'health') return handleHealth(SUPABASE_URL);
 
+        const auth = await validateApiKey(req, { required: false });
+        if (!auth.valid) {
+             return errorResponse(auth.error, auth.status || 401, { retryAfter: auth.retryAfter });
+        }
+
+        // --- Phase 2: Route Dispatching ---
+        switch (route) {
             case 'stats':
-                return handleStats(req, SUPABASE_URL, SUPABASE_KEY, logger);
+                return handleStats(req, SUPABASE_URL, SUPABASE_KEY, logger, startTime, auth);
 
             case 'counties':
-                return handleCounties(req, SUPABASE_URL, SUPABASE_KEY, logger);
+                return handleCounties(req, SUPABASE_URL, SUPABASE_KEY, logger, startTime, auth);
 
             case 'status':
-                return handleStatus(req, SUPABASE_URL, SUPABASE_ANON);
+                return handleStatus(req, SUPABASE_URL, SUPABASE_ANON, startTime, auth);
 
             case 'locate':
-                return handleLocate(req, SUPABASE_URL, SUPABASE_KEY, logger, startTime, env);
+                return handleLocate(req, SUPABASE_URL, SUPABASE_KEY, logger, startTime, auth);
 
             case 'boundary':
-                return handleBoundary(req, SUPABASE_URL, SUPABASE_ANON);
+                return handleBoundary(req, SUPABASE_URL, SUPABASE_ANON, startTime, auth);
 
             case 'coordinates':
-                return handleCoordinates(req, SUPABASE_URL, SUPABASE_ANON);
+                return handleCoordinates(req, SUPABASE_URL, SUPABASE_ANON, startTime, auth);
 
             case 'offices':
                 const id = url.searchParams.get('id');
-                if (id) return handleOfficeById(req, SUPABASE_URL, SUPABASE_KEY, id);
-                return handleOffices(req, SUPABASE_URL, SUPABASE_KEY, logger, startTime);
+                if (id) return handleOfficeById(req, SUPABASE_URL, SUPABASE_KEY, id, startTime, auth);
+                return handleOffices(req, SUPABASE_URL, SUPABASE_KEY, logger, startTime, auth);
 
             case 'ai-proxy':
-                return handleAIProxy(req, env);
+                return handleAIProxy(req, env, startTime, auth);
 
             default:
                 return errorResponse('Invalid route', 404);
@@ -123,39 +130,46 @@ export async function handleHealth(baseUrl: string) {
     }, { headers: { ...corsHeaders(), 'Cache-Control': 'no-store' } });
 }
 
-export async function handleStats(req: Request, baseUrl: string, key: string, logger: any) {
-    const auth = await validateApiKey(req, { required: false });
+export async function handleStats(req: Request, baseUrl: string, key: string, logger: any, startTime: number, auth: any) {
     const resp = await fetch(`${baseUrl}/rest/v1/rpc/get_api_stats`, {
         method: 'POST',
         headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' }
     });
+    
+    let result: any;
     if (!resp.ok) {
         const fallback = await fetch(`${baseUrl}/rest/v1/iebc_offices?select=id,verified,latitude`, {
             headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
         });
         const offices: any[] = await fallback.json();
-        return Response.json({
-            data: {
-                total_stations: offices.length,
-                verified_count: offices.filter(o => o.verified).length,
-                coordinate_coverage: offices.filter(o => o.latitude !== null).length,
-                counties_covered: 47,
-                snapshot_timestamp: new Date().toISOString()
-            }
-        }, { headers: corsHeaders() });
+        result = {
+            total_stations: offices.length,
+            verified_count: offices.filter(o => o.verified).length,
+            coordinate_coverage: offices.filter(o => o.latitude !== null).length,
+            counties_covered: 47,
+            snapshot_timestamp: new Date().toISOString()
+        };
+    } else {
+        result = await resp.json();
     }
-    return Response.json({ data: await resp.json() }, { headers: { ...corsHeaders(), 'Cache-Control': 's-maxage=3600' } });
+
+    logApiUsage(auth.keyId, auth.tier, '/api/v1/stats', req.method, 200, startTime, req);
+    return Response.json({ data: result }, { headers: { ...corsHeaders(), 'Cache-Control': 's-maxage=3600' } });
 }
 
-export async function handleCounties(req: Request, baseUrl: string, key: string, logger: any) {
+export async function handleCounties(req: Request, baseUrl: string, key: string, logger: any, startTime: number, auth: any) {
     const resp = await fetch(`${baseUrl}/rest/v1/counties?select=*&order=county_name.asc`, {
         headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
     });
+    
     if (!resp.ok) return Response.json({ data: [{ id: 1, county_name: 'MOMBASA' }], meta: { warning: 'Live data unavailable' } }, { headers: corsHeaders() });
-    return Response.json({ data: await resp.json() }, { headers: { ...corsHeaders(), 'Cache-Control': 's-maxage=86400' } });
+    
+    const data = await resp.json();
+    logApiUsage(auth.keyId, auth.tier, '/api/v1/counties', req.method, 200, startTime, req);
+    return Response.json({ data }, { headers: { ...corsHeaders(), 'Cache-Control': 's-maxage=86400' } });
 }
 
-export async function handleStatus(req: Request, baseUrl: string, key: string) {
+export async function handleStatus(req: Request, baseUrl: string, key: string, startTime: number, auth: any) {
     const url = new URL(req.url);
     const county = url.searchParams.get('county');
     let qUrl = `${baseUrl}/rest/v1/iebc_offices?select=id,constituency,county,office_location,formatted_address,verified,geocode_status,latitude,longitude&order=county.asc`;
@@ -167,10 +181,12 @@ export async function handleStatus(req: Request, baseUrl: string, key: string) {
         operational_status: o.verified ? 'verified' : 'pending',
         registration_open: !!o.verified
     }));
+    
+    logApiUsage(auth.keyId, auth.tier, '/api/v1/status', 'GET', 200, startTime, req);
     return Response.json({ data: enriched, total: enriched.length }, { headers: corsHeaders() });
 }
 
-export async function handleCoordinates(req: Request, baseUrl: string, key: string) {
+export async function handleCoordinates(req: Request, baseUrl: string, key: string, startTime: number, auth: any) {
     const url = new URL(req.url);
     const county = url.searchParams.get('county');
     const table = url.searchParams.get('table') || 'iebc_offices';
@@ -180,10 +196,12 @@ export async function handleCoordinates(req: Request, baseUrl: string, key: stri
     if (county) qUrl += `&county=ilike.*${encodeURIComponent(normalizeCounty(county) || county)}*`;
     const resp = await fetch(qUrl, { headers: { 'apikey': key, 'Authorization': `Bearer ${key}` } });
     const data = await resp.json();
+    
+    logApiUsage(auth.keyId, auth.tier, '/api/v1/coordinates', 'GET', 200, startTime, req);
     return Response.json({ data, total: data.length }, { headers: corsHeaders() });
 }
 
-export async function handleLocate(req: Request, baseUrl: string, key: string, logger: any, startTime: number, env?: any) {
+export async function handleLocate(req: Request, baseUrl: string, key: string, logger: any, startTime: number, auth: any) {
     const url = new URL(req.url);
     const rawLat = parseFloat(url.searchParams.get('lat') || '');
     const rawLng = parseFloat(url.searchParams.get('lng') || '');
@@ -198,6 +216,8 @@ export async function handleLocate(req: Request, baseUrl: string, key: string, l
 
     if (isNaN(lat) || isNaN(lng)) return errorResponse('Invalid coordinates', 400);
 
+    let result: any = { data: [], layer: 'none' };
+
     // Protocol Layer A: Nearest Ward (RPC)
     const rpcResp = await fetch(`${baseUrl}/rest/v1/rpc/get_nearest_ward`, {
         method: 'POST',
@@ -208,47 +228,44 @@ export async function handleLocate(req: Request, baseUrl: string, key: string, l
     if (rpcResp.ok) {
         const wards = await rpcResp.json();
         if (wards && wards.length > 0) {
-            // Find corresponding office
             const ward = wards[0];
             const officeResp = await fetch(`${baseUrl}/rest/v1/iebc_offices?ward=ilike.*${encodeURIComponent(ward.ward_name)}*&select=*&limit=5`, {
                 headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
             });
             const offices = await officeResp.json();
-            if (offices.length > 0) return Response.json({ data: offices, layer: 'ward', meta: { ward: ward.ward_name } }, { headers: corsHeaders() });
+            if (offices.length > 0) result = { data: offices, layer: 'ward', meta: { ward: ward.ward_name } };
         }
     }
 
-    // Protocol Layer B: Constituency Context
-    // Extract constituency via point-in-polygon or coordinate proximity to centroids
-    const constituencyResp = await fetch(`${baseUrl}/rest/v1/iebc_offices?select=*&order=latitude.asc&limit=50`, {
-        headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
-    });
-    const allOffices: any[] = await constituencyResp.json();
-
-    const nearestOffices = allOffices
-        .filter(o => o.latitude && o.longitude)
-        .map(o => ({ ...o, distance: haversineKm(lat, lng, o.latitude, o.longitude) }))
-        .sort((a, b) => a.distance - b.distance)
-        .slice(0, 10);
-
-    if (nearestOffices.length > 0 && nearestOffices[0].distance < 30) {
-        return Response.json({ data: nearestOffices, layer: 'sub-county', meta: { nearest_distance: nearestOffices[0].distance } }, { headers: corsHeaders() });
-    }
-
-    // Protocol Layer C: Full County Fallback
-    if (nearestOffices.length > 0) {
-        const county = nearestOffices[0].county;
-        const countyResp = await fetch(`${baseUrl}/rest/v1/iebc_offices?county=eq.${encodeURIComponent(county)}&select=*&limit=10`, {
+    if (result.layer === 'none') {
+        // Protocol Layer B: Constituency Context
+        const constituencyResp = await fetch(`${baseUrl}/rest/v1/iebc_offices?select=*&order=latitude.asc&limit=50`, {
             headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
         });
-        const countyOffices = await countyResp.json();
-        return Response.json({ data: countyOffices, layer: 'county', meta: { county } }, { headers: corsHeaders() });
+        const allOffices: any[] = await constituencyResp.json();
+        const nearestOffices = allOffices
+            .filter(o => o.latitude && o.longitude)
+            .map(o => ({ ...o, distance: haversineKm(lat, lng, o.latitude, o.longitude) }))
+            .sort((a, b) => a.distance - b.distance)
+            .slice(0, 10);
+
+        if (nearestOffices.length > 0 && nearestOffices[0].distance < 30) {
+            result = { data: nearestOffices, layer: 'sub-county', meta: { nearest_distance: nearestOffices[0].distance } };
+        } else if (nearestOffices.length > 0) {
+            const county = nearestOffices[0].county;
+            const countyResp = await fetch(`${baseUrl}/rest/v1/iebc_offices?county=eq.${encodeURIComponent(county)}&select=*&limit=10`, {
+                headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
+            });
+            const countyOffices = await countyResp.json();
+            result = { data: countyOffices, layer: 'county', meta: { county } };
+        }
     }
 
-    return Response.json({ data: [], layer: 'none', message: 'Location outside service area' }, { headers: corsHeaders() });
+    logApiUsage(auth.keyId, auth.tier, '/api/v1/locate', 'GET', 200, startTime, req);
+    return Response.json(result, { headers: corsHeaders() });
 }
 
-export async function handleBoundary(req: Request, baseUrl: string, key: string) {
+export async function handleBoundary(req: Request, baseUrl: string, key: string, startTime: number, auth: any) {
     const url = new URL(req.url);
     const lat = parseFloat(url.searchParams.get('lat') || '');
     const lng = parseFloat(url.searchParams.get('lng') || '');
@@ -261,26 +278,60 @@ export async function handleBoundary(req: Request, baseUrl: string, key: string)
         const d = haversineKm(lat, lng, c.latitude, c.longitude);
         if (d < minDist) { minDist = d; nearest = c; }
     }
+    
+    logApiUsage(auth.keyId, auth.tier, '/api/v1/boundary', 'GET', 200, startTime, req);
     return Response.json({ data: { constituency: nearest?.name, county: nearest?.counties?.name } }, { headers: corsHeaders() });
 }
 
-export async function handleOffices(req: Request, baseUrl: string, key: string, logger: any, startTime: number) {
+export async function handleOffices(req: Request, baseUrl: string, key: string, logger: any, startTime: number, auth: any) {
     const url = new URL(req.url);
-    const limit = Math.min(parseInt(url.searchParams.get('limit') || '50'), 200);
-    const resp = await fetch(`${baseUrl}/rest/v1/iebc_offices?select=*&limit=${limit}`, {
+    const limit = Math.min(parseInt(url.searchParams.get('limit') || (auth.tier === 'public' ? '5' : '50')), 200);
+    
+    let qUrl = `${baseUrl}/rest/v1/iebc_offices?select=*&limit=${limit}`;
+    
+    // Strict Mode: Advanced Filtering forward
+    const county = url.searchParams.get('county');
+    if (county) qUrl += `&county=ilike.*${encodeURIComponent(county)}*`;
+    
+    const constituency = url.searchParams.get('constituency');
+    if (constituency) qUrl += `&constituency=ilike.*${encodeURIComponent(constituency)}*`;
+    
+    const ward = url.searchParams.get('ward');
+    if (ward) qUrl += `&ward=ilike.*${encodeURIComponent(ward)}*`;
+
+    const resp = await fetch(qUrl, {
         headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
     });
-    return Response.json({ data: await resp.json() }, { headers: corsHeaders() });
+    
+    let data = await resp.json();
+    
+    // Tiered Access Boundary Enforcement
+    if (auth.tier === 'public') {
+        data = data.slice(0, 5);
+    }
+
+    logApiUsage(auth.keyId, auth.tier, '/api/v1/offices', 'GET', 200, startTime, req);
+    
+    return Response.json({ 
+        data, 
+        meta: { 
+            tier: auth.tier, 
+            weighted_cost: calculateRequestWeight(req, auth.tier),
+            remaining_quota: auth.remaining 
+        } 
+    }, { headers: corsHeaders() });
 }
 
-export async function handleOfficeById(req: Request, baseUrl: string, key: string, id: string) {
+export async function handleOfficeById(req: Request, baseUrl: string, key: string, id: string, startTime: number, auth: any) {
     const resp = await fetch(`${baseUrl}/rest/v1/iebc_offices?id=eq.${id}&select=*`, {
         headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Prefer': 'plurality=singular' }
     });
+    
+    logApiUsage(auth.keyId, auth.tier, `/api/v1/offices/${id}`, 'GET', 200, startTime, req);
     return Response.json({ data: await resp.json() }, { headers: corsHeaders() });
 }
 
-export async function handleAIProxy(req: Request, env?: any) {
+export async function handleAIProxy(req: Request, env: any, startTime: number, auth: any) {
     if (req.method !== 'POST') return errorResponse('Method not allowed', 405);
 
     try {
@@ -325,6 +376,7 @@ export async function handleAIProxy(req: Request, env?: any) {
         });
 
         const data = await aiResp.json();
+        logApiUsage(auth.keyId, auth.tier, '/api/v1/ai-proxy', 'POST', aiResp.status, startTime, req, 10); // Fixed weight for AI
         return Response.json(data, { status: aiResp.status, headers: corsHeaders() });
     } catch (err: any) {
         return errorResponse(err.message, 500);

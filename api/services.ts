@@ -1,5 +1,5 @@
 
-import { validateApiKey, errorResponse, corsHeaders } from '../src/api-lib/api-auth';
+import { validateApiKey, errorResponse, corsHeaders, logApiUsage, calculateRequestWeight } from '../src/api-lib/api-auth';
 
 export const config = { runtime: 'nodejs' };
 
@@ -17,31 +17,45 @@ const getEnv = (name: string, env?: any) => {
 export default async function handler(req: Request, env?: any): Promise<Response> {
     const url = new URL(req.url);
     const service = url.searchParams.get('service');
+    const startTime = Date.now();
     const headers = corsHeaders();
 
     if (req.method === 'OPTIONS') return new Response(null, { headers });
 
+    // --- Phase 1: Authentication (Strict Mode) ---
+    // Public services (like OAuth callback and 404) skip validation
+    if (service === 'auth-callback' || service === '404' || service === 'enquire') {
+        // Enquire is public lead gen
+    } else {
+        const auth = await validateApiKey(req, { required: false });
+        if (!auth.valid) {
+            return errorResponse(auth.error, auth.status || 401);
+        }
+        // Inject auth into handlers if needed
+        (req as any).auth = auth;
+    }
+
     switch (service) {
         case 'ai-proxy':
-            return handleAiProxy(req, headers, env);
+            return handleAiProxy(req, headers, env, startTime);
         case 'signature-session':
-            return handleSignatureSession(req, headers, env);
+            return handleSignatureSession(req, headers, env, startTime);
         case 'petition-stats':
-            return handlePetitionStats(req, headers, env);
+            return handlePetitionStats(req, headers, env, startTime);
         case 'workflow':
-            return handleWorkflow(req, headers, env);
+            return handleWorkflow(req, headers, env, startTime);
         case 'verify-voter':
-            return handleVerifyVoter(req, headers, env);
+            return handleVerifyVoter(req, headers, env, startTime);
         case 'enquire':
             return handleEnquire(req, headers, env);
         case 'auth-callback':
             return handleAuthCallback(req, headers, env);
         case 'download':
-            return handleDownload(req, headers, env);
+            return handleDownload(req, headers, env, startTime);
         case '404':
             return handle404Service(req, headers);
         case 'usage':
-            return handleUsage(req, headers, env);
+            return handleUsage(req, headers, env, startTime);
         default:
             return errorResponse('Invalid service. Use ?service=[name]', 400);
     }
@@ -80,7 +94,7 @@ async function handle404Service(req, headers) {
 
 // ---- Service Handlers (Ported logic) ----
 
-async function handleAiProxy(req: Request, headers: any, env?: any) {
+async function handleAiProxy(req: Request, headers: any, env: any, startTime: number) {
     if (req.method !== 'POST') return errorResponse('Method not allowed', 405);
     const { provider, body } = await req.json();
     if (!provider || !body) return errorResponse('Provider and body are required', 400);
@@ -104,7 +118,8 @@ async function handleAiProxy(req: Request, headers: any, env?: any) {
         case 'ipapi':
             const ip = body.ip || '';
             const res = await fetch(`https://ipapi.co/${ip}/json/`);
-            return Response.json(await res.json(), { headers });
+            const ipData = await res.json();
+            return Response.json(ipData, { headers });
         default:
             return errorResponse('Invalid provider', 400);
     }
@@ -114,18 +129,30 @@ async function handleAiProxy(req: Request, headers: any, env?: any) {
         headers: proxyHeaders,
         body: JSON.stringify(body)
     });
-    return Response.json(await response.json(), { headers });
+    const result = await response.json();
+    
+    const auth = (req as any).auth;
+    if (auth) logApiUsage(auth.keyId, auth.tier, '/proxy/ai', 'POST', response.status, startTime, req, 10);
+    
+    return Response.json(result, { headers });
 }
 
-async function handleSignatureSession(req: Request, headers: any, env?: any) {
+async function handleSignatureSession(req: Request, headers: any, env: any, startTime: number) {
     if (req.method !== 'POST') return errorResponse('Method not allowed', 405);
     const body = await req.json();
-    // Simplified session logic
+    
+    const auth = (req as any).auth;
+    if (auth) logApiUsage(auth.keyId, auth.tier, '/services/signature', 'POST', 200, startTime, req, 2);
+    
     return Response.json({ success: true, sessionId: `sig_${Date.now()}`, redirectUrl: "/sign" }, { headers });
 }
 
-async function handlePetitionStats(req: Request, headers: any, env?: any) {
+async function handlePetitionStats(req: Request, headers: any, env: any, startTime: number) {
     if (req.method !== 'GET') return errorResponse('Method not allowed', 405);
+    
+    const auth = (req as any).auth;
+    if (auth) logApiUsage(auth.keyId, auth.tier, '/services/petition-stats', 'GET', 200, startTime, req, 1);
+
     return Response.json({
         totalSignatures: 8750,
         validSignatures: 8520,
@@ -134,15 +161,23 @@ async function handlePetitionStats(req: Request, headers: any, env?: any) {
     }, { headers });
 }
 
-async function handleWorkflow(req: Request, headers: any, env?: any) {
+async function handleWorkflow(req: Request, headers: any, env: any, startTime: number) {
     if (req.method !== 'POST') return errorResponse('Method not allowed', 405);
     const { scriptId } = await req.json();
+    
+    const auth = (req as any).auth;
+    if (auth) logApiUsage(auth.keyId, auth.tier, '/services/workflow', 'POST', 200, startTime, req, 5);
+
     return Response.json({ success: true, message: `Dispatched ${scriptId}` }, { headers });
 }
 
-async function handleVerifyVoter(req: Request, headers: any, env?: any) {
+async function handleVerifyVoter(req: Request, headers: any, env: any, startTime: number) {
     if (req.method !== 'POST') return errorResponse('Method not allowed', 405);
     const { nationalId } = await req.json();
+    
+    const auth = (req as any).auth;
+    if (auth) logApiUsage(auth.keyId, auth.tier, '/services/verify-voter', 'POST', 200, startTime, req, 3);
+
     return Response.json({ verified: true, voterDetails: { name: "John Doe", nationalId } }, { headers });
 }
 
@@ -374,7 +409,7 @@ async function handleAuthCallback(req: Request, headers: any, env?: any) {
     return Response.redirect(`${url.origin}/dashboard/api-keys?auth_source=ceka`);
 }
 
-async function handleDownload(req: Request, headers: any, env?: any) {
+async function handleDownload(req: Request, headers: any, env: any, startTime: number) {
     if (req.method !== 'GET') return errorResponse('Method not allowed', 405);
 
     const SUPABASE_URL = getEnv('SUPABASE_URL', env) || getEnv('VITE_SUPABASE_URL', env);
@@ -409,10 +444,13 @@ async function handleDownload(req: Request, headers: any, env?: any) {
         return errorResponse('Download not yet available. The dataset is being prepared.', 202);
     }
 
+    const auth = (req as any).auth;
+    if (auth) logApiUsage(auth.keyId, auth.tier, '/services/download', 'GET', 200, startTime, req, 50); // Heavy weight for downloads
+
     return Response.json({ success: true, download_url: lic.download_url }, { headers });
 }
 
-async function handleUsage(req: Request, headers: any, env?: any) {
+async function handleUsage(req: Request, headers: any, env: any, startTime: number) {
     if (req.method !== 'GET') return errorResponse('Method not allowed', 405);
 
     const token = getEnv('VERCEL_API_TOKEN', env);
@@ -438,6 +476,9 @@ async function handleUsage(req: Request, headers: any, env?: any) {
 
         const data = await res.json();
         const requests = data?.usage?.edgeRequests?.total ?? 0;
+
+        const auth = (req as any).auth;
+        if (auth) logApiUsage(auth.keyId, auth.tier, '/services/usage', 'GET', 200, startTime, req, 1);
 
         return Response.json({ requests }, {
             headers: {
