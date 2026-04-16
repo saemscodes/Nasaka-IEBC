@@ -31,14 +31,12 @@ export default async function handler(req: Request, env?: any): Promise<Response
 
     // --- Phase 1: Authentication (Strict Mode) ---
     // Public services (like OAuth callback and 404) skip validation
-    if (service === 'auth-callback' || service === '404' || service === 'enquire') {
-        // Enquire is public lead gen
-    } else {
-        const auth = await validateApiKey(req, { required: false, env });
+    const isPublic = service === 'auth-callback' || service === '404' || service === 'enquire';
+    if (!isPublic) {
+        const auth = await validateApiKey(req, { required: true, env });
         if (!auth.valid) {
             return errorResponse(auth.error, auth.status || 401);
         }
-        // Inject auth into handlers if needed
         (req as any).auth = auth;
     }
 
@@ -452,7 +450,10 @@ async function handleDownload(req: Request, headers: any, env: any, startTime: n
     }
 
     const auth = (req as any).auth;
-    if (auth) logApiUsage(auth.keyId, auth.tier, '/services/download', 'GET', 200, startTime, req, env, 50); // Heavy weight for downloads
+    if (auth) {
+        const weight = 50; // Heavy weight for downloads
+        logApiUsage(auth.keyId, auth.tier, '/services/download', 'GET', 200, startTime, req, env, weight);
+    }
 
     return Response.json({ success: true, download_url: lic.download_url }, { headers });
 }

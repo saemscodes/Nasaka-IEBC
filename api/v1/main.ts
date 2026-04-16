@@ -81,10 +81,8 @@ export default async function handler(req: Request, env?: any): Promise<Response
 
     try {
         // --- Phase 1: Authentication & Tiering (Strict Mode) ---
-        // Public routes skip validation
-        if (route === 'health') return handleHealth(SUPABASE_URL);
-
-        const auth = await validateApiKey(req, { required: false, env });
+        const isHealth = route === 'health';
+        const auth = await validateApiKey(req, { required: !isHealth, env });
         if (!auth.valid) {
              return errorResponse(auth.error, auth.status || 401, { retryAfter: auth.retryAfter });
         }
@@ -200,7 +198,18 @@ export async function handleCoordinates(req: Request, baseUrl: string, key: stri
     let select = 'id,constituency,county,latitude,longitude,verified';
     if (table === 'diaspora_registration_centres') select = 'id,mission_name,city,country,latitude,longitude';
     let qUrl = `${baseUrl}/rest/v1/${table}?select=${select}&latitude=not.is.null`;
-    if (county) qUrl += `&county=ilike.*${encodeURIComponent(normalizeCounty(county) || county)}*`;
+    
+    // Strict Mode: Filter forward
+    if (county) {
+        const normalized = normalizeCounty(county) || county;
+        qUrl += `&county=ilike.*${encodeURIComponent(normalized)}*`;
+    }
+    
+    const constituency = url.searchParams.get('constituency');
+    if (constituency) qUrl += `&constituency=ilike.*${encodeURIComponent(constituency)}*`;
+    
+    const ward = url.searchParams.get('ward');
+    if (ward) qUrl += `&ward=ilike.*${encodeURIComponent(ward)}*`;
     const resp = await fetch(qUrl, { headers: { 'apikey': key, 'Authorization': `Bearer ${key}` } });
     const data = await resp.json();
     
@@ -305,6 +314,9 @@ export async function handleOffices(req: Request, baseUrl: string, key: string, 
     
     const ward = url.searchParams.get('ward');
     if (ward) qUrl += `&ward=ilike.*${encodeURIComponent(ward)}*`;
+    
+    const landmark = url.searchParams.get('landmark');
+    if (landmark) qUrl += `&landmark=ilike.*${encodeURIComponent(landmark)}*`;
 
     const resp = await fetch(qUrl, {
         headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }

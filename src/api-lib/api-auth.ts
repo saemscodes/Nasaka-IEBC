@@ -15,28 +15,28 @@ export const TIER_LIMITS: Record<string, TierMetadata> = {
     public: { 
         monthly: 0, 
         burst: 1, 
-        weight_multiplier: 2.0, // High cost for anonymous
+        weight_multiplier: 5.0, // Punitive cost for anonymous
         allowed_filters: [], // No filtering allowed for guests
         features: ['basic_json']
     },
     jamii: { 
         monthly: 5000, 
         burst: 2, 
-        weight_multiplier: 1.2,
+        weight_multiplier: 1.5,
         allowed_filters: ['county'], 
         features: ['basic_json', 'search']
     },
     mwananchi: { 
         monthly: 100000, 
         burst: 10, 
-        weight_multiplier: 1.0,
+        weight_multiplier: 1.2,
         allowed_filters: ['county', 'constituency'], 
         features: ['basic_json', 'search', 'csv_export']
     },
     taifa: { 
         monthly: 500000, 
         burst: 30, 
-        weight_multiplier: 0.9,
+        weight_multiplier: 1.0,
         allowed_filters: ['county', 'constituency', 'ward'], 
         features: ['basic_json', 'search', 'csv_export', 'geojson_export', 'priority_support']
     },
@@ -50,7 +50,7 @@ export const TIER_LIMITS: Record<string, TierMetadata> = {
     enterprise: { 
         monthly: 500000, 
         burst: 30, 
-        weight_multiplier: 1.0,
+        weight_multiplier: 0.9,
         allowed_filters: ['all'], 
         features: ['all']
     }
@@ -118,31 +118,75 @@ async function checkBurstRate(keyId: string, tier: string, env_context?: any): P
 }
 
 // ---- Dynamic Pricing & Credit Logic ----
-export function calculateRequestWeight(req: Request, tier: string): number {
+// ---- Pricing & Knob Helpers ----
+let configCache: { data: any, expiry: number } | null = null;
+
+async function fetchConfigKnobs(env?: any): Promise<any> {
+    const now = Date.now();
+    if (configCache && configCache.expiry > now) return configCache.data;
+
+    const SUPABASE_URL = getEnv('SUPABASE_URL', env);
+    const SUPABASE_KEY = getEnv('SUPABASE_SERVICE_ROLE_KEY', env);
+    if (!SUPABASE_URL || !SUPABASE_KEY) return null;
+
+    try {
+        const resp = await fetch(`${SUPABASE_URL}/rest/v1/nasaka_config?select=key,value`, {
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+        });
+        if (!resp.ok) return null;
+        const rows = await resp.json();
+        const config = (rows as any[]).reduce((acc, row) => ({ ...acc, [row.key]: row.value }), {});
+        
+        configCache = { data: config, expiry: now + 60000 }; // 1 min TTL
+        return config;
+    } catch {
+        return null;
+    }
+}
+
+export function calculateRequestWeight(req: Request, tier: string, knobs?: any): number {
     const url = new URL(req.url);
     const pathname = url.pathname;
     const format = url.searchParams.get('format');
     const metadata = TIER_LIMITS[tier] || TIER_LIMITS.public;
 
+    // Default multipliers (Admin Knobs will override these)
+    const m = knobs?.pricing_multipliers || {
+        peak_surge: 1.5,
+        boundary_multiplier: 10.0,
+        stats_multiplier: 3.0,
+        complex_query_penalty: 1.25,
+        csv_multiplier: 5.0,
+        geojson_multiplier: 8.0,
+        locate_multiplier: 2.0
+    };
+
     let weight = 1.0;
 
     // 1. Data Intensity Weight
-    if (pathname.includes('/boundary')) weight = 5.0;
-    if (pathname.includes('/stats')) weight = 2.0;
-    if (format === 'csv') weight = 3.0;
-    if (format === 'geojson') weight = 5.0;
+    if (pathname.includes('/boundary')) weight = m.boundary_multiplier;
+    if (pathname.includes('/stats')) weight = m.stats_multiplier;
+    if (pathname.includes('/locate')) weight = m.locate_multiplier;
+    if (format === 'csv') weight = m.csv_multiplier;
+    if (format === 'geojson') weight = m.geojson_multiplier;
 
-    // 2. Peak Hour Surge (Strict Mode)
-    // Surge 1.5x during 10 AM - 4 PM EAT (Election Window)
-    try {
-        const now = new Date();
-        const hour = now.getUTCHours() + 3; // Normalize to EAT (UTC+3)
-        if (hour >= 10 && hour <= 16) {
-            weight *= 1.5;
-        }
-    } catch { /* ignore if date fails */ }
+    // 2. Peak Hour Surge
+    const peak = knobs?.peak_window || { start_hour_eat: 10, end_hour_eat: 16, is_enabled: true };
+    if (peak.is_enabled) {
+        try {
+            const now = new Date();
+            const hour = (now.getUTCHours() + 3) % 24; // UTC+3
+            if (hour >= peak.start_hour_eat && hour <= peak.end_hour_eat) {
+                weight *= m.peak_surge;
+            }
+        } catch { }
+    }
 
-    // 3. Tier Multiplier (Rewarding higher tiers with lower per-request costs)
+    // 3. Admin Knobs: Search complexity weight
+    const filters = Array.from(url.searchParams.keys()).filter(k => k !== 'limit' && k !== 'offset' && k !== 'route' && k !== 'X-API-Key');
+    if (filters.length > 2) weight *= m.complex_query_penalty;
+
+    // 4. Tier Multiplier
     weight *= metadata.weight_multiplier;
 
     return Math.round(weight * 100) / 100;
@@ -209,7 +253,7 @@ export async function validateApiKey(req: Request, options: { required?: boolean
         if (!burstCheck.allowed) {
             return {
                 valid: false as const,
-                error: 'Global rate limit exceeded. Provide an X-API-Key for higher quotas.',
+                error: 'Global anonymous rate limit exceeded. Get an X-API-Key at https://nasakaiebc.civiceducationkenya.com/pricing',
                 retryAfter: burstCheck.retryAfter,
                 status: 429
             };
@@ -240,112 +284,63 @@ export async function validateApiKey(req: Request, options: { required?: boolean
         return { valid: false as const, error: 'Server misconfiguration', status: 500 };
     }
 
-    // Call the validate_api_key RPC via PostgREST
-    const rpcResp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/validate_api_key`, {
+    const knobs = await fetchConfigKnobs(env);
+    const weight = calculateRequestWeight(req, 'public', knobs); 
+
+    // Resolve UUID from key hash to maintain atomic billing
+    const keyLookup = await fetch(`${SUPABASE_URL}/rest/v1/api_keys?key_hash=eq.${hashHex}&select=id,tier,is_locked,plan_status,monthly_request_count,credits_balance,current_period_end`, {
+        headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`
+        }
+    });
+
+    if (!keyLookup.ok) {
+        return { valid: false as const, error: 'Invalid or deactivated API key', status: 403 };
+    }
+
+    const keys: any[] = await keyLookup.json();
+    if (!keys || keys.length === 0) {
+        return { valid: false as const, error: 'Invalid or deactivated API key', status: 403 };
+    }
+
+    const k = keys[0];
+
+    // Step 3: Check locked & status
+    if (k.is_locked) return { valid: false as const, error: 'Account locked.', status: 423 };
+    if (k.plan_status === 'past_due') return { valid: false as const, error: 'Payment past due.', status: 402 };
+
+    // Step 4: Feature gating check BEFORE charging
+    const featureCheck = checkFeatureAccess(k.tier, req);
+    if (!featureCheck.allowed) {
+        return { valid: false as const, error: featureCheck.message!, status: 403 };
+    }
+
+    // Step 5: Atomic Charge
+    const chargeWeight = calculateRequestWeight(req, k.tier, knobs);
+    const chargeResp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/charge_usage`, {
         method: 'POST',
         headers: {
             'apikey': SUPABASE_KEY,
             'Authorization': `Bearer ${SUPABASE_KEY}`,
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ p_key_hash: hashHex })
+        body: JSON.stringify({ p_key_id: k.id, p_endpoint_weight: Math.ceil(chargeWeight) })
     });
 
-    if (!rpcResp.ok) {
-        return { valid: false as const, error: 'Invalid or deactivated API key', status: 403 };
+    if (!chargeResp.ok) {
+        return { valid: false as const, error: 'Billing synchronization failed', status: 500 };
     }
 
-    const keyData: any[] = await rpcResp.json();
-    if (!keyData || keyData.length === 0) {
-        return { valid: false as const, error: 'Invalid or deactivated API key', status: 403 };
-    }
+    const chargeResult = await chargeResp.json();
+    const charge = chargeResult?.[0];
 
-    const k = keyData[0];
-
-    // Step 3: Check locked
-    if (k.is_locked) {
-        return {
-            valid: false as const,
-            error: 'Account locked. Renew subscription to restore access.',
-            status: 423
+    if (!charge?.allowed) {
+        return { 
+            valid: false as const, 
+            error: charge?.reason || 'Quota exceeded', 
+            status: charge?.limit_type === 'credits' ? 402 : 429 
         };
-    }
-
-    // Step 4: Check past_due
-    if (k.plan_status === 'past_due') {
-        return {
-            valid: false as const,
-            error: 'Payment past due. Please renew your subscription.',
-            status: 402
-        };
-    }
-
-    // Step 5: Check subscription expiry for paid tiers
-    if (k.tier !== 'jamii' && k.tier !== 'free' && k.current_period_end) {
-        const periodEnd = new Date(k.current_period_end);
-        const gracePeriod = new Date(periodEnd.getTime() + 3 * 24 * 60 * 60 * 1000); // 3 days grace
-        if (new Date() > gracePeriod) {
-            // Lock the key asynchronously
-            fetch(`${SUPABASE_URL}/rest/v1/api_keys?id=eq.${k.id}`, {
-                method: 'PATCH',
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': `Bearer ${SUPABASE_KEY}`,
-                    'Content-Type': 'application/json',
-                    'Prefer': 'return=minimal'
-                },
-                body: JSON.stringify({ is_locked: true, plan_status: 'cancelled' })
-            }).catch(() => { }); // fire-and-forget
-
-            return {
-                valid: false as const,
-                error: 'Subscription expired. Renew at https://nasakaiebc.civiceducationkenya.com/pricing',
-                status: 402
-            };
-        }
-    }
-
-    // Step 6: Feature gating
-    const featureCheck = checkFeatureAccess(k.tier, req);
-    if (!featureCheck.allowed) {
-        return {
-            valid: false as const,
-            error: featureCheck.message!,
-            upgrade_url: 'https://nasakaiebc.civiceducationkenya.com/pricing',
-            status: 403
-        };
-    }
-
-
-    // Step 8: Monthly quota check
-    const metadata = TIER_LIMITS[k.tier] || TIER_LIMITS.public;
-    const monthlyLimit = metadata.monthly;
-    if (k.monthly_request_count > monthlyLimit && metadata.monthly > 0) {
-        return {
-            valid: false as const,
-            error: `Monthly quota of ${monthlyLimit.toLocaleString()} requests exhausted. Upgrade at https://nasakaiebc.civiceducationkenya.com/pricing`,
-            status: 429
-        };
-    }
-
-    // Steps 9 & 10 are handled by the RPC (increment already happened)
-    // Usage logging is fire-and-forget at the caller level
-
-    // ---- Keystone: Populate Redis Cache for Edge Middleware ----
-    // Do not await — fire and forget
-    const UPSTASH_URL = getEnv('UPSTASH_REDIS_REST_URL', env);
-    const UPSTASH_TOKEN = getEnv('UPSTASH_REDIS_REST_TOKEN', env);
-    if (UPSTASH_URL && UPSTASH_TOKEN) {
-        fetch(`${UPSTASH_URL}/set/tier:${hashHex}`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${UPSTASH_TOKEN}` },
-            body: JSON.stringify({
-                tier: k.tier,
-                locked: k.is_locked,
-                status: k.plan_status,
-                updated_at: new Date().toISOString()
-            })
-        }).catch(() => { });
     }
 
     // Burst rate check via Upstash Redis
@@ -358,12 +353,13 @@ export async function validateApiKey(req: Request, options: { required?: boolean
             status: 429
         };
     }
+
     return {
         valid: true as const,
         keyId: k.id as string,
         tier: k.tier as string,
-        remaining: monthlyLimit - k.monthly_request_count,
-        creditsBalance: k.credits_balance as number
+        remaining: charge.remaining,
+        creditsBalance: k.credits_balance - Math.ceil(chargeWeight)
     };
 }
 
@@ -402,8 +398,12 @@ export async function logApiUsage(keyId: string, tier: string, endpoint: string,
     const ipHash = ipHashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
 
     // Determine request weight via the Peak Pricing Engine
-    let requestWeight = weightOverride || calculateRequestWeight(req, tier);
+    const knobs = await fetchConfigKnobs(env);
+    let requestWeight = weightOverride || calculateRequestWeight(req, tier, knobs);
 
+    // Full Parameter Logging (Hashed for Privacy where needed, clear for audit)
+    const searchParams = Object.fromEntries(new URL(req.url).searchParams);
+    
     // Fire-and-forget — do not await
     fetch(`${SUPABASE_URL}/rest/v1/nasaka_usage_log`, {
         method: 'POST',
@@ -418,7 +418,8 @@ export async function logApiUsage(keyId: string, tier: string, endpoint: string,
             endpoint,
             response_code: status,
             ip_hash: ipHash,
-            request_weight: requestWeight
+            request_weight: requestWeight,
+            search_params: JSON.stringify(searchParams) // Exhaustive parameter logging
         })
     }).catch(() => { }); // intentionally swallowed
 
