@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { testSupabase, testUser } from '../setup';
 
+const BASE_URL = 'http://localhost:5173';
+
 describe('Offices API', () => {
   beforeEach(async () => {
     // Clean up test data
@@ -10,7 +12,7 @@ describe('Offices API', () => {
 
   describe('GET /api/v1/offices', () => {
     it('should return list of offices', async () => {
-      const response = await fetch('/api/v1/offices');
+      const response = await fetch(`${BASE_URL}/api/v1/offices`);
       const data = await response.json();
       
       expect(response.status).toBe(200);
@@ -19,7 +21,7 @@ describe('Offices API', () => {
     });
 
     it('should filter by county', async () => {
-      const response = await fetch('/api/v1/offices?county=Nairobi');
+      const response = await fetch(`${BASE_URL}/api/v1/offices?county=Nairobi`);
       const data = await response.json();
       
       expect(response.status).toBe(200);
@@ -30,7 +32,7 @@ describe('Offices API', () => {
     });
 
     it('should paginate results', async () => {
-      const response = await fetch('/api/v1/offices?limit=5&offset=0');
+      const response = await fetch(`${BASE_URL}/api/v1/offices?limit=5&offset=0`);
       const data = await response.json();
       
       expect(response.status).toBe(200);
@@ -43,7 +45,7 @@ describe('Offices API', () => {
 
   describe('GET /api/v1/offices/search', () => {
     it('should search offices by query', async () => {
-      const response = await fetch('/api/v1/offices/search?q=Westlands');
+      const response = await fetch(`${BASE_URL}/api/v1/offices/search?q=Westlands`);
       const data = await response.json();
       
       expect(response.status).toBe(200);
@@ -52,7 +54,7 @@ describe('Offices API', () => {
     });
 
     it('should return 400 for missing query', async () => {
-      const response = await fetch('/api/v1/offices/search');
+      const response = await fetch(`${BASE_URL}/api/v1/offices/search`);
       const data = await response.json();
       
       expect(response.status).toBe(400);
@@ -63,7 +65,7 @@ describe('Offices API', () => {
 
   describe('GET /api/v1/offices/nearby', () => {
     it('should find nearby offices', async () => {
-      const response = await fetch('/api/v1/offices/nearby?lat=-1.2654&lng=36.7984&radius=10');
+      const response = await fetch(`${BASE_URL}/api/v1/offices/nearby?lat=-1.2654&lng=36.7984&radius=10`);
       const data = await response.json();
       
       expect(response.status).toBe(200);
@@ -76,7 +78,7 @@ describe('Offices API', () => {
     });
 
     it('should return 400 for invalid coordinates', async () => {
-      const response = await fetch('/api/v1/offices/nearby?lat=invalid&lng=invalid');
+      const response = await fetch(`${BASE_URL}/api/v1/offices/nearby?lat=invalid&lng=invalid`);
       const data = await response.json();
       
       expect(response.status).toBe(400);
@@ -86,7 +88,7 @@ describe('Offices API', () => {
 
   describe('GET /api/v1/offices/[id]', () => {
     it('should return office details', async () => {
-      const response = await fetch('/api/v1/offices/test-office-1');
+      const response = await fetch(`${BASE_URL}/api/v1/offices/test-office-1`);
       const data = await response.json();
       
       expect(response.status).toBe(200);
@@ -95,7 +97,7 @@ describe('Offices API', () => {
     });
 
     it('should return 404 for non-existent office', async () => {
-      const response = await fetch('/api/v1/offices/non-existent');
+      const response = await fetch(`${BASE_URL}/api/v1/offices/non-existent`);
       const data = await response.json();
       
       expect(response.status).toBe(404);
@@ -106,7 +108,7 @@ describe('Offices API', () => {
 
   describe('GET /api/v1/offices/with-relations', () => {
     it('should return office with all relations', async () => {
-      const response = await fetch('/api/v1/offices/with-relations?id=test-office-1');
+      const response = await fetch(`${BASE_URL}/api/v1/offices/with-relations?id=test-office-1`);
       const data = await response.json();
       
       expect(response.status).toBe(200);

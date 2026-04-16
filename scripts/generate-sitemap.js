@@ -145,12 +145,13 @@ async function generateSitemap() {
     ];
 
     // ── Tier 1: Fetch verified IEBC offices ──────────────────────────────────
-    await logToAdminTask('Fetching verified IEBC offices...');
+    await logToAdminTask('Fetching verified IEBC offices (Resilient Mode)...');
+    
+    // Select only the bare minimum likely to exist, or select all (*) for maximum flexibility
     const { data: offices, error } = await supabase
         .from('iebc_offices')
-        .select('constituency_name, county, ward, updated_at, verified')
-        .eq('verified', true)
-        .order('county', { ascending: true });
+        .select('*') 
+        .eq('verified', true);
 
     if (error) {
         await logToAdminTask(`Supabase fetch failed: ${error.message}`, 'error');
@@ -181,6 +182,11 @@ async function generateSitemap() {
             .range(from, to);
 
         if (wardsError) {
+            if (wardsError.message.includes('does not exist')) {
+                await logToAdminTask('[WARNING] Wards table does not exist in live DB. Skipping ward URLs.', 'warn');
+                wardsFetchDone = true;
+                break;
+            }
             await logToAdminTask(`Wards fetch failed (page ${wardsPage}): ${wardsError.message}`, 'error');
             await updateTaskStatus('failed');
             process.exit(1);
@@ -204,7 +210,7 @@ async function generateSitemap() {
 
     offices.forEach(office => {
         const county = office.county?.trim();
-        const constituency = office.constituency_name?.trim();
+        const constituency = (office.constituency_name || office.constituency || '').trim();
 
         if (county && constituency) {
             const key = `${county}|${constituency}`;
@@ -221,7 +227,7 @@ async function generateSitemap() {
     const wardOfficeCountMap = new Map();
     offices.forEach(office => {
         const county = office.county?.trim();
-        const constituency = office.constituency_name?.trim();
+        const constituency = (office.constituency_name || office.constituency || '').trim();
         const ward = office.ward?.trim();
         if (county && constituency && ward) {
             const key = `${county}|${constituency}|${ward}`;
@@ -247,7 +253,7 @@ async function generateSitemap() {
     // Also add any wards from iebc_offices that somehow aren't in the wards table
     offices.forEach(office => {
         const county = office.county?.trim();
-        const constituency = office.constituency_name?.trim();
+        const constituency = (office.constituency_name || office.constituency || '').trim();
         const ward = office.ward?.trim();
         if (county && constituency && ward) {
             const key = `${county}|${constituency}|${ward}`;

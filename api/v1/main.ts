@@ -1,6 +1,6 @@
-export const config = { runtime: 'nodejs' };
+export const config = { runtime: 'edge' };
 
-import { validateApiKey, errorResponse, corsHeaders, logApiUsage, deductCredits, calculateRequestWeight } from '../../src/api-lib/api-auth';
+import { validateApiKey, errorResponse, corsHeaders, logApiUsage, calculateRequestWeight } from '../../src/api-lib/api-auth';
 import { createLogger } from '../../src/api-lib/logger';
 
 const getEnv = (name: string, env?: any) => {
@@ -60,37 +60,45 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
 }
 
 export default async function handler(req: Request, env?: any): Promise<Response> {
-    const logger = createLogger(req);
     const startTime = Date.now();
-    const headers = corsHeaders();
-
-    if (req.method === 'OPTIONS') return new Response(null, { status: 200, headers });
-
-    const url = new URL(req.url);
-    const route = url.searchParams.get('route');
-
-    if (!route) return errorResponse('Missing route parameter', 400);
-
-    const SUPABASE_URL = getEnv('VITE_SUPABASE_URL', env) || getEnv('SUPABASE_URL', env);
-    const SUPABASE_KEY = getEnv('SUPABASE_SERVICE_ROLE_KEY', env);
-    const SUPABASE_ANON = getEnv('VITE_SUPABASE_ANON_KEY', env) || getEnv('SUPABASE_ANON_KEY', env);
-
-    if (!SUPABASE_URL || !SUPABASE_KEY) {
-        return errorResponse('Server misconfiguration', 500);
-    }
-
+    let route = 'unknown';
+    
     try {
-        // --- Phase 1: Authentication & Tiering (Strict Mode) ---
+        const url = new URL(req.url);
+        route = url.searchParams.get('route') || 'unknown';
+        const headers = corsHeaders();
+
+        if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers });
+
+        if (route === 'unknown') return errorResponse('Missing route parameter', 400);
+
+        const SUPABASE_URL = getEnv('VITE_SUPABASE_URL', env) || getEnv('SUPABASE_URL', env);
+        const SUPABASE_KEY = getEnv('SUPABASE_SERVICE_ROLE_KEY', env);
+        const SUPABASE_ANON = getEnv('VITE_SUPABASE_ANON_KEY', env) || getEnv('SUPABASE_ANON_KEY', env);
+
+        if (!SUPABASE_URL || !SUPABASE_KEY) {
+            return errorResponse('Server configuration error', 500);
+        }
+
+        // --- Phase 1: Authentication & Tiering ---
         const isHealth = route === 'health';
         const auth = await validateApiKey(req, { required: !isHealth, env });
+        
         if (!auth.valid) {
              return errorResponse(auth.error, auth.status || 401, { retryAfter: auth.retryAfter });
         }
 
+        const logger = createLogger(req);
+
         // --- Phase 2: Route Dispatching ---
         switch (route) {
+            case 'health':
+                return handleHealth(SUPABASE_URL);
+
             case 'stats':
                 return handleStats(req, SUPABASE_URL, SUPABASE_KEY, logger, startTime, auth, env);
+// ...
+// ... rest of switch ...
 
             case 'counties':
                 return handleCounties(req, SUPABASE_URL, SUPABASE_KEY, logger, startTime, auth, env);
@@ -119,7 +127,7 @@ export default async function handler(req: Request, env?: any): Promise<Response
                 return errorResponse('Invalid route', 404);
         }
     } catch (err: any) {
-        logger.error(500, err.message);
+        console.error(`[API CRASH] Route: ${route}, Error: ${err.message}`);
         return errorResponse(err.message, 500);
     }
 }

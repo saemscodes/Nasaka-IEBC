@@ -72,6 +72,24 @@ const getEnv = (name: string, env?: any) => {
     return undefined;
 };
 
+// ---- Safe Crypto Helper ----
+async function getSafeCrypto(): Promise<any> {
+    let cryptoObj: any;
+    try {
+        cryptoObj = (globalThis as any).crypto || (globalThis as any).msCrypto;
+    } catch { }
+
+    if (!cryptoObj || !cryptoObj.subtle) {
+        // Fallback for Node.js environments where it might not be global
+        try {
+            // @ts-ignore
+            const nodeCrypto = await import('node:crypto');
+            return nodeCrypto.webcrypto;
+        } catch { }
+    }
+    return cryptoObj;
+}
+
 // ---- Upstash Redis Rate Limiter ----
 async function checkBurstRate(keyId: string, tier: string, env_context?: any): Promise<{ allowed: boolean; retryAfter?: number }> {
     const UPSTASH_URL = getEnv('UPSTASH_REDIS_REST_URL', env_context);
@@ -271,19 +289,14 @@ export async function validateApiKey(req: Request, options: { required?: boolean
     const encoder = new TextEncoder();
     const data = encoder.encode(apiKey);
     
-    // Polyfill crypto for environments where it is not global (Legacy Node.js)
-    let cryptoObj: Crypto;
-    if (typeof crypto !== 'undefined') {
-        cryptoObj = crypto;
-    } else {
-        try {
-            // @ts-ignore
-            cryptoObj = (await import('crypto')).webcrypto as unknown as Crypto;
-        } catch {
-            return { valid: false as const, error: 'Cryptographic runtime missing. Deploy to Edge or Node.js 18+.', status: 500 };
-        }
+    // Polyfill crypto for environments where it is not global (Standard Web API only)
+    const cryptoObj = await getSafeCrypto();
+
+    if (!cryptoObj || !cryptoObj.subtle) {
+        return { valid: false as const, error: 'Cryptographic runtime missing. Deploy to Edge or Node.js 18+.', status: 500 };
     }
-    const hashBuffer = await (cryptoObj as any).subtle.digest('SHA-256', data);
+
+    const hashBuffer = await cryptoObj.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
@@ -403,7 +416,15 @@ export async function logApiUsage(keyId: string, tier: string, endpoint: string,
     // Hash IP for privacy
     const encoder = new TextEncoder();
     const ipData = encoder.encode(ip);
-    const ipHashBuffer = await crypto.subtle.digest('SHA-256', ipData);
+    const cryptoObj = await getSafeCrypto();
+    
+    if (!cryptoObj || !cryptoObj.subtle) {
+        // Fallback to simple hash if crypto missing for logging
+        const ipHash = ip.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0).toString(16);
+        return { ipHash };
+    }
+
+    const ipHashBuffer = await cryptoObj.subtle.digest('SHA-256', ipData);
     const ipHashArray = Array.from(new Uint8Array(ipHashBuffer));
     const ipHash = ipHashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
 
