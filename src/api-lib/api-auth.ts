@@ -272,7 +272,17 @@ export async function validateApiKey(req: Request, options: { required?: boolean
     const data = encoder.encode(apiKey);
     
     // Polyfill crypto for environments where it is not global (Legacy Node.js)
-    const cryptoObj = typeof crypto !== 'undefined' ? crypto : (await import('crypto')).webcrypto;
+    let cryptoObj: Crypto;
+    if (typeof crypto !== 'undefined') {
+        cryptoObj = crypto;
+    } else {
+        try {
+            // @ts-ignore
+            cryptoObj = (await import('crypto')).webcrypto as unknown as Crypto;
+        } catch {
+            return { valid: false as const, error: 'Cryptographic runtime missing. Deploy to Edge or Node.js 18+.', status: 500 };
+        }
+    }
     const hashBuffer = await (cryptoObj as any).subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
