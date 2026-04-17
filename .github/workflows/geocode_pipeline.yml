@@ -1,0 +1,232 @@
+# =============================================================================
+# NASAKA IEBC Geocoding & Enrichment Pipeline — GitHub Actions Workflow
+# Phase 5 v3 | CEKA / Nasaka IEBC
+#
+# Schedule: 28th of each month at 02:00 EAT (23:00 UTC on 27th)
+# Manual: workflow_dispatch with skip_isochrones / dry_run toggles
+#
+# Jobs:
+#   core_pipeline  — Steps 0a–5 (~2–4 hrs). Always skips isochrones internally.
+#   isochrones     — Step 6 (~10 hrs). Runs after core_pipeline if not skipped.
+#   notify_failure — Reports failure with log artifact link.
+#
+# Required Secrets (GitHub → Settings → Secrets → Actions):
+#   SUPABASE_DB_POOLED_URL    Direct Postgres pooled connection string
+#   GOOGLE_MAPS_API_KEY       Google Maps Platform key (Geocoding + Places + Elevation)
+#   VITE_GROK_API_KEY         Groq API key (Llama 3.3)
+#   VITE_GEMINI_API_KEY       Gemini 2.0 Flash API key
+#   OPENAI_API_KEY            OpenAI GPT-4o-mini — optional fallback
+#   ORS_API_KEY               OpenRouteService API key (free tier works)
+# =============================================================================
+
+name: IEBC Geocoding & Enrichment Pipeline v3
+
+on:
+  schedule:
+    # 02:30 EAT = 23:30 UTC on the 17th (18th by EAT)
+    - cron: '30 23 17 * *'
+
+  workflow_dispatch:
+    inputs:
+      skip_isochrones:
+        description: 'Skip Step 6 (ORS isochrones ~10hrs). Recommended for re-runs.'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
+      dry_run:
+        description: 'Dry run — validate env + runtimes only, zero API calls or DB writes.'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
+
+# Prevent concurrent monthly runs from overlapping
+concurrency:
+  group: iebc-geocoding-pipeline
+  cancel-in-progress: false
+
+# =============================================================================
+# JOB 1: Core Pipeline — Steps 0a through 5
+# =============================================================================
+jobs:
+  core_pipeline:
+    name: Core Pipeline (Steps 0a–5)
+    runs-on: ubuntu-latest
+    timeout-minutes: 300   # 5-hour ceiling for steps 0–5
+
+    steps:
+      # ── Checkout ────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Node.js setup ───────────────────────────────────────────────────
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # ── Python setup ────────────────────────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      # ── Node dependencies ───────────────────────────────────────────────
+      - name: Install Node dependencies
+        run: npm ci
+
+      # ── Python dependencies ─────────────────────────────────────────────
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install \
+            psycopg2-binary \
+            python-dotenv \
+            requests
+
+      # ── ts-node ─────────────────────────────────────────────────────────
+      - name: Install ts-node
+        run: npm install -g ts-node typescript
+
+      # ── Secret validation ────────────────────────────────────────────────
+      - name: Validate required secrets
+        run: |
+          missing=()
+          [[ -z "$SUPABASE_DB_POOLED_URL" ]]  && missing+=("SUPABASE_DB_POOLED_URL")
+          [[ -z "$GOOGLE_MAPS_API_KEY" ]]      && missing+=("GOOGLE_MAPS_API_KEY")
+          has_llm=false
+          [[ -n "$VITE_GROK_API_KEY" ]]     && has_llm=true
+          [[ -n "$VITE_GEMINI_API_KEY" ]]   && has_llm=true
+          [[ -n "$OPENAI_API_KEY" ]]        && has_llm=true
+          [[ "$has_llm" == "false" ]] && missing+=("VITE_GROK_API_KEY or VITE_GEMINI_API_KEY or OPENAI_API_KEY")
+          if [[ -z "$ORS_API_KEY" ]]; then
+            echo "::warning::ORS_API_KEY not set — Step 6 will use anonymous ORS quota (lower rate limit)."
+          fi
+          if [[ ${#missing[@]} -gt 0 ]]; then
+            echo "::error::Missing secrets:"
+            for v in "${missing[@]}"; do echo "  - $v"; done
+            exit 1
+          fi
+          echo "All required secrets present."
+        env:
+          SUPABASE_DB_POOLED_URL: ${{ secrets.SUPABASE_DB_POOLED_URL }}
+          GOOGLE_MAPS_API_KEY:    ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          VITE_GROK_API_KEY:      ${{ secrets.VITE_GROK_API_KEY }}
+          VITE_GEMINI_API_KEY:    ${{ secrets.VITE_GEMINI_API_KEY }}
+          OPENAI_API_KEY:         ${{ secrets.OPENAI_API_KEY }}
+          ORS_API_KEY:            ${{ secrets.ORS_API_KEY }}
+
+      # ── Make shell runner executable ─────────────────────────────────────
+      - name: Make run_pipeline.sh executable
+        run: chmod +x scraper/run_pipeline.sh
+
+      # ── Run core pipeline (Steps 0a–5, isochrones always skipped here) ───
+      - name: Run core pipeline
+        run: |
+          ARGS="--skip-isochrones"
+          [[ "${{ github.event.inputs.dry_run }}" == "true" ]] && ARGS="$ARGS --dry-run"
+          bash scraper/run_pipeline.sh $ARGS
+        env:
+          SUPABASE_DB_POOLED_URL: ${{ secrets.SUPABASE_DB_POOLED_URL }}
+          GOOGLE_MAPS_API_KEY:    ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          VITE_GROK_API_KEY:      ${{ secrets.VITE_GROK_API_KEY }}
+          VITE_GEMINI_API_KEY:    ${{ secrets.VITE_GEMINI_API_KEY }}
+          OPENAI_API_KEY:         ${{ secrets.OPENAI_API_KEY }}
+          ORS_API_KEY:            ${{ secrets.ORS_API_KEY }}
+          GEOAPIFY_API_KEY:       ${{ secrets.GEOAPIFY_API_KEY }}
+          PLACES_BUDGET_USD:      '350'
+
+      # ── Upload pipeline logs ─────────────────────────────────────────────
+      - name: Upload pipeline run logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-logs-${{ github.run_id }}
+          path: scraper/logs/
+          retention-days: 60
+
+      # ── Upload HITL and inspection CSVs ─────────────────────────────────
+      - name: Upload HITL output CSVs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-hitl-outputs-${{ github.run_id }}
+          path: |
+            scraper/dedup_clusters.csv
+            scraper/orphan_inspection.csv
+            scraper/hitl_geocode.csv
+          if-no-files-found: ignore
+          retention-days: 60
+
+# =============================================================================
+# JOB 2: ORS Isochrones — Step 6 (Optional, ~10 hours)
+# Runs ONLY after core_pipeline succeeds AND skip_isochrones != true
+# =============================================================================
+  isochrones:
+    name: ORS Isochrones + Walking Effort (Step 6)
+    runs-on: ubuntu-latest
+    timeout-minutes: 660   # 11-hour ceiling
+    needs: core_pipeline
+    if: |
+      needs.core_pipeline.result == 'success' &&
+      github.event.inputs.skip_isochrones != 'true'
+
+    steps:
+      # ── Checkout ────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Node.js setup ───────────────────────────────────────────────────
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # ── Node dependencies ───────────────────────────────────────────────
+      - name: Install Node dependencies
+        run: npm ci
+
+      # ── ts-node ─────────────────────────────────────────────────────────
+      - name: Install ts-node
+        run: npm install -g ts-node typescript
+
+      # ── Run ORS isochrone pass ───────────────────────────────────────────
+      - name: Run ORS isochrone pass (Step 6)
+        run: npx ts-node scraper/isochrone_ors.ts
+        env:
+          SUPABASE_DB_POOLED_URL: ${{ secrets.SUPABASE_DB_POOLED_URL }}
+          ORS_API_KEY:            ${{ secrets.ORS_API_KEY }}
+
+      # ── Upload isochrone logs ────────────────────────────────────────────
+      - name: Upload isochrone logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: isochrone-logs-${{ github.run_id }}
+          path: scraper/logs/
+          retention-days: 60
+
+# =============================================================================
+# JOB 3: Notify on failure
+# =============================================================================
+  notify_failure:
+    name: Report pipeline failure
+    runs-on: ubuntu-latest
+    needs: [core_pipeline, isochrones]
+    if: failure()
+
+    steps:
+      - name: Report failure summary
+        run: |
+          echo "::error::NASAKA IEBC Pipeline FAILED on run ${{ github.run_id }}"
+          echo ""
+          echo "Download failure logs from:"
+          echo "  https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "  Artifact: pipeline-logs-${{ github.run_id }}"
+          echo ""
+          echo "All scripts are fully resumable — re-trigger the workflow."
+          echo "Records already processed are skipped via geocode_status='pending' filter."

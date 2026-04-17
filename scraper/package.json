@@ -1,0 +1,32 @@
+{
+  "name": "nasaka-iebc-scraper",
+  "version": "1.0.0",
+  "description": "Scrapes all IEBC registration/polling centres from iebc.or.ke and stores in Supabase",
+  "main": "dist/iebc-registration-centres.js",
+  "scripts": {
+    "build": "tsc",
+    "scrape": "ts-node iebc-registration-centres.ts",
+    "scrape:resume": "set RESUME=true&& ts-node iebc-registration-centres.ts",
+    "scrape:full": "set RESUME=false&& ts-node iebc-registration-centres.ts",
+    "geocoding": "ts-node precision-geocoder.ts",
+    "probe": "ts-node probe-dom.ts",
+    "clean": "del /s /q iebc-*.html scraper-log.json *.log"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.6.1",
+    "pg": "^8.20.0",
+    "puppeteer": "^22.6.0"
+  },
+  "devDependencies": {
+    "@types/dotenv": "^6.1.1",
+    "@types/node": "^20.19.39",
+    "@types/pg": "^8.20.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

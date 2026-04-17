@@ -1,0 +1,248 @@
+{
+  "grandTotal": 24325,
+  "completedCounties": 48,
+  "totalCounties": 48,
+  "lastUpdated": "2026-04-16T23:40:12.449Z",
+  "counties": {
+    "BARINGO": {
+      "status": "done",
+      "count": 855,
+      "completedAt": "2026-04-16T17:40:05.145Z"
+    },
+    "BOMET": {
+      "status": "done",
+      "count": 566,
+      "completedAt": "2026-04-16T17:44:21.101Z"
+    },
+    "BUNGOMA": {
+      "status": "done",
+      "count": 806,
+      "completedAt": "2026-04-16T17:51:09.533Z"
+    },
+    "BUSIA": {
+      "status": "done",
+      "count": 529,
+      "completedAt": "2026-04-16T17:56:21.506Z"
+    },
+    "DIASPORA": {
+      "status": "done",
+      "count": 5,
+      "completedAt": "2026-04-16T17:56:52.808Z"
+    },
+    "ELGEYO/MARAKWET": {
+      "status": "done",
+      "count": 492,
+      "completedAt": "2026-04-16T18:00:26.641Z"
+    },
+    "EMBU": {
+      "status": "done",
+      "count": 519,
+      "completedAt": "2026-04-16T18:04:01.877Z"
+    },
+    "GARISSA": {
+      "status": "done",
+      "count": 262,
+      "completedAt": "2026-04-16T18:07:57.710Z"
+    },
+    "HOMA BAY": {
+      "status": "done",
+      "count": 816,
+      "completedAt": "2026-04-16T18:14:30.184Z"
+    },
+    "ISIOLO": {
+      "status": "done",
+      "count": 145,
+      "completedAt": "2026-04-16T18:16:03.440Z"
+    },
+    "KAJIADO": {
+      "status": "done",
+      "count": 395,
+      "completedAt": "2026-04-16T18:20:06.125Z"
+    },
+    "KAKAMEGA": {
+      "status": "done",
+      "count": 906,
+      "completedAt": "2026-04-16T19:44:41.165Z"
+    },
+    "KERICHO": {
+      "status": "done",
+      "count": 530,
+      "completedAt": "2026-04-16T18:25:16.880Z"
+    },
+    "KIAMBU": {
+      "status": "done",
+      "count": 551,
+      "completedAt": "2026-04-16T18:33:19.607Z"
+    },
+    "KILIFI": {
+      "status": "done",
+      "count": 542,
+      "completedAt": "2026-04-16T18:38:25.154Z"
+    },
+    "KIRINYAGA": {
+      "status": "done",
+      "count": 315,
+      "completedAt": "2026-04-16T18:41:28.839Z"
+    },
+    "KISII": {
+      "status": "done",
+      "count": 748,
+      "completedAt": "2026-04-16T18:48:05.352Z"
+    },
+    "KISUMU": {
+      "status": "done",
+      "count": 510,
+      "completedAt": "2026-04-16T18:53:05.882Z"
+    },
+    "KITUI": {
+      "status": "done",
+      "count": 1207,
+      "completedAt": "2026-04-16T19:52:10.145Z"
+    },
+    "KWALE": {
+      "status": "done",
+      "count": 415,
+      "completedAt": "2026-04-16T20:47:14.215Z"
+    },
+    "LAIKIPIA": {
+      "status": "done",
+      "count": 256,
+      "completedAt": "2026-04-16T20:51:44.852Z"
+    },
+    "LAMU": {
+      "status": "done",
+      "count": 120,
+      "completedAt": "2026-04-16T20:53:24.378Z"
+    },
+    "MACHAKOS": {
+      "status": "done",
+      "count": 875,
+      "completedAt": "2026-04-16T21:00:53.902Z"
+    },
+    "MAKUENI": {
+      "status": "done",
+      "count": 752,
+      "completedAt": "2026-04-16T21:07:53.653Z"
+    },
+    "MANDERA": {
+      "status": "done",
+      "count": 224,
+      "completedAt": "2026-04-16T21:13:52.261Z"
+    },
+    "MARSABIT": {
+      "status": "done",
+      "count": 302,
+      "completedAt": "2026-04-16T21:48:15.524Z"
+    },
+    "MERU": {
+      "status": "done",
+      "count": 954,
+      "completedAt": "2026-04-16T21:56:31.767Z"
+    },
+    "MIGORI": {
+      "status": "done",
+      "count": 597,
+      "completedAt": "2026-04-16T22:03:58.130Z"
+    },
+    "MOMBASA": {
+      "status": "done",
+      "count": 197,
+      "completedAt": "2026-04-16T22:07:55.883Z"
+    },
+    "MURANG'A": {
+      "status": "done",
+      "count": 569,
+      "completedAt": "2026-04-16T22:13:46.834Z"
+    },
+    "NAIROBI CITY": {
+      "status": "done",
+      "count": 334,
+      "completedAt": "2026-04-16T22:23:48.866Z"
+    },
+    "NAKURU": {
+      "status": "done",
+      "count": 900,
+      "completedAt": "2026-04-16T22:32:48.886Z"
+    },
+    "NANDI": {
+      "status": "done",
+      "count": 616,
+      "completedAt": "2026-04-16T22:38:19.128Z"
+    },
+    "NAROK": {
+      "status": "done",
+      "count": 530,
+      "completedAt": "2026-04-16T22:43:37.548Z"
+    },
+    "NYAMIRA": {
+      "status": "done",
+      "count": 324,
+      "completedAt": "2026-04-16T22:46:58.350Z"
+    },
+    "NYANDARUA": {
+      "status": "done",
+      "count": 441,
+      "completedAt": "2026-04-16T22:51:35.260Z"
+    },
+    "NYERI": {
+      "status": "done",
+      "count": 572,
+      "completedAt": "2026-04-16T22:56:36.705Z"
+    },
+    "SAMBURU": {
+      "status": "done",
+      "count": 272,
+      "completedAt": "2026-04-16T22:59:13.557Z"
+    },
+    "SIAYA": {
+      "status": "done",
+      "count": 573,
+      "completedAt": "2026-04-16T23:04:27.676Z"
+    },
+    "TAITA TAVETA": {
+      "status": "done",
+      "count": 277,
+      "completedAt": "2026-04-16T23:07:31.181Z"
+    },
+    "TANA RIVER": {
+      "status": "done",
+      "count": 243,
+      "completedAt": "2026-04-16T23:10:01.742Z"
+    },
+    "THARAKA - NITHI": {
+      "status": "done",
+      "count": 569,
+      "completedAt": "2026-04-16T23:13:42.116Z"
+    },
+    "TRANS NZOIA": {
+      "status": "done",
+      "count": 308,
+      "completedAt": "2026-04-16T23:17:22.590Z"
+    },
+    "TURKANA": {
+      "status": "done",
+      "count": 560,
+      "completedAt": "2026-04-16T23:22:26.971Z"
+    },
+    "UASIN GISHU": {
+      "status": "done",
+      "count": 469,
+      "completedAt": "2026-04-16T23:27:04.396Z"
+    },
+    "VIHIGA": {
+      "status": "done",
+      "count": 343,
+      "completedAt": "2026-04-16T23:31:06.960Z"
+    },
+    "WAJIR": {
+      "status": "done",
+      "count": 360,
+      "completedAt": "2026-04-16T23:35:38.287Z"
+    },
+    "WEST POKOT": {
+      "status": "done",
+      "count": 674,
+      "completedAt": "2026-04-16T23:40:12.449Z"
+    }
+  }
+}

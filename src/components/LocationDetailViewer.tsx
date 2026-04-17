@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Users, Building2, X, Search, AlertCircle, CheckCircle, FileText, Clock, Database, Zap, ArrowRight, Star } from 'lucide-react';
+import { MapPin, Users, Building2, X, Search, AlertCircle, CheckCircle, FileText, Clock, Database, Zap, ArrowRight, Star, Mail, ShieldCheck } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 
 interface LocationData {
@@ -16,6 +16,8 @@ interface LocationData {
   senator?: string;
   county?: string;
   constituency?: string;
+  returning_officer_name?: string;
+  returning_officer_email?: string;
 }
 
 interface Petition {
@@ -847,6 +849,48 @@ const LocationDetailViewer: React.FC<LocationDetailViewerProps> = ({
                     <p className="text-green-700 dark:text-green-300 font-medium text-sm sm:text-base">
                       {location.member_of_parliament}
                     </p>
+                  </div>
+                )}
+
+                {location.returning_officer_name && (
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 p-3 sm:p-4 rounded-lg border border-blue-200 dark:border-blue-700 col-span-1 sm:col-span-2 w-full">
+                    <div className="flex items-center justify-between mb-2">
+                       <h5 className="font-semibold text-blue-800 dark:text-blue-200 text-sm sm:text-base">
+                        Returning Officer
+                      </h5>
+                      <Badge className="bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800 text-[10px]">
+                        <ShieldCheck className="w-3 h-3 mr-1" /> Verified
+                      </Badge>
+                    </div>
+                   
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-200 dark:bg-blue-800 flex items-center justify-center">
+                        <Users className="w-5 h-5 text-blue-700 dark:text-blue-300" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-blue-900 dark:text-white font-bold truncate text-sm sm:text-base">
+                          {location.returning_officer_name}
+                        </p>
+                        <p className="text-blue-700 dark:text-blue-400 text-xs truncate">
+                          {location.returning_officer_email || 'Email pending...'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {location.returning_officer_email && (
+                      <Button
+                        size="sm"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center space-x-2 h-9"
+                        onClick={() => {
+                          const subject = encodeURIComponent(`Inquiry: ${location.name} (${location.type})`);
+                          const body = encodeURIComponent(`Dear Returning Officer,\n\nI am contacting you regarding ${location.name} ${location.type}.\n\n[Your Message Here]`);
+                          window.location.href = `mailto:${location.returning_officer_email}?subject=${subject}&body=${body}`;
+                        }}
+                      >
+                        <Mail className="w-4 h-4" />
+                        <span>Email Official</span>
+                      </Button>
+                    )}
                   </div>
                 )}
 

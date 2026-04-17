@@ -1,0 +1,204 @@
+{
+  "initialSelects": [
+    {
+      "index": 0,
+      "id": "county",
+      "name": "county_id",
+      "className": "form-control",
+      "optionCount": 49,
+      "firstFewOptions": [
+        {
+          "value": "",
+          "text": "-Choose-"
+        },
+        {
+          "value": "030",
+          "text": "BARINGO"
+        },
+        {
+          "value": "036",
+          "text": "BOMET"
+        },
+        {
+          "value": "039",
+          "text": "BUNGOMA"
+        },
+        {
+          "value": "040",
+          "text": "BUSIA"
+        }
+      ]
+    }
+  ],
+  "postCountyURL": "https://www.iebc.or.ke/registration/?where",
+  "postCountySelects": [
+    {
+      "index": 0,
+      "id": "county",
+      "name": "county_id",
+      "className": "form-control",
+      "optionCount": 49,
+      "firstFewOptions": [
+        {
+          "value": "",
+          "text": "-Choose-"
+        },
+        {
+          "value": "030",
+          "text": "BARINGO"
+        },
+        {
+          "value": "036",
+          "text": "BOMET"
+        },
+        {
+          "value": "039",
+          "text": "BUNGOMA"
+        },
+        {
+          "value": "040",
+          "text": "BUSIA"
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "id": "constituency",
+      "name": "constituency_id",
+      "className": "form-control",
+      "optionCount": 7,
+      "firstFewOptions": [
+        {
+          "value": "",
+          "text": "-Choose-"
+        },
+        {
+          "value": "157",
+          "text": "TIATY"
+        },
+        {
+          "value": "158",
+          "text": "BARINGO  NORTH"
+        },
+        {
+          "value": "159",
+          "text": "BARINGO CENTRAL"
+        },
+        {
+          "value": "160",
+          "text": "BARINGO SOUTH"
+        }
+      ]
+    }
+  ],
+  "submitButtons": [
+    {
+      "tag": "BUTTON",
+      "type": "button",
+      "value": "",
+      "text": "×",
+      "id": "",
+      "className": "close"
+    },
+    {
+      "tag": "BUTTON",
+      "type": "button",
+      "value": "",
+      "text": "Cancel",
+      "id": "",
+      "className": "btn btn-default"
+    },
+    {
+      "tag": "BUTTON",
+      "type": "button",
+      "value": "",
+      "text": "Yes",
+      "id": "confirm",
+      "className": "btn btn-danger"
+    },
+    {
+      "tag": "BUTTON",
+      "type": "button",
+      "value": "",
+      "text": "×",
+      "id": "",
+      "className": "close"
+    },
+    {
+      "tag": "BUTTON",
+      "type": "button",
+      "value": "",
+      "text": "Cancel",
+      "id": "",
+      "className": "btn btn-default"
+    },
+    {
+      "tag": "BUTTON",
+      "type": "button",
+      "value": "",
+      "text": "×",
+      "id": "",
+      "className": "close"
+    },
+    {
+      "tag": "BUTTON",
+      "type": "button",
+      "value": "",
+      "text": "Send question",
+      "id": "send_q_btn",
+      "className": "btn btn-flat btn-colored btn-theme-colored "
+    },
+    {
+      "tag": "BUTTON",
+      "type": "button",
+      "value": "",
+      "text": "Close",
+      "id": "",
+      "className": "btn btn-default"
+    },
+    {
+      "tag": "BUTTON",
+      "type": "button",
+      "value": "",
+      "text": "×",
+      "id": "",
+      "className": "close"
+    },
+    {
+      "tag": "BUTTON",
+      "type": "button",
+      "value": "",
+      "text": "Cancel",
+      "id": "",
+      "className": "btn btn-default"
+    }
+  ],
+  "postConstURL": "https://www.iebc.or.ke/registration/?where",
+  "resultsInfo": {
+    "resultContainers": [
+      {
+        "selector": "ul li",
+        "count": 70,
+        "sampleText": ""
+      },
+      {
+        "selector": "[class*=\"list\"]",
+        "count": 5,
+        "sampleText": "(254) 020 - 2877000\n                  FAQs \n                \n                  info@iebc.or.ke"
+      }
+    ],
+    "paginationElements": [
+      {
+        "selector": "button",
+        "count": 10,
+        "outerHTML": "<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">×</button>"
+      },
+      {
+        "selector": "i[class*=\"right\"]",
+        "count": 21,
+        "outerHTML": "<i class=\"fa fa-angle-right\"></i>"
+      }
+    ]
+  },
+  "pageURL": "https://www.iebc.or.ke/registration/?where"
+}

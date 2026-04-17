@@ -1,0 +1,52 @@
+[
+  {
+    "gid": 241,
+    "pop2009": 17431.0,
+    "county": "ISIOLO",
+    "subcounty": "Isiolo Sub County",
+    "ward": "WABERA",
+    "uid": "rIdiIpv9fBt",
+    "scuid": "I2LYLqKU6AW",
+    "cuid": "bzOfj0iwfDH"
+  },
+  {
+    "gid": 1455,
+    "pop2009": 18755.0,
+    "county": "Migori",
+    "subcounty": "Rongo Sub County",
+    "ward": "North Kamagambo Ward",
+    "uid": "QC41mItjIzF",
+    "scuid": "fT37q3rXQ35",
+    "cuid": "fVra3Pwta0Q"
+  },
+  {
+    "gid": 1456,
+    "pop2009": 27756.0,
+    "county": "Migori",
+    "subcounty": "Rongo Sub County",
+    "ward": "Central Kamagambo Ward",
+    "uid": "M8rGveWTIMm",
+    "scuid": "fT37q3rXQ35",
+    "cuid": "fVra3Pwta0Q"
+  },
+  {
+    "gid": 1457,
+    "pop2009": 27179.0,
+    "county": "Migori",
+    "subcounty": "Rongo Sub County",
+    "ward": "South Kamagambo Ward",
+    "uid": "DABObbHgPMX",
+    "scuid": "fT37q3rXQ35",
+    "cuid": "fVra3Pwta0Q"
+  },
+  {
+    "gid": 1458,
+    "pop2009": 22874.0,
+    "county": "Migori",
+    "subcounty": "Awendo Sub County",
+    "ward": "North Sakwa Ward",
+    "uid": "EmSsP2C6A3h",
+    "scuid": "ka9Uv3Ckcbd",
+    "cuid": "fVra3Pwta0Q"
+  }
+]

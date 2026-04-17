@@ -16,6 +16,7 @@ import CountyStatistics from '@/components/CountyStatistics';
 import ConstitutionalFlowchart from '@/components/ConstitutionalFlowchart';
 import TabbedMapViewer from '@/components/TabbedMapViewer';
 import IEBCVoterRegistrationMap from '@/components/IEBCVoterRegistrationMap';
+import RegistrationCentreSearch from '@/components/RegistrationCentreSearch';
 import PythonScriptExecutor from '@/components/PythonScriptExecutor';
 import Aurora from '@/components/Aurora';
 import RotatingText from '@/components/RotatingText';
@@ -660,49 +661,10 @@ const Index = () => {
           {activeTab === 'voter' && (
             <div ref={el => sectionsRef.current.voter = el}>
               <div className="max-w-4xl mx-auto">
-                {/* iOS-Inspired IEBC Office Finder Section */}
-                <Card className={`relative overflow-hidden transition-all duration-300 border-0 shadow-2xl ${darkMode
-                  ? 'bg-gradient-to-br from-gray-800 via-gray-800 to-gray-900'
-                  : 'bg-gradient-to-br from-white via-green-50/30 to-white'
-                  }`}>
-                  <CardContent className="p-12 text-center">
-                    {/* Icon */}
-                    <div className={`inline-flex p-6 rounded-3xl mb-6 transition-colors duration-300 ${darkMode
-                      ? 'bg-green-900/30'
-                      : 'bg-green-100'
-                      }`}>
-                      <MapPin className={`w-16 h-16 ${darkMode ? 'text-green-400' : 'text-green-600'
-                        }`} />
-                    </div>
-
-                    {/* Heading */}
-                    <h2 className={`text-4xl font-bold mb-4 transition-colors duration-300 ${darkMode ? 'text-white' : 'text-gray-900'
-                      }`}>
-                      Find Your IEBC Registration Centre
-                    </h2>
-
-                    {/* Description */}
-                    <p className={`text-lg mb-8 max-w-2xl mx-auto transition-colors duration-300 ${darkMode ? 'text-gray-300' : 'text-gray-600'
-                      }`}>
-                      Visit Nasaka IEBC and discover the nearest voter registration centre in Kenya.
-                      Get directions, office hours, and contact information.
-                    </p>
-
-                    {/* CTA Button */}
-                    <Button
-                      onClick={() => navigate('/')}
-                      className={`px-8 py-6 text-lg font-semibold rounded-2xl shadow-lg transition-all duration-300 hover:scale-105 ${darkMode
-                        ? 'bg-green-600 hover:bg-green-500 text-white'
-                        : 'bg-green-600 hover:bg-green-700 text-white'
-                        }`}
-                    >
-                      <span className="flex items-center gap-3">
-                        Find IEBC Office
-                        <ArrowRight className="w-5 h-5" />
-                      </span>
-                    </Button>
-                  </CardContent>
-                </Card>
+                {/* IEBC Registration Centre Search Section */}
+                <div className="mb-12">
+                  <RegistrationCentreSearch />
+                </div>
 
                 {/* Additional Voter Registration Info Cards */}
                 <div className="mt-12">
