@@ -181,22 +181,24 @@ async function callOpenAI(batch: any[]): Promise<ParsedCentre[]> {
     }
 }
 
-async function enrichBatch(pg: Client): Promise<number> {
+async function enrichBatch(pg: Client, lastId: number): Promise<{ count: number, lastId: number }> {
     const { rows } = await pg.query(`
         SELECT id, office_location, notes, clean_office_location
         FROM public.iebc_offices 
         WHERE office_type = 'REGISTRATION_CENTRE'
           AND (landmark IS NULL OR direction_landmark IS NULL)
-        ORDER BY id LIMIT $1
-    `, [BATCH_SIZE]);
+          AND id > $1
+        ORDER BY id LIMIT $2
+    `, [lastId, BATCH_SIZE]);
 
-    if (rows.length === 0) return 0;
+    if (rows.length === 0) return { count: 0, lastId };
+    const newLastId = rows[rows.length - 1].id;
 
     // Only process rows that have directional text — others are handled by places_nlp.ts (Tier 1)
     const directionalRows = rows.filter(r => hasDirectionalText(r));
     const batch = directionalRows.map(r => ({ id: r.id, raw_name: r.office_location, notes: r.notes || '' }));
 
-    if (batch.length === 0) return rows.length; // All non-directional, skip
+    if (batch.length === 0) return { count: rows.length, lastId: newLastId }; // All non-directional, skip
     
     // Try each LLM in order
     let parsed: ParsedCentre[] = [];
@@ -214,9 +216,9 @@ async function enrichBatch(pg: Client): Promise<number> {
     }
 
     if (parsed.length === 0) {
-        console.warn('  [ALL LLMs FAILED] Sleeping 30s...');
+        console.warn('  [ALL LLMs FAILED] Sleeping 30s... (Moving to next batch to prevent infinite loop)');
         await new Promise(r => setTimeout(r, 30000));
-        return rows.length; // Skip, will re-process next loop
+        return { count: rows.length, lastId: newLastId }; // Skip, will re-process via next batch safely
     }
 
     for (const p of parsed) {
@@ -254,7 +256,7 @@ async function enrichBatch(pg: Client): Promise<number> {
         } catch (e: any) { console.error(`  [DB ERR] row ${p.id}: ${e.message}`); }
     }
 
-    return rows.length;
+    return { count: rows.length, lastId: newLastId };
 }
 
 async function main() {
@@ -272,10 +274,12 @@ async function main() {
     console.log(`[NLP-v2] Pending: ${count} records (directional-text records only)\n`);
 
     let processed = 0;
+    let lastId = 0;
     while (true) {
-        const n = await enrichBatch(pg);
-        if (n === 0) break;
-        processed += n;
+        const result = await enrichBatch(pg, lastId);
+        if (result.count === 0) break;
+        processed += result.count;
+        lastId = result.lastId;
         process.stdout.write(`  ✓ Enriched ${processed}/${count} (Gemini today: ${geminiCallsToday}/${GEMINI_RPD})\r`);
         await new Promise(r => setTimeout(r, 1500)); // Safe inter-batch delay
     }

@@ -116,6 +116,7 @@ async function main() {
     console.log(`[PLACES-NLP] Budget cap: $${BUDGET_USD} USD (~${MAX_CALLS} calls max)\n`);
 
     let processed = 0, enriched = 0, skipped_directional = 0, budget_exhausted = false;
+    let lastId = 0;
 
     while (!budget_exhausted) {
         if (totalCallsMade >= MAX_CALLS) {
@@ -133,11 +134,13 @@ async function main() {
               AND longitude IS NOT NULL
               AND direction_landmark IS NULL
               AND landmark_type IS NULL
+              AND id > $1
             ORDER BY id
-            LIMIT $1
-        `, [BATCH_SIZE]);
+            LIMIT $2
+        `, [lastId, BATCH_SIZE]);
 
         if (rows.length === 0) break;
+        lastId = rows[rows.length - 1].id;
 
         for (const row of rows) {
             processed++;

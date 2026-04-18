@@ -151,6 +151,7 @@ async function main() {
     console.log(`[ORS] Pending: ${total} records (~${estHours} minutes at 35 req/min)\n`);
 
     let processed = 0, succeeded = 0, failedORS = 0;
+    let lastId = 0;
 
     while (true) {
         const { rows } = await pg.query(`
@@ -160,11 +161,13 @@ async function main() {
               AND latitude IS NOT NULL
               AND longitude IS NOT NULL
               AND isochrone_15min IS NULL
+              AND id > $1
             ORDER BY id
-            LIMIT $1
-        `, [BATCH_SIZE]);
+            LIMIT $2
+        `, [lastId, BATCH_SIZE]);
 
         if (rows.length === 0) break;
+        lastId = rows[rows.length - 1].id;
 
         for (const row of rows) {
             const { iso15, iso30, iso45, walking_effort } = await processRow(row.latitude, row.longitude);

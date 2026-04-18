@@ -586,6 +586,7 @@ async function main() {
 
     // Phase 1: Batch geocode
     let totalProcessed = 0, totalResolved = 0, totalHitl = 0, totalFailed = 0;
+    let lastId = 0;
 
     while (true) {
         const { rows } = await pg.query(`
@@ -595,11 +596,13 @@ async function main() {
             WHERE office_type = 'REGISTRATION_CENTRE'
               AND geocode_status IN ('pending', 'failed')
               AND county != 'DIASPORA'
+              AND id > $1
             ORDER BY id
-            LIMIT $1
-        `, [BATCH_SIZE]);
+            LIMIT $2
+        `, [lastId, BATCH_SIZE]);
 
         if (rows.length === 0) break;
+        lastId = rows[rows.length - 1].id;
 
         console.log(`[GEO-v5] Processing batch of ${rows.length} (total: ${totalProcessed})...`);
         const { resolved, hitl, failed } = await processBatch(pg, rows);

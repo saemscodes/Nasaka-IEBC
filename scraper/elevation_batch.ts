@@ -73,6 +73,8 @@ async function main() {
     const estCost = (Math.ceil(Number(count) / BATCH_SIZE) / 1000 * 5).toFixed(4);
     console.log(`[ELEVATION] Estimated cost: $${estCost}\n`);
 
+    let lastId = 0;
+
     while (true) {
         const { rows } = await pg.query(`
             SELECT id, latitude, longitude
@@ -81,11 +83,13 @@ async function main() {
               AND latitude IS NOT NULL
               AND longitude IS NOT NULL
               AND elevation_meters IS NULL
+              AND id > $1
             ORDER BY id
-            LIMIT $1
-        `, [BATCH_SIZE]);
+            LIMIT $2
+        `, [lastId, BATCH_SIZE]);
 
         if (rows.length === 0) break;
+        lastId = rows[rows.length - 1].id;
 
         const batch = rows.map(r => ({ id: r.id, lat: r.latitude, lng: r.longitude }));
         const results = await fetchElevations(batch);
