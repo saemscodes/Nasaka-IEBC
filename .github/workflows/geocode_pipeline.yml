@@ -75,8 +75,11 @@ jobs:
           cache: 'pip'
 
       # ── Node dependencies ───────────────────────────────────────────────
-      - name: Install Node dependencies
+      - name: Install root Node dependencies
         run: npm ci
+
+      - name: Install Scraper Node dependencies
+        run: cd scraper && npm install
 
       # ── Python dependencies ─────────────────────────────────────────────
       - name: Install Python dependencies
