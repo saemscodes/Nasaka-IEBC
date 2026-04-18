@@ -23,7 +23,15 @@ load_dotenv()
 db_url = os.environ.get("SUPABASE_DB_POOLED_URL")
 
 try:
-    conn = psycopg2.connect(db_url)
+    # Log connection target (masking credentials)
+    if db_url:
+        from urllib.parse import urlparse
+        parsed = urlparse(db_url)
+        print(f"[ORPHAN] Connecting to {parsed.hostname}:{parsed.port or 5432} via {parsed.scheme}...")
+        if parsed.port == 5432:
+            print("[ORPHAN] WARNING: Using port 5432 (direct connection). If this is GitHub Actions, expect IPv6 routing issues.")
+
+    conn = psycopg2.connect(db_url, connect_timeout=10)
     conn.autocommit = True
     cur = conn.cursor()
 

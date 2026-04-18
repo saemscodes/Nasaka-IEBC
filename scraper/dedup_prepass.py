@@ -76,7 +76,15 @@ def fetch_and_cluster(cur):
     return dup_clusters
 
 try:
-    conn = psycopg2.connect(db_url)
+    # Log connection target (masking credentials)
+    if db_url:
+        from urllib.parse import urlparse
+        parsed = urlparse(db_url)
+        print(f"[DEDUP] Connecting to {parsed.hostname}:{parsed.port or 5432} via {parsed.scheme}...")
+        if parsed.port == 5432:
+            print("[DEDUP] WARNING: Using port 5432 (direct connection). If this is GitHub Actions, expect IPv6 routing issues.")
+    
+    conn = psycopg2.connect(db_url, connect_timeout=10)
     conn.autocommit = True
     cur = conn.cursor()
 
