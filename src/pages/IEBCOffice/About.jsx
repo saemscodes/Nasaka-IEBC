@@ -609,7 +609,7 @@ const About = () => {
           </div>
         </div>
         <div className="max-w-7xl mx-auto mt-20 md:mt-32 pt-16 md:pt-20 border-t-2 border-[#1E6BFF]/10 flex flex-col md:flex-row justify-between items-center gap-10 md:gap-12">
-          <p className="text-sm md:text-base font-black opacity-50 uppercase tracking-[0.2em] md:tracking-[0.3em] text-center md:text-left">© 2026 CEKA • NASAKA V12.2.0</p>
+          <p className="text-sm md:text-base font-black opacity-50 uppercase tracking-[0.2em] md:tracking-[0.3em] text-center md:text-left">© 2026 CEKA • NASAKA V12.3.0</p>
           <motion.a
             href="https://status.nasakaiebc.civiceducationkenya.com"
             target="_blank"
