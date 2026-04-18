@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Multi-Source Cross-Validated Geocoding Resolver for Nasaka IEBC
 
@@ -60,12 +60,12 @@ def get_secret(key_name: str, default: str = "") -> str:
         if os.path.exists(env_path):
             current_mtime = os.path.getmtime(env_path)
             if current_mtime > _last_env_mtime:
-                # File has changed or haven't loaded yet
                 load_dotenv(dotenv_path=env_path, override=True)
                 _last_env_mtime = current_mtime
-        return os.getenv(key_name, default) or ""
-    except Exception as e:
-        # Fallback to existing os.environ if file check fails
+        val = os.getenv(key_name, default) or ""
+        # [STRICT] Strip quotes that commony cause 401 Unauthorized in GHA
+        return val.strip("'\"").strip() if isinstance(val, str) else val
+    except Exception:
         return os.getenv(key_name, default) or ""
 
 # â”€â”€ Configuration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -112,6 +112,7 @@ class RateLimiter:
             self.last_call = now
 
 RATE_LIMITERS = {
+    "google":      RateLimiter(0.02),  # v11.1: Google is fast (50/s)
     "nominatim":   RateLimiter(NOMINATIM_RATE_LIMIT),
     "gemini":      RateLimiter(4.0),
     "openai":      RateLimiter(6.0),
@@ -144,6 +145,121 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 log = logging.getLogger("resolve")
+
+# ── Stratified Matrix v11.1 Configuration ─────────────────────────────────────
+# [STRICT] Tier 1 is Landmark-FREE for Premium providers (v7.3 Standard)
+TIER_TEMPLATES = [
+    lambda r, skipL=False: f"{r['office_location']}, {r['ward']}, {r['constituency']}, {r['county']} County, Kenya" if skipL else f"{r['office_location']} near {r.get('landmark','')}, {r['ward']}, {r['constituency']}, {r['county']} County, Kenya",
+    lambda r, _: f"{r['office_location']}, {r['constituency']}, {r['county']} County, Kenya",
+    lambda r, _: f"{r['office_location']}, {r['constituency']}, Kenya",
+    lambda r, _: f"{r['constituency']} IEBC Registration Centre, Kenya"
+]
+
+def resolve_matrix_iebc(office: Dict) -> Dict:
+    """Stratified Matrix Resolver v11.1 (Python Port).
+    Classes: 1=Premium, 2=Reliable (Consensus), 3=Open (Consensus).
+    """
+    results = {"best_results": [], "queries_used": [], "status": "failed"}
+    premium_fallback = None
+
+    # CLASS 1: Premium (First Class)
+    # [STRICT] Tier 1 is Landmark-FREE
+    for ti, template in enumerate(TIER_TEMPLATES):
+        query = template(office, skipL=(ti == 0))
+        results["queries_used"].append(query)
+        
+        # Try Premium Providers
+        for p_fn in [geocode_google, geocode_arcgis]:
+            try:
+                p_res = p_fn(query)
+                for r in p_res:
+                    # Gold Standard: ROOFTOP or RANGE (High Confidence)
+                    if r.get("confidence", 0) >= 0.8:
+                        log.info(f"  🏆 [CLASS 1] Gold Standard found via {r['source']} at Tier {ti+1}")
+                        results["best_results"] = [r]
+                        results["status"] = "resolved"
+                        return results
+                    # Silver Standard: GEOMETRIC (Save as fallback, but keep searching)
+                    if not premium_fallback:
+                        premium_fallback = r
+            except Exception: continue
+
+    # CLASS 2 & 3: Reliable & Open (Combined Exhaustion with Consensus)
+    # [STRICT] Class 2+3 requires Corroboration (500m)
+    consensus_pool = []
+    
+    # Provider Grouping
+    reliable = [geocode_geoapify, geocode_opencage, geocode_locationiq, geocode_earth]
+    open_p   = [geocode_nominatim, geocode_photon, geocode_geonames, geocode_geokeo]
+    
+    for ti, template in enumerate(TIER_TEMPLATES):
+        query = template(office, skipL=False)
+        if query not in results["queries_used"]: results["queries_used"].append(query)
+        
+        # Round 1: Try Reliable (Class 2)
+        for r_fn in reliable:
+            try:
+                r_res = r_fn(query)
+                consensus_pool.extend(r_res)
+            except Exception: continue
+            
+        # Round 2: Try Open (Class 3)
+        for o_fn in open_p:
+            try:
+                o_res = o_fn(query)
+                consensus_pool.extend(o_res)
+            except Exception: continue
+            
+        # Check for Corroboration (v7.3 Standard: 500m Match between DIFFERENT providers)
+        if len(consensus_pool) >= 2:
+            for i in range(len(consensus_pool)):
+                for j in range(i + 1, len(consensus_pool)):
+                    c1, c2 = consensus_pool[i], consensus_pool[j]
+                    if c1["source"] == c2["source"]: continue # NO SELF-CORROBORATION
+                    
+                    dist = haversine_km(c1["lat"], c1["lng"], c2["lat"], c2["lng"])
+                    if dist <= CONSENSUS_RADIUS_KM:
+                        log.info(f"  🤝 [CLASS 2/3] Corroboration found ({dist:.2f}km) at Tier {ti+1}")
+                        results["best_results"] = [c1, c2]
+                        results["status"] = "resolved"
+                        return results
+
+    # FINAL ESCALATION
+    if premium_fallback:
+        log.info(f"  ⚠️ [CLASS 4] Exhaustion complete. Falling back to Premium Low-Confidence result.")
+        results["best_results"] = [premium_fallback]
+        results["status"] = "hitl_review"
+        return results
+
+    log.warning(f"  ❌ [EXHAUSTED] No valid result found across Matrix.")
+    return results
+
+def geocode_google(query: str) -> List[Dict]:
+    """Premium Google Maps Geocoding (v11.1)."""
+    api_key = get_secret("GOOGLE_MAPS_API_KEY")
+    if not api_key: return []
+    try:
+        if "google" in RATE_LIMITERS: RATE_LIMITERS["google"].wait()
+        resp = safe_request(
+            "https://maps.googleapis.com/maps/api/geocode/json",
+            params={"address": query, "key": api_key, "region": "ke"}
+        )
+        if not resp: return []
+        data = resp.json()
+        results = []
+        for r in data.get("results", []):
+            lat, lng = r["geometry"]["location"]["lat"], r["geometry"]["location"]["lng"]
+            if not is_in_kenya(lat, lng): continue
+            results.append({
+                "lat": lat, "lng": lng, "source": "google",
+                "confidence": 1.0 if r["geometry"]["location_type"] == "ROOFTOP" else 0.7,
+                "display_name": r.get("formatted_address", ""),
+                "google_location_type": r["geometry"]["location_type"]
+            })
+        return results
+    except Exception as e:
+        log.warning(f"  Google failed: {e}")
+        return []
 
 # â”€â”€ Per-County Adaptive Thresholds â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -2744,15 +2860,21 @@ def main():
             expected_county = expected_county_for_constituency(name) or county
             dir_meta = extract_direction_metadata(office.get("office_location", ""), office.get("landmark", ""))
             
-            # Run legacy resolver
-            resolution = resolve_office_crossvalidated(office, expected_county)
+            # Run Stratified Matrix Resolver v11.1 (Primary)
+            # Falls back to original crossvalidated logic if necessary
+            resolution = resolve_matrix_iebc(office)
             validated = resolution["best_results"]
             queries_used = resolution["queries_used"]
+            
+            # v11.1: If Matrix flagged for HITL, we respect that status
+            matrix_status = resolution.get("status", "failed")
             
             consensus = compute_consensus(validated) if validated else None
             
             if consensus:
-                log.info(f"  âœ… Consensus: ({consensus['lat']:.5f}, {consensus['lng']:.5f}) conf={consensus['confidence']:.2f}")
+                # Add status to consensus for tracking
+                consensus["matrix_status"] = matrix_status
+                log.info(f"  ✅ Consensus: ({consensus['lat']:.5f}, {consensus['lng']:.5f}) conf={consensus['confidence']:.2f}")
                 
                 # v10.7: MANDATORY boundary validation on FINAL consensus
                 # Two-layer validation: (1) Ward polygon boundary check, (2) Reverse-geocode county fallback

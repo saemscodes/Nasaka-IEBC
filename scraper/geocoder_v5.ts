@@ -14,22 +14,23 @@ import * as fs from 'fs';
 
 dotenv.config({ path: fs.existsSync('.env') ? '.env' : '../.env' });
 
-const dbUrl = process.env.SUPABASE_DB_POOLED_URL;
+const sani = (key: string | undefined) => key?.replace(/['"]/g, '').trim() || '';
+const dbUrl = sani(process.env.SUPABASE_DB_POOLED_URL);
 
 const KEYS = {
-    GOOGLE: process.env.GOOGLE_MAPS_API_KEY,
-    ARCGIS_1: process.env.ARCGIS_API_KEY_PRIMARY,
-    ARCGIS_2: process.env.ARCGIS_API_KEY_SECONDARY,
-    OPENCAGE: process.env.OPENCAGE_API_KEY,
-    LOCATIONIQ: process.env.LOCATIONIQ_API_KEY,
-    GEOAPIFY: process.env.GEOAPIFY_API_KEY,
-    EARTH: process.env.GEOCODE_EARTH_API_KEY,
-    GEOKEO: process.env.GEOKEO_API_KEY,
-    STACK: process.env.POSITIONSTACK_API_KEY,
-    CLOUD: process.env.BIGDATACLOUD_API_KEY,
-    MAPS: process.env.GEOCODE_MAPS_API_KEY,
-    GEONAMES: process.env.GEONAMES_USERNAME,
-    NOMINATIM: process.env.NOMINATIM_URL || 'https://nominatim.openstreetmap.org'
+    GOOGLE: sani(process.env.GOOGLE_MAPS_API_KEY),
+    ARCGIS_1: sani(process.env.ARCGIS_API_KEY_PRIMARY),
+    ARCGIS_2: sani(process.env.ARCGIS_API_KEY_SECONDARY),
+    OPENCAGE: sani(process.env.OPENCAGE_API_KEY),
+    LOCATIONIQ: sani(process.env.LOCATIONIQ_API_KEY),
+    GEOAPIFY: sani(process.env.GEOAPIFY_API_KEY),
+    EARTH: sani(process.env.GEOCODE_EARTH_API_KEY),
+    GEOKEO: sani(process.env.GEOKEO_API_KEY),
+    STACK: sani(process.env.POSITIONSTACK_API_KEY),
+    CLOUD: sani(process.env.BIGDATACLOUD_API_KEY),
+    MAPS: sani(process.env.GEOCODE_MAPS_API_KEY),
+    GEONAMES: sani(process.env.GEONAMES_USERNAME),
+    NOMINATIM: sani(process.env.NOMINATIM_URL) || 'https://nominatim.openstreetmap.org'
 };
 
 const BATCH_SIZE = 200, MAX_CONCURRENT = 15, INTER_BATCH_DELAY_MS = 1000, CORROBORATION_RADIUS_KM = 0.5;
