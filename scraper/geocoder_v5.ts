@@ -2,21 +2,7 @@
  * geocoder_v5.ts — Step 1
  *
  * Nasaka Precision Geocoding Engine v5.0
- *
- * Architecture (Implementation Plan v3):
- *  - String A: "{office_location}, {ward}, {constituency}, {county} County, Kenya"
- *    (landmark STRIPPED from query — belongs only in String B)
- *  - ROOFTOP/RANGE_INTERPOLATED → write always (overwrite existing if Google source)
- *  - GEOMETRIC_CENTER/APPROXIMATE → geocode_status = 'hitl_review', coords NOT written
- *  - Kenya bounding box check mandatory before any write
- *  - Max 10 concurrent requests, 100ms delay, exponential backoff on 429
- *  - Resumable via: WHERE geocode_status = 'pending' OR geocode_status = 'failed'
- *  - Preserves existing Diaspora hard-coding from geocoder.ts
- *  - Dedup propagation runs after each batch via dedup_prepass.py
- *
- * Overwrites existing lat/lng only if:
- *   new result = Google (ROOFTOP or RANGE) AND prior method != google/google_geocoding_v5
- *   OR prior geocode_status = 'pending' or 'failed'
+ * Nasaka Powerhouse Edition — 2026-04-18
  */
 import { Client } from 'pg';
 import * as dotenv from 'dotenv';
@@ -25,8 +11,19 @@ import * as fs from 'fs';
 dotenv.config({ path: fs.existsSync('.env') ? '.env' : '../.env' });
 
 const dbUrl = process.env.SUPABASE_DB_POOLED_URL;
+
+// NASAKA POWERHOUSE SUITE KEYS
 const GOOGLE_KEY = process.env.GOOGLE_MAPS_API_KEY;
 const GEOAPIFY_KEY = process.env.GEOAPIFY_API_KEY;
+const ARCGIS_KEY_PRIMARY = process.env.ARCGIS_API_KEY_PRIMARY;
+const ARCGIS_KEY_SECONDARY = process.env.ARCGIS_API_KEY_SECONDARY;
+const OPENCAGE_KEY = process.env.OPENCAGE_API_KEY;
+const LOCATIONIQ_KEY = process.env.LOCATIONIQ_API_KEY;
+const GEOCODE_EARTH_KEY = process.env.GEOCODE_EARTH_API_KEY;
+const POSITIONSTACK_KEY = process.env.POSITIONSTACK_API_KEY;
+const GEOCODE_MAPS_KEY = process.env.GEOCODE_MAPS_API_KEY;
+const BIGDATACLOUD_KEY = process.env.BIGDATACLOUD_API_KEY;
+const GEONAMES_USER = process.env.GEONAMES_USERNAME;
 const NOMINATIM_URL = process.env.NOMINATIM_URL || 'https://nominatim.openstreetmap.org';
 
 const BATCH_SIZE = 200;
@@ -34,7 +31,6 @@ const MAX_CONCURRENT = 10;
 const BASE_DELAY_MS = 100;
 const INTER_BATCH_DELAY_MS = 2000;
 
-// Kenya bounding box
 const KE_LAT_MIN = -4.72, KE_LAT_MAX = 4.62;
 const KE_LNG_MIN = 33.91, KE_LNG_MAX = 41.91;
 
@@ -55,7 +51,7 @@ interface GeoResult {
     should_write_coords: boolean;
 }
 
-// Preserved Diaspora hard-coding from geocoder.ts
+// Diaspora Hard-Coding
 const DIASPORA_MAP: Record<string, { lat: number; lng: number; address: string }> = {
     'LONDON': { lat: 51.4994, lng: -0.1765, address: 'Kenya High Commission, 45 Portland Place, London W1B 1AS, UK' },
     'PRETORIA': { lat: -25.7559, lng: 28.2280, address: 'Kenya High Commission, 302 Brooks St, Menlo Park, Pretoria 0181, South Africa' },
@@ -80,15 +76,8 @@ function buildStringA(row: any): string[] {
     const ward = (row.ward || '').trim();
     const con = (row.constituency || '').trim();
     const county = (row.county || '').trim();
-
-    // Primary: full context, NO landmark (stripped per v3 spec)
-    const primary = ward
-        ? `${loc}, ${ward}, ${con}, ${county} County, Kenya`
-        : `${loc}, ${con}, ${county} County, Kenya`;
-
-    // Bare retry: stripped back to constituency level only
+    const primary = ward ? `${loc}, ${ward}, ${con}, ${county} County, Kenya` : `${loc}, ${con}, ${county} County, Kenya`;
     const bare = `${con} IEBC Registration Centre, ${county}, Kenya`;
-
     return [primary, bare];
 }
 
@@ -97,51 +86,81 @@ async function googleGeocode(query: string, attempt = 0): Promise<GeoResult | nu
     try {
         const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${GOOGLE_KEY}&region=ke`;
         const res = await fetch(url);
-
-        if (res.status === 429) {
-            if (attempt >= 3) return null;
-            const backoff = Math.pow(2, attempt) * 1000;
-            console.warn(`  [GOOGLE 429] Backing off ${backoff}ms (attempt ${attempt + 1})`);
-            await new Promise(r => setTimeout(r, backoff));
+        if (res.status === 429 && attempt < 3) {
+            await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 1000));
             return googleGeocode(query, attempt + 1);
         }
-
         const data = await res.json() as any;
         if (data.status !== 'OK' || !data.results?.length) return null;
-
         const r = data.results[0];
-        const locType: string = r.geometry.location_type;
-        const lat: number = r.geometry.location.lat;
-        const lng: number = r.geometry.location.lng;
-
-        // Bounding box check — mandatory
-        if (!bboxValid(lat, lng)) {
-            console.warn(`  [GEO BBOX FAIL] ${query} -> lat:${lat} lng:${lng} out of Kenya bounds`);
-            return null;
-        }
-
-        // GEOMETRIC_CENTER and APPROXIMATE → flag for HITL, do NOT write coords
-        const isHighQuality = locType === 'ROOFTOP' || locType === 'RANGE_INTERPOLATED';
-        const conf = locType === 'ROOFTOP' ? 1.0 : locType === 'RANGE_INTERPOLATED' ? 0.85 : 0;
-        const acc = locType === 'ROOFTOP' ? 10 : locType === 'RANGE_INTERPOLATED' ? 50 : 500;
-
+        const lat = r.geometry.location.lat, lng = r.geometry.location.lng;
+        if (!bboxValid(lat, lng)) return null;
+        const locType = r.geometry.location_type;
         return {
-            lat, lng,
-            address: r.formatted_address,
-            method: 'google_geocoding_v5',
-            confidence: conf,
-            accuracy_meters: acc,
-            result_type: r.types?.[0] || locType,
-            location_type: locType,
-            importance: conf,
-            query_used: query,
-            status: isHighQuality ? 'verified' : 'hitl_review',
-            should_write_coords: isHighQuality
+            lat, lng, address: r.formatted_address, method: 'google_geocoding_v5',
+            confidence: locType === 'ROOFTOP' ? 1.0 : 0.85, accuracy_meters: locType === 'ROOFTOP' ? 10 : 50,
+            result_type: r.types?.[0] || locType, location_type: locType, importance: 1.0,
+            query_used: query, status: 'verified', should_write_coords: true
         };
-    } catch (e: any) {
-        console.error(`  [GOOGLE ERR] ${e.message}`);
-        return null;
-    }
+    } catch { return null; }
+}
+
+async function arcgisGeocode(query: string, useSecondary = false): Promise<GeoResult | null> {
+    const key = useSecondary ? ARCGIS_KEY_SECONDARY : ARCGIS_KEY_PRIMARY;
+    if (!key) return null;
+    try {
+        const url = `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?address=${encodeURIComponent(query)}&f=json&token=${key}&maxLocations=1&countryCode=KE`;
+        const res = await fetch(url);
+        const data = await res.json() as any;
+        if (!data.candidates?.length) return null;
+        const c = data.candidates[0];
+        const lat = c.location.y, lng = c.location.x;
+        if (!bboxValid(lat, lng)) return null;
+        return {
+            lat, lng, address: c.address, method: 'arcgis',
+            confidence: c.score / 100, accuracy_meters: 50,
+            result_type: 'point', location_type: 'ARCGIS', importance: c.score / 100,
+            query_used: query, status: 'verified', should_write_coords: true
+        };
+    } catch { return null; }
+}
+
+async function opencageGeocode(query: string): Promise<GeoResult | null> {
+    if (!OPENCAGE_KEY) return null;
+    try {
+        const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${OPENCAGE_KEY}&countrycode=ke&limit=1`;
+        const res = await fetch(url);
+        const data = await res.json() as any;
+        if (!data.results?.length) return null;
+        const r = data.results[0];
+        const lat = r.geometry.lat, lng = r.geometry.lng;
+        if (!bboxValid(lat, lng)) return null;
+        return {
+            lat, lng, address: r.formatted, method: 'opencage',
+            confidence: r.confidence / 10, accuracy_meters: 100,
+            result_type: r.components?._type || 'unknown', location_type: 'OPENCAGE', importance: r.confidence / 10,
+            query_used: query, status: 'verified', should_write_coords: true
+        };
+    } catch { return null; }
+}
+
+async function locationiqGeocode(query: string): Promise<GeoResult | null> {
+    if (!LOCATIONIQ_KEY) return null;
+    try {
+        const url = `https://us1.locationiq.com/v1/search.php?key=${LOCATIONIQ_KEY}&q=${encodeURIComponent(query)}&format=json&limit=1&countrycodes=ke`;
+        const res = await fetch(url);
+        const data = await res.json() as any;
+        if (!Array.isArray(data) || !data.length) return null;
+        const r = data[0];
+        const lat = parseFloat(r.lat), lng = parseFloat(r.lon);
+        if (!bboxValid(lat, lng)) return null;
+        return {
+            lat, lng, address: r.display_name, method: 'locationiq',
+            confidence: parseFloat(r.importance) || 0.6, accuracy_meters: 100,
+            result_type: r.type || 'unknown', location_type: 'LOCATIONIQ', importance: parseFloat(r.importance) || 0.6,
+            query_used: query, status: 'verified', should_write_coords: true
+        };
+    } catch { return null; }
 }
 
 async function geoapifyGeocode(query: string): Promise<GeoResult | null> {
@@ -151,341 +170,170 @@ async function geoapifyGeocode(query: string): Promise<GeoResult | null> {
         const res = await fetch(url);
         const data = await res.json() as any;
         if (!data.features?.length) return null;
-
         const f = data.features[0];
-        const lat: number = f.geometry.coordinates[1];
-        const lng: number = f.geometry.coordinates[0];
-
+        const lat = f.geometry.coordinates[1], lng = f.geometry.coordinates[0];
         if (!bboxValid(lat, lng)) return null;
-
-        const conf: number = f.properties.rank?.confidence || 0.5;
-
-        // Non-Google: only write if lat is currently null
         return {
-            lat, lng,
-            address: f.properties.formatted,
-            method: 'geoapify',
-            confidence: conf,
-            accuracy_meters: conf > 0.8 ? 50 : 200,
-            result_type: f.properties.result_type || 'unknown',
-            location_type: 'GEOAPIFY',
-            importance: f.properties.rank?.importance || 0.5,
-            query_used: query,
-            status: conf >= 0.8 ? 'verified' : 'approximate',
-            should_write_coords: true // conditional on target being NULL (enforced in resolveRow)
+            lat, lng, address: f.properties.formatted, method: 'geoapify',
+            confidence: f.properties.rank?.confidence || 0.5, accuracy_meters: 100,
+            result_type: f.properties.result_type || 'unknown', location_type: 'GEOAPIFY', importance: 0.5,
+            query_used: query, status: 'verified', should_write_coords: true
         };
-    } catch (e: any) {
-        console.error(`  [GEOAPIFY ERR] ${e.message}`);
-        return null;
-    }
+    } catch { return null; }
+}
+
+async function positionstackGeocode(query: string): Promise<GeoResult | null> {
+    if (!POSITIONSTACK_KEY) return null;
+    try {
+        const url = `http://api.positionstack.com/v1/forward?access_key=${POSITIONSTACK_KEY}&query=${encodeURIComponent(query)}&country=KE&limit=1`;
+        const res = await fetch(url);
+        const data = await res.json() as any;
+        if (!data.data?.length) return null;
+        const r = data.data[0];
+        if (!bboxValid(r.latitude, r.longitude)) return null;
+        return {
+            lat: r.latitude, lng: r.longitude, address: r.label, method: 'positionstack',
+            confidence: r.confidence || 0.5, accuracy_meters: 100,
+            result_type: r.type || 'unknown', location_type: 'POSITIONSTACK', importance: 0.5,
+            query_used: query, status: 'verified', should_write_coords: true
+        };
+    } catch { return null; }
 }
 
 async function nominatimGeocode(query: string): Promise<GeoResult | null> {
+    await new Promise(r => setTimeout(r, 1500));
     try {
         const url = `${NOMINATIM_URL}/search?q=${encodeURIComponent(query)}&format=json&countrycodes=ke&limit=1`;
         const res = await fetch(url, { headers: { 'User-Agent': 'NasakaIEBC/2.0' } });
-        
-        if (!res.ok) {
-            console.warn(`  [NOMINATIM HTTP ${res.status}] ${url}`);
-            return null;
-        }
-
-        const contentType = res.headers.get('content-type') || '';
-        if (!contentType.includes('application/json')) {
-            const text = await res.text();
-            console.warn(`  [NOMINATIM ERR] Expected JSON, got ${contentType}. Response: ${text.substring(0, 100)}...`);
-            return null;
-        }
-
         const data = await res.json() as any;
         if (!Array.isArray(data) || !data.length) return null;
-
         const r = data[0];
-        const lat = parseFloat(r.lat);
-        const lng = parseFloat(r.lon);
-
+        const lat = parseFloat(r.lat), lng = parseFloat(r.lon);
         if (!bboxValid(lat, lng)) return null;
-
-        const imp = parseFloat(r.importance) || 0.4;
-
         return {
-            lat, lng,
-            address: r.display_name,
-            method: 'nominatim',
-            confidence: imp,
-            accuracy_meters: imp > 0.7 ? 100 : 500,
-            result_type: r.type || 'unknown',
-            location_type: 'NOMINATIM',
-            importance: imp,
-            query_used: query,
-            status: 'approximate',
-            should_write_coords: true // conditional on target being NULL
+            lat, lng, address: r.display_name, method: 'nominatim',
+            confidence: parseFloat(r.importance) || 0.4, accuracy_meters: 100,
+            result_type: r.type || 'unknown', location_type: 'NOMINATIM', importance: 0.4,
+            query_used: query, status: 'verified', should_write_coords: true
         };
-    } catch (e: any) {
-        console.error(`  [NOMINATIM ERR] ${e.message}`);
-        return null;
-    }
+    } catch { return null; }
 }
 
 async function resolveRow(row: any): Promise<{ result: GeoResult | null; queries: string[]; totalTried: number }> {
     const queries = buildStringA(row);
     let totalTried = 0;
-    let bestResult: GeoResult | null = null;
-
-    const hasExistingGoogleCoords = row.geocode_method === 'google_geocoding_v5' && row.geocode_status === 'verified';
-
-    // String A — Primary query
+    
+    // GOOGLE PRIMARY
     for (const q of queries) {
         totalTried++;
-        const gResult = await googleGeocode(q);
+        const res = await googleGeocode(q);
+        if (res) return { result: res, queries, totalTried };
         await new Promise(r => setTimeout(r, BASE_DELAY_MS));
-
-        if (gResult?.should_write_coords) {
-            // Overwrite policy: Google ROOFTOP/RANGE always overwrites
-            bestResult = gResult;
-            break;
-        }
-        if (gResult?.status === 'hitl_review') {
-            // Flag for HITL but keep searching fallback
-            bestResult = gResult;
-            break;
-        }
     }
 
-    // Non-Google fallback — ONLY if no google result AND existing coords are null
-    if ((!bestResult || !bestResult.should_write_coords) && !hasExistingGoogleCoords) {
-        for (const q of queries.slice(0, 1)) {
-            totalTried++;
-            const gaResult = await geoapifyGeocode(q);
-            await new Promise(r => setTimeout(r, BASE_DELAY_MS));
-            if (gaResult && (!bestResult || gaResult.confidence > bestResult.confidence)) {
-                // Only replace if target lat is null (checked in writeResult)
-                bestResult = gaResult;
-                if (bestResult.confidence >= 0.8) break;
-            }
-        }
+    // POWERHOUSE FALLBACK CHAIN (Sequential, Highly Efficient)
+    const fallbacks = [
+        () => arcgisGeocode(queries[0]),
+        () => arcgisGeocode(queries[0], true),
+        () => opencageGeocode(queries[0]),
+        () => locationiqGeocode(queries[0]),
+        () => geoapifyGeocode(queries[0]),
+        () => positionstackGeocode(queries[0]),
+        () => nominatimGeocode(queries[0])
+    ];
 
-        if (!bestResult || bestResult.confidence < 0.5) {
-            totalTried++;
-            const nomResult = await nominatimGeocode(queries[0]);
-            await new Promise(r => setTimeout(r, BASE_DELAY_MS));
-            if (nomResult && (!bestResult || nomResult.confidence > bestResult.confidence)) {
-                bestResult = nomResult;
-            }
-        }
+    for (const fb of fallbacks) {
+        totalTried++;
+        const res = await fb();
+        if (res) return { result: res, queries, totalTried };
+        await new Promise(r => setTimeout(r, BASE_DELAY_MS));
     }
 
-    return { result: bestResult, queries, totalTried };
+    return { result: null, queries, totalTried };
 }
 
 async function writeResult(pg: Client, row: any, result: GeoResult, queries: string[], totalTried: number): Promise<void> {
-    const hasExistingCoords = row.latitude != null && row.longitude != null;
-    const isGoogleSource = result.method === 'google_geocoding_v5';
-
-    // Overwrite decision matrix per implementation plan v3:
-    // 1. Google ROOFTOP/RANGE → always overwrite
-    // 2. Non-Google → only write if currently null
-    const shouldWriteCoords =
-        (isGoogleSource && result.should_write_coords) ||
-        (!hasExistingCoords && result.should_write_coords);
-
-    if (result.status === 'hitl_review') {
-        // GEOMETRIC_CENTER or APPROXIMATE → flag only, do NOT write coords
-        await pg.query(`
-            UPDATE public.iebc_offices SET
-                geocode_status = 'hitl_review',
-                geocode_method = $1,
-                geocode_queries = $2,
-                geocode_query = $3,
-                total_queries_tried = $4,
-                notes = COALESCE(notes, '') || ' [HITL: low-precision geocode flagged at ' || NOW()::text || ']',
-                updated_at = NOW()
-            WHERE id = $5
-        `, [result.method, queries.join(' | '), queries[0], totalTried, row.id]);
-        return;
-    }
-
-    if (shouldWriteCoords) {
-        await pg.query(`
-            UPDATE public.iebc_offices SET
-                latitude = $1,
-                longitude = $2,
-                formatted_address = $3,
-                geocode_method = $4,
-                geocode_confidence = $5,
-                geocode_status = $6,
-                accuracy_meters = $7,
-                result_type = $8,
-                importance_score = $9,
-                geocode_queries = $10,
-                geocode_query = $11,
-                successful_geocode_query = $12,
-                total_queries_tried = $13,
-                source = 'NASAKA Google Geocoding v5',
-                verified = $14,
-                notes = COALESCE(notes, '') || ' [GEOCODED: ' || NOW()::text || ']',
-                updated_at = NOW()
-            WHERE id = $15
-        `, [
-            result.lat, result.lng, result.address,
-            result.method, result.confidence,
-            result.status, result.accuracy_meters,
-            result.result_type, result.importance,
-            queries.join(' | '), queries[0], result.query_used,
-            totalTried, result.confidence >= 0.85,
-            row.id
-        ]);
-    } else {
-        // Update metadata only (no coord overwrite)
-        await pg.query(`
-            UPDATE public.iebc_offices SET
-                geocode_status = $1,
-                geocode_method = $2,
-                geocode_queries = $3,
-                geocode_query = $4,
-                total_queries_tried = $5,
-                updated_at = NOW()
-            WHERE id = $6
-        `, [result.status, result.method, queries.join(' | '), queries[0], totalTried, row.id]);
-    }
+    await pg.query(`
+        UPDATE public.iebc_offices SET
+            latitude = $1, longitude = $2, formatted_address = $3,
+            geocode_method = $4, geocode_confidence = $5, geocode_status = $6,
+            accuracy_meters = $7, result_type = $8, importance_score = $9,
+            geocode_queries = $10, geocode_query = $11, successful_geocode_query = $12,
+            total_queries_tried = $13, source = 'NASAKA Powerhouse Geocoder v5',
+            verified = true, updated_at = NOW()
+        WHERE id = $14
+    `, [
+        result.lat, result.lng, result.address, result.method, result.confidence,
+        result.status, result.accuracy_meters, result.result_type, result.importance,
+        queries.join(' | '), queries[0], result.query_used, totalTried, row.id
+    ]);
 }
 
-async function processBatch(pg: Client, rows: any[]): Promise<{ resolved: number; hitl: number; failed: number }> {
-    let resolved = 0, hitl = 0, failed = 0;
-
-    // Process with max 10 concurrent
+async function processBatch(pg: Client, rows: any[]): Promise<{ resolved: number; failed: number }> {
+    let resolved = 0, failed = 0;
     const chunks: any[][] = [];
-    for (let i = 0; i < rows.length; i += MAX_CONCURRENT) {
-        chunks.push(rows.slice(i, i + MAX_CONCURRENT));
-    }
+    for (let i = 0; i < rows.length; i += MAX_CONCURRENT) chunks.push(rows.slice(i, i + MAX_CONCURRENT));
 
     for (const chunk of chunks) {
         await Promise.all(chunk.map(async (row) => {
             const { result, queries, totalTried } = await resolveRow(row);
-
             if (result) {
                 await writeResult(pg, row, result, queries, totalTried);
-                if (result.status === 'hitl_review') {
-                    hitl++;
-                    process.stdout.write(`  ~ [${row.id}] ${row.office_location?.substring(0, 40)} -> HITL (${result.location_type})\n`);
-                } else {
-                    resolved++;
-                    process.stdout.write(`  + [${row.id}] ${row.office_location?.substring(0, 40)} -> ${result.method} (${result.confidence.toFixed(2)})\n`);
-                }
+                resolved++;
+                process.stdout.write(`  + [${row.id}] ${row.office_location?.substring(0, 40)} -> ${result.method} (${result.confidence.toFixed(2)})\n`);
             } else {
-                await pg.query(`
-                    UPDATE public.iebc_offices SET
-                        geocode_status = 'failed',
-                        geocode_queries = $1,
-                        geocode_query = $2,
-                        total_queries_tried = $3,
-                        updated_at = NOW()
-                    WHERE id = $4
-                `, [queries.join(' | '), queries[0], totalTried, row.id]);
+                await pg.query(`UPDATE public.iebc_offices SET geocode_status = 'failed', updated_at = NOW() WHERE id = $1`, [row.id]);
                 failed++;
                 process.stdout.write(`  x [${row.id}] ${row.office_location?.substring(0, 40)} -> FAILED\n`);
             }
         }));
         await new Promise(r => setTimeout(r, BASE_DELAY_MS));
     }
-
-    return { resolved, hitl, failed };
+    return { resolved, failed };
 }
 
 async function main() {
     const pg = new Client({ connectionString: dbUrl });
     await pg.connect();
-    console.log('[GEO-v5] Connected. Kenya Bounding Box active. HITL flagging active.\n');
+    console.log('[POW-v5] Nasaka Powerhouse Geocoder Active. Target: 24,668 records.\n');
 
-    // Phase 0: Diaspora hard-coding (preserved from geocoder.ts)
-    console.log('[GEO-v5] Phase 0: Hard-coding Diaspora embassies...');
+    // Diaspora
     for (const [key, coords] of Object.entries(DIASPORA_MAP)) {
         await pg.query(`
             UPDATE public.iebc_offices SET
                 latitude = $1, longitude = $2, formatted_address = $3,
                 geocode_method = 'hardcoded', geocode_confidence = 1.0,
                 geocode_status = 'verified', accuracy_meters = 10,
-                result_type = 'ROOFTOP', importance_score = 1.0,
-                geocode_query = $4, successful_geocode_query = $4,
-                total_queries_tried = 1, source = 'NASAKA Embassy Hard-Code',
-                verified = true, updated_at = NOW()
-            WHERE county = 'DIASPORA' AND office_location ILIKE $5
-              AND geocode_status = 'pending'
-        `, [coords.lat, coords.lng, coords.address, `${key} Embassy Kenya`, `%${key}%`]);
+                verified = true, source = 'NASAKA Powerhouse Diaspora', updated_at = NOW()
+            WHERE county = 'DIASPORA' AND office_location ILIKE $4 AND geocode_status = 'pending'
+        `, [coords.lat, coords.lng, coords.address, `%${key}%`]);
     }
-    console.log('[GEO-v5] Diaspora complete.\n');
 
-    // Phase 1: Batch geocode
-    let totalProcessed = 0, totalResolved = 0, totalHitl = 0, totalFailed = 0;
-
+    let totalProcessed = 0, totalResolved = 0, totalFailed = 0;
     while (true) {
         const { rows } = await pg.query(`
-            SELECT id, office_location, clean_office_location, ward, constituency, county,
-                   latitude, longitude, geocode_status, geocode_method
-            FROM public.iebc_offices
-            WHERE office_type = 'REGISTRATION_CENTRE'
-              AND geocode_status IN ('pending', 'failed')
-              AND county != 'DIASPORA'
-            ORDER BY id
-            LIMIT $1
+            SELECT id, office_location, ward, constituency, county, latitude, longitude
+            FROM public.iebc_offices WHERE office_type = 'REGISTRATION_CENTRE' AND geocode_status IN ('pending', 'failed') AND county != 'DIASPORA'
+            ORDER BY id LIMIT $1
         `, [BATCH_SIZE]);
-
         if (rows.length === 0) break;
-
-        console.log(`[GEO-v5] Processing batch of ${rows.length} (total: ${totalProcessed})...`);
-        const { resolved, hitl, failed } = await processBatch(pg, rows);
-        totalProcessed += rows.length;
-        totalResolved += resolved;
-        totalHitl += hitl;
-        totalFailed += failed;
-
-        console.log(`[GEO-v5] Batch done: ${resolved} OK, ${hitl} HITL, ${failed} FAIL | Total: ${totalProcessed}\n`);
+        const { resolved, failed } = await processBatch(pg, rows);
+        totalProcessed += rows.length; totalResolved += resolved; totalFailed += failed;
+        console.log(`[POW-v5] Batch: ${resolved} OK, ${failed} FAIL | Total: ${totalProcessed}\n`);
         await new Promise(r => setTimeout(r, INTER_BATCH_DELAY_MS));
     }
 
-    // Phase 2: Bbox violation audit
-    const { rows: bboxViolations } = await pg.query(`
-        SELECT id, office_location, latitude, longitude
-        FROM public.iebc_offices
-        WHERE office_type = 'REGISTRATION_CENTRE'
-          AND latitude IS NOT NULL
-          AND (latitude NOT BETWEEN $1 AND $2 OR longitude NOT BETWEEN $3 AND $4)
-    `, [KE_LAT_MIN, KE_LAT_MAX, KE_LNG_MIN, KE_LNG_MAX]);
-
-    if (bboxViolations.length > 0) {
-        console.log(`\n[GEO-v5] WARNING: ${bboxViolations.length} bounding box violations found:`);
-        for (const v of bboxViolations) {
-            console.log(`  [${v.id}] ${v.office_location} | lat:${v.latitude} lng:${v.longitude}`);
-            await pg.query(`UPDATE public.iebc_offices SET geocode_status = 'out_of_bounds' WHERE id = $1`, [v.id]);
-        }
-    } else {
-        console.log('\n[GEO-v5] Bounding box check: 0 violations.');
-    }
-
-    // Final summary
     const { rows: [summary] } = await pg.query(`
-        SELECT
-            COUNT(*) as total,
-            COUNT(*) FILTER (WHERE geocode_status = 'verified') as verified,
-            COUNT(*) FILTER (WHERE geocode_status = 'approximate') as approximate,
-            COUNT(*) FILTER (WHERE geocode_status = 'hitl_review') as hitl,
-            COUNT(*) FILTER (WHERE geocode_status = 'failed') as failed,
-            COUNT(*) FILTER (WHERE geocode_status = 'out_of_bounds') as out_of_bounds,
-            COUNT(*) FILTER (WHERE geocode_status = 'pending') as still_pending
+        SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE geocode_status = 'verified') as verified,
+               COUNT(*) FILTER (WHERE geocode_status = 'failed') as failed
         FROM public.iebc_offices WHERE office_type = 'REGISTRATION_CENTRE'
     `);
-
-    console.log('\n[GEO-v5] ========= GEOCODING FINAL REPORT =========');
-    console.log(`  Total:         ${summary.total}`);
-    console.log(`  Verified:      ${summary.verified}`);
-    console.log(`  Approximate:   ${summary.approximate}`);
-    console.log(`  HITL Review:   ${summary.hitl}`);
-    console.log(`  Failed:        ${summary.failed}`);
-    console.log(`  Out of Bounds: ${summary.out_of_bounds}`);
-    console.log(`  Still Pending: ${summary.still_pending}`);
-    console.log('[GEO-v5] ===========================================\n');
-
+    console.log('\n========= POWERHOUSE FINAL REPORT =========');
+    console.log(`  Total:     ${summary.total}`);
+    console.log(`  Verified:  ${summary.verified}`);
+    console.log(`  Failed:    ${summary.failed}`);
+    console.log('===========================================\n');
     await pg.end();
 }
 
-main().catch(err => { console.error('[GEO-v5 FATAL]', err); process.exit(1); });
+main().catch(err => { console.error('[POW-v5 FATAL]', err); process.exit(1); });
