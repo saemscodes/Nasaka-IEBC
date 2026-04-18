@@ -159,13 +159,13 @@ def resolve_matrix_iebc(office: Dict) -> Dict:
     """Stratified Matrix Resolver v11.1 (Python Port).
     Classes: 1=Premium, 2=Reliable (Consensus), 3=Open (Consensus).
     """
-    results = {"best_results": [], "queries_used": [], "status": "failed"}
-    premium_fallback = None
+    results: Dict[str, Any] = {"best_results": [], "queries_used": [], "status": "failed"}
+    premium_fallback: Optional[Dict] = None
 
     # CLASS 1: Premium (First Class)
     # [STRICT] Tier 1 is Landmark-FREE
     for ti, template in enumerate(TIER_TEMPLATES):
-        query = template(office, skipL=(ti == 0))
+        query: str = str(template(office, skipL=(ti == 0)))
         results["queries_used"].append(query)
         
         # Try Premium Providers
@@ -186,7 +186,7 @@ def resolve_matrix_iebc(office: Dict) -> Dict:
 
     # CLASS 2 & 3: Reliable & Open (Combined Exhaustion with Consensus)
     # [STRICT] Class 2+3 requires Corroboration (500m)
-    consensus_pool = []
+    consensus_pool: List[Dict] = []
     
     # Provider Grouping
     reliable = [geocode_geoapify, geocode_opencage, geocode_locationiq, geocode_earth]

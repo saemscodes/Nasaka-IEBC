@@ -1,7 +1,7 @@
 {
   "name": "vite_react_shadcn_ts",
   "private": true,
-  "version": "12.5.0",
+  "version": "12.6.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -92,6 +92,7 @@
     "@studio-freight/lenis": "^1.0.42",
     "@supabase/supabase-js": "^2.88.0",
     "@tanstack/react-query": "^5.56.2",
+    "@turf/turf": "^7.3.4",
     "@types/leaflet": "^1.9.20",
     "@types/maplibre-gl": "^1.14.0",
     "@types/qrcode": "^1.5.1",
