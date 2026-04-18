@@ -184,8 +184,21 @@ async function nominatimGeocode(query: string): Promise<GeoResult | null> {
     try {
         const url = `${NOMINATIM_URL}/search?q=${encodeURIComponent(query)}&format=json&countrycodes=ke&limit=1`;
         const res = await fetch(url, { headers: { 'User-Agent': 'NasakaIEBC/2.0' } });
+        
+        if (!res.ok) {
+            console.warn(`  [NOMINATIM HTTP ${res.status}] ${url}`);
+            return null;
+        }
+
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            const text = await res.text();
+            console.warn(`  [NOMINATIM ERR] Expected JSON, got ${contentType}. Response: ${text.substring(0, 100)}...`);
+            return null;
+        }
+
         const data = await res.json() as any;
-        if (!data.length) return null;
+        if (!Array.isArray(data) || !data.length) return null;
 
         const r = data[0];
         const lat = parseFloat(r.lat);
