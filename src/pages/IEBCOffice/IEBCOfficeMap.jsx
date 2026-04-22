@@ -321,7 +321,7 @@ const IEBCOfficeMap = () => {
       try {
         const { data: fullOffice, error } = await supabase
           .from('iebc_offices')
-          .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
+          .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, returning_officer_name, returning_officer_email, office_name, office_type')
           .eq('id', office.id)
           .single();
 

@@ -32,7 +32,7 @@ const searchNearbyOffices = async (lat, lng, radius = 5000, onNearbyOfficesFound
     const [officesRes, diasporaRes] = await Promise.all([
       supabase
         .from('iebc_offices')
-        .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
+        .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, returning_officer_name, returning_officer_email, office_name, office_type')
         .eq('verified', true)
         .not('latitude', 'is', null)
         .not('longitude', 'is', null),
@@ -424,7 +424,7 @@ const GeoJSONLayerManager = ({
           if (feature.properties.id && feature.properties.type !== 'diaspora') {
             const { data, error } = await supabase
               .from('iebc_offices')
-              .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at')
+              .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, returning_officer_name, returning_officer_email, office_name, office_type')
               .eq('id', feature.properties.id)
               .single();
 
@@ -799,6 +799,13 @@ const GeoJSONLayerManager = ({
         }
         return '';
       })()}
+          ${properties.returning_officer_name ? `
+            <div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(30,107,255,0.08);border:1px solid rgba(30,107,255,0.15);">
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#1E6BFF;margin-bottom:4px;">Returning Officer</div>
+              <div style="font-size:13px;font-weight:600;color:#1f2937;">${properties.returning_officer_name}</div>
+              ${properties.returning_officer_email ? `<a href="mailto:${properties.returning_officer_email}" style="font-size:11px;color:#1E6BFF;text-decoration:none;">${properties.returning_officer_email}</a>` : ''}
+            </div>
+          ` : ''}
           ${hasValidCoords ?
         `<div class="popup-coords">${lat.toFixed(6)}, ${lng.toFixed(6)}</div>` :
         `<div class="popup-error">

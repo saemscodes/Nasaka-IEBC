@@ -484,6 +484,8 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
         formattedAddress: o.formatted_address || `${o.office_location}, ${o.county} County`,
         coordinates: [o.latitude, o.longitude],
         // Ensure all metadata fields are preserved from RPC response
+        office_type: o.office_type,
+        office_name: o.office_name,
         landmark: o.landmark,
         distance_from_landmark: o.distance_from_landmark,
         ward: o.ward,
