@@ -1,7 +1,7 @@
 {
   "name": "vite_react_shadcn_ts",
   "private": true,
-  "version": "13.0.0",
+  "version": "13.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -22,7 +22,7 @@
     "test:performance": "playwright test --project=performance",
     "prebuild": "node scripts/generate-sitemap.js",
     "predeploy": "npm run build && npm run type-check",
-    "postinstall": "npm run build:pwa",
+
     "data:extract": "python scripts/extract_pdf.py",
     "data:clean": "python scripts/clean_addresses.py",
     "data:geocode": "python scripts/geocode_addresses_nominatim.py",
@@ -103,6 +103,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
+    "csv-writer": "^1.6.0",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.3.0",
     "framer-motion": "^12.23.5",
@@ -124,6 +125,7 @@
     "ol": "^10.6.1",
     "osrm-text-instructions": "^0.13.3",
     "pg": "^8.20.0",
+    "playwright-stealth": "^0.0.1",
     "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-day-picker": "^9.11.0",
@@ -143,6 +145,7 @@
     "tailwindcss-animate": "^1.0.7",
     "tesseract.js": "^7.0.0",
     "three": "^0.170.0",
+    "uuid": "^13.0.0",
     "vaul": "^0.9.3",
     "webcrypto": "^0.1.1",
     "workbox-window": "^7.4.0",
