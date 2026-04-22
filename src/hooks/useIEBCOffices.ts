@@ -251,24 +251,39 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     try {
       // Primary: Local public folder
       // Fallback: Custom domain connected to R2 bucket
+      // NOTE: static.civiceducationkenya.com is offline — kept in skeleton for future proofing
       const urls = [
         '/iebc-offices.json',
-        'https://static.civiceducationkenya.com/iebc-offices.json',
+        // 'https://static.civiceducationkenya.com/iebc-offices.json', // ✊🏽🇰🇪 Offline — will enable when site goes live
         'https://cdn.jsdelivr.net/gh/civiceducationkenya/iebc-data@main/iebc-offices.json'
       ].filter(Boolean);
 
-      let response = null;
-      for (const url of urls) {
-        try {
-          const res = await fetch(url);
-          if (res.ok) {
-            response = res;
+      // Parallel race with 5s timeout — fastest CDN wins, no sequential blocking
+      const fetchWithTimeout = (url: string, timeoutMs: number) => {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        return fetch(url, { signal: controller.signal })
+          .then(res => {
+            clearTimeout(timer);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
             console.log(`[useIEBCOffices] Successfully loaded offices from: ${url}`);
-            break;
-          }
-        } catch (e) {
-          console.warn(`[useIEBCOffices] Fetch failed for ${url}, trying next fallback...`);
-        }
+            return res;
+          })
+          .catch(err => {
+            clearTimeout(timer);
+            throw err;
+          });
+      };
+
+      let response: Response | null = null;
+      try {
+        // Race all URLs in parallel — first successful response wins
+        response = await Promise.any(
+          urls.map(url => fetchWithTimeout(url, 5000))
+        );
+      } catch {
+        // All failed
+        throw new Error('All CDN/Local fallback fetches failed');
       }
 
       if (!response) {
@@ -390,10 +405,14 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
 
     const client = window.location.pathname.includes('/admin') ? supabaseCustom : supabase;
 
+    // Select only the columns needed for map display + search — not all 80+ columns
+    // This reduces payload from ~10MB to ~1MB for 24k rows
+    const selectColumns = 'id, latitude, longitude, office_location, county, constituency, constituency_name, ward, ward_id, verified, geocode_status, geocode_confidence, geocode_method, formatted_address, landmark, landmark_normalized, landmark_source, landmark_type, landmark_subtype, elevation_meters, walking_effort, office_type, centre_code, clean_office_location, multi_source_confidence, geocode_verified, geocode_verified_at, created_at, updated_at';
+
     while (hasMore) {
       const { data, error } = await (client as any)
         .from('iebc_offices')
-        .select('*')
+        .select(selectColumns)
         .range(from, to)
         .order('id');
 
@@ -425,10 +444,11 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
   const fetchInBounds = useCallback(async (bounds: { minLat: number, minLng: number, maxLat: number, maxLng: number }, zoom = 15) => {
     // ✊🏽🇰🇪 Zoom-aware marker cap — prevents browser crash from too many DOM markers
     const getMarkerCap = (z: number) => {
-      if (z >= 12) return Infinity; // Street level: all markers (~50-300 typical)
-      if (z >= 10) return 500;       // District level
-      if (z >= 8) return 200;        // County level
-      return 50;                     // Country overview
+      if (z >= 14) return Infinity; // Street level: all markers (~50-300 typical)
+      if (z >= 12) return 500;       // Sub-county level
+      if (z >= 10) return 200;       // District level
+      if (z >= 8) return 100;        // County level
+      return 47;                     // Country overview: one per county
     };
 
     // Spatially-distributed sampling — ensures even geographic coverage at low zoom
@@ -718,6 +738,57 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
   useEffect(() => {
     if (isOffline) return;
 
+    // ✊🏽🇰🇪 Debounce buffer for real-time updates — prevents re-render storms during
+    // active geocoding scraper runs (which fire thousands of UPDATE events/minute).
+    let realtimeDebounceTimer: NodeJS.Timeout | null = null;
+    const pendingChanges: any[] = [];
+
+    const applyPendingChanges = () => {
+      if (pendingChanges.length === 0) return;
+      const changes = [...pendingChanges];
+      pendingChanges.length = 0;
+
+      setOffices(prev => {
+        let updated = [...prev];
+        for (const payload of changes) {
+          switch (payload.eventType) {
+            case 'INSERT':
+              if (payload.new.verified) {
+                const exists = updated.find(o => o.id === payload.new.id);
+                if (!exists) {
+                  updated.push({
+                    ...payload.new,
+                    displayName: payload.new.constituency_name || payload.new.office_location,
+                    formattedAddress: payload.new.formatted_address || `${payload.new.office_location}, ${payload.new.county} County`,
+                    coordinates: [payload.new.latitude, payload.new.longitude]
+                  } as Office);
+                }
+              }
+              break;
+            case 'UPDATE':
+              updated = updated.map(office =>
+                office.id === payload.new.id
+                  ? {
+                    ...office,
+                    ...payload.new,
+                    displayName: payload.new.constituency_name || payload.new.office_location,
+                    formattedAddress: payload.new.formatted_address || `${payload.new.office_location}, ${payload.new.county} County`,
+                    coordinates: [payload.new.latitude, payload.new.longitude]
+                  } as Office
+                  : office
+              );
+              break;
+            case 'DELETE':
+              updated = updated.filter(office => office.id !== payload.old.id);
+              break;
+          }
+        }
+        return updated;
+      });
+
+      setCachedOffices(offices);
+    };
+
     const subscription = supabase
       .channel('iebc-offices-changes')
       .on(
@@ -729,46 +800,12 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
           filter: 'verified=eq.true'
         },
         (payload) => {
-          console.log('Database change detected:', payload.eventType);
-
-          switch (payload.eventType) {
-            case 'INSERT':
-              if (payload.new.verified) {
-                setOffices(prev => {
-                  const exists = prev.find(o => o.id === payload.new.id);
-                  if (exists) return prev;
-                  return [...prev, {
-                    ...payload.new,
-                    displayName: payload.new.constituency_name || payload.new.office_location,
-                    formattedAddress: payload.new.formatted_address || `${payload.new.office_location}, ${payload.new.county} County`,
-                    coordinates: [payload.new.latitude, payload.new.longitude]
-                  } as Office];
-                });
-              }
-              break;
-
-            case 'UPDATE':
-              setOffices(prev =>
-                prev.map(office =>
-                  office.id === payload.new.id
-                    ? {
-                      ...office,
-                      ...payload.new,
-                      displayName: payload.new.constituency_name || payload.new.office_location,
-                      formattedAddress: payload.new.formatted_address || `${payload.new.office_location}, ${payload.new.county} County`,
-                      coordinates: [payload.new.latitude, payload.new.longitude]
-                    } as Office
-                    : office
-                )
-              );
-              break;
-
-            case 'DELETE':
-              setOffices(prev => prev.filter(office => office.id !== payload.old.id));
-              break;
-          }
-
-          setCachedOffices(offices);
+          // Buffer changes and apply in batch every 5 seconds
+          // This prevents the scraper's per-record writes from causing
+          // thousands of individual React re-renders
+          pendingChanges.push(payload);
+          if (realtimeDebounceTimer) clearTimeout(realtimeDebounceTimer);
+          realtimeDebounceTimer = setTimeout(applyPendingChanges, 5000);
         }
       )
       .subscribe();
@@ -776,6 +813,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     subscriptionRef.current = subscription;
 
     return () => {
+      if (realtimeDebounceTimer) clearTimeout(realtimeDebounceTimer);
       if (subscriptionRef.current) {
         subscriptionRef.current.unsubscribe();
       }
@@ -787,18 +825,28 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     if (hasFetchedRef.current) return;
     hasFetchedRef.current = true;
 
-    // ☁️ [ENHANCED] Use Cloudflare R2 for global data
+    // ✊🏽🇰🇪 Immediately bootstrap viewport with Kenya default bounds
+    // This ensures the user sees markers within ~2s instead of waiting for CDN + full load
+    const bootstrapViewport = async () => {
+      try {
+        // Kenya default bounds — covers the whole country at zoom level 6
+        await fetchInBounds({
+          minLat: -4.7,
+          minLng: 33.9,
+          maxLat: 5.0,
+          maxLng: 41.9
+        }, 6);
+      } catch (err) {
+        console.warn('[useIEBCOffices] Viewport bootstrap failed:', err);
+      }
+    };
+    bootstrapViewport();
+
+    // ✊🏽🇰🇪 [VIEWPORT-ONLY] Uber model: only load diaspora on mount (~50 records)
+    // Domestic offices load via viewport RPC as user pans/zooms
     const init = async () => {
-      const cdnOffices = await loadOfficesFromCDN();
-      // Always fetch Diaspora separately to ensure global visibility
       const diaspora = await fetchDiaspora();
-      const allLoaded = [
-        ...(cdnOffices || []).filter(o => o.type !== 'diaspora'),
-        ...diaspora
-      ];
-      setOffices(allLoaded);
-      // NOTE: Do NOT setViewportOffices(allLoaded) — 30k markers crashes the browser.
-      // MapBoundsListener fires on map ready → fetchInBounds → zoom-aware viewport subset.
+      setOffices(diaspora);
     };
     init();
 
@@ -976,7 +1024,7 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
 
   return {
     offices,
-    viewportOffices: viewportOffices.length > 0 ? viewportOffices : offices,
+    viewportOffices,
     filteredOffices,
     loading,
     error,
