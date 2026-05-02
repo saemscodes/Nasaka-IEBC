@@ -1,7 +1,7 @@
 {
   "name": "vite_react_shadcn_ts",
   "private": true,
-  "version": "13.0.1",
+  "version": "14.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -22,7 +22,6 @@
     "test:performance": "playwright test --project=performance",
     "prebuild": "node scripts/generate-sitemap.js",
     "predeploy": "npm run build && npm run type-check",
-
     "data:extract": "python scripts/extract_pdf.py",
     "data:clean": "python scripts/clean_addresses.py",
     "data:geocode": "python scripts/geocode_addresses_nominatim.py",

@@ -1,0 +1,120 @@
+
+============================================================
+  NASAKA GEOC-v15: CONCURRENT RE-GEOCODING PIPELINE
+  Architecture: A ΓåÆ (B + C) concurrent fallback
+============================================================
+
+API Keys:
+  Google Maps API: YES
+  LocationIQ: YES
+  OpenCage: YES
+  Nominatim: YES
+
+Loading iebc_registration_centres into lookup table...
+  Loaded 24135 registration centres into LUT (23807 unique keys)
+
+Fetching all offices...
+Total offices with coords: 9887
+Clustered centres (3+ sharing): 8166
+
+============================================================
+  PROCESSING: A ΓåÆ (B + C) concurrent
+============================================================
+
+  [100/8166] A=0 B=0 C=93 unresolved=7 err=0
+  [200/8166] A=0 B=0 C=157 unresolved=43 err=0
+  [300/8166] A=0 B=0 C=233 unresolved=67 err=0
+  [400/8166] A=0 B=0 C=280 unresolved=120 err=0
+  [500/8166] A=0 B=0 C=313 unresolved=187 err=0
+  [600/8166] A=0 B=0 C=346 unresolved=254 err=0
+  [700/8166] A=0 B=0 C=409 unresolved=291 err=0
+  [800/8166] A=0 B=0 C=477 unresolved=323 err=0
+  [900/8166] A=0 B=0 C=565 unresolved=335 err=0
+  [1000/8166] A=0 B=0 C=619 unresolved=381 err=0
+  [1100/8166] A=0 B=0 C=647 unresolved=453 err=0
+  [1200/8166] A=0 B=0 C=676 unresolved=524 err=0
+  [1300/8166] A=0 B=0 C=702 unresolved=598 err=0
+  [1400/8166] A=0 B=0 C=787 unresolved=613 err=0
+  [1500/8166] A=0 B=0 C=825 unresolved=675 err=0
+  [1600/8166] A=0 B=0 C=881 unresolved=719 err=0
+  [1700/8166] A=0 B=0 C=899 unresolved=801 err=0
+  [1800/8166] A=0 B=0 C=980 unresolved=820 err=0
+  [1900/8166] A=0 B=0 C=1017 unresolved=883 err=0
+  [2000/8166] A=0 B=0 C=1111 unresolved=889 err=0
+  [2100/8166] A=0 B=0 C=1157 unresolved=943 err=0
+  [2200/8166] A=0 B=0 C=1178 unresolved=1022 err=0
+  [2300/8166] A=0 B=0 C=1183 unresolved=1117 err=0
+  [2400/8166] A=0 B=0 C=1183 unresolved=1217 err=0
+  [2500/8166] A=0 B=0 C=1202 unresolved=1298 err=0
+  [2600/8166] A=0 B=0 C=1239 unresolved=1361 err=0
+  [2700/8166] A=0 B=0 C=1249 unresolved=1451 err=0
+  [2800/8166] A=0 B=0 C=1264 unresolved=1536 err=0
+  [2900/8166] A=0 B=0 C=1284 unresolved=1616 err=0
+  [3000/8166] A=0 B=0 C=1302 unresolved=1698 err=0
+  [3100/8166] A=0 B=0 C=1323 unresolved=1777 err=0
+  [3200/8166] A=0 B=0 C=1341 unresolved=1859 err=0
+  [3300/8166] A=0 B=0 C=1350 unresolved=1950 err=0
+  [3400/8166] A=0 B=0 C=1360 unresolved=2040 err=0
+  [3500/8166] A=0 B=0 C=1372 unresolved=2128 err=0
+  [3600/8166] A=0 B=0 C=1381 unresolved=2219 err=0
+  [3700/8166] A=0 B=0 C=1390 unresolved=2310 err=0
+  [3800/8166] A=0 B=0 C=1396 unresolved=2404 err=0
+  [3900/8166] A=0 B=0 C=1403 unresolved=2497 err=0
+  [4000/8166] A=0 B=0 C=1409 unresolved=2591 err=0
+  [4100/8166] A=0 B=0 C=1423 unresolved=2677 err=0
+  [4200/8166] A=0 B=0 C=1429 unresolved=2771 err=0
+  [4300/8166] A=0 B=0 C=1436 unresolved=2864 err=0
+  [4400/8166] A=0 B=0 C=1455 unresolved=2945 err=0
+  [4500/8166] A=0 B=0 C=1466 unresolved=3034 err=0
+  [4600/8166] A=0 B=0 C=1476 unresolved=3124 err=0
+  [4700/8166] A=0 B=0 C=1478 unresolved=3222 err=0
+  [4800/8166] A=0 B=0 C=1494 unresolved=3306 err=0
+  [4900/8166] A=0 B=0 C=1504 unresolved=3396 err=0
+  [5000/8166] A=0 B=0 C=1518 unresolved=3482 err=0
+  [5100/8166] A=0 B=0 C=1522 unresolved=3578 err=0
+  [5200/8166] A=0 B=0 C=1532 unresolved=3668 err=0
+  [5300/8166] A=0 B=0 C=1532 unresolved=3768 err=0
+  [5400/8166] A=0 B=0 C=1537 unresolved=3863 err=0
+  [5500/8166] A=0 B=0 C=1544 unresolved=3956 err=0
+  [5600/8166] A=0 B=0 C=1558 unresolved=4042 err=0
+  [5700/8166] A=0 B=0 C=1561 unresolved=4139 err=0
+  [5800/8166] A=0 B=0 C=1561 unresolved=4239 err=0
+  [5900/8166] A=0 B=0 C=1563 unresolved=4337 err=0
+  [6000/8166] A=0 B=0 C=1563 unresolved=4437 err=0
+  [6100/8166] A=0 B=0 C=1566 unresolved=4534 err=0
+  [6200/8166] A=0 B=0 C=1584 unresolved=4616 err=0
+  [6300/8166] A=0 B=0 C=1599 unresolved=4701 err=0
+  [6400/8166] A=0 B=0 C=1612 unresolved=4788 err=0
+  [6500/8166] A=0 B=0 C=1615 unresolved=4885 err=0
+  [6600/8166] A=0 B=0 C=1618 unresolved=4982 err=0
+  [6700/8166] A=0 B=0 C=1632 unresolved=5068 err=0
+  [6800/8166] A=0 B=0 C=1642 unresolved=5158 err=0
+  [6900/8166] A=0 B=0 C=1642 unresolved=5258 err=0
+  [7000/8166] A=0 B=0 C=1644 unresolved=5356 err=0
+  [7100/8166] A=0 B=0 C=1649 unresolved=5451 err=0
+  [7200/8166] A=0 B=0 C=1652 unresolved=5548 err=0
+  [7300/8166] A=0 B=0 C=1658 unresolved=5642 err=0
+  [7400/8166] A=0 B=0 C=1667 unresolved=5733 err=0
+  [7500/8166] A=0 B=0 C=1667 unresolved=5833 err=0
+  [7600/8166] A=0 B=0 C=1672 unresolved=5928 err=0
+  [7700/8166] A=0 B=0 C=1672 unresolved=6028 err=0
+  [7800/8166] A=0 B=0 C=1676 unresolved=6124 err=0
+  [7900/8166] A=0 B=0 C=1689 unresolved=6211 err=0
+  [8000/8166] A=0 B=0 C=1691 unresolved=6309 err=0
+  [8100/8166] A=0 B=0 C=1697 unresolved=6403 err=0
+  [8166/8166] A=0 B=0 C=1703 unresolved=6463 err=0
+
+  Applying deterministic centroid spread for 6463 unresolved centres...
+  Spread 8166 centres around their centroids.
+
+============================================================
+  FINAL REPORT
+============================================================
+  Total clustered input: 8166
+  Method A (google_maps_scraper_v14): 0
+  Method B (precision_google_maps): 0
+  Method C (multi_source_crossvalidated): 1703
+  Unresolved (centroid spread applied): 6463
+  Errors: 0
+
+Pipeline complete. Γ£è≡ƒÅ╜≡ƒç░≡ƒç¬

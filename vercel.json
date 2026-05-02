@@ -159,7 +159,7 @@
       "destination": "/api/services?service=$1"
     },
     {
-      "source": "/((?!assets/).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ],

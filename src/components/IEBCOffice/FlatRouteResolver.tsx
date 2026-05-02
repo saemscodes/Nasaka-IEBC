@@ -53,8 +53,7 @@ const FlatRouteResolver = () => {
                     const county_slug = slugify(match.county);
                     let area_slug = slugify(match.constituency_name);
                     if (area_slug === county_slug) area_slug = `${area_slug}-town`;
-                    // Navigate to /:county/:constituency to avoid infinite loop on /:slug
-                    navigate(`/${county_slug}/${area_slug}`, { replace: true });
+                    navigate(`/${county_slug}`, { replace: true });
                     return;
                 }
 

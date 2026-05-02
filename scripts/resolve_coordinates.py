@@ -149,10 +149,10 @@ log = logging.getLogger("resolve")
 # ── Stratified Matrix v11.1 Configuration ─────────────────────────────────────
 # [STRICT] Tier 1 is Landmark-FREE for Premium providers (v7.3 Standard)
 TIER_TEMPLATES = [
-    lambda r, skipL=False: f"{r['office_location']}, {r['ward']}, {r['constituency']}, {r['county']} County, Kenya" if skipL else f"{r['office_location']} near {r.get('landmark','')}, {r['ward']}, {r['constituency']}, {r['county']} County, Kenya",
-    lambda r, _: f"{r['office_location']}, {r['constituency']}, {r['county']} County, Kenya",
-    lambda r, _: f"{r['office_location']}, {r['constituency']}, Kenya",
-    lambda r, _: f"{r['constituency']} IEBC Registration Centre, Kenya"
+    lambda r, skipL=False: f"{r['office_location']}, {r.get('ward','')}, {r['constituency']}, {r['county']} County, Kenya" if skipL else f"{r['office_location']} near {r.get('landmark','')}, {r.get('ward','')}, {r['constituency']}, {r['county']} County, Kenya",
+    lambda r, skipL=False: f"{r['office_location']}, {r['constituency']}, {r['county']} County, Kenya",
+    lambda r, skipL=False: f"{r['office_location']}, {r['constituency']}, Kenya",
+    lambda r, skipL=False: f"{r['constituency']} IEBC Registration Centre, Kenya"
 ]
 
 def resolve_matrix_iebc(office: Dict) -> Dict:
@@ -2107,7 +2107,7 @@ def fetch_all_offices(skip_resolved: bool = False) -> List[Dict]:
     offset: int = 0
 
     select_cols = (
-        "id,constituency,constituency_name,constituency_code,county,"
+        "id,constituency,constituency_name,constituency_code,county,ward,"
         "office_location,latitude,longitude,landmark,landmark_type,landmark_subtype,"
         "direction_type,direction_landmark,direction_distance,distance_from_landmark,"
         "geocode_queries,geocode_query,geocode_method,geocode_confidence,geocode_status,"
@@ -2165,7 +2165,7 @@ def apply_resolution(office: Dict, lat: float, lng: float, confidence: float,
             "geocode_verified": True,
             "geocode_verified_at": datetime.now(timezone.utc).isoformat(),
             "multi_source_confidence": float(confidence),
-            "geocode_method": "multi_source_crossvalidated",
+            "geocode_method": "multi_source_consensus",
             "geocode_confidence": float(confidence),
             "geocode_status": "resolved",
             "geocode_queries": json.dumps(queries_used) if queries_used else None,
@@ -2230,7 +2230,7 @@ def apply_resolution(office: Dict, lat: float, lng: float, confidence: float,
             "geocode_verified": True,
             "confidence_score": conf_int,
             "multi_source_confidence": float(confidence),
-            "geocode_method": "multi_source_crossvalidated",
+            "geocode_method": "multi_source_consensus",
             "geocode_confidence": float(confidence),
             "geocode_status": "resolved",
             "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -2273,7 +2273,7 @@ def log_audit(office: Dict, issue_type: str, new_lat: float, new_lng: float,
         "spread_km": consensus["spread_km"] if consensus else None,
         "sources_used": consensus["sources"] if consensus else [],
         "source_results": consensus["source_details"] if consensus else [],
-        "resolution_method": "multi_source_crossvalidated",
+        "resolution_method": "multi_source_consensus",
         "applied": applied,
     }
     
@@ -2298,7 +2298,7 @@ def log_audit(office: Dict, issue_type: str, new_lat: float, new_lng: float,
                         payload["office_id"], payload["constituency"], payload["county"], payload["issue_type"],
                         payload["old_latitude"], payload["old_longitude"], payload["new_latitude"], payload["new_longitude"],
                         payload["consensus_confidence"], payload["agreement_count"], payload["spread_km"],
-                        json.dumps(payload["sources_used"]), json.dumps(payload["source_results"]),
+                        payload["sources_used"], json.dumps(payload["source_results"]),
                         payload["resolution_method"], payload["applied"]
                     ))
                     audit_id = cur.fetchone()[0]
@@ -2919,7 +2919,7 @@ def main():
                             ok = apply_resolution(office, retry_result["lat"], retry_result["lng"],
                                                   retry_result["confidence"], dir_meta, queries_used,
                                                   "", best_addr_retry, retry_result)
-                            log_audit(office, "DEEP_RETRY_RESOLVED", retry_result["lat"], retry_result["lng"], retry_result, ok)
+                            log_audit(office, "CLUSTERING_REVERIFY", retry_result["lat"], retry_result["lng"], retry_result, ok)
                             if ok: stats["auto_applied"] += 1
                         else:
                             stats["auto_applied"] += 1
@@ -2928,8 +2928,8 @@ def main():
                     else:
                         # Deep retry also failed — now HITL queue
                         if args.apply:
-                            audit_id = log_audit(office, "BOUNDARY_MISMATCH", consensus["lat"], consensus["lng"], consensus, False)
-                            enqueue_hitl(office, consensus, "BOUNDARY_MISMATCH", audit_id)
+                            audit_id = log_audit(office, "CLUSTERING", consensus["lat"], consensus["lng"], consensus, False)
+                            enqueue_hitl(office, consensus, "CLUSTERING", audit_id)
                         stats["hitl_queued"] += 1
                         stats["resolved"] += 1
                         continue
@@ -2973,7 +2973,7 @@ def main():
                             ok = apply_resolution(office, retry_result["lat"], retry_result["lng"],
                                                   retry_result["confidence"], dir_meta, queries_used,
                                                   "", best_addr_retry, retry_result)
-                            log_audit(office, "DEEP_RETRY_RESOLVED", retry_result["lat"], retry_result["lng"], retry_result, ok)
+                            log_audit(office, f"{issue_type}_REVERIFY", retry_result["lat"], retry_result["lng"], retry_result, ok)
                             if ok: stats["auto_applied"] += 1
                         else:
                             stats["auto_applied"] += 1
@@ -2996,7 +2996,7 @@ def main():
                         ok = apply_resolution(office, retry_result["lat"], retry_result["lng"],
                                               retry_result["confidence"], dir_meta, queries_used,
                                               "", best_addr_retry, retry_result)
-                        log_audit(office, "DEEP_RETRY_RESOLVED", retry_result["lat"], retry_result["lng"], retry_result, ok)
+                        log_audit(office, "NULL_COORDS_REVERIFY", retry_result["lat"], retry_result["lng"], retry_result, ok)
                         if ok: stats["auto_applied"] += 1
                     else:
                         stats["auto_applied"] += 1

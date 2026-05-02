@@ -9,14 +9,18 @@ const NotFound = () => {
   const [contextualMessage, setContextualMessage] = useState({ message: "404 Error. Page not Found", suggestion: null as any });
 
   useEffect(() => {
-    const ctx = handle404(location.pathname);
-    setContextualMessage({
-      message: ctx.message,
-      suggestion: ctx.bestMatch ? {
-        path: ctx.bestMatch,
-        label: ctx.bestMatch.split('/').pop() || "Related Page"
-      } : null
-    });
+    try {
+      const ctx = handle404(location.pathname);
+      setContextualMessage({
+        message: ctx.message,
+        suggestion: ctx.bestMatch ? {
+          path: ctx.bestMatch,
+          label: ctx.bestMatch.split('/').pop() || "Related Page"
+        } : null
+      });
+    } catch (err) {
+      console.error("404 logic failed:", err);
+    }
 
     console.error("404 Error: Not found:", location.pathname);
 

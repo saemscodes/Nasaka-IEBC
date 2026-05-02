@@ -1,0 +1,60 @@
+
+============================================================
+  NASAKA GEOC-v15: CONCURRENT RE-GEOCODING PIPELINE
+  Architecture: A ΓåÆ (B + C) concurrent fallback
+============================================================
+
+API Keys:
+  Google Maps API: YES
+  LocationIQ: YES
+  OpenCage: YES
+  Nominatim: YES
+
+Loading iebc_registration_centres into lookup table...
+  Loaded 24261 registration centres into LUT (23929 unique keys)
+
+Fetching all offices...
+Total offices with coords: 9887
+Clustered centres (3+ sharing): 8166
+
+============================================================
+  PROCESSING: A ΓåÆ (B + C) concurrent
+============================================================
+
+  [100/8166] A=0 B=0 C=4 unresolved=96 err=0
+  [200/8166] A=0 B=0 C=8 unresolved=192 err=0
+  [300/8166] A=0 B=0 C=12 unresolved=288 err=0
+  [400/8166] A=0 B=0 C=15 unresolved=385 err=0
+  [500/8166] A=0 B=0 C=27 unresolved=473 err=0
+  [600/8166] A=0 B=0 C=41 unresolved=559 err=0
+  [700/8166] A=0 B=0 C=49 unresolved=651 err=0
+  [800/8166] A=0 B=0 C=56 unresolved=744 err=0
+  [900/8166] A=0 B=0 C=65 unresolved=835 err=0
+  [1000/8166] A=0 B=0 C=70 unresolved=930 err=0
+  [1100/8166] A=0 B=0 C=76 unresolved=1024 err=0
+  [1200/8166] A=0 B=0 C=79 unresolved=1121 err=0
+  [1300/8166] A=0 B=0 C=82 unresolved=1218 err=0
+  [1400/8166] A=0 B=0 C=85 unresolved=1315 err=0
+  [1500/8166] A=0 B=0 C=103 unresolved=1397 err=0
+  [1600/8166] A=0 B=0 C=117 unresolved=1483 err=0
+  [1700/8166] A=0 B=0 C=120 unresolved=1580 err=0
+  [1800/8166] A=0 B=0 C=123 unresolved=1677 err=0
+  [1900/8166] A=0 B=0 C=124 unresolved=1776 err=0
+  [2000/8166] A=0 B=0 C=126 unresolved=1874 err=0
+  [2100/8166] A=0 B=0 C=138 unresolved=1962 err=0
+  [2200/8166] A=0 B=0 C=139 unresolved=2061 err=0
+  [2300/8166] A=0 B=0 C=146 unresolved=2154 err=0
+  [2400/8166] A=0 B=0 C=151 unresolved=2249 err=0
+  [2500/8166] A=0 B=0 C=161 unresolved=2339 err=0
+  [2600/8166] A=0 B=0 C=167 unresolved=2433 err=0
+  [2700/8166] A=0 B=0 C=169 unresolved=2531 err=0
+  [2800/8166] A=0 B=0 C=184 unresolved=2616 err=0
+  [2900/8166] A=0 B=0 C=206 unresolved=2694 err=0
+  [3000/8166] A=0 B=0 C=224 unresolved=2776 err=0
+  [3100/8166] A=0 B=0 C=249 unresolved=2851 err=0
+  [3200/8166] A=0 B=0 C=285 unresolved=2915 err=0
+  [3300/8166] A=0 B=0 C=295 unresolved=3005 err=0
+  [3400/8166] A=0 B=0 C=303 unresolved=3097 err=0
+  [3500/8166] A=0 B=0 C=318 unresolved=3182 err=0
+  [3600/8166] A=0 B=0 C=329 unresolved=3271 err=0
+  [3700/8166] A=0 B=0 C=338 unresolved=3362 err=0

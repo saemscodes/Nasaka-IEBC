@@ -1,0 +1,12 @@
+START_CONSTRAINT geocode_audit_issue_type_check
+CHECK ((issue_type = ANY (ARRAY['DISPLACED'::text, 'NULL_COORDS'::text, 'CLUSTERING'::text, 'DISPLACED_REVERIFY'::text, 'NULL_COORDS_REVERIFY'::text, 'CLUSTERING_REVERIFY'::text])))
+END_CONSTRAINT geocode_audit_issue_type_check
+START_CONSTRAINT geocode_audit_office_id_fkey
+FOREIGN KEY (office_id) REFERENCES iebc_offices(id) ON DELETE CASCADE
+END_CONSTRAINT geocode_audit_office_id_fkey
+START_CONSTRAINT geocode_audit_pkey
+PRIMARY KEY (id)
+END_CONSTRAINT geocode_audit_pkey
+START_CONSTRAINT geocode_audit_resolution_method_check
+CHECK ((resolution_method = ANY (ARRAY['auto'::text, 'admin_manual'::text, 'gold_standard'::text, 'multi_source_consensus'::text])))
+END_CONSTRAINT geocode_audit_resolution_method_check

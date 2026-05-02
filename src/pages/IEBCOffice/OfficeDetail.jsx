@@ -75,6 +75,8 @@ const OfficeDetail = () => {
     const [wards, setWards] = useState([]);
     const [contributionImage, setContributionImage] = useState(null);
     const [wardOffices, setWardOffices] = useState([]);
+    const [constituencies, setConstituencies] = useState([]);
+    const [sortBy, setSortBy] = useState('index'); // 'index', 'name', 'distance'
 
     // Fix 5: Read persisted userLocation from sessionStorage for return navigation
     const savedUserLocation = useMemo(() => {
@@ -120,12 +122,15 @@ const OfficeDetail = () => {
     useEffect(() => {
         if (!office) return;
 
+        // ONLY redirect if we are on a legacy path OR if a constituency slug was provided 
+        // We want to allow /:county to remain as a county overview
         const isLegacyPath = window.location.pathname.startsWith('/iebc-office/') ||
             window.location.pathname.startsWith('/nasaka-iebc/');
+        
+        if (!isLegacyPath && !constituencySlug) return;
 
         const canonicalCounty = slugify(office.county);
         const canonicalConstituency = slugify(office.constituency_name);
-        // If we are on a ward page, we want the ward slug too
         const canonicalWard = office.ward_name ? slugify(office.ward_name) : wardSlug;
 
         // Disambiguation
@@ -185,18 +190,22 @@ const OfficeDetail = () => {
                 }
             }
 
-            if (!data && constituencySearch) {
-                // 2. Try constituency match
-                const { data: d1, error: e1 } = await supabase
+            // 1. Try constituency match - prioritize the official Constituency Office if it exists
+                const { data: constituencyResults, error: e1 } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name:ward')
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name:ward, office_type, clean_office_location')
+                    .ilike('county', `%${countySearch}%`) // FUZZY MATCH COUNTY
                     .ilike('constituency_name', `%${constituencySearch}%`)
-                    .limit(1)
-                    .maybeSingle();
+                    .order('office_type', { ascending: false });
 
                 if (e1) throw e1;
-                data = d1;
-            }
+                if (constituencyResults && constituencyResults.length > 0) {
+                    // Find the one marked as CONSTITUENCY_OFFICE first, or one that has ward as null/empty
+                    data = constituencyResults.find(r => r.office_type === 'CONSTITUENCY_OFFICE') || 
+                           constituencyResults.find(r => !r.ward_name) || 
+                           constituencyResults[0];
+                    setWardOffices([]); // Clear if we matched constituency
+                }
 
             if (!data) {
                 // 3. County-only fallback
@@ -269,15 +278,27 @@ const OfficeDetail = () => {
 
             setOffice(data);
 
-            // Fetch nearby offices in same county
-            const { data: nearby } = await supabase
-                .from('iebc_offices')
-                .select('id, county, constituency_name, verified')
-                .eq('county', data.county)
-                .neq('id', data.id)
-                .limit(5);
-
             setNearbyOffices(nearby || []);
+
+            // If we only have a county (and no constituency matched), fetch constituencies
+            if (countySearch && !constituencySlug) {
+                const { data: consts } = await supabase
+                    .from('iebc_offices')
+                    .select('constituency_name, verified')
+                    .eq('county', data.county)
+                    .order('constituency_name');
+                
+                // Deduplicate
+                const uniqueConsts = [];
+                const seen = new Set();
+                (consts || []).forEach(c => {
+                    if (c.constituency_name && !seen.has(c.constituency_name)) {
+                        seen.add(c.constituency_name);
+                        uniqueConsts.push(c);
+                    }
+                });
+                setConstituencies(uniqueConsts);
+            }
 
         } catch (err) {
             setError(err.message);
@@ -449,7 +470,9 @@ const OfficeDetail = () => {
     }
 
     const countyName = office.county || 'Kenya';
-    const wardName = office.ward_name || deslugify(wardSlug);
+    const wardName = office.ward_name || deslugify(wardSlug || '');
+    const constituencyNameLabel = (office.constituency_name || '').toUpperCase();
+    const wardNameLabel = (wardName || '').toUpperCase();
     const basePath = `/${slugify(countyName)}/${slugify(office.constituency_name)}${slugify(office.constituency_name) === slugify(office.county) ? '-town' : ''}/${slugify(wardName)}`;
 
     // Disambiguation UI: When a ward has multiple registration centers and no index is specified
@@ -481,31 +504,55 @@ const OfficeDetail = () => {
                 </header>
 
                 <main className="max-w-2xl mx-auto p-4 space-y-4">
-                    <div className="px-1 mb-2">
-                        <p className="text-2xl font-black">{wardOffices.length} Centers Found</p>
-                        <p className="text-sm text-muted-foreground">Select the nearest center in {wardName} Ward.</p>
+                    <div className="flex items-center justify-between px-1 mb-2">
+                        <div>
+                            <p className="text-2xl font-black">{wardOffices.length} Centers Found</p>
+                            <p className="text-sm text-muted-foreground">Select the nearest center in {wardNameLabel} WARD.</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <select 
+                                value={sortBy} 
+                                onChange={(e) => setSortBy(e.target.value)}
+                                className={`text-xs font-bold bg-transparent border-none focus:ring-0 ${isDark ? 'text-ios-blue' : 'text-blue-600'}`}
+                            >
+                                <option value="index">Sort by Index</option>
+                                <option value="name">Sort by Name</option>
+                                <option value="distance">Sort by Distance</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div className="space-y-3">
-                        {wardOffices.map((off, idx) => (
-                            <Link
-                                key={off.id}
-                                to={`${basePath}/${idx + 1}`}
-                                className={`block p-5 rounded-3xl border transition-all active:scale-[0.98] ${isDark ? 'bg-ios-gray-800/50 border-ios-gray-800' : 'bg-white border-ios-gray-100 shadow-sm'}`}
-                            >
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xs font-bold uppercase tracking-widest text-ios-blue">Center #{idx + 1}</span>
-                                    {off.verified && (
-                                        <div className="flex items-center gap-1 bg-green-500/10 text-green-500 px-2 py-0.5 rounded-full text-[10px] font-black uppercase">
-                                            <CheckCircle2 className="w-3 h-3" />
-                                            Verified
-                                        </div>
-                                    )}
-                                </div>
-                                <h3 className="text-lg font-bold mb-1">{off.office_location || `IEBC Office ${idx + 1}`}</h3>
-                                <p className="text-xs text-muted-foreground line-clamp-1">{off.formatted_address || off.landmark || 'Detailed address in verification'}</p>
-                            </Link>
-                        ))}
+                        {[...wardOffices].sort((a, b) => {
+                            if (sortBy === 'name') return (a.office_location || '').localeCompare(b.office_location || '');
+                            if (sortBy === 'distance' && savedUserLocation) {
+                                const distA = calculateDistance(savedUserLocation.latitude, savedUserLocation.longitude, a.latitude, a.longitude);
+                                const distB = calculateDistance(savedUserLocation.latitude, savedUserLocation.longitude, b.latitude, b.longitude);
+                                return distA - distB;
+                            }
+                            return 0; // Default order (index)
+                        }).map((off, idx) => {
+                            const actualIdx = wardOffices.indexOf(off) + 1;
+                            return (
+                                <Link
+                                    key={off.id}
+                                    to={`${basePath}/${actualIdx}`}
+                                    className={`block p-5 rounded-3xl border transition-all active:scale-[0.98] ${isDark ? 'bg-ios-gray-800/50 border-ios-gray-800' : 'bg-white border-ios-gray-100 shadow-sm'}`}
+                                >
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs font-bold uppercase tracking-widest text-ios-blue">Center #{actualIdx}</span>
+                                        {off.verified && (
+                                            <div className="flex items-center gap-1 bg-green-500/10 text-green-500 px-2 py-0.5 rounded-full text-[10px] font-black uppercase">
+                                                <CheckCircle2 className="w-3 h-3" />
+                                                Verified
+                                            </div>
+                                        )}
+                                    </div>
+                                    <h3 className="text-lg font-bold mb-1">{off.office_location || `IEBC Office ${actualIdx}`}</h3>
+                                    <p className="text-xs text-muted-foreground line-clamp-1">{off.formatted_address || off.landmark || 'Detailed address in verification'}</p>
+                                </Link>
+                            );
+                        })}
                     </div>
                 </main>
             </div>
@@ -597,12 +644,14 @@ const OfficeDetail = () => {
                                 {countyName} County
                             </div>
                             <h2 className="text-3xl font-bold">{officeName}</h2>
-                            <p className="text-muted-foreground mt-1">{office.constituency_type || 'Constituency'} Office</p>
+                            <p className="text-muted-foreground mt-1">
+                                {office.office_type === 'CONSTITUENCY_OFFICE' ? 'Constituency Office' : (wardSlug ? 'Ward Location' : 'Registration Centre')}
+                            </p>
                         </div>
                         {office.verified && (
                             <div className="flex flex-col items-center">
                                 <CheckCircle2 className="w-10 h-10 text-green-500" />
-                                <span className="text-[10px] font-bold text-green-600 mt-1 uppercase tracking-tight">{t('office.verified')}</span>
+                                <span className="text-[10px] font-bold text-green-600 mt-1 uppercase tracking-tight">VERIFIED</span>
                             </div>
                         )}
                     </div>
@@ -613,7 +662,9 @@ const OfficeDetail = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{t('bottomSheet.address')}</p>
-                            <p className="text-sm font-medium leading-tight truncate">{office.office_location || t('office.addressVerifying')}</p>
+                            <p className="text-sm font-medium leading-tight truncate">
+                                {office.clean_office_location || office.landmark || office.office_location || t('office.addressVerifying')}
+                            </p>
                         </div>
                     </div>
 
@@ -1054,11 +1105,39 @@ const OfficeDetail = () => {
                     </section>
                 )}
 
-                {/* Wards in this Constituency */}
-                {wards.length > 0 && !wardSlug && (
+                {/* Constituencies in this County (if on county-only route) */}
+                {constituencies.length > 0 && !constituencySlug && (
                     <section>
-                        <h3 className="text-lg font-bold mb-4 px-1">{t('office.wardsIn', { office: officeName })}</h3>
+                        <h3 className="text-lg font-bold mb-4 px-1">CONSTITUENCIES IN {countyName.toUpperCase()} COUNTY</h3>
                         <div className="space-y-2">
+                            {constituencies.map((c, cIdx) => (
+                                <Link
+                                    key={`${c.constituency_name}-${cIdx}`}
+                                    to={`/${slugify(countyName)}/${slugify(c.constituency_name)}${slugify(c.constituency_name) === slugify(countyName) ? '-town' : ''}`}
+                                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all active:scale-[0.98] ${isDark ? 'bg-ios-gray-800/50 border-ios-gray-800 hover:bg-ios-gray-800' : 'bg-white border-ios-gray-100 hover:bg-ios-gray-50'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-ios-gray-100 dark:bg-ios-gray-700 flex items-center justify-center">
+                                            <MapPin className="w-4 h-4 text-ios-blue" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold">{c.constituency_name}</p>
+                                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{c.verified ? 'Verified' : 'Unverified'}</p>
+                                        </div>
+                                    </div>
+                                    <ChevronRight className="w-5 h-5 text-muted-foreground opacity-50" />
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Wards in this Constituency */}
+                {wards.length > 0 && !wardSlug && constituencySlug && (
+                    <section>
+                        <h3 className="text-lg font-bold mb-4 px-1">WARDS IN {constituencyNameLabel} CONSTITUENCY</h3>
+                        <div className="space-y-2">
+                            {/* ... existing code ... */}
                             {wards.filter(w => w.ward_name).map((w, wIdx) => (
                                 <Link
                                     key={`${w.ward_name}-${w.id || wIdx}`}
