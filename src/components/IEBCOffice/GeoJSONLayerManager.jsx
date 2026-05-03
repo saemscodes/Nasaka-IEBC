@@ -5,7 +5,6 @@ import L from 'leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import { buildDiasporaMarkerIcon, buildDiasporaPopup } from '@/lib/diaspora-markers';
 import { supabase } from '@/integrations/supabase/client';
-import { fetchMapData, getActiveProvider } from '@/config/mapDataConfig';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -25,57 +24,47 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
-const searchNearbyOffices = async (lat, lng, radius = 5000, onNearbyOfficesFound = null, preloadedOffices = null) => {
+const searchNearbyOffices = async (lat, lng, radius = 5000, onNearbyOfficesFound = null) => {
   try {
     // Determine if we are overseas (Simple check: outside Kenya bounding box approx)
     const isOverseas = lat > 5.5144 || lat < -4.8386 || lng < 33.9099 || lng > 41.9262;
 
-    let allLocations;
+    const [officesRes, diasporaRes] = await Promise.all([
+      supabase
+        .from('iebc_offices')
+        .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, returning_officer_name, returning_officer_email, office_name, office_type')
+        .eq('verified', true)
+        .not('latitude', 'is', null)
+        .not('longitude', 'is', null),
+      supabase
+        .from('diaspora_registration_centres')
+        .select('id, mission_name, mission_type, city, country, country_code, continent, region, latitude, longitude, address, google_maps_url, phone, email, website_url, whatsapp, designation_state, designated_2017, designated_2022, designation_count, is_iebc_confirmed_2027, confirmed_2027_source_url, confirmed_2027_gazette_ref, services_2027, registration_opens_at, registration_closes_at, voting_date, registration_requirements, inquiry_contact_name, inquiry_contact_email, inquiry_notes, verified_at, verification_source, last_checked_at, is_active, created_at, updated_at, geocode_status, geocode_method, geocode_confidence, formatted_address')
+        .not('latitude', 'is', null)
+        .not('longitude', 'is', null)
+    ]);
 
-    // ✊🏽🇰🇪 If preloaded offices are provided, use them (ZERO Supabase egress)
-    if (preloadedOffices && preloadedOffices.length > 0) {
-      allLocations = preloadedOffices;
-    } else {
-      // Legacy path: fetch from Supabase (fallback only)
-      const [officesRes, diasporaRes] = await Promise.all([
-        supabase
-          .from('iebc_offices')
-          .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, returning_officer_name, returning_officer_email, office_name, office_type')
-          .eq('verified', true)
-          .not('latitude', 'is', null)
-          .not('longitude', 'is', null),
-        supabase
-          .from('diaspora_registration_centres')
-          .select('id, mission_name, mission_type, city, country, country_code, continent, region, latitude, longitude, address, google_maps_url, phone, email, website_url, whatsapp, designation_state, designated_2017, designated_2022, designation_count, is_iebc_confirmed_2027, confirmed_2027_source_url, confirmed_2027_gazette_ref, services_2027, registration_opens_at, registration_closes_at, voting_date, registration_requirements, inquiry_contact_name, inquiry_contact_email, inquiry_notes, verified_at, verification_source, last_checked_at, is_active, created_at, updated_at, geocode_status, geocode_method, geocode_confidence, formatted_address')
-          .not('latitude', 'is', null)
-          .not('longitude', 'is', null)
-      ]);
+    if (officesRes.error) throw officesRes.error;
 
-      if (officesRes.error) throw officesRes.error;
+    const domestic = (officesRes.data || []).map(o => ({ ...o, type: 'office' }));
+    const diaspora = (diasporaRes.data || []).map(d => ({
+      ...d,
+      id: `d-${d.id}`,
+      type: 'diaspora',
+      county: d.country,
+      constituency_name: d.mission_name,
+      office_location: d.city,
+      verified: true
+    }));
 
-      const domestic = (officesRes.data || []).map(o => ({ ...o, type: 'office' }));
-      const diaspora = (diasporaRes.data || []).map(d => ({
-        ...d,
-        id: `d-${d.id}`,
-        type: 'diaspora',
-        county: d.country,
-        constituency_name: d.mission_name,
-        office_location: d.city,
-        verified: true
-      }));
+    const allLocations = [...domestic, ...diaspora];
 
-      allLocations = [...domestic, ...diaspora];
-    }
-
-    const locationsWithDistance = allLocations
-      .filter(loc => loc.latitude != null && loc.longitude != null)
-      .map(loc => {
-        const distance = calculateDistance(lat, lng, loc.latitude, loc.longitude);
-        return {
-          ...loc,
-          distance
-        };
-      }).filter(loc => loc.distance <= (radius / 1000))
+    const locationsWithDistance = allLocations.map(loc => {
+      const distance = calculateDistance(lat, lng, loc.latitude, loc.longitude);
+      return {
+        ...loc,
+        distance
+      };
+    }).filter(loc => loc.distance <= (radius / 1000))
       .sort((a, b) => a.distance - b.distance);
 
     if (onNearbyOfficesFound) {
@@ -235,7 +224,6 @@ const GeoJSONLayerManager = ({
     'iebc-offices-static': {
       name: 'IEBC Offices (Static)',
       url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/iebc_offices.geojson',
-      b2FileKey: 'IEBC_OFFICES',
       type: 'geojson',
       style: {
         color: '#007AFF',
@@ -254,7 +242,6 @@ const GeoJSONLayerManager = ({
     'iebc-offices-rows': {
       name: 'IEBC Offices (Detailed)',
       url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/iebc_offices_rows.geojson',
-      b2FileKey: 'IEBC_OFFICES_ROWS',
       type: 'geojson',
       style: {
         color: '#34C759',
@@ -277,7 +264,6 @@ const GeoJSONLayerManager = ({
     'kenya-counties': {
       name: 'Kenya Counties Voters Data',
       url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/FULL%20CORRECTED%20-%20Kenya%20Counties%20Voters%27%20Data.geojson',
-      b2FileKey: 'COUNTIES_VOTERS',
       type: 'geojson',
       style: {
         color: '#8E8E93',
@@ -290,7 +276,6 @@ const GeoJSONLayerManager = ({
     'healthcare-facilities': {
       name: 'Healthcare Facilities across the Country',
       url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/healthcare_facilities.geojson',
-      b2FileKey: 'HEALTHCARE_FACILITIES',
       type: 'geojson',
       style: {
         color: '#7c3aed',
@@ -304,7 +289,6 @@ const GeoJSONLayerManager = ({
       name: 'Kenya Constituencies',
       description: 'Parliamentary and electoral boundaries across Kenya as defined by IEBC. Each polygon represents one constituency with its corresponding code and name.',
       url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/constituencies_with_centroids.geojson',
-      b2FileKey: 'CONSTITUENCIES_CENTROIDS',
       type: 'geojson',
       style: {
         color: '#eab308',
@@ -344,7 +328,7 @@ const GeoJSONLayerManager = ({
         return;
       }
 
-      if (!config?.url && !config?.b2FileKey) {
+      if (!config?.url) {
         // If it's the iebc-offices layer and we have data, just use it
         if (layerId === 'iebc-offices' && liveOfficesGeoJSON.features.length >= 0) {
           setLayerData(prev => ({ ...prev, [layerId]: liveOfficesGeoJSON }));
@@ -354,62 +338,34 @@ const GeoJSONLayerManager = ({
         throw new Error(`No URL configured for layer: ${layerId}`);
       }
 
-      // ✊🏽🇰🇪 Dual-source fetch: try B2 first (via mapDataConfig), fall back to direct URL
+      // Log removed for production
+
+
+      const response = await fetch(config.url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json,application/geo+json,text/plain,*/*'
+        },
+        mode: 'cors'
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const text = await response.text();
+
+      if (!text.trim()) {
+        throw new Error('Empty response from server');
+      }
+
       let geojson;
+      try {
+        geojson = JSON.parse(text);
+      } catch (parseError) {
+        // Log removed for production
 
-      if (config.b2FileKey) {
-        try {
-          geojson = await fetchMapData(config.b2FileKey);
-        } catch (b2Error) {
-          // B2 failed — fall back to legacy Supabase URL
-          console.warn(`[GeoJSONLayerManager] B2 fetch failed for ${layerId}, falling back to URL:`, b2Error);
-          const response = await fetch(config.url, {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json,application/geo+json,text/plain,*/*'
-            },
-            mode: 'cors'
-          });
-
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-
-          const text = await response.text();
-          if (!text.trim()) {
-            throw new Error('Empty response from server');
-          }
-
-          try {
-            geojson = JSON.parse(text);
-          } catch (parseError) {
-            throw new Error(`Invalid JSON format: ${parseError.message}`);
-          }
-        }
-      } else {
-        // No b2FileKey — use legacy URL directly
-        const response = await fetch(config.url, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json,application/geo+json,text/plain,*/*'
-          },
-          mode: 'cors'
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const text = await response.text();
-        if (!text.trim()) {
-          throw new Error('Empty response from server');
-        }
-
-        try {
-          geojson = JSON.parse(text);
-        } catch (parseError) {
-          throw new Error(`Invalid JSON format: ${parseError.message}`);
-        }
+        throw new Error(`Invalid JSON format: ${parseError.message}`);
       }
 
       validateGeoJSON(geojson);
@@ -1021,7 +977,7 @@ const GeoJSONLayerManager = ({
                                 try {
                                   const { data: dbData } = await supabase
                                     .from('iebc_offices')
-                                    .select('id, county, constituency, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, returning_officer_name, returning_officer_email, office_name, office_type')
+                                    .select('*')
                                     .eq('id', office.id)
                                     .single();
                                   if (dbData) office = { ...office, ...dbData };

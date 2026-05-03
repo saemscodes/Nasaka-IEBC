@@ -4,19 +4,106 @@
  * Cron Trigger: 0 21 * * * (Midnight EAT)
  */
 
+// Global B2 Auth Cache (lasts up to 24h)
+let cachedAuth = { token: null, apiUrl: null, downloadUrl: null, expires: 0 };
+
 export default {
     async scheduled(event, env, ctx) {
         ctx.waitUntil(handleSchedule(env));
     },
     async fetch(request, env) {
-        // Manual trigger for testing
-        if (new URL(request.url).pathname === '/sync') {
+        const url = new URL(request.url);
+
+        // 1. NIGHTLY SYNC ROUTE
+        if (url.pathname === '/sync') {
             await handleSchedule(env);
             return new Response('Sync completed successfully');
         }
-        return new Response('IEBC Sync Worker is running');
+
+        // 2. SMART PROXY ROUTE: /file/map-data/:filename
+        if (url.pathname.startsWith('/file/')) {
+            return handleFileProxy(request, env);
+        }
+
+        return new Response('IEBC Proxy/Sync Worker is running', { status: 200 });
     }
 };
+
+/**
+ * Handle File Proxying with B2 Auth & CORS
+ */
+async function handleFileProxy(request, env) {
+    const url = new URL(request.url);
+    const fileName = url.pathname.replace('/file/map-data/', '');
+
+    // Security: Prevents path traversal
+    if (fileName.includes('..') || fileName.startsWith('/')) {
+        return new Response('Forbidden', { status: 403 });
+    }
+
+    try {
+        // A. Get Auth (Cached or New)
+        const auth = await getB2Auth(env);
+        
+        // B. Fetch from B2 (Private Bucket)
+        // Format: {downloadUrl}/file/{bucketName}/{fileName}
+        const b2Url = `${auth.downloadUrl}/file/nasaka-map-data/${fileName}`;
+        
+        const b2Response = await fetch(b2Url, {
+            headers: { 'Authorization': auth.token },
+            // Pass through browser's signal for abort handling
+            signal: request.signal 
+        });
+
+        if (!b2Response.ok) {
+            return new Response(`B2 Error: ${b2Response.status}`, { status: b2Response.status });
+        }
+
+        // C. Stream Response with CORS & Cache Headers
+        const response = new Response(b2Response.body, b2Response);
+        response.headers.set('Access-Control-Allow-Origin', '*');
+        response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+        response.headers.set('Cache-Control', 'public, max-age=2592000'); // 1 Month
+        response.headers.set('Vary', 'Accept-Encoding');
+        
+        return response;
+
+    } catch (err) {
+        console.error('Proxy Error:', err);
+        return new Response(`Proxy Error: ${err.message}`, { status: 500 });
+    }
+}
+
+/**
+ * Get B2 Auth Token with caching
+ */
+async function getB2Auth(env) {
+    // Check if cache is still valid (using 23h buffer)
+    if (cachedAuth.token && Date.now() < cachedAuth.expires) {
+        return cachedAuth;
+    }
+
+    console.log('Fetching new B2 Auth Token...');
+    const credentials = btoa(`${env.B2_APPLICATION_KEY_ID}:${env.B2_APPLICATION_KEY}`);
+    
+    const resp = await fetch("https://api.backblazeb2.com/b2api/v3/b2_authorize_account", {
+        headers: { "Authorization": `Basic ${credentials}` }
+    });
+
+    if (!resp.ok) {
+        throw new Error(`B2 Auth failed: ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    cachedAuth = {
+        token: data.authorizationToken,
+        apiUrl: data.apiUrl,
+        downloadUrl: data.downloadUrl,
+        expires: Date.now() + (23 * 60 * 60 * 1000) // 23h
+    };
+
+    return cachedAuth;
+}
 
 async function handleSchedule(env) {
     const supabaseUrl = env.SUPABASE_URL;
