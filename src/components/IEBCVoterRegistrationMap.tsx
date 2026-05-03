@@ -14,6 +14,7 @@ import {
 import * as L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getCachedOffices, setCachedOffices } from '@/utils/offlineStorage';
+import { fetchMapData } from '@/config/mapDataConfig';
 
 // Fix for default markers in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -23,7 +24,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Environment-based URLs
+// Environment-based URLs (legacy Supabase — preserved as fallback)
 const RECALL_GEOJSON_URL = import.meta.env.VITE_RECALL_GEOJSON_URL || 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/sign/map-data/FULL%20CORRECTED%20-%20Kenya%20Counties%20Voters%27%20Data.geojson?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kN2NhMTc4OC1jOGY0LTQzNTYtODRiNy1lMzA0ODJiMjcyMzMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJtYXAtZGF0YS9GVUxMIENPUlJFQ1RFRCAtIEtlbnlhIENvdW50aWVzIFZvdGVycycgRGF0YS5nZW9qc29uIiwiaWF0IjoxNzU5NDc0Njg5LCJleHAiOjE3NjcyNTA2ODl9.Ibva3F5rotSZuviun2b-psMKwqAP9l1-rjg7OPri2bM';
 const IEBC_OFFICES_URL = import.meta.env.VITE_IEBC_OFFICES_GEOJSON_URL || 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/sign/map-data/iebc_offices.geojson';
 
@@ -134,24 +135,45 @@ const IEBCVoterRegistrationMap: React.FC<IEBCVoterRegistrationMapProps> = ({
     });
   }, []);
 
-  // Load GeoJSON data with error handling and offline support
+  // Load GeoJSON data with error handling, offline support, and B2 dual-source ✊🏽🇰🇪
   const loadGeoJsonData = useCallback(async () => {
     try {
       setLoading(true);
       
-      const [recallResponse, officesResponse] = await Promise.all([
-        fetch(recallGeoJsonUrl).catch(() => null),
-        fetch(officesGeoJsonUrl).catch(() => null)
-      ]);
-      
-      if (!recallResponse || !recallResponse.ok) {
-        console.warn('Constituency data not available');
+      // ✊🏽🇰🇪 Dual-source fetch: try B2 first, fall back to Supabase URLs
+      let recallData: any = null;
+      let officesData: any = null;
+
+      // -- Counties/Recall GeoJSON --
+      try {
+        recallData = await fetchMapData('COUNTIES_VOTERS');
+      } catch (b2RecallError) {
+        console.warn('[IEBCVoterRegistrationMap] B2 recall fetch failed, falling back to URL:', b2RecallError);
+        try {
+          const recallResponse = await fetch(recallGeoJsonUrl);
+          if (recallResponse && recallResponse.ok) {
+            recallData = await recallResponse.json();
+          }
+        } catch { /* silent */ }
       }
-      
-      if (!officesResponse || !officesResponse.ok) {
+
+      // -- IEBC Offices GeoJSON --
+      try {
+        officesData = await fetchMapData('IEBC_OFFICES');
+      } catch (b2OfficesError) {
+        console.warn('[IEBCVoterRegistrationMap] B2 offices fetch failed, falling back to URL:', b2OfficesError);
+        try {
+          const officesResponse = await fetch(officesGeoJsonUrl);
+          if (officesResponse && officesResponse.ok) {
+            officesData = await officesResponse.json();
+          }
+        } catch { /* silent */ }
+      }
+
+      // If offices still null, try cache
+      if (!officesData) {
         console.warn('IEBC offices data not available online, checking cache...');
         
-        // Try to load from cache
         const cachedOffices = await getCachedOffices();
         if (cachedOffices) {
           console.log('Loaded offices from cache');
@@ -175,9 +197,6 @@ const IEBCVoterRegistrationMap: React.FC<IEBCVoterRegistrationMapProps> = ({
         setLoading(false);
         return;
       }
-      
-      const recallData = recallResponse ? await recallResponse.json() : null;
-      const officesData = officesResponse ? await officesResponse.json() : null;
       
       if (recallData) {
         setRecallGeoJson(recallData);

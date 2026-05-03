@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Copy, Check, RefreshCw } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { fetchMapData } from '@/config/mapDataConfig';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -20,6 +21,7 @@ const GeoJsonIoViewer: React.FC<GeoJsonIoViewerProps> = ({ className }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  // Legacy Supabase signed URL — preserved as fallback
   const geoJsonUrl = 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/sign/map-data/FULL%20CORRECTED%20-%20Kenya%20Counties%20Voters\'%20Data.geojson?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kN2NhMTc4OC1jOGY0LTQzNTYtODRiNy1lMzA0ODJiMjcyMzMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJtYXAtZGF0YS9GVUxMIENPUlJFQ1RFRCAtIEtlbnlhIENvdW50aWVzIFZvdGVycycgRGF0YS5nZW9qc29uIiwiaWF0IjoxNzUyNzMwNzI4LCJleHAiOjI1NDExMzA3Mjh9.2pP8klRB2xTLjR6FSQy14blyTZLIGq0B4NQIgEFxUI0';
 
   useEffect(() => {
@@ -104,8 +106,15 @@ const GeoJsonIoViewer: React.FC<GeoJsonIoViewerProps> = ({ className }) => {
   const fetchGeoJsonData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(geoJsonUrl);
-      const data = await response.json();
+      // ✊🏽🇰🇪 Dual-source: try B2 first, fall back to legacy Supabase URL
+      let data: any;
+      try {
+        data = await fetchMapData('COUNTIES_VOTERS');
+      } catch (b2Error) {
+        console.warn('[GeoJsonIoViewer] B2 fetch failed, falling back to URL:', b2Error);
+        const response = await fetch(geoJsonUrl);
+        data = await response.json();
+      }
       setGeoJsonData(data);
     } catch (error) {
       console.error('Error fetching GeoJSON data:', error);

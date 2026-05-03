@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { supabaseCustom, authPKCE } from '@/integrations/supabase/customClient';
+import { fetchMapData } from '@/config/mapDataConfig';
 import Fuse from 'fuse.js';
 import { debounce } from '@/lib/searchUtils';
 import { toast } from 'sonner';
@@ -249,12 +250,97 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
    */
   const loadOfficesFromCDN = useCallback(async () => {
     try {
-      // Primary: Local public folder
-      // Fallback: Custom domain connected to R2 bucket
-      // NOTE: static.civiceducationkenya.com is offline — kept in skeleton for future proofing
+      // ✊🏽🇰🇪 Dual-source CDN loader: B2 first, then local public, then jsdelivr
+
+      // Primary: Try B2 via mapDataConfig (egress-free, private bucket auth handled)
+      try {
+        const b2Data = await fetchMapData('IEBC_OFFICES');
+        if (b2Data) {
+          // B2 returns full GeoJSON — extract features and map
+          const features = b2Data.features || b2Data;
+          const isGeoJSON = Array.isArray(features) && features.length > 0 && features[0]?.geometry;
+          const isLeanJSON = Array.isArray(features) && features.length > 0 && features[0]?.i !== undefined;
+
+          let fullOffices: Office[];
+
+          if (isLeanJSON) {
+            // Lean JSON format (from CDN export)
+            fullOffices = (features as any[]).map((o: any) => ({
+              id: o.i,
+              latitude: o.lt,
+              longitude: o.lg,
+              office_location: o.n,
+              clean_office_location: o.n,
+              displayName: o.n,
+              constituency_name: o.c,
+              county: o.y,
+              ward: o.w,
+              category: o.t === 'rc' ? 'registration_centre' : 'office',
+              office_type: o.ot,
+              type: 'office' as const,
+              verified: true,
+              coordinates: [o.lt, o.lg] as [number, number],
+              formatted_address: null,
+              created_at: null,
+              updated_at: null,
+            }));
+          } else if (isGeoJSON) {
+            // Full GeoJSON FeatureCollection format (from B2 bucket)
+            fullOffices = (features as any[]).map((f: any) => ({
+              id: f.properties?.id || f.id,
+              latitude: f.geometry?.coordinates?.[1] ?? f.properties?.latitude,
+              longitude: f.geometry?.coordinates?.[0] ?? f.properties?.longitude,
+              office_location: f.properties?.office_location,
+              clean_office_location: f.properties?.clean_office_location || f.properties?.office_location,
+              displayName: f.properties?.constituency_name || f.properties?.office_location,
+              constituency_name: f.properties?.constituency_name,
+              county: f.properties?.county,
+              ward: f.properties?.ward,
+              office_type: f.properties?.office_type,
+              type: 'office' as const,
+              verified: f.properties?.verified ?? true,
+              coordinates: [f.geometry?.coordinates?.[1], f.geometry?.coordinates?.[0]] as [number, number],
+              formatted_address: f.properties?.formatted_address || null,
+              created_at: f.properties?.created_at || null,
+              updated_at: f.properties?.updated_at || null,
+              landmark: f.properties?.landmark,
+              geocode_confidence: f.properties?.geocode_confidence,
+              geocode_method: f.properties?.geocode_method,
+              geocode_status: f.properties?.geocode_status,
+            }));
+          } else {
+            // Raw array of office objects
+            fullOffices = (features as any[]).map((o: any) => ({
+              ...o,
+              type: 'office',
+              displayName: o.constituency_name || o.office_location,
+              coordinates: [o.latitude, o.longitude],
+              verified: o.verified ?? true,
+            }));
+          }
+
+          console.log(`[useIEBCOffices] Successfully loaded ${fullOffices.length} offices from B2`);
+          setOffices(prev => {
+            // Merge: keep diaspora from prev, add domestic from B2
+            const diaspora = prev.filter(o => o.type === 'diaspora');
+            return [...fullOffices, ...diaspora];
+          });
+          setIsStaticLoaded(true);
+
+          if (enableOfflineCache) {
+            await setCachedOffices(fullOffices);
+          }
+
+          return fullOffices;
+        }
+      } catch (b2Error) {
+        console.warn('[useIEBCOffices] B2 load failed, trying other CDN sources:', b2Error);
+      }
+
+      // Fallback: Local public folder / jsdelivr
       const urls = [
+        'https://static.civiceducationkenya.com/iebc-offices.json', // ✊🏽🇰🇪 LIVE!
         '/iebc-offices.json',
-        // 'https://static.civiceducationkenya.com/iebc-offices.json', // ✊🏽🇰🇪 Offline — will enable when site goes live
         'https://cdn.jsdelivr.net/gh/civiceducationkenya/iebc-data@main/iebc-offices.json'
       ].filter(Boolean);
 
@@ -310,7 +396,10 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
         coordinates: [o.lt, o.lg]
       }));
 
-      setOffices(fullOffices);
+      setOffices(prev => {
+        const diaspora = prev.filter(o => o.type === 'diaspora');
+        return [...fullOffices, ...diaspora];
+      });
       setIsStaticLoaded(true);
 
       if (enableOfflineCache) {
@@ -849,6 +938,11 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
     const init = async () => {
       const diaspora = await fetchDiaspora();
       setOffices(diaspora);
+
+      // ✊🏽🇰🇪 [B2/CDN SIDE-LOAD] Load full dataset from B2/CDN in background
+      // This populates the offices array for client-side search and nearby filtering
+      // WITHOUT hitting Supabase PostgREST for the 30k row dump
+      loadOfficesFromCDN();
     };
     init();
 

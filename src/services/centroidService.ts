@@ -2,7 +2,10 @@
  * src/services/centroidService.ts
  * Dedicated service to fetch and manage static centroid data for Wards and Constituencies.
  * These files are stored in Supabase 'map-data' bucket as secondary/static sources of truth.
+ * ✊🏽🇰🇪 Dual-source: tries Backblaze B2 first, falls back to Supabase Storage.
  */
+
+import { fetchMapData } from '@/config/mapDataConfig';
 
 const CONSTITUENCIES_URL = 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/constituencies_with_centroids.geojson';
 const WARDS_URL = 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/kenya_wards_centroids.json';
@@ -26,15 +29,27 @@ let constituencyCache: any | null = null;
 const normalize = (str: string) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
 
 /**
+ * Fetches JSON data with B2-first, Supabase-fallback strategy.
+ */
+async function fetchWithDualSource<T>(b2FileKey: string, supabaseUrl: string): Promise<T> {
+    try {
+        return await fetchMapData<T>(b2FileKey as any);
+    } catch (b2Error) {
+        console.warn(`[CentroidService] B2 fetch failed for ${b2FileKey}, falling back to Supabase:`, b2Error);
+        const response = await fetch(supabaseUrl);
+        if (!response.ok) throw new Error(`Supabase fallback failed: ${response.status}`);
+        return response.json() as Promise<T>;
+    }
+}
+
+/**
  * Fetches and returns ward centroid data.
  * Results are cached in memory.
  */
 export const getWardCentroid = async (wardName: string, constituencyName?: string): Promise<Centroid | null> => {
     try {
         if (!wardCache) {
-            const response = await fetch(WARDS_URL);
-            if (!response.ok) throw new Error('Failed to fetch ward centroids');
-            wardCache = await response.json();
+            wardCache = await fetchWithDualSource<WardData[]>('WARDS_CENTROIDS', WARDS_URL);
         }
 
         if (!wardCache) return null;
@@ -67,9 +82,7 @@ export const getWardCentroid = async (wardName: string, constituencyName?: strin
 export const getConstituencyCentroid = async (constituencyName: string): Promise<Centroid | null> => {
     try {
         if (!constituencyCache) {
-            const response = await fetch(CONSTITUENCIES_URL);
-            if (!response.ok) throw new Error('Failed to fetch constituency centroids');
-            constituencyCache = await response.json();
+            constituencyCache = await fetchWithDualSource<any>('CONSTITUENCIES_CENTROIDS', CONSTITUENCIES_URL);
         }
 
         if (!constituencyCache || !constituencyCache.features) return null;
