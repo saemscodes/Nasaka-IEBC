@@ -14,10 +14,26 @@ export default {
     async fetch(request, env) {
         const url = new URL(request.url);
 
+        // Handle CORS Preflight
+        if (request.method === 'OPTIONS') {
+            return new Response(null, {
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+                    'Access-Control-Allow-Headers': '*',
+                    'Max-Age': '86400',
+                }
+            });
+        }
+
         // 1. NIGHTLY SYNC ROUTE
         if (url.pathname === '/sync') {
-            await handleSchedule(env);
-            return new Response('Sync completed successfully');
+            try {
+                await handleSchedule(env);
+                return new Response('Sync completed successfully', { headers: { 'Access-Control-Allow-Origin': '*' } });
+            } catch (err) {
+                return new Response(`Sync Error: ${err.message}`, { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } });
+            }
         }
 
         // 2. SMART PROXY ROUTE: /file/map-data/:filename
@@ -25,7 +41,10 @@ export default {
             return handleFileProxy(request, env);
         }
 
-        return new Response('IEBC Proxy/Sync Worker is running', { status: 200 });
+        return new Response('IEBC Proxy/Sync Worker is running', { 
+            status: 200,
+            headers: { 'Access-Control-Allow-Origin': '*' }
+        });
     }
 };
 
@@ -35,10 +54,16 @@ export default {
 async function handleFileProxy(request, env) {
     const url = new URL(request.url);
     const fileName = url.pathname.replace('/file/map-data/', '');
+    const corsHeaders = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Cache-Control': 'public, max-age=2592000',
+        'Vary': 'Accept-Encoding'
+    };
 
     // Security: Prevents path traversal
     if (fileName.includes('..') || fileName.startsWith('/')) {
-        return new Response('Forbidden', { status: 403 });
+        return new Response('Forbidden', { status: 403, headers: corsHeaders });
     }
 
     try {
@@ -46,31 +71,37 @@ async function handleFileProxy(request, env) {
         const auth = await getB2Auth(env);
         
         // B. Fetch from B2 (Private Bucket)
-        // Format: {downloadUrl}/file/{bucketName}/{fileName}
-        const b2Url = `${auth.downloadUrl}/file/nasaka-map-data/${fileName}`;
+        // Use environment variable for bucket name, fallback to "nasaka-map-data"
+        const bucketName = env.B2_BUCKET_NAME || 'nasaka-map-data';
+        const b2Url = `${auth.downloadUrl}/file/${bucketName}/${fileName}`;
         
+        console.log(`Proxying request for ${fileName} to ${bucketName}`);
+
         const b2Response = await fetch(b2Url, {
             headers: { 'Authorization': auth.token },
-            // Pass through browser's signal for abort handling
             signal: request.signal 
         });
 
         if (!b2Response.ok) {
-            return new Response(`B2 Error: ${b2Response.status}`, { status: b2Response.status });
+            console.error(`B2 Error for ${fileName}: ${b2Response.status}`);
+            return new Response(`B2 Error: ${b2Response.status}`, { 
+                status: b2Response.status,
+                headers: corsHeaders 
+            });
         }
 
         // C. Stream Response with CORS & Cache Headers
         const response = new Response(b2Response.body, b2Response);
-        response.headers.set('Access-Control-Allow-Origin', '*');
-        response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
-        response.headers.set('Cache-Control', 'public, max-age=2592000'); // 1 Month
-        response.headers.set('Vary', 'Accept-Encoding');
+        Object.keys(corsHeaders).forEach(key => response.headers.set(key, corsHeaders[key]));
         
         return response;
 
     } catch (err) {
-        console.error('Proxy Error:', err);
-        return new Response(`Proxy Error: ${err.message}`, { status: 500 });
+        console.error('Proxy Exception:', err.message);
+        return new Response(`Proxy Error: ${err.message}`, { 
+            status: 500, 
+            headers: corsHeaders 
+        });
     }
 }
 
