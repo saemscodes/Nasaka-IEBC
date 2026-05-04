@@ -112,7 +112,9 @@ async function fetchFromB2(fileKey: MapDataFileKey, signal?: AbortSignal): Promi
   });
 
   if (!response.ok) {
-    throw new Error(`Proxy/B2 download failed: ${response.status} ${response.statusText}`);
+    const errorText = await response.text();
+    console.error(`[CDN DIAGNOSTIC] ${response.status} error for ${decodedFileName}:`, errorText);
+    throw new Error(`Proxy/B2 download failed: ${response.status} - ${errorText.substring(0, 100)}`);
   }
 
   return response;

@@ -74,20 +74,16 @@ const getEnv = (name: string, env?: any) => {
 
 // ---- Safe Crypto Helper ----
 async function getSafeCrypto(): Promise<any> {
-    let cryptoObj: any;
     try {
-        cryptoObj = (globalThis as any).crypto || (globalThis as any).msCrypto;
+        const cryptoObj = (globalThis as any).crypto || (globalThis as any).msCrypto;
+        if (cryptoObj && cryptoObj.subtle) return cryptoObj;
+        
+        // Final fallback for some edge runtimes
+        if (typeof crypto !== 'undefined' && (crypto as any).subtle) return crypto;
     } catch { }
-
-    if (!cryptoObj || !cryptoObj.subtle) {
-        // Fallback for Node.js environments where it might not be global
-        try {
-            // @ts-ignore
-            const nodeCrypto = await import('node:crypto');
-            return nodeCrypto.webcrypto;
-        } catch { }
-    }
-    return cryptoObj;
+    
+    // We do NOT import node:crypto here because it crashes Edge bundlers like Vercel's.
+    return (globalThis as any).crypto;
 }
 
 // ---- Upstash Redis Rate Limiter ----

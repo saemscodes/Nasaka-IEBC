@@ -57,72 +57,78 @@ async function handleFileProxy(request, env) {
     const corsHeaders = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': '*',
         'Cache-Control': 'public, max-age=2592000',
-        'Vary': 'Accept-Encoding'
+        'Vary': 'Accept-Encoding',
+        'Content-Type': 'application/json'
     };
 
-    // Security: Prevents path traversal
     if (fileName.includes('..') || fileName.startsWith('/')) {
-        return new Response('Forbidden', { status: 403, headers: corsHeaders });
+        return new Response(JSON.stringify({ error: 'Forbidden path' }), { status: 403, headers: corsHeaders });
     }
 
     try {
-        // A. Get Auth (Cached or New)
         const auth = await getB2Auth(env);
-        
-        // B. Fetch from B2 (Private Bucket)
-        // Use environment variable for bucket name, fallback to "nasaka-map-data"
         const bucketName = env.B2_BUCKET_NAME || 'nasaka-map-data';
         const b2Url = `${auth.downloadUrl}/file/${bucketName}/${fileName}`;
         
-        console.log(`Proxying request for ${fileName} to ${bucketName}`);
-
         const b2Response = await fetch(b2Url, {
             headers: { 'Authorization': auth.token },
             signal: request.signal 
         });
 
         if (!b2Response.ok) {
-            console.error(`B2 Error for ${fileName}: ${b2Response.status}`);
-            return new Response(`B2 Error: ${b2Response.status}`, { 
+            const errorText = await b2Response.text();
+            return new Response(JSON.stringify({ 
+                error: `B2 Fetch Failed: ${b2Response.status}`,
+                b2_status: b2Response.status,
+                b2_body: errorText.substring(0, 500)
+            }), { 
                 status: b2Response.status,
                 headers: corsHeaders 
             });
         }
 
-        // C. Stream Response with CORS & Cache Headers
         const response = new Response(b2Response.body, b2Response);
-        Object.keys(corsHeaders).forEach(key => response.headers.set(key, corsHeaders[key]));
+        response.headers.set('Access-Control-Allow-Origin', '*');
+        response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+        response.headers.set('Cache-Control', 'public, max-age=2592000');
         
         return response;
 
     } catch (err) {
-        console.error('Proxy Exception:', err.message);
-        return new Response(`Proxy Error: ${err.message}`, { 
+        return new Response(JSON.stringify({ 
+            error: `Proxy Exception: ${err.message}`,
+            phase: 'worker-proxy',
+            secrets_check: {
+                has_key_id: !!env.B2_APPLICATION_KEY_ID,
+                has_key: !!env.B2_APPLICATION_KEY,
+                bucket: env.B2_BUCKET_NAME
+            }
+        }), { 
             status: 500, 
             headers: corsHeaders 
         });
     }
 }
 
-/**
- * Get B2 Auth Token with caching
- */
 async function getB2Auth(env) {
-    // Check if cache is still valid (using 23h buffer)
     if (cachedAuth.token && Date.now() < cachedAuth.expires) {
         return cachedAuth;
     }
 
-    console.log('Fetching new B2 Auth Token...');
+    if (!env.B2_APPLICATION_KEY_ID || !env.B2_APPLICATION_KEY) {
+        throw new Error("Missing B2 Secrets (B2_APPLICATION_KEY_ID/B2_APPLICATION_KEY). Ensure they are uploaded via 'wrangler secret put'.");
+    }
+
     const credentials = btoa(`${env.B2_APPLICATION_KEY_ID}:${env.B2_APPLICATION_KEY}`);
-    
     const resp = await fetch("https://api.backblazeb2.com/b2api/v3/b2_authorize_account", {
         headers: { "Authorization": `Basic ${credentials}` }
     });
 
     if (!resp.ok) {
-        throw new Error(`B2 Auth failed: ${resp.status}`);
+        const errBody = await resp.text();
+        throw new Error(`B2 Auth API Failed [Status ${resp.status}]: ${errBody.substring(0, 100)}`);
     }
 
     const data = await resp.json();
@@ -130,7 +136,7 @@ async function getB2Auth(env) {
         token: data.authorizationToken,
         apiUrl: data.apiUrl,
         downloadUrl: data.downloadUrl,
-        expires: Date.now() + (23 * 60 * 60 * 1000) // 23h
+        expires: Date.now() + (23 * 60 * 60 * 1000)
     };
 
     return cachedAuth;
