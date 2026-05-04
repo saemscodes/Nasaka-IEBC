@@ -124,7 +124,7 @@
     },
     {
       "source": "/api/ai-proxy",
-      "destination": "/api/v1/main?route=ai-proxy"
+      "destination": "/api/ai-proxy"
     },
     {
       "source": "/api/create-signature-session",

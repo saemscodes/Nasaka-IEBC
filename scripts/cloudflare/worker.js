@@ -135,7 +135,7 @@ async function getB2Auth(env) {
     cachedAuth = {
         token: data.authorizationToken,
         apiUrl: data.apiUrl,
-        downloadUrl: data.downloadUrl,
+        downloadUrl: data.downloadUrl || `https://${env.B2_BUCKET_NAME}.${env.B2_ENDPOINT || 's3.eu-central-003.backblazeb2.com'}`,
         expires: Date.now() + (23 * 60 * 60 * 1000)
     };
 
