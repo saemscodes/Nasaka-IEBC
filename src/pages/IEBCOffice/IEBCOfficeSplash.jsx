@@ -757,8 +757,17 @@ const IEBCOfficeSplash = () => {
             <DonationWidget offsetY={100} />
 
             {/* Copyright Footer - Simple Bottom Center */}
-            <div className="absolute bottom-4 left-0 right-0 z-10 text-center">
+            <div className="absolute bottom-4 left-0 right-0 z-10 text-center px-4">
                 <TextShadowLayer>
+                    <motion.p
+                        className={`text-[10px] leading-relaxed mb-2 max-w-sm mx-auto ${theme === 'dark' ? 'text-ios-gray-500' : 'text-ios-gray-400'
+                            }`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.65 }}
+                    >
+                        Nasaka is an independent civic platform. Not affiliated or endorsed by the Government of Kenya. All content permits the fair usage policy of user interaction.
+                    </motion.p>
                     <motion.p
                         className={`text-xs ${theme === 'dark' ? 'text-ios-gray-500' : 'text-ios-gray-400'
                             }`}
