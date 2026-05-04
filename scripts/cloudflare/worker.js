@@ -70,7 +70,10 @@ async function handleFileProxy(request, env) {
     try {
         const auth = await getB2Auth(env);
         const bucketName = env.B2_BUCKET_NAME || 'nasaka-map-data';
-        const b2Url = `${auth.downloadUrl}/file/${bucketName}/${fileName}`;
+
+        // Use Native B2 Download API (v3) - 100% compatible with auth.token
+        // Format: {apiUrl}/b2api/v3/b2_download_file_by_name?bucketName={bucketName}&fileName={fileName}
+        const b2Url = `${auth.apiUrl}/b2api/v3/b2_download_file_by_name?bucketName=${bucketName}&fileName=${fileName}`;
         
         const b2Response = await fetch(b2Url, {
             headers: { 'Authorization': auth.token },
@@ -135,7 +138,7 @@ async function getB2Auth(env) {
     cachedAuth = {
         token: data.authorizationToken,
         apiUrl: data.apiUrl,
-        downloadUrl: data.downloadUrl || `https://${env.B2_BUCKET_NAME}.${env.B2_ENDPOINT || 's3.eu-central-003.backblazeb2.com'}`,
+        downloadUrl: data.downloadUrl,
         expires: Date.now() + (23 * 60 * 60 * 1000)
     };
 
