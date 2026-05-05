@@ -200,25 +200,55 @@ async function updateStorageEstimate(): Promise<void> {
 
 /**
  * Verifies if there is a real path to the internet (not just a Wi-Fi connection)
- * Performs a lightweight HEAD request to a reliable endpoint.
+ * Performs a multi-stage check with fallbacks to ensure maximum reliability.
  */
 export async function verifyInternetPath(): Promise<boolean> {
+  // If navigator thinks we are offline, trust it as a fast-fail
   if (!navigator.onLine) return false;
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+  const checkEndpoint = async (url: string, options: RequestInit) => {
+    try {
+      const response = await fetch(url, { ...options, signal: controller.signal });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
   try {
-    // Using a reliable, CORS-friendly lightweight endpoint
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-    const response = await fetch('https://www.google.com/favicon.ico', {
-      method: 'HEAD',
-      mode: 'no-cors',
-      signal: controller.signal
+    // 1. Primary: Lightweight no-cors fetch to Google (Standard industry practice)
+    const googleSuccess = await checkEndpoint('https://www.google.com/favicon.ico', { 
+      method: 'HEAD', 
+      mode: 'no-cors' 
     });
+    if (googleSuccess) {
+      clearTimeout(timeoutId);
+      return true;
+    }
 
+    // 2. Fallback 1: Check connectivity to official app domain
+    const nasakaSuccess = await checkEndpoint('https://nasakaiebc.civiceducationkenya.com', { 
+      method: 'HEAD', 
+      mode: 'cors' 
+    });
+    if (nasakaSuccess) {
+      clearTimeout(timeoutId);
+      return true;
+    }
+
+    // 3. Fallback 2: Check connectivity to generic domain
+    const genericSuccess = await checkEndpoint('https://nasaka.app', { 
+      method: 'HEAD', 
+      mode: 'cors' 
+    });
+    
     clearTimeout(timeoutId);
-    return true;
+    return genericSuccess;
   } catch (error) {
+    clearTimeout(timeoutId);
     return false;
   }
 }
