@@ -64,4 +64,7 @@ context/
 
 # Large Data Files
 data/
+**/*.geojson
+**/*.json.gz
+**/kenya_wards.geojson
 

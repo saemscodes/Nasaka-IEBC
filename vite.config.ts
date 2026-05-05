@@ -114,7 +114,7 @@ export default defineConfig(({ mode }) => ({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2,ttf}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/ftswzvqwxdwgkvfbwfpx\.supabase\.co\/rest\/v1\/.*/,
+            urlPattern: /^https:\/\/bfatlkobozblunojtltp\.supabase\.co\/rest\/v1\/.*/,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'supabase-api-cache',
@@ -129,7 +129,7 @@ export default defineConfig(({ mode }) => ({
             }
           },
           {
-            urlPattern: /^https:\/\/ftswzvqwxdwgkvfbwfpx\.supabase\.co\/storage\/v1\/object\/.*\.(geojson|json)/,
+            urlPattern: /^https:\/\/bfatlkobozblunojtltp\.supabase\.co\/storage\/v1\/object\/.*\.(geojson|json)/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'geojson-cache',

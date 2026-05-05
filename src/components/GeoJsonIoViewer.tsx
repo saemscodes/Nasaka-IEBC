@@ -22,7 +22,7 @@ const GeoJsonIoViewer: React.FC<GeoJsonIoViewerProps> = ({ className }) => {
   const { toast } = useToast();
 
   // Legacy Supabase signed URL — preserved as fallback
-  const geoJsonUrl = 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/sign/map-data/FULL%20CORRECTED%20-%20Kenya%20Counties%20Voters\'%20Data.geojson?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kN2NhMTc4OC1jOGY0LTQzNTYtODRiNy1lMzA0ODJiMjcyMzMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJtYXAtZGF0YS9GVUxMIENPUlJFQ1RFRCAtIEtlbnlhIENvdW50aWVzIFZvdGVycycgRGF0YS5nZW9qc29uIiwiaWF0IjoxNzUyNzMwNzI4LCJleHAiOjI1NDExMzA3Mjh9.2pP8klRB2xTLjR6FSQy14blyTZLIGq0B4NQIgEFxUI0';
+  const geoJsonUrl = 'https://bfatlkobozblunojtltp.supabase.co/storage/v1/object/sign/map-data/FULL%20CORRECTED%20-%20Kenya%20Counties%20Voters\'%20Data.geojson?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kN2NhMTc4OC1jOGY0LTQzNTYtODRiNy1lMzA0ODJiMjcyMzMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJtYXAtZGF0YS9GVUxMIENPUlJFQ1RFRCAtIEtlbnlhIENvdW50aWVzIFZvdGVycycgRGF0YS5nZW9qc29uIiwiaWF0IjoxNzUyNzMwNzI4LCJleHAiOjI1NDExMzA3Mjh9.2pP8klRB2xTLjR6FSQy14blyTZLIGq0B4NQIgEFxUI0';
 
   useEffect(() => {
     fetchGeoJsonData();

@@ -223,7 +223,7 @@ const GeoJSONLayerManager = ({
     },
     'iebc-offices-static': {
       name: 'IEBC Offices (Static)',
-      url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/iebc_offices.geojson',
+      url: 'https://bfatlkobozblunojtltp.supabase.co/storage/v1/object/public/map-data/iebc_offices.geojson',
       type: 'geojson',
       style: {
         color: '#007AFF',
@@ -241,7 +241,7 @@ const GeoJSONLayerManager = ({
     },
     'iebc-offices-rows': {
       name: 'IEBC Offices (Detailed)',
-      url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/iebc_offices_rows.geojson',
+      url: 'https://bfatlkobozblunojtltp.supabase.co/storage/v1/object/public/map-data/iebc_offices_rows.geojson',
       type: 'geojson',
       style: {
         color: '#34C759',
@@ -263,7 +263,7 @@ const GeoJSONLayerManager = ({
     },
     'kenya-counties': {
       name: 'Kenya Counties Voters Data',
-      url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/FULL%20CORRECTED%20-%20Kenya%20Counties%20Voters%27%20Data.geojson',
+      url: 'https://bfatlkobozblunojtltp.supabase.co/storage/v1/object/public/map-data/FULL%20CORRECTED%20-%20Kenya%20Counties%20Voters%27%20Data.geojson',
       type: 'geojson',
       style: {
         color: '#8E8E93',
@@ -275,7 +275,7 @@ const GeoJSONLayerManager = ({
     },
     'healthcare-facilities': {
       name: 'Healthcare Facilities across the Country',
-      url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/healthcare_facilities.geojson',
+      url: 'https://bfatlkobozblunojtltp.supabase.co/storage/v1/object/public/map-data/healthcare_facilities.geojson',
       type: 'geojson',
       style: {
         color: '#7c3aed',
@@ -288,7 +288,7 @@ const GeoJSONLayerManager = ({
     'constituencies': {
       name: 'Kenya Constituencies',
       description: 'Parliamentary and electoral boundaries across Kenya as defined by IEBC. Each polygon represents one constituency with its corresponding code and name.',
-      url: 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/constituencies_with_centroids.geojson',
+      url: 'https://bfatlkobozblunojtltp.supabase.co/storage/v1/object/public/map-data/constituencies_with_centroids.geojson',
       type: 'geojson',
       style: {
         color: '#eab308',

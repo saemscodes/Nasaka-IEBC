@@ -10,7 +10,7 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 
 // Custom client with PKCE flow for enhanced security
 export const supabaseCustom = createClient<Database>(
-  SUPABASE_URL || 'https://ftswzvqwxdwgkvfbwfpx.supabase.co',
+  SUPABASE_URL || 'https://bfatlkobozblunojtltp.supabase.co',
   SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0c3d6dnF3eGR3Z2t2ZmJ3ZnB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzNTQ1NTEsImV4cCI6MjA2NzkzMDU1MX0.ZRYkA2uRUEG1M6zLpMI0waaprBORCl_sYQ8l3orhdUo',
   {
     auth: {

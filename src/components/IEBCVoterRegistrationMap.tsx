@@ -25,8 +25,8 @@ L.Icon.Default.mergeOptions({
 });
 
 // Environment-based URLs (legacy Supabase — preserved as fallback)
-const RECALL_GEOJSON_URL = import.meta.env.VITE_RECALL_GEOJSON_URL || 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/sign/map-data/FULL%20CORRECTED%20-%20Kenya%20Counties%20Voters%27%20Data.geojson?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kN2NhMTc4OC1jOGY0LTQzNTYtODRiNy1lMzA0ODJiMjcyMzMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJtYXAtZGF0YS9GVUxMIENPUlJFQ1RFRCAtIEtlbnlhIENvdW50aWVzIFZvdGVycycgRGF0YS5nZW9qc29uIiwiaWF0IjoxNzU5NDc0Njg5LCJleHAiOjE3NjcyNTA2ODl9.Ibva3F5rotSZuviun2b-psMKwqAP9l1-rjg7OPri2bM';
-const IEBC_OFFICES_URL = import.meta.env.VITE_IEBC_OFFICES_GEOJSON_URL || 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/sign/map-data/iebc_offices.geojson';
+const RECALL_GEOJSON_URL = import.meta.env.VITE_RECALL_GEOJSON_URL || 'https://bfatlkobozblunojtltp.supabase.co/storage/v1/object/sign/map-data/FULL%20CORRECTED%20-%20Kenya%20Counties%20Voters%27%20Data.geojson?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kN2NhMTc4OC1jOGY0LTQzNTYtODRiNy1lMzA0ODJiMjcyMzMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJtYXAtZGF0YS9GVUxMIENPUlJFQ1RFRCAtIEtlbnlhIENvdW50aWVzIFZvdGVycycgRGF0YS5nZW9qc29uIiwiaWF0IjoxNzU5NDc0Njg5LCJleHAiOjE3NjcyNTA2ODl9.Ibva3F5rotSZuviun2b-psMKwqAP9l1-rjg7OPri2bM';
+const IEBC_OFFICES_URL = import.meta.env.VITE_IEBC_OFFICES_GEOJSON_URL || 'https://bfatlkobozblunojtltp.supabase.co/storage/v1/object/sign/map-data/iebc_offices.geojson';
 
 export interface OfficeFeature {
   type: "Feature";

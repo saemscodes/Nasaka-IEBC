@@ -7,8 +7,8 @@
 
 import { fetchMapData } from '@/config/mapDataConfig';
 
-const CONSTITUENCIES_URL = 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/constituencies_with_centroids.geojson';
-const WARDS_URL = 'https://ftswzvqwxdwgkvfbwfpx.supabase.co/storage/v1/object/public/map-data/kenya_wards_centroids.json';
+const CONSTITUENCIES_URL = 'https://bfatlkobozblunojtltp.supabase.co/storage/v1/object/public/map-data/constituencies_with_centroids.geojson';
+const WARDS_URL = 'https://bfatlkobozblunojtltp.supabase.co/storage/v1/object/public/map-data/kenya_wards_centroids.json';
 
 interface Centroid {
     lat: number;
