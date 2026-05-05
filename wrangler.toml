@@ -12,7 +12,7 @@ invocation_logs = true
 # ]
 
 [vars]
-SUPABASE_URL = "https://ftswzvqwxdwgkvfbwfpx.supabase.co"
+SUPABASE_URL = "https://bfatlkobozblunojtltp.supabase.co"
 B2_BUCKET_NAME = "map-data"
 B2_ENDPOINT = "s3.eu-central-003.backblazeb2.com"
 B2_REGION = "eu-central-003"
