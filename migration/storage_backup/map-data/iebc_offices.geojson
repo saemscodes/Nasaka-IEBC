@@ -1,0 +1,3283 @@
+{
+  "type": "FeatureCollection",
+  "name": "IEBC Constituency Offices in Kenya",
+  "description": "Physical locations of IEBC constituency offices for voter registration",
+  "metadata": {
+    "source": "Independent Electoral and Boundaries Commission (IEBC)",
+    "extracted_from": "Physical_Locations_of_County_and_Constituency_Offices_in_Kenya.pdf",
+    "generated_on": "2025-10-10T22:04:49.232979",
+    "total_offices": 121,
+    "coordinate_system": "WGS84 (EPSG:4326)",
+    "data_quality": "Enhanced with multiple geocoding providers",
+    "version": "2.0"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "001",
+        "constituency_name": "Changamwe At The Fire Station Changamwe Fire Station",
+        "county": "Mombasa",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Changamwe, Coast",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.214167",
+        "notes": "",
+        "accuracy_meters": 5898.184098127718,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.6086385,
+          -4.0169653
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "002",
+        "constituency_name": "Mkindani At The Ap Post Mkindani Ap Post",
+        "county": "Mombasa",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Port Reitz Road, Changamwe, Coast",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.215677",
+        "notes": "",
+        "accuracy_meters": 1413.9165383564175,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.6091965,
+          -4.0384236
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "004",
+        "constituency_name": "Links Road West Bank Villa Mamba Village",
+        "county": "Mombasa",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Link Road, Nyali, Coast",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.215677",
+        "notes": "",
+        "accuracy_meters": 1414.297640878002,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.6930827,
+          -4.0484599
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "005",
+        "constituency_name": "Likoni School For The Blind Likoni Police Station",
+        "county": "Mombasa",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Likoni, Coast",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.215677",
+        "notes": "",
+        "accuracy_meters": 8871.456704881264,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.6619682,
+          -4.083561
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "006",
+        "constituency_name": "Baluchi Complex Central Ploice Station",
+        "county": "Mombasa",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.6,
+        "formatted_address": "Mombasa, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.215677",
+        "notes": "",
+        "accuracy_meters": 7544.64982851512,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.66359,
+          -4.05466
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "007",
+        "constituency_name": "Msambweni Youth Office",
+        "county": "Kwale",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Kwale, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.215677",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.2,
+          -4.13333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "008",
+        "constituency_name": "Opposite Lunga Lunga Matatu Stage On The Main Road To Tanzania Lunga Lunga Petrol Station",
+        "county": "Kwale",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "Lunga-Lunga, Kwale, Coast, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.215677",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.12363,
+          -4.55276
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "012",
+        "constituency_name": "South Opposite Co-Operative Bank Mtwapa Police Station 1 Km",
+        "county": "Kilifi",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "Bodaboda Shed opposite Co-operative Bank, Makueni, Eastern, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.216696",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.626961,
+          -1.781239
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "013",
+        "constituency_name": "Opposite St John Ack Church St. Johns Ack Church 100M",
+        "county": "Kilifi",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Kilifi North, Coast",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.217081",
+        "notes": "",
+        "accuracy_meters": 37710.57791682659,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.8498467,
+          -3.6337024
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "014",
+        "constituency_name": "Rabai District Hqs Kombeni Girls Sec School 500 M (0.5 Km)",
+        "county": "Kilifi",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Kilifi, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.217162",
+        "notes": "",
+        "accuracy_meters": 5061.665046633872,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.84992,
+          -3.63045
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "016",
+        "constituency_name": "Opposite Malindi Law Court Malindi Law Court 30M",
+        "county": "Kilifi",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Kilifi, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.217162",
+        "notes": "",
+        "accuracy_meters": 5061.665046633872,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.84992,
+          -3.63045
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "017",
+        "constituency_name": "Near Mwembe Resort Catholic Institute 300M",
+        "county": "Kilifi",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Kilifi North, Coast",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.217162",
+        "notes": "",
+        "accuracy_meters": 37710.57791682659,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.8498467,
+          -3.6337024
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "018",
+        "constituency_name": "Garsen Behind Methodist Church Methodist Church 100M",
+        "county": "Tana River",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Tana River, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.217162",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.41667,
+          -1.53333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "019",
+        "constituency_name": "Hola Town Tana River 1 Km",
+        "county": "Tana River",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Tana River, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.218216",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.41667,
+          -1.53333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "020",
+        "constituency_name": "Bura Irrigation Scheme Bura Irrigation Scheme",
+        "county": "Tana River",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Tana River, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.218216",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.41667,
+          -1.53333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "021",
+        "constituency_name": "Faza Town Registration Of Persons Office 100 Metres",
+        "county": "Lamu",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Lamu, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.218723",
+        "notes": "",
+        "accuracy_meters": 5686.638863522535,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          40.90201,
+          -2.27169
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "022",
+        "constituency_name": "Mokowe Cooperative Building Police Post 100 M.",
+        "county": "Lamu",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Lamu, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.218723",
+        "notes": "",
+        "accuracy_meters": 5686.638863522535,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          40.90201,
+          -2.27169
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "023",
+        "constituency_name": "Railway Station Taveta Railway Station Godown No.2",
+        "county": "Taita Taveta",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Taita Taveta Road, Kahawa Sukari ward, 00609, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.219290",
+        "notes": "",
+        "accuracy_meters": 271.1683851877752,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.9528436,
+          -1.1924872
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "024",
+        "constituency_name": "Iebc Building Next To Dos Office Wundanyi Dos Office",
+        "county": "Taita Taveta",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "Road To DO'S Office, Siaya, Nyanza, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.219290",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.535431,
+          0.094207
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "026",
+        "constituency_name": "Scripture Mission - Voi Coast Institute Of Technology (Cit)",
+        "county": "Taita Taveta",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Taita Taveta, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.219813",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          38.37,
+          -3.4
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "033",
+        "constituency_name": "North Bute Police Station 100M",
+        "county": "Wajir",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Wajir, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.219813",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          40.01667,
+          1.75
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "034",
+        "constituency_name": "East Wajir Alfurqan Integrated 200M",
+        "county": "Wajir",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Wajir, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.219813",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          40.01667,
+          1.75
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "035",
+        "constituency_name": "Tarbaj Tarbaj District Hospital 50M",
+        "county": "Wajir",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Wajir, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.220231",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          40.01667,
+          1.75
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "036",
+        "constituency_name": "Giriftu Griftu District Hospital 50M",
+        "county": "Wajir",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Wajir, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.220231",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          40.01667,
+          1.75
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "038",
+        "constituency_name": "Habaswein Police Station 5Km",
+        "county": "Wajir",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Wajir, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.220231",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          40.01667,
+          1.75
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "039",
+        "constituency_name": "Takaba Ap Line 50M",
+        "county": "Mandera",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Mandera, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.220231",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          40.7,
+          3.36667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "041",
+        "constituency_name": "Rhamu Post Office 30M",
+        "county": "Mandera",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Mandera, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.220231",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          40.7,
+          3.36667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "042",
+        "constituency_name": "El-Wak El-Wak Service Station 30M",
+        "county": "Mandera",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Mandera, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.220231",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          40.7,
+          3.36667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "043",
+        "constituency_name": "Mandera Nhif Office 20M",
+        "county": "Mandera",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Mandera, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.220231",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          40.7,
+          3.36667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "046",
+        "constituency_name": "Behind Administrative Police Station Behind Administrative Police Station 500 Metres",
+        "county": "Marsabit",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Saku Marsabit, Eastern",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.220231",
+        "notes": "",
+        "accuracy_meters": 3110.5461224054434,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.9771984,
+          2.3389816
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "053",
+        "constituency_name": "Laare Market Laare Equity Bank 75 Meters",
+        "county": "Meru",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Meru, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.220231",
+        "notes": "",
+        "accuracy_meters": 2080.156400585101,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.65587,
+          0.04626
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "054",
+        "constituency_name": "Kianjai Market National Bank 30 Meters",
+        "county": "Meru",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Meru County, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.221612",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.63333,
+          0.05
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "057",
+        "constituency_name": "Timau Market Siraji Savings And Credit Co-Operative Society Next To Siraji Savings And Credit Co-",
+        "county": "Meru",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "Mwalimu National Savings and Credit Cooperative Society-TSC, Kilimanjaro Avenue, Teachers Service Commission Building, Nairobi, Kilimanjaro Avenue, Nairobi, Nairobi Area, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.221612",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.815035,
+          -1.299656
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "067",
+        "constituency_name": "Kyuso Market Next To Mwingi North Cdf Office Mwingi North Cdf Office 50Metres",
+        "county": "Kitui",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Kitui Central, Eastern",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.221612",
+        "notes": "",
+        "accuracy_meters": 31973.79121995387,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          38.0115738,
+          -1.3650093
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "068",
+        "constituency_name": "Migwani Behind Catholic Church Catholic Church 300Metres",
+        "county": "Kitui",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Kitui, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.221612",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          38.451,
+          -1.835
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "070",
+        "constituency_name": "Matinyani Market Maendeleo Hall Matinyani Market Centre 100Metres",
+        "county": "Kitui",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "Voi Market Hall, Taita Taveta, Coast, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.221612",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          38.563898,
+          -3.39286
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "072",
+        "constituency_name": "Kitui Town Along Hospital Road Opposite Kafoca Hotel And Kitui Kafoca Hotel & Kitui Law Courts 500Metres",
+        "county": "Kitui",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "Kitui Law Courts, Mbusyani Road, Kitui, Eastern, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.221612",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.994895,
+          -1.375032
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "075",
+        "constituency_name": "Masinga Market Masinga Police Station 200Metres",
+        "county": "Machakos",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Machakos, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.221612",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.408,
+          -1.282
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "078",
+        "constituency_name": "Tala Market Opposite East Mart Supermarket East Mart Supermarket 5Metres",
+        "county": "Machakos",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Machakos Town, Eastern",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.221612",
+        "notes": "",
+        "accuracy_meters": 31827.860082524054,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.2668947,
+          -1.5184295
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "081",
+        "constituency_name": "Along Machakos Teachers College Road Machakos Teachers College 50Metres",
+        "county": "Machakos",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "Machakos Teachers Training College, Machakos, Eastern, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.221612",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.257761,
+          -1.50893
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "082",
+        "constituency_name": "Makutano Ya Mwala Shopping Centre Adjacent To Makutano Police Makutano Police Patrol Base 5Metres",
+        "county": "Machakos",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "Kampi ya Moto Shopping Centre, Nakuru, Rift Valley, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.222880",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.93833,
+          -0.124317
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "083",
+        "constituency_name": "Tawa Social Hall Tawa Police Post 20Metres",
+        "county": "Makueni",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Makueni, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.222880",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.872,
+          -2.222
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "084",
+        "constituency_name": "Salama Town (Nzai House) Along Mombasa Road Salama Police Station 100Metres",
+        "county": "Makueni",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Mombasa Road, Kilome, Eastern",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.222880",
+        "notes": "",
+        "accuracy_meters": 445.1045663968028,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.2577148,
+          -1.8513536
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "086",
+        "constituency_name": "Opposite Makueni Hospital Makueni Hospital 100Metres",
+        "county": "Makueni",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Makueni, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.222880",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.872,
+          -2.222
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "087",
+        "constituency_name": "Makindu Town (Lower Market) Makindu Secondary School 1Km",
+        "county": "Makueni",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Makueni, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.222880",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.872,
+          -2.222
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "088",
+        "constituency_name": "Kambu Town Between Mtito Andei And Machinery Baobab Tree 500Metres",
+        "county": "Makueni",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "Said Metal Fabricators And Machinery, Kisumu, Nyanza, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.223426",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.452938,
+          -0.110962
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "093",
+        "constituency_name": "Nyandarua D.C Compound Nyahururu Nyandarua D.C Compound Information Block 3 Meters",
+        "county": "Nyandarua",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Nyandarua county council ai center, Sharpe Road, Nyahururu, 20300, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.223426",
+        "notes": "",
+        "accuracy_meters": 28.8873525306018,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.3654412,
+          0.0390777
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "097",
+        "constituency_name": "Kcb Building 3Rd Floor Room 17 Kcb Building Withing The Landmark",
+        "county": "Nyeri",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "KCB Building, Thika, Central, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.223426",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.075386,
+          -1.037284
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "101",
+        "constituency_name": "Kianyaga Town In Wiseman Building 1St Floor. Along General Kassim Road Next To General 20 Metres",
+        "county": "Kirinyaga",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.223426",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.903148,
+          0.554064
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "102",
+        "constituency_name": "Baricho Town Safaricom Booster 20 Metres",
+        "county": "Kirinyaga",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Kirinyaga, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.223426",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.33333,
+          -0.5
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "111",
+        "constituency_name": "South Gatundu East View Building Ground Flr East View Building Ground Flr",
+        "county": "Kiambu",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "Titanic Building Road, Kilifi, Coast, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.223426",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.851924,
+          -3.631751
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "113",
+        "constituency_name": "Juja Senate Hotel Menja Vission Plaza Opposite Senate",
+        "county": "Kiambu",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Kiambu, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.223426",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.83333,
+          -1.16667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "115",
+        "constituency_name": "Ruiru Dcs Office 50M Opposite Dcs Office",
+        "county": "Kiambu",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Kiambu County, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.223426",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.83333,
+          -1.16667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "116",
+        "constituency_name": "Githunguri Best West Bldg. Best West Building ( Githunguri",
+        "county": "Kiambu",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Githunguri, Kiambu, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.223426",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.90206,
+          -1.04722
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "117",
+        "constituency_name": "Kiambu Mapa House Mappa House Building 4Th Floor",
+        "county": "Kiambu",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Kiambu, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.223426",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.83333,
+          -1.16667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "119",
+        "constituency_name": "Kabete Rythms College Kabete Shopping Center Gachio Stage",
+        "county": "Kiambu",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Kiambu, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.223426",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.83333,
+          -1.16667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "120",
+        "constituency_name": "Kikuyu K-Unity House K-Unity House 1St Floor",
+        "county": "Kiambu",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "kikuyu guest house, Post Office Road, Kiambu, Central, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.223426",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.663832,
+          -1.244433
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "122",
+        "constituency_name": "Kimende K-Unity House K-Unity House 1St Floor",
+        "county": "Kiambu",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Kiambu, Central",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.224970",
+        "notes": "",
+        "accuracy_meters": 8807.285068372941,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.8255013,
+          -1.1672396
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "126",
+        "constituency_name": "Logurum At Dc Adminitration Building (Offices ) P.O Box 223 Dc Administration Offices Same Building",
+        "county": "Turkana",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "223, Ps Infanta Carlota, Wajir, North-Eastern, 7680, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.224970",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.523813,
+          3.318306
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "129",
+        "constituency_name": "Kapenguria Bible College P.O Box 450 Kapenguria-30600 Kapenguria Bible College Same Location",
+        "county": "West Pokot",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "450, Ps Platon, Wajir, North-Eastern, 7680, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.224970",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.522982,
+          3.314341
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "133",
+        "constituency_name": "Next To Cdf Office- Samburu West Opposite Dcs Office - Samburu 150 M",
+        "county": "Samburu",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "Samburu, Samburu, Rift Valley, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.224970",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.45239,
+          0.63445
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "134",
+        "constituency_name": "Near The Dcs Office - Baragoi Dcs Office Baragoi 200M From The Dcs Office",
+        "county": "Samburu",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Sadhana Forest Kenya, Near Lekuru Market C78, Lodokejek ward, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.224970",
+        "notes": "",
+        "accuracy_meters": 309.47246801777897,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.8063815,
+          0.8673914
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "135",
+        "constituency_name": "Wamba Catholic Mission Wamba Catholic Mission -Samburu 100M From Wamba Catholic",
+        "county": "Samburu",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Sadhana Forest Kenya, Near Lekuru Market C78, Lodokejek ward, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.224970",
+        "notes": "",
+        "accuracy_meters": 309.47246801777897,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.8063815,
+          0.8673914
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "137",
+        "constituency_name": "Endebess District Head Quarters (D.D.O Office) Kitale Molim Road District Head Quarters (D.D.O Office) Same Location",
+        "county": "Trans Nzoia",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Rift Valley",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.224970",
+        "notes": "",
+        "accuracy_meters": 50877.12665985467,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.957015,
+          1.050719
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "139",
+        "constituency_name": "Within Catholic Parish Kiminini Market P.O Box 11 Kitale- Catholic Parish Kiminini Market 50 Metres",
+        "county": "Trans Nzoia",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Rift Valley",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.224970",
+        "notes": "",
+        "accuracy_meters": 50877.12665985467,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.957015,
+          1.050719
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "147",
+        "constituency_name": "Chesoi Town Centre Dc Administration Offices Same Location",
+        "county": "Elgeyo Marakwet",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Marakwet West, Rift Valley",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.226024",
+        "notes": "",
+        "accuracy_meters": 33504.25591575151,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.5565711,
+          0.9820537
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "148",
+        "constituency_name": "Iebc Building Block Kapsowar Town Centre Kapsowar Dc Headquarters 200 Metres",
+        "county": "Elgeyo Marakwet",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Marakwet West, Rift Valley",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.226024",
+        "notes": "",
+        "accuracy_meters": 33504.25591575151,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.5565711,
+          0.9820537
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "822",
+        "constituency_name": "-30100",
+        "county": "Marakwet Box",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Eldoret-Ravine Road, Rift Valley",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.226024",
+        "notes": "",
+        "accuracy_meters": 1414.0944494158553,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.5613973,
+          0.2388893
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "157",
+        "constituency_name": "Next To Ministry Of Education Offices- Chemolingot Chemolingot",
+        "county": "Baringo",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Baringo, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.226024",
+        "notes": "",
+        "accuracy_meters": 2162.7282748189696,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.96667,
+          0.46667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "161",
+        "constituency_name": "Behind Boresha Sacco Boresha Sacco- Mogotio Township 70M From The Tarmack",
+        "county": "Baringo",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Kenya Commercial Bank, Mercy-Kefa Roundabout Road, Eldama Ravine, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.226024",
+        "notes": "",
+        "accuracy_meters": 9.966913647477204,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.7249474,
+          0.0491801
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "163",
+        "constituency_name": "Telkom Building- Nyahuru Town Nyahururu Law Court. 100 M",
+        "county": "Laikipia",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.226573",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.903148,
+          0.554064
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "169",
+        "constituency_name": "Hennsolex Building- Ground Floor- Gilgil Town Kplc - Gilgil 50M",
+        "county": "Nakuru",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Kenya Women Finance Trust Offices, Eldama Ravine-Eldoret Road, Eldama Ravine, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.226573",
+        "notes": "",
+        "accuracy_meters": 13.21140709792117,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.7240316,
+          0.048529
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "173",
+        "constituency_name": "Farming System Building In Kiamunyi. Ollive Inn (Kiamunyi). 100M",
+        "county": "Nakuru",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Nakuru, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.226573",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.17126,
+          -0.48402
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "180",
+        "constituency_name": "Ntulele Township(Opposite Ntulele Police Station) Police Station 100 Metres",
+        "county": "Narok",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Narok, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.226573",
+        "notes": "",
+        "accuracy_meters": 3259.495004474602,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.86012,
+          -1.07829
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "181",
+        "constituency_name": "(Next To Olololunga District Hospital) District Hospital 20 Metres",
+        "county": "Narok",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Narok, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.226573",
+        "notes": "",
+        "accuracy_meters": 3259.495004474602,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.86012,
+          -1.07829
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "182",
+        "constituency_name": "Nkorkorri Boys Sec. School Nkorkorri Boys Sec. School Same Location",
+        "county": "Narok",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Narok County Referral hospital, Narok- Mau Narok - Njoro, Narok Town ward, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.226573",
+        "notes": "",
+        "accuracy_meters": 6.138202596125381,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.8648249,
+          -1.0852425
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "184",
+        "constituency_name": "Ack Church -Kajiado Ack Church -Kajiado Town 0 Km",
+        "county": "Kajiado",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Kajiado North, Rift Valley",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.226573",
+        "notes": "",
+        "accuracy_meters": 12183.965381606167,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.6833723,
+          -1.3925683
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "185",
+        "constituency_name": "Masaai Rural Training Centre-Isinya Masaai Rural Training Centre-Isinya 0 Km",
+        "county": "Kajiado",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Kajiado North, Rift Valley",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.226573",
+        "notes": "",
+        "accuracy_meters": 12183.965381606167,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.6833723,
+          -1.3925683
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "188",
+        "constituency_name": "Postal Corporation Of Kenya - Kipkelion Town Postal Corporation Of Kenya - Kipkelion Town Same Building",
+        "county": "Kericho",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.1,
+        "formatted_address": "Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.226573",
+        "notes": "",
+        "accuracy_meters": 735213.482753763,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          38.0,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "189",
+        "constituency_name": "Postal Corporation Of Kenya -Londiani Town Postal Corporation Of Kenya -Londiani Town Same Building",
+        "county": "Kericho",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Kipkelion East Londiani, Rift Valley",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.226573",
+        "notes": "",
+        "accuracy_meters": 855.2596293418618,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.5915813,
+          -0.1666806
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "191",
+        "constituency_name": "Bureti Growers Sacco Ltd Building -2Nd Floor -Litein Town Bureti Growers Sacco Ltd Building Same Building",
+        "county": "Kericho",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Ainamoi Kericho, Rift Valley",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.226573",
+        "notes": "",
+        "accuracy_meters": 4957.339430251336,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.2854418,
+          -0.3682293
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "193",
+        "constituency_name": "Soko Huru Shopping Centre- Along Kericho Kisumu Highway Soko Huru Shopping Centre- Along Kericho 100 Metres From Highway",
+        "county": "Kericho",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Ainamoi Kericho, Rift Valley",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.226573",
+        "notes": "",
+        "accuracy_meters": 4957.339430251336,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.2854418,
+          -0.3682293
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "194",
+        "constituency_name": "Postal Corporation Of Kenya- Office- Sotik Next To Kcb Bank Sotik Kenya Commercial Bank Sotik 50 Metres",
+        "county": "Bomet",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Bomet County Counci, Kamandura Mai-Mahiu Narok Road, Bomet, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.226573",
+        "notes": "",
+        "accuracy_meters": 7.862302299149528,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.3436118,
+          -0.7822297
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "195",
+        "constituency_name": "Kyogong Shopping Centre- Bomet Narok Highway Kyogong Shopping Centre- Bomet Narok 100 Metres From Highway",
+        "county": "Bomet",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Bomet County Counci, Kamandura Mai-Mahiu Narok Road, Bomet, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.228140",
+        "notes": "",
+        "accuracy_meters": 7.862302299149528,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.3436118,
+          -0.7822297
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "196",
+        "constituency_name": "Above Kipsigis Eddis Sacco(Opposite National Cereals Board)- Bomet Ncpb Bomet 20 Metres",
+        "county": "Bomet",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.228140",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.903148,
+          0.554064
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "200",
+        "constituency_name": "Kongoni Pag Church Compound Friends Church 50M",
+        "county": "Kakamega",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Kakamega, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.228140",
+        "notes": "",
+        "accuracy_meters": 4771.1051464892425,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.75229,
+          0.28422
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "201",
+        "constituency_name": "Within Compound Of Malava Yearly Meeting Of Friends Church (Quakers) 100M",
+        "county": "Kakamega",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Kakamega, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.228140",
+        "notes": "",
+        "accuracy_meters": 4771.1051464892425,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.75229,
+          0.28422
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "202",
+        "constituency_name": "Lurambi Post Office Kakamega Opposite Police Station 20 M",
+        "county": "Kakamega",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Kakamega, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.228140",
+        "notes": "",
+        "accuracy_meters": 4771.1051464892425,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.75229,
+          0.28422
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "208",
+        "constituency_name": "Khwisero Vision Plaza Central Yearly Meeting Of Friends Church Lirhanda Directly Opposite Safari Com Booster 20M",
+        "county": "Kakamega",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Lurambi Kakamega, Western",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.228140",
+        "notes": "",
+        "accuracy_meters": 5436.986715570328,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.754231,
+          0.2824452
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "209",
+        "constituency_name": "Opposite Makhoko Sec Sch Shinyalu Market 1 Km",
+        "county": "Kakamega",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Kakamega, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.229364",
+        "notes": "",
+        "accuracy_meters": 4771.1051464892425,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.75229,
+          0.28422
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "210",
+        "constituency_name": "Ikolomani Sec School 50M",
+        "county": "Kakamega",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Kakamega, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.229364",
+        "notes": "",
+        "accuracy_meters": 4771.1051464892425,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.75229,
+          0.28422
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "211",
+        "constituency_name": "Mbale Municipal Council Barclays Bank 200",
+        "county": "Kakamega",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Kakamega, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.229364",
+        "notes": "",
+        "accuracy_meters": 4771.1051464892425,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.75229,
+          0.28422
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "212",
+        "constituency_name": "National Cereals&Produce Board Chavakali Along Kak Mumias Rd Chavakali 100M",
+        "county": "Kakamega",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.229364",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.903148,
+          0.554064
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "216",
+        "constituency_name": "Kapsokwony Market Kapsokwiny Town 0M",
+        "county": "Bungoma",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Bungoma, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.229364",
+        "notes": "",
+        "accuracy_meters": 2517.832218267373,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.56055,
+          0.5635
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "220",
+        "constituency_name": "Bungoma Cereals Board Cpd Cereals Board Cpd 0M",
+        "county": "Bungoma",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Bungoma, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.229364",
+        "notes": "",
+        "accuracy_meters": 2517.832218267373,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.56055,
+          0.5635
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "222",
+        "constituency_name": "Bokoli Bokoli Market",
+        "county": "Bungoma",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Bungoma, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.229364",
+        "notes": "",
+        "accuracy_meters": 2517.832218267373,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.56055,
+          0.5635
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "223",
+        "constituency_name": "Kimilili Town Kimilili Town 0M",
+        "county": "Bungoma",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Bungoma, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.229364",
+        "notes": "",
+        "accuracy_meters": 2517.832218267373,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.56055,
+          0.5635
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "225",
+        "constituency_name": "Amagoro Market Levantes Hotel 200M",
+        "county": "Busia",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Busia, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.230424",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.11169,
+          0.46005
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "229",
+        "constituency_name": "Butula Mkt Butula Mkt 0M",
+        "county": "Busia",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Busia, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.230424",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.11169,
+          0.46005
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "230",
+        "constituency_name": "Funyula Mkt Post Office 50M",
+        "county": "Busia",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Busia, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.230424",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.11169,
+          0.46005
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "231",
+        "constituency_name": "Budalangi Ap Line Ap Line 0M",
+        "county": "Busia",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Busia, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.230424",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.11169,
+          0.46005
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "232",
+        "constituency_name": "Ukwala Opposite Ukwalla Town Hall 100M",
+        "county": "Siaya",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Siaya, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.230424",
+        "notes": "",
+        "accuracy_meters": 3208.139043653377,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.28823,
+          0.06116
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "233",
+        "constituency_name": "Ugunja Ambira District Hospital 100 Metres",
+        "county": "Siaya",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Siaya, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.230972",
+        "notes": "",
+        "accuracy_meters": 3208.139043653377,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.28823,
+          0.06116
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "237",
+        "constituency_name": "Kalandini Ministry Of Roads Offices 0",
+        "county": "Siaya",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Siaya, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.230972",
+        "notes": "",
+        "accuracy_meters": 3208.139043653377,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.28823,
+          0.06116
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "239",
+        "constituency_name": "Maseno Behind Maseno Law Courts. 20M",
+        "county": "Kisumu",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Kisumu, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.230972",
+        "notes": "",
+        "accuracy_meters": 6031.322492324194,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.76171,
+          -0.10221
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "242",
+        "constituency_name": "Awasi/Ahero Between Ahero Police Station & Multipurpose 50M",
+        "county": "Kisumu",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Kisumu, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.230972",
+        "notes": "",
+        "accuracy_meters": 6031.322492324194,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.76171,
+          -0.10221
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "243",
+        "constituency_name": "Chemelil Sugar Belt Union Offices 0",
+        "county": "Kisumu",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Kisumu, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.230972",
+        "notes": "",
+        "accuracy_meters": 6031.322492324194,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.76171,
+          -0.10221
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "246",
+        "constituency_name": "Kasipul Ramula Kadongo Market Centre Within Renish Obunge 500M",
+        "county": "Homabay",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Homabay County Teaching and Referral Hospital, B2, Homa Bay, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.230972",
+        "notes": "",
+        "accuracy_meters": 156.5467938170635,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.4618778,
+          -0.5333556
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "248",
+        "constituency_name": "Rangwe Rangwe Dispensary 100M",
+        "county": "Homabay",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Rangwe, Nyanza",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.230972",
+        "notes": "",
+        "accuracy_meters": 14696.9740038885,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.5836415,
+          -0.5999317
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "252",
+        "constituency_name": "Magunga Within Magunga Shopping Centre 0",
+        "county": "Homabay",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Suba South Magunga, Nyanza",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.230972",
+        "notes": "",
+        "accuracy_meters": 511.92969526918745,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.1513896,
+          -0.6888205
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "259",
+        "constituency_name": "Next To Kehancha Law Court Kehancha Town 50 M",
+        "county": "Migori",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "Kuria West Kehancha, Nyanza",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.230972",
+        "notes": "",
+        "accuracy_meters": 3103.9859667965293,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.621377,
+          -1.1920436
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "261",
+        "constituency_name": "Ministry Of Public Works Suneka Town Same Copound",
+        "county": "Kisii",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Kisii, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.232019",
+        "notes": "",
+        "accuracy_meters": 100.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          34.76666,
+          -0.68174
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "274",
+        "constituency_name": "Ministry Of Social Services -Westlands Ministry Of Social Services -Westlands 0 Km",
+        "county": "Nairobi City",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Kenya Commercial Bank Plaza, Hospital Rd, Nairobi City Kenya Road, Nairobi, 00202, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.232019",
+        "notes": "",
+        "accuracy_meters": 30.94695368208633,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.8128437,
+          -1.3015643
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "275",
+        "constituency_name": "North Maliposa Apartment -Ngong Road Nakumart -Junction 4 Km",
+        "county": "Nairobi City",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "tomtom",
+        "geocode_confidence": 0.7,
+        "formatted_address": "4th Ngong Avenue & Ngong Road, Nairobi, Nairobi",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.232019",
+        "notes": "",
+        "accuracy_meters": 141.50994818516963,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.8093327,
+          -1.2955327
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "277",
+        "constituency_name": "Cdf Offices -Langata Cdf Offices -Langata 0Km",
+        "county": "Nairobi City",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.232019",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.903148,
+          0.554064
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "281",
+        "constituency_name": "Sacred Heart Catholic Church - Baba Dogo Sacred Heart Catholic Church - Baba Dogo 0Km",
+        "county": "Nairobi City",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Kenya Commercial Bank Plaza, Hospital Rd, Nairobi City Kenya Road, Nairobi, 00202, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.232019",
+        "notes": "",
+        "accuracy_meters": 30.94695368208633,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.8128437,
+          -1.3015643
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "282",
+        "constituency_name": "Joy Villa-Imara Daima Nakumart Embakasi. 3Km",
+        "county": "Nairobi City",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.232019",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.903148,
+          0.554064
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "285",
+        "constituency_name": "Ea School Of Aviation-Embakasi Ea School Of Aviation-Embakasi 0 Km",
+        "county": "Nairobi City",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "EAST AFRICAN SCHOOL OF AVIATION, Nairobi, Nairobi Area, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.232019",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.904066,
+          -1.315674
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "286",
+        "constituency_name": "Tena -Dolhnolm Naivas Supermarket - Dolholm 3 Km",
+        "county": "Nairobi City",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.232019",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          37.903148,
+          0.554064
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "287",
+        "constituency_name": "Ministry Of Public Works-Industral Area Ministry Of Public Works-Industral Area 0 Km",
+        "county": "Nairobi City",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "opencage",
+        "geocode_confidence": 0.9,
+        "formatted_address": "Kenya Commercial Bank Plaza, Hospital Rd, Nairobi City Kenya Road, Nairobi, 00202, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.232019",
+        "notes": "",
+        "accuracy_meters": 30.94695368208633,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.8128437,
+          -1.3015643
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "constituency_code": "289",
+        "constituency_name": "Kie-Ngara Kie-Ngara 0 Km",
+        "county": "Nairobi City",
+        "office_location": "0.0",
+        "landmark": "0.0",
+        "distance_from_landmark": "0.0",
+        "source": "IEBC PDF - Physical Locations of County and Constituency Offices in Kenya",
+        "geocode_method": "locationiq",
+        "geocode_confidence": 0.6,
+        "formatted_address": "Nairobi, Nairobi Area, Kenya",
+        "verified": false,
+        "last_updated": "2025-10-10T22:04:49.232979",
+        "notes": "",
+        "accuracy_meters": 50.0,
+        "geocode_status": "success"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.81667,
+          -1.28333
+        ]
+      }
+    }
+  ]
+}

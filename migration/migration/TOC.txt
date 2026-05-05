@@ -1,0 +1,1241 @@
+;
+; Archive created at 2026-05-05 23:52:39
+;     dbname: postgres
+;     TOC Entries: 1232
+;     Compression: gzip
+;     Dump Version: 1.16-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 17.4
+;     Dumped by pg_dump version: 17.6
+;
+;
+; Selected TOC Entries:
+;
+46; 2615 16492 SCHEMA - auth supabase_admin
+1; 3079 284919 EXTENSION - pg_cron 
+6744; 0 0 COMMENT - EXTENSION pg_cron 
+32; 2615 16388 SCHEMA - extensions postgres
+44; 2615 16622 SCHEMA - graphql supabase_admin
+43; 2615 16611 SCHEMA - graphql_public supabase_admin
+5; 3079 285026 EXTENSION - pg_net 
+6745; 0 0 COMMENT - EXTENSION pg_net 
+22; 2615 16386 SCHEMA - pgbouncer pgbouncer
+19; 2615 16603 SCHEMA - realtime supabase_admin
+47; 2615 16540 SCHEMA - storage supabase_admin
+141; 2615 285069 SCHEMA - supabase_functions supabase_admin
+60; 2615 17833 SCHEMA - supabase_migrations postgres
+41; 2615 16651 SCHEMA - vault supabase_admin
+16; 3079 149630 EXTENSION - cube 
+6746; 0 0 COMMENT - EXTENSION cube 
+15; 3079 149740 EXTENSION - earthdistance 
+6747; 0 0 COMMENT - EXTENSION earthdistance 
+14; 3079 281277 EXTENSION - fuzzystrmatch 
+6748; 0 0 COMMENT - EXTENSION fuzzystrmatch 
+11; 3079 142672 EXTENSION - http 
+6749; 0 0 COMMENT - EXTENSION http 
+4; 3079 325834 EXTENSION - hypopg 
+6750; 0 0 COMMENT - EXTENSION hypopg 
+3; 3079 325856 EXTENSION - index_advisor 
+6751; 0 0 COMMENT - EXTENSION index_advisor 
+9; 3079 16389 EXTENSION - pg_stat_statements 
+6752; 0 0 COMMENT - EXTENSION pg_stat_statements 
+12; 3079 142244 EXTENSION - pg_trgm 
+6753; 0 0 COMMENT - EXTENSION pg_trgm 
+7; 3079 16441 EXTENSION - pgcrypto 
+6754; 0 0 COMMENT - EXTENSION pgcrypto 
+13; 3079 125255 EXTENSION - postgis 
+6755; 0 0 COMMENT - EXTENSION postgis 
+10; 3079 16652 EXTENSION - supabase_vault 
+6756; 0 0 COMMENT - EXTENSION supabase_vault 
+8; 3079 16430 EXTENSION - uuid-ossp 
+6757; 0 0 COMMENT - EXTENSION "uuid-ossp" 
+6; 3079 284970 EXTENSION - wrappers 
+6758; 0 0 COMMENT - EXTENSION wrappers 
+2294; 1247 16780 TYPE auth aal_level supabase_auth_admin
+2318; 1247 16921 TYPE auth code_challenge_method supabase_auth_admin
+2291; 1247 16774 TYPE auth factor_status supabase_auth_admin
+2288; 1247 16769 TYPE auth factor_type supabase_auth_admin
+2493; 1247 144388 TYPE auth oauth_authorization_status supabase_auth_admin
+2505; 1247 144461 TYPE auth oauth_client_type supabase_auth_admin
+2469; 1247 130944 TYPE auth oauth_registration_type supabase_auth_admin
+2496; 1247 144398 TYPE auth oauth_response_type supabase_auth_admin
+2324; 1247 16963 TYPE auth one_time_token_type supabase_auth_admin
+2662; 1247 321112 TYPE public diaspora_centre_state postgres
+2339; 1247 17134 TYPE realtime action supabase_admin
+2347; 1247 17090 TYPE realtime equality_op supabase_admin
+2350; 1247 17105 TYPE realtime user_defined_filter supabase_admin
+2345; 1247 17176 TYPE realtime wal_column supabase_admin
+2342; 1247 17147 TYPE realtime wal_rls supabase_admin
+2395; 1247 78833 TYPE storage buckettype supabase_storage_admin
+1200; 1255 16538 FUNCTION auth email() supabase_auth_admin
+6759; 0 0 COMMENT auth FUNCTION email() supabase_auth_admin
+1342; 1255 16751 FUNCTION auth jwt() supabase_auth_admin
+1599; 1255 16537 FUNCTION auth role() supabase_auth_admin
+6760; 0 0 COMMENT auth FUNCTION role() supabase_auth_admin
+1024; 1255 16536 FUNCTION auth uid() supabase_auth_admin
+6761; 0 0 COMMENT auth FUNCTION uid() supabase_auth_admin
+1120; 1255 16595 FUNCTION extensions grant_pg_cron_access() supabase_admin
+6762; 0 0 COMMENT extensions FUNCTION grant_pg_cron_access() supabase_admin
+1056; 1255 16616 FUNCTION extensions grant_pg_graphql_access() supabase_admin
+6763; 0 0 COMMENT extensions FUNCTION grant_pg_graphql_access() supabase_admin
+1451; 1255 16597 FUNCTION extensions grant_pg_net_access() supabase_admin
+6764; 0 0 COMMENT extensions FUNCTION grant_pg_net_access() supabase_admin
+548; 1255 16607 FUNCTION extensions pgrst_ddl_watch() supabase_admin
+1384; 1255 16608 FUNCTION extensions pgrst_drop_watch() supabase_admin
+1379; 1255 16618 FUNCTION extensions set_graphql_placeholder() supabase_admin
+6765; 0 0 COMMENT extensions FUNCTION set_graphql_placeholder() supabase_admin
+1214; 1255 346320 FUNCTION graphql_public graphql(text, text, jsonb, jsonb) supabase_admin
+1314; 1255 16387 FUNCTION pgbouncer get_auth(text) supabase_admin
+770; 1255 140450 FUNCTION public approve_contribution(bigint, text) postgres
+911; 1255 153408 FUNCTION public archive_contribution(integer, text, text, text, text, integer) postgres
+560; 1255 327129 FUNCTION public auto_approve_contact_updates(integer) postgres
+765; 1255 327133 FUNCTION public bulk_update_verification(integer[], boolean, text) postgres
+587; 1255 142572 FUNCTION public calculate_bounding_box(double precision, double precision, integer) postgres
+795; 1255 149928 FUNCTION public calculate_confirmer_distance() postgres
+766; 1255 321150 FUNCTION public charge_usage(uuid, integer) postgres
+6766; 0 0 COMMENT public FUNCTION charge_usage(p_key_id uuid, p_endpoint_weight integer) postgres
+1434; 1255 149994 FUNCTION public check_auto_verification() postgres
+1393; 1255 150016 FUNCTION public check_submission_rate_limit(text, text) postgres
+825; 1255 282655 FUNCTION public clean_expired_geocoding_cache() postgres
+1116; 1255 321146 FUNCTION public confirm_iebc_2027_centre(text, character, text, text, jsonb, timestamp with time zone, timestamp with time zone, timestamp with time zone) postgres
+732; 1255 316529 FUNCTION public create_test_api_key(uuid, text, text) postgres
+1320; 1255 321106 FUNCTION public deduct_credits(uuid, integer) postgres
+1375; 1255 142550 FUNCTION public fetch_and_store_osm_landmarks(double precision, double precision, integer) postgres
+609; 1255 160206 FUNCTION public find_constituencies_near_point(double precision, double precision, double precision) postgres
+673; 1255 162626 FUNCTION public find_constituencies_near_point(double precision, double precision, integer) postgres
+757; 1255 151858 FUNCTION public find_duplicate_offices(double precision, double precision, text, integer) postgres
+1430; 1255 140246 FUNCTION public find_nearby_offices(double precision, double precision, double precision) postgres
+929; 1255 321145 FUNCTION public find_nearest_kenyan_mission(double precision, double precision, public.diaspora_centre_state, text, integer) postgres
+1187; 1255 321109 FUNCTION public find_offices_near_place(double precision, double precision, double precision, integer) postgres
+1359; 1255 160228 FUNCTION public fix_all_constituency_relationships() postgres
+728; 1255 159858 FUNCTION public fix_constituency_references() postgres
+697; 1255 327149 FUNCTION public get_archived_contributions(text, integer, integer) postgres
+6767; 0 0 COMMENT public FUNCTION get_archived_contributions(p_action_type text, p_limit integer, p_offset integer) postgres
+707; 1255 152236 FUNCTION public get_constituency_code(text, text) postgres
+631; 1255 152237 FUNCTION public get_constituency_from_coords(double precision, double precision) postgres
+1349; 1255 152626 FUNCTION public get_constituency_mapping_stats() postgres
+564; 1255 327151 FUNCTION public get_contribution_verification_log(integer, integer) postgres
+6768; 0 0 COMMENT public FUNCTION get_contribution_verification_log(p_contribution_id integer, p_limit integer) postgres
+594; 1255 328278 FUNCTION public get_county_statistics() postgres
+1124; 1255 316117 FUNCTION public get_county_stats() postgres
+714; 1255 327153 FUNCTION public get_most_verified_offices(integer) postgres
+544; 1255 142528 FUNCTION public get_nearby_iebc_offices(double precision, double precision, double precision) postgres
+701; 1255 152808 FUNCTION public get_nearby_landmarks(double precision, double precision, integer) postgres
+621; 1255 323500 FUNCTION public get_nearest_ward(double precision, double precision) postgres
+654; 1255 327152 FUNCTION public get_office_contribution_links(integer) postgres
+6769; 0 0 COMMENT public FUNCTION get_office_contribution_links(p_office_id integer) postgres
+926; 1255 328282 FUNCTION public get_office_isochrone(integer) postgres
+812; 1255 281318 FUNCTION public get_office_stats() postgres
+1018; 1255 327134 FUNCTION public get_office_stats(integer) postgres
+1347; 1255 327150 FUNCTION public get_office_verification_log(integer, integer) postgres
+6770; 0 0 COMMENT public FUNCTION get_office_verification_log(p_office_id integer, p_limit integer) postgres
+646; 1255 327132 FUNCTION public get_offices_by_status(text, integer) postgres
+1135; 1255 328281 FUNCTION public get_offices_by_walking_effort(text, integer) postgres
+934; 1255 337736 FUNCTION public get_offices_in_bounds(double precision, double precision, double precision, double precision, double precision) postgres
+1394; 1255 327154 FUNCTION public get_offices_needing_verification(integer, integer) postgres
+699; 1255 142616 FUNCTION public get_optimal_triangulation_landmarks(double precision, double precision, double precision, integer) postgres
+860; 1255 162788 FUNCTION public get_or_create_constituency(text, text) postgres
+657; 1255 327128 FUNCTION public get_pending_contributions(integer) postgres
+1459; 1255 332009 FUNCTION public get_search_suggestions(text) postgres
+6771; 0 0 COMMENT public FUNCTION get_search_suggestions(query_text text) postgres
+656; 1255 316476 FUNCTION public get_tier_monthly_limit(text) postgres
+919; 1255 327127 FUNCTION public get_trending_contributions(integer, integer) postgres
+642; 1255 316555 FUNCTION public handle_nasaka_new_user() postgres
+1474; 1255 281314 FUNCTION public handle_updated_at() postgres
+928; 1255 34892 FUNCTION public insert_index_usage_data() postgres
+1064; 1255 215210 FUNCTION public is_admin(uuid) postgres
+659; 1255 37820 FUNCTION public is_admin_user() postgres
+861; 1255 36280 FUNCTION public is_admin_user(uuid) postgres
+1137; 1255 215804 FUNCTION public log_security_event() postgres
+1433; 1255 126506 FUNCTION public log_signature_access() postgres
+1470; 1255 142594 FUNCTION public map_osm_element_to_landmark(json) postgres
+1065; 1255 328290 FUNCTION public nearby_offices(numeric, numeric, numeric) postgres
+1493; 1255 20604 FUNCTION public normalize_county_name(text) postgres
+1516; 1255 24892 FUNCTION public normalize_text(text) postgres
+1142; 1255 159540 FUNCTION public promote_contribution_to_office(bigint, text, jsonb) postgres
+1189; 1255 37652 FUNCTION public proper_case(text) postgres
+585; 1255 282667 FUNCTION public refresh_office_verification_stats() postgres
+1523; 1255 328312 FUNCTION public refresh_ward_metadata() postgres
+1248; 1255 321110 FUNCTION public search_offices_by_text_and_location(text, double precision, double precision, double precision, integer) postgres
+1318; 1255 321157 FUNCTION public search_offices_by_text_and_location_v2(text, double precision, double precision, double precision, integer) postgres
+1245; 1255 327125 FUNCTION public search_offices_fuzzy(text, integer) postgres
+605; 1255 340054 FUNCTION public search_registration_centres(text) postgres
+554; 1255 340024 FUNCTION public set_updated_at() postgres
+1172; 1255 29884 FUNCTION public submit_signature(uuid, text, text, text, text, jsonb, text, jsonb, text, text) postgres
+1170; 1255 149905 FUNCTION public sync_contribution_geom() postgres
+1112; 1255 281311 FUNCTION public sync_office_geom() postgres
+778; 1255 330604 FUNCTION public sync_office_ward_id() postgres
+1044; 1255 327157 FUNCTION public update_confirmations_geom() postgres
+762; 1255 321137 FUNCTION public update_diaspora_designation_count() postgres
+804; 1255 140224 FUNCTION public update_iebc_office_contributions_updated_at() postgres
+664; 1255 29862 FUNCTION public update_modified_column() postgres
+1190; 1255 282653 FUNCTION public update_office_confirmation_count() postgres
+1287; 1255 152278 FUNCTION public update_office_constituency_codes() postgres
+1547; 1255 282649 FUNCTION public update_operational_status_updated_at() postgres
+1206; 1255 282651 FUNCTION public update_registration_deadlines_updated_at() postgres
+1062; 1255 126318 FUNCTION public update_updated_at_column() postgres
+1372; 1255 159880 FUNCTION public validate_constituency_exists(text, text) postgres
+1047; 1255 29906 FUNCTION public verify_signature(jsonb, text, jsonb) postgres
+1582; 1255 281319 FUNCTION public vote_on_contribution(bigint, double precision, double precision, text) postgres
+592; 1255 17169 FUNCTION realtime apply_rls(jsonb, integer) supabase_admin
+1262; 1255 17250 FUNCTION realtime broadcast_changes(text, text, text, text, text, record, record, text) supabase_admin
+827; 1255 17182 FUNCTION realtime build_prepared_statement_sql(text, regclass, realtime.wal_column[]) supabase_admin
+1059; 1255 17127 FUNCTION realtime cast(text, regtype) supabase_admin
+1572; 1255 17122 FUNCTION realtime check_equality_op(realtime.equality_op, regtype, text, text) supabase_admin
+608; 1255 17177 FUNCTION realtime is_visible_through_filters(realtime.wal_column[], realtime.user_defined_filter[]) supabase_admin
+717; 1255 336568 FUNCTION realtime list_changes(name, name, integer, integer) supabase_admin
+1171; 1255 17121 FUNCTION realtime quote_wal2json(regclass) supabase_admin
+1240; 1255 17249 FUNCTION realtime send(jsonb, text, text, boolean) supabase_admin
+755; 1255 17119 FUNCTION realtime subscription_check_filters() supabase_admin
+676; 1255 17158 FUNCTION realtime to_regrole(text) supabase_admin
+749; 1255 17243 FUNCTION realtime topic() supabase_realtime_admin
+846; 1255 336536 FUNCTION storage allow_any_operation(text[]) supabase_storage_admin
+666; 1255 336535 FUNCTION storage allow_only_operation(text) supabase_storage_admin
+1092; 1255 17033 FUNCTION storage can_insert_object(text, text, uuid, jsonb) supabase_storage_admin
+1467; 1255 117482 FUNCTION storage delete_leaf_prefixes(text[], text[]) supabase_storage_admin
+829; 1255 78830 FUNCTION storage enforce_bucket_name_length() supabase_storage_admin
+727; 1255 17007 FUNCTION storage extension(text) supabase_storage_admin
+1480; 1255 17006 FUNCTION storage filename(text) supabase_storage_admin
+967; 1255 17005 FUNCTION storage foldername(text) supabase_storage_admin
+721; 1255 279035 FUNCTION storage get_common_prefix(text, text, text) supabase_storage_admin
+1259; 1255 78793 FUNCTION storage get_level(text) supabase_storage_admin
+1428; 1255 78809 FUNCTION storage get_prefix(text) supabase_storage_admin
+938; 1255 78810 FUNCTION storage get_prefixes(text) supabase_storage_admin
+1515; 1255 78828 FUNCTION storage get_size_by_bucket() supabase_storage_admin
+652; 1255 17072 FUNCTION storage list_multipart_uploads_with_delimiter(text, text, text, integer, text, text) supabase_storage_admin
+1250; 1255 279036 FUNCTION storage list_objects_with_delimiter(text, text, text, integer, text, text, text) supabase_storage_admin
+1113; 1255 17088 FUNCTION storage operation() supabase_storage_admin
+1177; 1255 279041 FUNCTION storage protect_delete() supabase_storage_admin
+599; 1255 17022 FUNCTION storage search(text, text, integer, integer, integer, text, text, text) supabase_storage_admin
+809; 1255 279039 FUNCTION storage search_by_timestamp(text, text, integer, integer, text, text, text, text) supabase_storage_admin
+1382; 1255 78826 FUNCTION storage search_legacy_v1(text, text, integer, integer, integer, text, text, text) supabase_storage_admin
+692; 1255 117480 FUNCTION storage search_v2(text, text, integer, integer, text, text, text, text) supabase_storage_admin
+886; 1255 17023 FUNCTION storage update_updated_at_column() supabase_storage_admin
+1295; 1255 285093 FUNCTION supabase_functions http_request() supabase_functions_admin
+370; 1259 16523 TABLE auth audit_log_entries supabase_auth_admin
+6772; 0 0 COMMENT auth TABLE audit_log_entries supabase_auth_admin
+479; 1259 296241 TABLE auth custom_oauth_providers supabase_auth_admin
+386; 1259 16925 TABLE auth flow_state supabase_auth_admin
+6773; 0 0 COMMENT auth TABLE flow_state supabase_auth_admin
+377; 1259 16723 TABLE auth identities supabase_auth_admin
+6774; 0 0 COMMENT auth TABLE identities supabase_auth_admin
+6775; 0 0 COMMENT auth COLUMN identities.email supabase_auth_admin
+369; 1259 16516 TABLE auth instances supabase_auth_admin
+6776; 0 0 COMMENT auth TABLE instances supabase_auth_admin
+381; 1259 16812 TABLE auth mfa_amr_claims supabase_auth_admin
+6777; 0 0 COMMENT auth TABLE mfa_amr_claims supabase_auth_admin
+380; 1259 16800 TABLE auth mfa_challenges supabase_auth_admin
+6778; 0 0 COMMENT auth TABLE mfa_challenges supabase_auth_admin
+379; 1259 16787 TABLE auth mfa_factors supabase_auth_admin
+6779; 0 0 COMMENT auth TABLE mfa_factors supabase_auth_admin
+6780; 0 0 COMMENT auth COLUMN mfa_factors.last_webauthn_challenge_data supabase_auth_admin
+435; 1259 144401 TABLE auth oauth_authorizations supabase_auth_admin
+450; 1259 209311 TABLE auth oauth_client_states supabase_auth_admin
+6781; 0 0 COMMENT auth TABLE oauth_client_states supabase_auth_admin
+419; 1259 130949 TABLE auth oauth_clients supabase_auth_admin
+436; 1259 144434 TABLE auth oauth_consents supabase_auth_admin
+387; 1259 16975 TABLE auth one_time_tokens supabase_auth_admin
+368; 1259 16505 TABLE auth refresh_tokens supabase_auth_admin
+6782; 0 0 COMMENT auth TABLE refresh_tokens supabase_auth_admin
+367; 1259 16504 SEQUENCE auth refresh_tokens_id_seq supabase_auth_admin
+6783; 0 0 SEQUENCE OWNED BY auth refresh_tokens_id_seq supabase_auth_admin
+384; 1259 16854 TABLE auth saml_providers supabase_auth_admin
+6784; 0 0 COMMENT auth TABLE saml_providers supabase_auth_admin
+385; 1259 16872 TABLE auth saml_relay_states supabase_auth_admin
+6785; 0 0 COMMENT auth TABLE saml_relay_states supabase_auth_admin
+371; 1259 16531 TABLE auth schema_migrations supabase_auth_admin
+6786; 0 0 COMMENT auth TABLE schema_migrations supabase_auth_admin
+378; 1259 16753 TABLE auth sessions supabase_auth_admin
+6787; 0 0 COMMENT auth TABLE sessions supabase_auth_admin
+6788; 0 0 COMMENT auth COLUMN sessions.not_after supabase_auth_admin
+6789; 0 0 COMMENT auth COLUMN sessions.refresh_token_hmac_key supabase_auth_admin
+6790; 0 0 COMMENT auth COLUMN sessions.refresh_token_counter supabase_auth_admin
+383; 1259 16839 TABLE auth sso_domains supabase_auth_admin
+6791; 0 0 COMMENT auth TABLE sso_domains supabase_auth_admin
+382; 1259 16830 TABLE auth sso_providers supabase_auth_admin
+6792; 0 0 COMMENT auth TABLE sso_providers supabase_auth_admin
+6793; 0 0 COMMENT auth COLUMN sso_providers.resource_id supabase_auth_admin
+366; 1259 16493 TABLE auth users supabase_auth_admin
+6794; 0 0 COMMENT auth TABLE users supabase_auth_admin
+6795; 0 0 COMMENT auth COLUMN users.is_sso_user supabase_auth_admin
+498; 1259 321083 TABLE auth webauthn_challenges supabase_auth_admin
+497; 1259 321060 TABLE auth webauthn_credentials supabase_auth_admin
+486; 1259 313738 TABLE public admin_task_logs postgres
+485; 1259 313737 SEQUENCE public admin_task_logs_id_seq postgres
+6796; 0 0 SEQUENCE OWNED BY public admin_task_logs_id_seq postgres
+484; 1259 313724 TABLE public admin_tasks postgres
+487; 1259 316082 TABLE public api_keys postgres
+489; 1259 316100 TABLE public api_usage_log postgres
+488; 1259 316099 SEQUENCE public api_usage_log_id_seq postgres
+6797; 0 0 SEQUENCE OWNED BY public api_usage_log_id_seq postgres
+402; 1259 17351 TABLE public audit_trail postgres
+438; 1259 149777 TABLE public confirmations postgres
+6798; 0 0 COMMENT public TABLE confirmations postgres
+515; 1259 346660 TABLE public confirmations_backup_20260502 postgres
+437; 1259 149776 SEQUENCE public confirmations_id_seq postgres
+6799; 0 0 SEQUENCE OWNED BY public confirmations_id_seq postgres
+406; 1259 17636 TABLE public constituencies postgres
+446; 1259 163028 TABLE public constituencies_backup postgres
+405; 1259 17635 SEQUENCE public constituencies_id_seq postgres
+6800; 0 0 SEQUENCE OWNED BY public constituencies_id_seq postgres
+447; 1259 163076 TABLE public constituencies_staging postgres
+459; 1259 282571 TABLE public contact_update_requests postgres
+6801; 0 0 COMMENT public TABLE contact_update_requests postgres
+516; 1259 346665 TABLE public contact_update_requests_backup_20260502 postgres
+458; 1259 282570 SEQUENCE public contact_update_requests_id_seq postgres
+6802; 0 0 SEQUENCE OWNED BY public contact_update_requests_id_seq postgres
+442; 1259 153345 TABLE public contribution_archive postgres
+517; 1259 346670 TABLE public contribution_archive_backup_20260502 postgres
+441; 1259 153344 SEQUENCE public contribution_archive_id_seq postgres
+6803; 0 0 SEQUENCE OWNED BY public contribution_archive_id_seq postgres
+461; 1259 282592 TABLE public contribution_votes postgres
+6804; 0 0 COMMENT public TABLE contribution_votes postgres
+460; 1259 282591 SEQUENCE public contribution_votes_id_seq postgres
+6805; 0 0 SEQUENCE OWNED BY public contribution_votes_id_seq postgres
+408; 1259 34816 TABLE public core_team postgres
+404; 1259 17627 TABLE public counties postgres
+403; 1259 17626 SEQUENCE public counties_id_seq postgres
+6806; 0 0 SEQUENCE OWNED BY public counties_id_seq postgres
+499; 1259 321119 TABLE public diaspora_registration_centres postgres
+400; 1259 17321 TABLE public evidence_documents postgres
+482; 1259 312181 TABLE public geocode_audit postgres
+6807; 0 0 COMMENT public TABLE geocode_audit postgres
+518; 1259 346675 TABLE public geocode_audit_backup_20260502 postgres
+483; 1259 312206 TABLE public geocode_hitl_queue postgres
+6808; 0 0 COMMENT public TABLE geocode_hitl_queue postgres
+519; 1259 346680 TABLE public geocode_hitl_queue_backup_20260502 postgres
+465; 1259 282635 TABLE public geocoding_cache postgres
+6809; 0 0 COMMENT public TABLE geocoding_cache postgres
+464; 1259 282634 SEQUENCE public geocoding_cache_id_seq postgres
+6810; 0 0 SEQUENCE OWNED BY public geocoding_cache_id_seq postgres
+481; 1259 312145 TABLE public geocoding_service_log postgres
+6811; 0 0 COMMENT public TABLE geocoding_service_log postgres
+520; 1259 346685 TABLE public geocoding_service_log_backup_20260502 postgres
+480; 1259 312144 SEQUENCE public geocoding_service_log_id_seq postgres
+6812; 0 0 SEQUENCE OWNED BY public geocoding_service_log_id_seq postgres
+506; 1259 342871 TABLE public id_mapping postgres
+424; 1259 140119 TABLE public iebc_office_contributions postgres
+521; 1259 346690 TABLE public iebc_office_contributions_backup_20260502 postgres
+423; 1259 140118 SEQUENCE public iebc_office_contributions_id_seq postgres
+6813; 0 0 SEQUENCE OWNED BY public iebc_office_contributions_id_seq postgres
+421; 1259 135705 TABLE public iebc_offices postgres
+6814; 0 0 COMMENT public COLUMN iebc_offices.elevation_meters postgres
+6815; 0 0 COMMENT public COLUMN iebc_offices.isochrone_15min postgres
+6816; 0 0 COMMENT public COLUMN iebc_offices.isochrone_30min postgres
+6817; 0 0 COMMENT public COLUMN iebc_offices.isochrone_45min postgres
+6818; 0 0 COMMENT public COLUMN iebc_offices.landmark_normalized postgres
+6819; 0 0 COMMENT public COLUMN iebc_offices.landmark_source postgres
+6820; 0 0 COMMENT public COLUMN iebc_offices.walking_effort postgres
+6821; 0 0 COMMENT public COLUMN iebc_offices.geocode_verified postgres
+6822; 0 0 COMMENT public COLUMN iebc_offices.geocode_verified_at postgres
+6823; 0 0 COMMENT public COLUMN iebc_offices.multi_source_confidence postgres
+6824; 0 0 COMMENT public COLUMN iebc_offices.office_type postgres
+509; 1259 346095 TABLE public iebc_offices_backup_20260425 postgres
+514; 1259 346655 TABLE public iebc_offices_backup_20260502 postgres
+420; 1259 135704 SEQUENCE public iebc_offices_id_seq postgres
+6825; 0 0 SEQUENCE OWNED BY public iebc_offices_id_seq postgres
+505; 1259 341714 TABLE public iebc_offices_legacy_backup postgres
+504; 1259 340007 TABLE public iebc_registration_centres postgres
+409; 1259 35417 TABLE public index_usage_monitoring postgres
+410; 1259 35424 TABLE public index_usage_monitoring_default postgres
+411; 1259 35433 TABLE public index_usage_monitoring_y2023m07 postgres
+426; 1259 140687 TABLE public landmark_types postgres
+425; 1259 140686 SEQUENCE public landmark_types_id_seq postgres
+6826; 0 0 SEQUENCE OWNED BY public landmark_types_id_seq postgres
+428; 1259 140741 TABLE public landmarks postgres
+427; 1259 140740 SEQUENCE public landmarks_id_seq postgres
+6827; 0 0 SEQUENCE OWNED BY public landmarks_id_seq postgres
+430; 1259 142045 TABLE public map_landmarks postgres
+429; 1259 142044 SEQUENCE public map_landmarks_id_seq postgres
+6828; 0 0 SEQUENCE OWNED BY public map_landmarks_id_seq postgres
+434; 1259 143254 VIEW public map_landmarks_readable postgres
+443; 1259 157050 VIEW public map_landmarks_readable_view postgres
+503; 1259 338894 TABLE public nasaka_config postgres
+495; 1259 316453 TABLE public nasaka_discount_applications postgres
+493; 1259 316421 TABLE public nasaka_enterprise_leads postgres
+494; 1259 316435 TABLE public nasaka_license_applications postgres
+492; 1259 316402 TABLE public nasaka_payment_history postgres
+491; 1259 316386 TABLE public nasaka_paystack_events postgres
+496; 1259 316535 TABLE public nasaka_profiles postgres
+6829; 0 0 COMMENT public TABLE nasaka_profiles postgres
+490; 1259 316370 TABLE public nasaka_usage_log postgres
+445; 1259 159189 TABLE public office_contribution_links postgres
+522; 1259 346695 TABLE public office_contribution_links_backup_20260502 postgres
+444; 1259 159188 SEQUENCE public office_contribution_links_id_seq postgres
+6830; 0 0 SEQUENCE OWNED BY public office_contribution_links_id_seq postgres
+502; 1259 327135 MATERIALIZED VIEW public office_verification_stats postgres
+6831; 0 0 COMMENT public MATERIALIZED VIEW office_verification_stats postgres
+457; 1259 281291 TABLE public operational_status_history postgres
+6832; 0 0 COMMENT public TABLE operational_status_history postgres
+523; 1259 346698 TABLE public operational_status_history_backup_20260502 postgres
+456; 1259 281290 SEQUENCE public operational_status_history_id_seq postgres
+397; 1259 17269 TABLE public petitions postgres
+399; 1259 17303 TABLE public profiles postgres
+422; 1259 136357 VIEW public public_iebc_offices postgres
+463; 1259 282614 TABLE public registration_deadlines postgres
+6833; 0 0 COMMENT public TABLE registration_deadlines postgres
+524; 1259 346703 TABLE public registration_deadlines_backup_20260502 postgres
+462; 1259 282613 SEQUENCE public registration_deadlines_id_seq postgres
+6834; 0 0 SEQUENCE OWNED BY public registration_deadlines_id_seq postgres
+508; 1259 346093 SEQUENCE public returning_officer_id_seq postgres
+507; 1259 346007 TABLE public returning_officer postgres
+452; 1259 215768 TABLE public security_audit_log postgres
+451; 1259 215767 SEQUENCE public security_audit_log_id_seq postgres
+6835; 0 0 SEQUENCE OWNED BY public security_audit_log_id_seq postgres
+413; 1259 85475 TABLE public signature_access_log postgres
+398; 1259 17287 TABLE public signatures postgres
+440; 1259 149813 TABLE public verification_log postgres
+525; 1259 346708 TABLE public verification_log_backup_20260502 postgres
+439; 1259 149812 SEQUENCE public verification_log_id_seq postgres
+6836; 0 0 SEQUENCE OWNED BY public verification_log_id_seq postgres
+454; 1259 215968 VIEW public vw_contributions postgres
+6837; 0 0 COMMENT public VIEW vw_contributions postgres
+453; 1259 215922 VIEW public vw_offices postgres
+6838; 0 0 COMMENT public VIEW vw_offices postgres
+455; 1259 216014 VIEW public vw_verification_status postgres
+6839; 0 0 COMMENT public VIEW vw_verification_status postgres
+401; 1259 17342 TABLE public wards postgres
+6840; 0 0 COMMENT public COLUMN wards.registration_target postgres
+396; 1259 17253 TABLE realtime messages supabase_realtime_admin
+510; 1259 346343 TABLE realtime messages_2026_05_01 supabase_admin
+511; 1259 346367 TABLE realtime messages_2026_05_02 supabase_admin
+512; 1259 346385 TABLE realtime messages_2026_05_03 supabase_admin
+513; 1259 346406 TABLE realtime messages_2026_05_04 supabase_admin
+526; 1259 348819 TABLE realtime messages_2026_05_05 supabase_admin
+527; 1259 348866 TABLE realtime messages_2026_05_06 supabase_admin
+528; 1259 348880 TABLE realtime messages_2026_05_07 supabase_admin
+388; 1259 17000 TABLE realtime schema_migrations supabase_admin
+393; 1259 17107 TABLE realtime subscription supabase_admin
+392; 1259 17106 SEQUENCE realtime subscription_id_seq supabase_admin
+372; 1259 16544 TABLE storage buckets supabase_storage_admin
+6841; 0 0 COMMENT storage COLUMN buckets.owner supabase_storage_admin
+412; 1259 78838 TABLE storage buckets_analytics supabase_storage_admin
+448; 1259 181393 TABLE storage buckets_vectors supabase_storage_admin
+374; 1259 16586 TABLE storage migrations supabase_storage_admin
+373; 1259 16559 TABLE storage objects supabase_storage_admin
+6842; 0 0 COMMENT storage COLUMN objects.owner supabase_storage_admin
+389; 1259 17037 TABLE storage s3_multipart_uploads supabase_storage_admin
+390; 1259 17051 TABLE storage s3_multipart_uploads_parts supabase_storage_admin
+449; 1259 181403 TABLE storage vector_indexes supabase_storage_admin
+478; 1259 285082 TABLE supabase_functions hooks supabase_functions_admin
+6843; 0 0 COMMENT supabase_functions TABLE hooks supabase_functions_admin
+477; 1259 285081 SEQUENCE supabase_functions hooks_id_seq supabase_functions_admin
+6844; 0 0 SEQUENCE OWNED BY supabase_functions hooks_id_seq supabase_functions_admin
+476; 1259 285073 TABLE supabase_functions migrations supabase_functions_admin
+407; 1259 17834 TABLE supabase_migrations schema_migrations postgres
+5270; 0 0 TABLE ATTACH public index_usage_monitoring_default postgres
+5271; 0 0 TABLE ATTACH public index_usage_monitoring_y2023m07 postgres
+5272; 0 0 TABLE ATTACH realtime messages_2026_05_01 supabase_admin
+5273; 0 0 TABLE ATTACH realtime messages_2026_05_02 supabase_admin
+5274; 0 0 TABLE ATTACH realtime messages_2026_05_03 supabase_admin
+5275; 0 0 TABLE ATTACH realtime messages_2026_05_04 supabase_admin
+5276; 0 0 TABLE ATTACH realtime messages_2026_05_05 supabase_admin
+5277; 0 0 TABLE ATTACH realtime messages_2026_05_06 supabase_admin
+5278; 0 0 TABLE ATTACH realtime messages_2026_05_07 supabase_admin
+5288; 2604 16508 DEFAULT auth refresh_tokens id supabase_auth_admin
+5489; 2604 313741 DEFAULT public admin_task_logs id postgres
+5507; 2604 316103 DEFAULT public api_usage_log id postgres
+5408; 2604 149780 DEFAULT public confirmations id postgres
+5349; 2604 17639 DEFAULT public constituencies id postgres
+5433; 2604 282574 DEFAULT public contact_update_requests id postgres
+5415; 2604 153348 DEFAULT public contribution_archive id postgres
+5437; 2604 282595 DEFAULT public contribution_votes id postgres
+5348; 2604 17630 DEFAULT public counties id postgres
+5444; 2604 282638 DEFAULT public geocoding_cache id postgres
+5469; 2604 312148 DEFAULT public geocoding_service_log id postgres
+5379; 2604 140122 DEFAULT public iebc_office_contributions id postgres
+5371; 2604 135708 DEFAULT public iebc_offices id postgres
+5388; 2604 140690 DEFAULT public landmark_types id postgres
+5390; 2604 140744 DEFAULT public landmarks id postgres
+5394; 2604 142048 DEFAULT public map_landmarks id postgres
+5418; 2604 159192 DEFAULT public office_contribution_links id postgres
+5440; 2604 282617 DEFAULT public registration_deadlines id postgres
+5426; 2604 215771 DEFAULT public security_audit_log id postgres
+5412; 2604 149816 DEFAULT public verification_log id postgres
+5456; 2604 285085 DEFAULT supabase_functions hooks id supabase_functions_admin
+6610; 0 16523 TABLE DATA auth audit_log_entries supabase_auth_admin
+6688; 0 296241 TABLE DATA auth custom_oauth_providers supabase_auth_admin
+6624; 0 16925 TABLE DATA auth flow_state supabase_auth_admin
+6615; 0 16723 TABLE DATA auth identities supabase_auth_admin
+6609; 0 16516 TABLE DATA auth instances supabase_auth_admin
+6619; 0 16812 TABLE DATA auth mfa_amr_claims supabase_auth_admin
+6618; 0 16800 TABLE DATA auth mfa_challenges supabase_auth_admin
+6617; 0 16787 TABLE DATA auth mfa_factors supabase_auth_admin
+6658; 0 144401 TABLE DATA auth oauth_authorizations supabase_auth_admin
+6672; 0 209311 TABLE DATA auth oauth_client_states supabase_auth_admin
+6647; 0 130949 TABLE DATA auth oauth_clients supabase_auth_admin
+6659; 0 144434 TABLE DATA auth oauth_consents supabase_auth_admin
+6625; 0 16975 TABLE DATA auth one_time_tokens supabase_auth_admin
+6608; 0 16505 TABLE DATA auth refresh_tokens supabase_auth_admin
+6622; 0 16854 TABLE DATA auth saml_providers supabase_auth_admin
+6623; 0 16872 TABLE DATA auth saml_relay_states supabase_auth_admin
+6611; 0 16531 TABLE DATA auth schema_migrations supabase_auth_admin
+6616; 0 16753 TABLE DATA auth sessions supabase_auth_admin
+6621; 0 16839 TABLE DATA auth sso_domains supabase_auth_admin
+6620; 0 16830 TABLE DATA auth sso_providers supabase_auth_admin
+6606; 0 16493 TABLE DATA auth users supabase_auth_admin
+6707; 0 321083 TABLE DATA auth webauthn_challenges supabase_auth_admin
+6706; 0 321060 TABLE DATA auth webauthn_credentials supabase_auth_admin
+5264; 0 284922 TABLE DATA cron job supabase_admin
+5266; 0 284941 TABLE DATA cron job_run_details supabase_admin
+6695; 0 313738 TABLE DATA public admin_task_logs postgres
+6693; 0 313724 TABLE DATA public admin_tasks postgres
+6696; 0 316082 TABLE DATA public api_keys postgres
+6698; 0 316100 TABLE DATA public api_usage_log postgres
+6636; 0 17351 TABLE DATA public audit_trail postgres
+6661; 0 149777 TABLE DATA public confirmations postgres
+6722; 0 346660 TABLE DATA public confirmations_backup_20260502 postgres
+6640; 0 17636 TABLE DATA public constituencies postgres
+6668; 0 163028 TABLE DATA public constituencies_backup postgres
+6669; 0 163076 TABLE DATA public constituencies_staging postgres
+6678; 0 282571 TABLE DATA public contact_update_requests postgres
+6723; 0 346665 TABLE DATA public contact_update_requests_backup_20260502 postgres
+6665; 0 153345 TABLE DATA public contribution_archive postgres
+6724; 0 346670 TABLE DATA public contribution_archive_backup_20260502 postgres
+6680; 0 282592 TABLE DATA public contribution_votes postgres
+6642; 0 34816 TABLE DATA public core_team postgres
+6638; 0 17627 TABLE DATA public counties postgres
+6708; 0 321119 TABLE DATA public diaspora_registration_centres postgres
+6634; 0 17321 TABLE DATA public evidence_documents postgres
+6691; 0 312181 TABLE DATA public geocode_audit postgres
+6725; 0 346675 TABLE DATA public geocode_audit_backup_20260502 postgres
+6692; 0 312206 TABLE DATA public geocode_hitl_queue postgres
+6726; 0 346680 TABLE DATA public geocode_hitl_queue_backup_20260502 postgres
+6684; 0 282635 TABLE DATA public geocoding_cache postgres
+6690; 0 312145 TABLE DATA public geocoding_service_log postgres
+6727; 0 346685 TABLE DATA public geocoding_service_log_backup_20260502 postgres
+6713; 0 342871 TABLE DATA public id_mapping postgres
+6651; 0 140119 TABLE DATA public iebc_office_contributions postgres
+6728; 0 346690 TABLE DATA public iebc_office_contributions_backup_20260502 postgres
+6649; 0 135705 TABLE DATA public iebc_offices postgres
+6716; 0 346095 TABLE DATA public iebc_offices_backup_20260425 postgres
+6721; 0 346655 TABLE DATA public iebc_offices_backup_20260502 postgres
+6712; 0 341714 TABLE DATA public iebc_offices_legacy_backup postgres
+6711; 0 340007 TABLE DATA public iebc_registration_centres postgres
+6643; 0 35424 TABLE DATA public index_usage_monitoring_default postgres
+6644; 0 35433 TABLE DATA public index_usage_monitoring_y2023m07 postgres
+6653; 0 140687 TABLE DATA public landmark_types postgres
+6655; 0 140741 TABLE DATA public landmarks postgres
+6657; 0 142045 TABLE DATA public map_landmarks postgres
+6710; 0 338894 TABLE DATA public nasaka_config postgres
+6704; 0 316453 TABLE DATA public nasaka_discount_applications postgres
+6702; 0 316421 TABLE DATA public nasaka_enterprise_leads postgres
+6703; 0 316435 TABLE DATA public nasaka_license_applications postgres
+6701; 0 316402 TABLE DATA public nasaka_payment_history postgres
+6700; 0 316386 TABLE DATA public nasaka_paystack_events postgres
+6705; 0 316535 TABLE DATA public nasaka_profiles postgres
+6699; 0 316370 TABLE DATA public nasaka_usage_log postgres
+6667; 0 159189 TABLE DATA public office_contribution_links postgres
+6729; 0 346695 TABLE DATA public office_contribution_links_backup_20260502 postgres
+6676; 0 281291 TABLE DATA public operational_status_history postgres
+6730; 0 346698 TABLE DATA public operational_status_history_backup_20260502 postgres
+6631; 0 17269 TABLE DATA public petitions postgres
+6633; 0 17303 TABLE DATA public profiles postgres
+6682; 0 282614 TABLE DATA public registration_deadlines postgres
+6731; 0 346703 TABLE DATA public registration_deadlines_backup_20260502 postgres
+6714; 0 346007 TABLE DATA public returning_officer postgres
+6674; 0 215768 TABLE DATA public security_audit_log postgres
+6646; 0 85475 TABLE DATA public signature_access_log postgres
+6632; 0 17287 TABLE DATA public signatures postgres
+5269; 0 125568 TABLE DATA public spatial_ref_sys supabase_admin
+6663; 0 149813 TABLE DATA public verification_log postgres
+6732; 0 346708 TABLE DATA public verification_log_backup_20260502 postgres
+6635; 0 17342 TABLE DATA public wards postgres
+6717; 0 346343 TABLE DATA realtime messages_2026_05_01 supabase_admin
+6718; 0 346367 TABLE DATA realtime messages_2026_05_02 supabase_admin
+6719; 0 346385 TABLE DATA realtime messages_2026_05_03 supabase_admin
+6720; 0 346406 TABLE DATA realtime messages_2026_05_04 supabase_admin
+6733; 0 348819 TABLE DATA realtime messages_2026_05_05 supabase_admin
+6734; 0 348866 TABLE DATA realtime messages_2026_05_06 supabase_admin
+6735; 0 348880 TABLE DATA realtime messages_2026_05_07 supabase_admin
+6626; 0 17000 TABLE DATA realtime schema_migrations supabase_admin
+6630; 0 17107 TABLE DATA realtime subscription supabase_admin
+6612; 0 16544 TABLE DATA storage buckets supabase_storage_admin
+6645; 0 78838 TABLE DATA storage buckets_analytics supabase_storage_admin
+6670; 0 181393 TABLE DATA storage buckets_vectors supabase_storage_admin
+6614; 0 16586 TABLE DATA storage migrations supabase_storage_admin
+6613; 0 16559 TABLE DATA storage objects supabase_storage_admin
+6627; 0 17037 TABLE DATA storage s3_multipart_uploads supabase_storage_admin
+6628; 0 17051 TABLE DATA storage s3_multipart_uploads_parts supabase_storage_admin
+6671; 0 181403 TABLE DATA storage vector_indexes supabase_storage_admin
+6687; 0 285082 TABLE DATA supabase_functions hooks supabase_functions_admin
+6685; 0 285073 TABLE DATA supabase_functions migrations supabase_functions_admin
+6641; 0 17834 TABLE DATA supabase_migrations schema_migrations postgres
+5268; 0 16656 TABLE DATA vault secrets supabase_admin
+6845; 0 0 SEQUENCE SET auth refresh_tokens_id_seq supabase_auth_admin
+6846; 0 0 SEQUENCE SET cron jobid_seq supabase_admin
+6847; 0 0 SEQUENCE SET cron runid_seq supabase_admin
+6848; 0 0 SEQUENCE SET public admin_task_logs_id_seq postgres
+6849; 0 0 SEQUENCE SET public api_usage_log_id_seq postgres
+6850; 0 0 SEQUENCE SET public confirmations_id_seq postgres
+6851; 0 0 SEQUENCE SET public constituencies_id_seq postgres
+6852; 0 0 SEQUENCE SET public contact_update_requests_id_seq postgres
+6853; 0 0 SEQUENCE SET public contribution_archive_id_seq postgres
+6854; 0 0 SEQUENCE SET public contribution_votes_id_seq postgres
+6855; 0 0 SEQUENCE SET public counties_id_seq postgres
+6856; 0 0 SEQUENCE SET public geocoding_cache_id_seq postgres
+6857; 0 0 SEQUENCE SET public geocoding_service_log_id_seq postgres
+6858; 0 0 SEQUENCE SET public iebc_office_contributions_id_seq postgres
+6859; 0 0 SEQUENCE SET public iebc_offices_id_seq postgres
+6860; 0 0 SEQUENCE SET public landmark_types_id_seq postgres
+6861; 0 0 SEQUENCE SET public landmarks_id_seq postgres
+6862; 0 0 SEQUENCE SET public map_landmarks_id_seq postgres
+6863; 0 0 SEQUENCE SET public office_contribution_links_id_seq postgres
+6864; 0 0 SEQUENCE SET public operational_status_history_id_seq postgres
+6865; 0 0 SEQUENCE SET public registration_deadlines_id_seq postgres
+6866; 0 0 SEQUENCE SET public returning_officer_id_seq postgres
+6867; 0 0 SEQUENCE SET public security_audit_log_id_seq postgres
+6868; 0 0 SEQUENCE SET public verification_log_id_seq postgres
+6869; 0 0 SEQUENCE SET realtime subscription_id_seq supabase_admin
+6870; 0 0 SEQUENCE SET supabase_functions hooks_id_seq supabase_functions_admin
+5734; 2606 16825 CONSTRAINT auth mfa_amr_claims amr_id_pk supabase_auth_admin
+5690; 2606 16529 CONSTRAINT auth audit_log_entries audit_log_entries_pkey supabase_auth_admin
+6022; 2606 296278 CONSTRAINT auth custom_oauth_providers custom_oauth_providers_identifier_key supabase_auth_admin
+6024; 2606 296276 CONSTRAINT auth custom_oauth_providers custom_oauth_providers_pkey supabase_auth_admin
+5757; 2606 16931 CONSTRAINT auth flow_state flow_state_pkey supabase_auth_admin
+5712; 2606 16949 CONSTRAINT auth identities identities_pkey supabase_auth_admin
+5714; 2606 16959 CONSTRAINT auth identities identities_provider_id_provider_unique supabase_auth_admin
+5688; 2606 16522 CONSTRAINT auth instances instances_pkey supabase_auth_admin
+5736; 2606 16818 CONSTRAINT auth mfa_amr_claims mfa_amr_claims_session_id_authentication_method_pkey supabase_auth_admin
+5732; 2606 16806 CONSTRAINT auth mfa_challenges mfa_challenges_pkey supabase_auth_admin
+5724; 2606 16999 CONSTRAINT auth mfa_factors mfa_factors_last_challenged_at_key supabase_auth_admin
+5726; 2606 16793 CONSTRAINT auth mfa_factors mfa_factors_pkey supabase_auth_admin
+5920; 2606 144422 CONSTRAINT auth oauth_authorizations oauth_authorizations_authorization_code_key supabase_auth_admin
+5922; 2606 144420 CONSTRAINT auth oauth_authorizations oauth_authorizations_authorization_id_key supabase_auth_admin
+5924; 2606 144418 CONSTRAINT auth oauth_authorizations oauth_authorizations_pkey supabase_auth_admin
+5975; 2606 209317 CONSTRAINT auth oauth_client_states oauth_client_states_pkey supabase_auth_admin
+5861; 2606 130960 CONSTRAINT auth oauth_clients oauth_clients_pkey supabase_auth_admin
+5928; 2606 144444 CONSTRAINT auth oauth_consents oauth_consents_pkey supabase_auth_admin
+5930; 2606 144446 CONSTRAINT auth oauth_consents oauth_consents_user_client_unique supabase_auth_admin
+5761; 2606 16984 CONSTRAINT auth one_time_tokens one_time_tokens_pkey supabase_auth_admin
+5682; 2606 16512 CONSTRAINT auth refresh_tokens refresh_tokens_pkey supabase_auth_admin
+5685; 2606 16736 CONSTRAINT auth refresh_tokens refresh_tokens_token_unique supabase_auth_admin
+5746; 2606 16865 CONSTRAINT auth saml_providers saml_providers_entity_id_key supabase_auth_admin
+5748; 2606 16863 CONSTRAINT auth saml_providers saml_providers_pkey supabase_auth_admin
+5753; 2606 16879 CONSTRAINT auth saml_relay_states saml_relay_states_pkey supabase_auth_admin
+5693; 2606 16535 CONSTRAINT auth schema_migrations schema_migrations_pkey supabase_auth_admin
+5719; 2606 16757 CONSTRAINT auth sessions sessions_pkey supabase_auth_admin
+5743; 2606 16846 CONSTRAINT auth sso_domains sso_domains_pkey supabase_auth_admin
+5738; 2606 16837 CONSTRAINT auth sso_providers sso_providers_pkey supabase_auth_admin
+5675; 2606 16919 CONSTRAINT auth users users_phone_key supabase_auth_admin
+5677; 2606 16499 CONSTRAINT auth users users_pkey supabase_auth_admin
+6083; 2606 321092 CONSTRAINT auth webauthn_challenges webauthn_challenges_pkey supabase_auth_admin
+6079; 2606 321075 CONSTRAINT auth webauthn_credentials webauthn_credentials_pkey supabase_auth_admin
+6045; 2606 313747 CONSTRAINT public admin_task_logs admin_task_logs_pkey postgres
+6043; 2606 313736 CONSTRAINT public admin_tasks admin_tasks_pkey postgres
+6047; 2606 316098 CONSTRAINT public api_keys api_keys_key_hash_key postgres
+6049; 2606 316096 CONSTRAINT public api_keys api_keys_pkey postgres
+6053; 2606 316108 CONSTRAINT public api_usage_log api_usage_log_pkey postgres
+5809; 2606 17359 CONSTRAINT public audit_trail audit_trail_pkey postgres
+5933; 2606 149786 CONSTRAINT public confirmations confirmations_pkey postgres
+5825; 2606 24811 CONSTRAINT public constituencies constituencies_member_of_parliament_key postgres
+5827; 2606 328309 CONSTRAINT public constituencies constituencies_name_county_key postgres
+5829; 2606 24818 CONSTRAINT public constituencies constituencies_name_key postgres
+5831; 2606 17643 CONSTRAINT public constituencies constituencies_pkey postgres
+5833; 2606 25243 CONSTRAINT public constituencies constituencies_registration_target_key postgres
+5835; 2606 163797 CONSTRAINT public constituencies constituencies_unique_name_per_county postgres
+5984; 2606 282582 CONSTRAINT public contact_update_requests contact_update_requests_pkey postgres
+5954; 2606 153355 CONSTRAINT public contribution_archive contribution_archive_pkey postgres
+5989; 2606 282604 CONSTRAINT public contribution_votes contribution_votes_contribution_id_voter_device_hash_key postgres
+5991; 2606 282602 CONSTRAINT public contribution_votes contribution_votes_pkey postgres
+5843; 2606 34822 CONSTRAINT public core_team core_team_pkey postgres
+5814; 2606 328307 CONSTRAINT public counties counties_name_key postgres
+5816; 2606 20609 CONSTRAINT public counties counties_pkey postgres
+5818; 2606 39009 CONSTRAINT public counties counties_registration_target_key postgres
+6086; 2606 321136 CONSTRAINT public diaspora_registration_centres diaspora_registration_centres_pkey postgres
+5797; 2606 17331 CONSTRAINT public evidence_documents evidence_documents_pkey postgres
+6032; 2606 312196 CONSTRAINT public geocode_audit geocode_audit_pkey postgres
+6038; 2606 312217 CONSTRAINT public geocode_hitl_queue geocode_hitl_queue_pkey postgres
+6001; 2606 282644 CONSTRAINT public geocoding_cache geocoding_cache_pkey postgres
+6003; 2606 282646 CONSTRAINT public geocoding_cache geocoding_cache_query_hash_key postgres
+6027; 2606 312156 CONSTRAINT public geocoding_service_log geocoding_service_log_pkey postgres
+5902; 2606 140130 CONSTRAINT public iebc_office_contributions iebc_office_contributions_pkey postgres
+5887; 2606 342675 CONSTRAINT public iebc_offices iebc_offices_centre_ward_const_county_key postgres
+5890; 2606 135715 CONSTRAINT public iebc_offices iebc_offices_pkey postgres
+6105; 2606 340017 CONSTRAINT public iebc_registration_centres iebc_registration_centres_pkey postgres
+6107; 2606 340019 CONSTRAINT public iebc_registration_centres iebc_registration_centres_unique postgres
+5845; 2606 35423 CONSTRAINT public index_usage_monitoring index_usage_monitoring_pkey postgres
+5847; 2606 35430 CONSTRAINT public index_usage_monitoring_default index_usage_monitoring_default_pkey postgres
+5849; 2606 35439 CONSTRAINT public index_usage_monitoring_y2023m07 index_usage_monitoring_y2023m07_pkey postgres
+5904; 2606 140695 CONSTRAINT public landmark_types landmark_types_pkey postgres
+5910; 2606 140751 CONSTRAINT public landmarks landmarks_pkey postgres
+5917; 2606 142060 CONSTRAINT public map_landmarks map_landmarks_pkey postgres
+6098; 2606 338901 CONSTRAINT public nasaka_config nasaka_config_pkey postgres
+6072; 2606 316464 CONSTRAINT public nasaka_discount_applications nasaka_discount_applications_pkey postgres
+6068; 2606 316434 CONSTRAINT public nasaka_enterprise_leads nasaka_enterprise_leads_pkey postgres
+6070; 2606 316447 CONSTRAINT public nasaka_license_applications nasaka_license_applications_pkey postgres
+6064; 2606 316415 CONSTRAINT public nasaka_payment_history nasaka_payment_history_paystack_reference_key postgres
+6066; 2606 316413 CONSTRAINT public nasaka_payment_history nasaka_payment_history_pkey postgres
+6060; 2606 316396 CONSTRAINT public nasaka_paystack_events nasaka_paystack_events_paystack_event_id_key postgres
+6062; 2606 316394 CONSTRAINT public nasaka_paystack_events nasaka_paystack_events_pkey postgres
+6074; 2606 316545 CONSTRAINT public nasaka_profiles nasaka_profiles_pkey postgres
+6058; 2606 316379 CONSTRAINT public nasaka_usage_log nasaka_usage_log_pkey postgres
+5965; 2606 159197 CONSTRAINT public office_contribution_links office_contribution_links_office_id_contribution_id_key postgres
+5967; 2606 159195 CONSTRAINT public office_contribution_links office_contribution_links_pkey postgres
+5982; 2606 281298 CONSTRAINT public operational_status_history operational_status_history_pkey postgres
+5786; 2606 17281 CONSTRAINT public petitions petitions_pkey postgres
+5793; 2606 17315 CONSTRAINT public profiles profiles_national_id_key postgres
+5795; 2606 17313 CONSTRAINT public profiles profiles_pkey postgres
+5999; 2606 282625 CONSTRAINT public registration_deadlines registration_deadlines_pkey postgres
+6112; 2606 346043 CONSTRAINT public returning_officer returning_officer_data_email_key postgres
+6114; 2606 346045 CONSTRAINT public returning_officer returning_officer_data_email_key1 postgres
+6116; 2606 346047 CONSTRAINT public returning_officer returning_officer_data_email_key2 postgres
+6118; 2606 346021 CONSTRAINT public returning_officer returning_officer_data_name_key postgres
+6120; 2606 346027 CONSTRAINT public returning_officer returning_officer_data_name_key1 postgres
+6122; 2606 346033 CONSTRAINT public returning_officer returning_officer_data_name_key2 postgres
+6124; 2606 346037 CONSTRAINT public returning_officer returning_officer_data_pkey postgres
+5977; 2606 215777 CONSTRAINT public security_audit_log security_audit_log_pkey postgres
+5856; 2606 85483 CONSTRAINT public signature_access_log signature_access_log_pkey postgres
+5791; 2606 17297 CONSTRAINT public signatures signatures_pkey postgres
+5821; 2606 21025 CONSTRAINT public counties unique_county_code postgres
+5823; 2606 20965 CONSTRAINT public counties unique_county_name postgres
+6076; 2606 316547 CONSTRAINT public nasaka_profiles unique_nasaka_user_profile postgres
+5952; 2606 149823 CONSTRAINT public verification_log verification_log_pkey postgres
+5805; 2606 328311 CONSTRAINT public wards wards_full_path_key postgres
+5807; 2606 17350 CONSTRAINT public wards wards_pkey postgres
+5778; 2606 17267 CONSTRAINT realtime messages messages_pkey supabase_realtime_admin
+6127; 2606 346351 CONSTRAINT realtime messages_2026_05_01 messages_2026_05_01_pkey supabase_admin
+6130; 2606 346375 CONSTRAINT realtime messages_2026_05_02 messages_2026_05_02_pkey supabase_admin
+6133; 2606 346393 CONSTRAINT realtime messages_2026_05_03 messages_2026_05_03_pkey supabase_admin
+6136; 2606 346414 CONSTRAINT realtime messages_2026_05_04 messages_2026_05_04_pkey supabase_admin
+6139; 2606 348827 CONSTRAINT realtime messages_2026_05_05 messages_2026_05_05_pkey supabase_admin
+6142; 2606 348874 CONSTRAINT realtime messages_2026_05_06 messages_2026_05_06_pkey supabase_admin
+6145; 2606 348888 CONSTRAINT realtime messages_2026_05_07 messages_2026_05_07_pkey supabase_admin
+5774; 2606 17115 CONSTRAINT realtime subscription pk_subscription supabase_admin
+5766; 2606 17004 CONSTRAINT realtime schema_migrations schema_migrations_pkey supabase_admin
+5851; 2606 181426 CONSTRAINT storage buckets_analytics buckets_analytics_pkey supabase_storage_admin
+5696; 2606 16552 CONSTRAINT storage buckets buckets_pkey supabase_storage_admin
+5969; 2606 181402 CONSTRAINT storage buckets_vectors buckets_vectors_pkey supabase_storage_admin
+5704; 2606 16593 CONSTRAINT storage migrations migrations_name_key supabase_storage_admin
+5706; 2606 16591 CONSTRAINT storage migrations migrations_pkey supabase_storage_admin
+5702; 2606 16569 CONSTRAINT storage objects objects_pkey supabase_storage_admin
+5771; 2606 17060 CONSTRAINT storage s3_multipart_uploads_parts s3_multipart_uploads_parts_pkey supabase_storage_admin
+5769; 2606 17045 CONSTRAINT storage s3_multipart_uploads s3_multipart_uploads_pkey supabase_storage_admin
+5972; 2606 181412 CONSTRAINT storage vector_indexes vector_indexes_pkey supabase_storage_admin
+6015; 2606 285090 CONSTRAINT supabase_functions hooks hooks_pkey supabase_functions_admin
+6013; 2606 285080 CONSTRAINT supabase_functions migrations migrations_pkey supabase_functions_admin
+5839; 2606 17842 CONSTRAINT supabase_migrations schema_migrations schema_migrations_idempotency_key_key postgres
+5841; 2606 17840 CONSTRAINT supabase_migrations schema_migrations schema_migrations_pkey postgres
+5691; 1259 16530 INDEX auth audit_logs_instance_id_idx supabase_auth_admin
+5665; 1259 16746 INDEX auth confirmation_token_idx supabase_auth_admin
+6018; 1259 296282 INDEX auth custom_oauth_providers_created_at_idx supabase_auth_admin
+6019; 1259 296281 INDEX auth custom_oauth_providers_enabled_idx supabase_auth_admin
+6020; 1259 296279 INDEX auth custom_oauth_providers_identifier_idx supabase_auth_admin
+6025; 1259 296280 INDEX auth custom_oauth_providers_provider_type_idx supabase_auth_admin
+5666; 1259 16748 INDEX auth email_change_token_current_idx supabase_auth_admin
+5667; 1259 16749 INDEX auth email_change_token_new_idx supabase_auth_admin
+5722; 1259 16827 INDEX auth factor_id_created_at_idx supabase_auth_admin
+5755; 1259 16935 INDEX auth flow_state_created_at_idx supabase_auth_admin
+5710; 1259 16915 INDEX auth identities_email_idx supabase_auth_admin
+6871; 0 0 COMMENT auth INDEX identities_email_idx supabase_auth_admin
+5715; 1259 16743 INDEX auth identities_user_id_idx supabase_auth_admin
+5758; 1259 16932 INDEX auth idx_auth_code supabase_auth_admin
+5973; 1259 209318 INDEX auth idx_oauth_client_states_created_at supabase_auth_admin
+5759; 1259 16933 INDEX auth idx_user_id_auth_method supabase_auth_admin
+5730; 1259 16938 INDEX auth mfa_challenge_created_at_idx supabase_auth_admin
+5727; 1259 16799 INDEX auth mfa_factors_user_friendly_name_unique supabase_auth_admin
+5728; 1259 16944 INDEX auth mfa_factors_user_id_idx supabase_auth_admin
+5918; 1259 144433 INDEX auth oauth_auth_pending_exp_idx supabase_auth_admin
+5859; 1259 130964 INDEX auth oauth_clients_deleted_at_idx supabase_auth_admin
+5925; 1259 144459 INDEX auth oauth_consents_active_client_idx supabase_auth_admin
+5926; 1259 144457 INDEX auth oauth_consents_active_user_client_idx supabase_auth_admin
+5931; 1259 144458 INDEX auth oauth_consents_user_order_idx supabase_auth_admin
+5762; 1259 16991 INDEX auth one_time_tokens_relates_to_hash_idx supabase_auth_admin
+5763; 1259 16990 INDEX auth one_time_tokens_token_hash_hash_idx supabase_auth_admin
+5764; 1259 16992 INDEX auth one_time_tokens_user_id_token_type_key supabase_auth_admin
+5668; 1259 16750 INDEX auth reauthentication_token_idx supabase_auth_admin
+5669; 1259 16747 INDEX auth recovery_token_idx supabase_auth_admin
+5678; 1259 16513 INDEX auth refresh_tokens_instance_id_idx supabase_auth_admin
+5679; 1259 16514 INDEX auth refresh_tokens_instance_id_user_id_idx supabase_auth_admin
+5680; 1259 16742 INDEX auth refresh_tokens_parent_idx supabase_auth_admin
+5683; 1259 16829 INDEX auth refresh_tokens_session_id_revoked_idx supabase_auth_admin
+5686; 1259 16934 INDEX auth refresh_tokens_updated_at_idx supabase_auth_admin
+5749; 1259 16871 INDEX auth saml_providers_sso_provider_id_idx supabase_auth_admin
+5750; 1259 16936 INDEX auth saml_relay_states_created_at_idx supabase_auth_admin
+5751; 1259 16886 INDEX auth saml_relay_states_for_email_idx supabase_auth_admin
+5754; 1259 16885 INDEX auth saml_relay_states_sso_provider_id_idx supabase_auth_admin
+5716; 1259 16937 INDEX auth sessions_not_after_idx supabase_auth_admin
+5717; 1259 144471 INDEX auth sessions_oauth_client_id_idx supabase_auth_admin
+5720; 1259 16828 INDEX auth sessions_user_id_idx supabase_auth_admin
+5741; 1259 16853 INDEX auth sso_domains_domain_idx supabase_auth_admin
+5744; 1259 16852 INDEX auth sso_domains_sso_provider_id_idx supabase_auth_admin
+5739; 1259 16838 INDEX auth sso_providers_resource_id_idx supabase_auth_admin
+5740; 1259 130942 INDEX auth sso_providers_resource_id_pattern_idx supabase_auth_admin
+5729; 1259 16997 INDEX auth unique_phone_factor_per_user supabase_auth_admin
+5721; 1259 16826 INDEX auth user_id_created_at_idx supabase_auth_admin
+5670; 1259 16906 INDEX auth users_email_partial_key supabase_auth_admin
+6872; 0 0 COMMENT auth INDEX users_email_partial_key supabase_auth_admin
+5671; 1259 16744 INDEX auth users_instance_id_email_idx supabase_auth_admin
+5672; 1259 16503 INDEX auth users_instance_id_idx supabase_auth_admin
+5673; 1259 16961 INDEX auth users_is_anonymous_idx supabase_auth_admin
+6081; 1259 321099 INDEX auth webauthn_challenges_expires_at_idx supabase_auth_admin
+6084; 1259 321098 INDEX auth webauthn_challenges_user_id_idx supabase_auth_admin
+6077; 1259 321081 INDEX auth webauthn_credentials_credential_id_key supabase_auth_admin
+6080; 1259 321082 INDEX auth webauthn_credentials_user_id_idx supabase_auth_admin
+6050; 1259 321105 INDEX public idx_api_keys_ceka_user_unique postgres
+6051; 1259 316118 INDEX public idx_api_keys_hash postgres
+6054; 1259 316120 INDEX public idx_api_usage_created_at postgres
+6055; 1259 316119 INDEX public idx_api_usage_key_id postgres
+5810; 1259 35940 INDEX public idx_audit_trail_petition_id_fkey postgres
+5811; 1259 35962 INDEX public idx_audit_trail_signature_id_fkey postgres
+5812; 1259 36218 INDEX public idx_audit_trail_timestamp postgres
+5934; 1259 282563 INDEX public idx_confirmations_confirmed_at postgres
+5935; 1259 150038 INDEX public idx_confirmations_contribution postgres
+5936; 1259 282562 INDEX public idx_confirmations_contribution_id postgres
+5937; 1259 282564 INDEX public idx_confirmations_device_hash postgres
+5938; 1259 327156 INDEX public idx_confirmations_distance_meters postgres
+5939; 1259 327155 INDEX public idx_confirmations_geom postgres
+5940; 1259 150082 INDEX public idx_confirmations_hash postgres
+5941; 1259 150060 INDEX public idx_confirmations_time postgres
+5942; 1259 328318 INDEX public idx_confirmations_user_id postgres
+5836; 1259 17651 INDEX public idx_constituencies_county_id postgres
+5837; 1259 17650 INDEX public idx_constituencies_name postgres
+5985; 1259 282588 INDEX public idx_contact_update_office_id postgres
+5986; 1259 282589 INDEX public idx_contact_update_status postgres
+5987; 1259 282590 INDEX public idx_contact_update_submitted_at postgres
+5955; 1259 327160 INDEX public idx_contribution_archive_action_timestamp postgres
+5956; 1259 153453 INDEX public idx_contribution_archive_action_type postgres
+5957; 1259 327161 INDEX public idx_contribution_archive_actor postgres
+5958; 1259 153452 INDEX public idx_contribution_archive_contribution_id postgres
+5959; 1259 327159 INDEX public idx_contribution_archive_original_office_id postgres
+5960; 1259 153454 INDEX public idx_contribution_archive_timestamp postgres
+5992; 1259 282610 INDEX public idx_contribution_votes_contribution_id postgres
+5993; 1259 282611 INDEX public idx_contribution_votes_vote_type postgres
+5994; 1259 282612 INDEX public idx_contribution_votes_voted_at postgres
+5891; 1259 150170 INDEX public idx_contributions_confidence postgres
+5892; 1259 152564 INDEX public idx_contributions_constituency_code postgres
+5893; 1259 162892 INDEX public idx_contributions_constituency_id postgres
+5894; 1259 150214 INDEX public idx_contributions_geom postgres
+5895; 1259 150192 INDEX public idx_contributions_status postgres
+5819; 1259 17649 INDEX public idx_counties_name postgres
+6087; 1259 323478 INDEX public idx_diaspora_city_trgm postgres
+6088; 1259 321142 INDEX public idx_diaspora_confirmed_2027 postgres
+6089; 1259 321141 INDEX public idx_diaspora_continent postgres
+6090; 1259 321139 INDEX public idx_diaspora_country_code postgres
+6091; 1259 323476 INDEX public idx_diaspora_country_trgm postgres
+6092; 1259 321143 INDEX public idx_diaspora_lat_lng postgres
+6093; 1259 323477 INDEX public idx_diaspora_mission_trgm postgres
+6094; 1259 321140 INDEX public idx_diaspora_state postgres
+5798; 1259 36174 INDEX public idx_evidence_documents_pending postgres
+5799; 1259 35984 INDEX public idx_evidence_documents_uploaded_by_fkey postgres
+6033; 1259 312204 INDEX public idx_geocode_audit_applied postgres
+6034; 1259 312205 INDEX public idx_geocode_audit_created postgres
+6035; 1259 312203 INDEX public idx_geocode_audit_issue postgres
+6036; 1259 312202 INDEX public idx_geocode_audit_office postgres
+6004; 1259 282648 INDEX public idx_geocoding_cache_expires_at postgres
+6005; 1259 282647 INDEX public idx_geocoding_cache_query_hash postgres
+6028; 1259 312163 INDEX public idx_geocoding_log_created postgres
+6029; 1259 312164 INDEX public idx_geocoding_log_office postgres
+6030; 1259 312162 INDEX public idx_geocoding_log_service postgres
+6039; 1259 312230 INDEX public idx_hitl_queue_created postgres
+6040; 1259 312229 INDEX public idx_hitl_queue_office postgres
+6041; 1259 312228 INDEX public idx_hitl_queue_status postgres
+5896; 1259 153455 INDEX public idx_iebc_office_contributions_archived postgres
+5897; 1259 162584 INDEX public idx_iebc_office_contributions_constituency_id postgres
+5898; 1259 140160 INDEX public idx_iebc_office_contributions_created_at postgres
+5899; 1259 140159 INDEX public idx_iebc_office_contributions_geom postgres
+5900; 1259 140158 INDEX public idx_iebc_office_contributions_status postgres
+5862; 1259 330602 INDEX public idx_iebc_offices_category postgres
+5863; 1259 330613 INDEX public idx_iebc_offices_caw_code postgres
+5864; 1259 330612 INDEX public idx_iebc_offices_centre_code postgres
+5865; 1259 330603 INDEX public idx_iebc_offices_centre_codes postgres
+5866; 1259 135750 INDEX public idx_iebc_offices_constituency postgres
+5867; 1259 135716 INDEX public idx_iebc_offices_constituency_code postgres
+5868; 1259 323473 INDEX public idx_iebc_offices_constituency_name_trgm postgres
+5869; 1259 323472 INDEX public idx_iebc_offices_constituency_trgm postgres
+5870; 1259 135717 INDEX public idx_iebc_offices_county postgres
+5871; 1259 323471 INDEX public idx_iebc_offices_county_trgm postgres
+5872; 1259 312143 INDEX public idx_iebc_offices_elevation postgres
+5873; 1259 321108 INDEX public idx_iebc_offices_fts postgres
+5874; 1259 135719 INDEX public idx_iebc_offices_geom postgres
+5875; 1259 321107 INDEX public idx_iebc_offices_lat_lng postgres
+5876; 1259 323475 INDEX public idx_iebc_offices_location_trgm postgres
+5877; 1259 281289 INDEX public idx_iebc_offices_search postgres
+5878; 1259 330611 INDEX public idx_iebc_offices_type postgres
+5879; 1259 135720 INDEX public idx_iebc_offices_verified postgres
+5880; 1259 140202 INDEX public idx_iebc_offices_verified_coords postgres
+5881; 1259 136356 INDEX public idx_iebc_offices_verified_geom postgres
+5882; 1259 312142 INDEX public idx_iebc_offices_walking_effort postgres
+5883; 1259 328304 INDEX public idx_iebc_offices_ward postgres
+5884; 1259 328305 INDEX public idx_iebc_offices_ward_id postgres
+5885; 1259 323474 INDEX public idx_iebc_offices_ward_trgm postgres
+6099; 1259 340021 INDEX public idx_iebc_rc_constituency postgres
+6100; 1259 340020 INDEX public idx_iebc_rc_county postgres
+6101; 1259 340022 INDEX public idx_iebc_rc_county_constituency postgres
+6102; 1259 340050 INDEX public idx_iebc_rc_fts postgres
+6103; 1259 340044 INDEX public idx_iebc_rc_location postgres
+5905; 1259 140755 INDEX public idx_landmarks_county postgres
+5906; 1259 140752 INDEX public idx_landmarks_geom postgres
+5907; 1259 140753 INDEX public idx_landmarks_type postgres
+5908; 1259 140754 INDEX public idx_landmarks_verified postgres
+5911; 1259 157338 INDEX public idx_map_landmarks_centroid_geom postgres
+5912; 1259 142088 INDEX public idx_map_landmarks_geom postgres
+5913; 1259 142366 INDEX public idx_map_landmarks_name_trgm postgres
+5914; 1259 142132 INDEX public idx_map_landmarks_type postgres
+5915; 1259 142159 INDEX public idx_map_landmarks_verified postgres
+6056; 1259 316385 INDEX public idx_nasaka_usage_log_key_created postgres
+5961; 1259 159209 INDEX public idx_office_contribution_links_contribution_id postgres
+5962; 1259 327168 INDEX public idx_office_contribution_links_created_at postgres
+5963; 1259 159208 INDEX public idx_office_contribution_links_office_id postgres
+6095; 1259 327148 INDEX public idx_office_verification_stats_county postgres
+6096; 1259 327147 INDEX public idx_office_verification_stats_office_id postgres
+5978; 1259 282567 INDEX public idx_operational_status_office_id postgres
+5979; 1259 282568 INDEX public idx_operational_status_reported_at postgres
+5980; 1259 282569 INDEX public idx_operational_status_status postgres
+5779; 1259 36196 INDEX public idx_petitions_active postgres
+5780; 1259 36006 INDEX public idx_petitions_constituency_fkey postgres
+5781; 1259 36028 INDEX public idx_petitions_county_fkey postgres
+5782; 1259 36050 INDEX public idx_petitions_created_by_fkey postgres
+5783; 1259 36072 INDEX public idx_petitions_signature_target_fkey postgres
+5784; 1259 17387 INDEX public idx_petitions_status postgres
+5995; 1259 282632 INDEX public idx_registration_deadlines_deadline_date postgres
+5996; 1259 282633 INDEX public idx_registration_deadlines_is_active postgres
+5997; 1259 282631 INDEX public idx_registration_deadlines_office_id postgres
+6108; 1259 346088 INDEX public idx_ro_centre_code postgres
+6109; 1259 346090 INDEX public idx_ro_office_id postgres
+6110; 1259 346089 INDEX public idx_ro_rc_id postgres
+5853; 1259 126508 INDEX public idx_signature_access_log_signature_id postgres
+5854; 1259 126507 INDEX public idx_signature_access_log_timestamp postgres
+5787; 1259 17389 INDEX public idx_signatures_petition_id postgres
+5788; 1259 17390 INDEX public idx_signatures_voter_id postgres
+5789; 1259 17391 INDEX public idx_signatures_ward postgres
+5943; 1259 327164 INDEX public idx_verification_log_action postgres
+5944; 1259 327165 INDEX public idx_verification_log_actor postgres
+5945; 1259 150104 INDEX public idx_verification_log_contribution postgres
+5946; 1259 152520 INDEX public idx_verification_log_contribution_id postgres
+5947; 1259 152522 INDEX public idx_verification_log_created_at postgres
+5948; 1259 150126 INDEX public idx_verification_log_office postgres
+5949; 1259 152521 INDEX public idx_verification_log_office_id postgres
+5950; 1259 150148 INDEX public idx_verification_log_time postgres
+5800; 1259 330615 INDEX public idx_wards_caw_code postgres
+5801; 1259 24825 INDEX public idx_wards_constituency postgres
+5802; 1259 328294 INDEX public idx_wards_hierarchy postgres
+5803; 1259 34467 INDEX public idx_wards_member_of_parliament postgres
+5888; 1259 332007 INDEX public iebc_offices_geom_idx postgres
+5772; 1259 17268 INDEX realtime ix_realtime_subscription_entity supabase_admin
+5776; 1259 117479 INDEX realtime messages_inserted_at_topic_index supabase_realtime_admin
+6125; 1259 346352 INDEX realtime messages_2026_05_01_inserted_at_topic_idx supabase_admin
+6128; 1259 346376 INDEX realtime messages_2026_05_02_inserted_at_topic_idx supabase_admin
+6131; 1259 346394 INDEX realtime messages_2026_05_03_inserted_at_topic_idx supabase_admin
+6134; 1259 346415 INDEX realtime messages_2026_05_04_inserted_at_topic_idx supabase_admin
+6137; 1259 348828 INDEX realtime messages_2026_05_05_inserted_at_topic_idx supabase_admin
+6140; 1259 348875 INDEX realtime messages_2026_05_06_inserted_at_topic_idx supabase_admin
+6143; 1259 348889 INDEX realtime messages_2026_05_07_inserted_at_topic_idx supabase_admin
+5775; 1259 270109 INDEX realtime subscription_subscription_id_entity_filters_action_filter_key supabase_admin
+5694; 1259 16558 INDEX storage bname supabase_storage_admin
+5697; 1259 16580 INDEX storage bucketid_objname supabase_storage_admin
+5852; 1259 181427 INDEX storage buckets_analytics_unique_name_idx supabase_storage_admin
+5767; 1259 17071 INDEX storage idx_multipart_uploads_list supabase_storage_admin
+5698; 1259 17036 INDEX storage idx_objects_bucket_id_name supabase_storage_admin
+5699; 1259 279040 INDEX storage idx_objects_bucket_id_name_lower supabase_storage_admin
+5700; 1259 16581 INDEX storage name_prefix_search supabase_storage_admin
+5970; 1259 181418 INDEX storage vector_indexes_name_bucket_id_idx supabase_storage_admin
+6016; 1259 285092 INDEX supabase_functions supabase_functions_hooks_h_table_id_h_name_idx supabase_functions_admin
+6017; 1259 285091 INDEX supabase_functions supabase_functions_hooks_request_id_idx supabase_functions_admin
+6146; 0 0 INDEX ATTACH public index_usage_monitoring_default_pkey postgres
+6147; 0 0 INDEX ATTACH public index_usage_monitoring_y2023m07_pkey postgres
+6148; 0 0 INDEX ATTACH realtime messages_2026_05_01_inserted_at_topic_idx supabase_realtime_admin
+6149; 0 0 INDEX ATTACH realtime messages_2026_05_01_pkey supabase_realtime_admin
+6150; 0 0 INDEX ATTACH realtime messages_2026_05_02_inserted_at_topic_idx supabase_realtime_admin
+6151; 0 0 INDEX ATTACH realtime messages_2026_05_02_pkey supabase_realtime_admin
+6152; 0 0 INDEX ATTACH realtime messages_2026_05_03_inserted_at_topic_idx supabase_realtime_admin
+6153; 0 0 INDEX ATTACH realtime messages_2026_05_03_pkey supabase_realtime_admin
+6154; 0 0 INDEX ATTACH realtime messages_2026_05_04_inserted_at_topic_idx supabase_realtime_admin
+6155; 0 0 INDEX ATTACH realtime messages_2026_05_04_pkey supabase_realtime_admin
+6156; 0 0 INDEX ATTACH realtime messages_2026_05_05_inserted_at_topic_idx supabase_realtime_admin
+6157; 0 0 INDEX ATTACH realtime messages_2026_05_05_pkey supabase_realtime_admin
+6158; 0 0 INDEX ATTACH realtime messages_2026_05_06_inserted_at_topic_idx supabase_realtime_admin
+6159; 0 0 INDEX ATTACH realtime messages_2026_05_06_pkey supabase_realtime_admin
+6160; 0 0 INDEX ATTACH realtime messages_2026_05_07_inserted_at_topic_idx supabase_realtime_admin
+6161; 0 0 INDEX ATTACH realtime messages_2026_05_07_pkey supabase_realtime_admin
+6227; 2620 328286 TRIGGER auth users on_nasaka_auth_user_created supabase_auth_admin
+6233; 2620 215826 TRIGGER public signatures audit_signatures postgres
+6242; 2620 149995 TRIGGER public confirmations check_auto_verification_trigger postgres
+6243; 2620 149929 TRIGGER public confirmations confirmation_distance_calc postgres
+6239; 2620 149906 TRIGGER public iebc_office_contributions contribution_geom_sync postgres
+6248; 2620 328287 TRIGGER public nasaka_profiles set_nasaka_profiles_updated_at postgres
+6235; 2620 281315 TRIGGER public iebc_offices tr_offices_updated_at postgres
+6240; 2620 281313 TRIGGER public iebc_office_contributions tr_sync_contribution_geom postgres
+6236; 2620 281312 TRIGGER public iebc_offices tr_sync_office_geom postgres
+6250; 2620 340051 TRIGGER public iebc_registration_centres trg_iebc_rc_updated_at postgres
+6249; 2620 321138 TRIGGER public diaspora_registration_centres trg_update_diaspora_designation_count postgres
+6237; 2620 331989 TRIGGER public iebc_offices trigger_sync_office_ward_id postgres
+6244; 2620 327158 TRIGGER public confirmations trigger_update_confirmations_geom postgres
+6245; 2620 282671 TRIGGER public confirmations trigger_update_office_confirmation_count postgres
+6246; 2620 282669 TRIGGER public operational_status_history trigger_update_operational_status_updated_at postgres
+6247; 2620 282670 TRIGGER public registration_deadlines trigger_update_registration_deadlines_updated_at postgres
+6241; 2620 140225 TRIGGER public iebc_office_contributions update_iebc_office_contributions_updated_at postgres
+6238; 2620 135722 TRIGGER public iebc_offices update_iebc_offices_updated_at postgres
+6234; 2620 29863 TRIGGER public signatures update_signatures_modtime postgres
+6232; 2620 17120 TRIGGER realtime subscription tr_check_filters supabase_admin
+6228; 2620 78831 TRIGGER storage buckets enforce_bucket_name_length_trigger supabase_storage_admin
+6229; 2620 279042 TRIGGER storage buckets protect_buckets_delete supabase_storage_admin
+6230; 2620 279043 TRIGGER storage objects protect_objects_delete supabase_storage_admin
+6231; 2620 17024 TRIGGER storage objects update_objects_updated_at supabase_storage_admin
+6164; 2606 16730 FK CONSTRAINT auth identities identities_user_id_fkey supabase_auth_admin
+6169; 2606 16819 FK CONSTRAINT auth mfa_amr_claims mfa_amr_claims_session_id_fkey supabase_auth_admin
+6168; 2606 16807 FK CONSTRAINT auth mfa_challenges mfa_challenges_auth_factor_id_fkey supabase_auth_admin
+6167; 2606 16794 FK CONSTRAINT auth mfa_factors mfa_factors_user_id_fkey supabase_auth_admin
+6194; 2606 144423 FK CONSTRAINT auth oauth_authorizations oauth_authorizations_client_id_fkey supabase_auth_admin
+6195; 2606 144428 FK CONSTRAINT auth oauth_authorizations oauth_authorizations_user_id_fkey supabase_auth_admin
+6196; 2606 144452 FK CONSTRAINT auth oauth_consents oauth_consents_client_id_fkey supabase_auth_admin
+6197; 2606 144447 FK CONSTRAINT auth oauth_consents oauth_consents_user_id_fkey supabase_auth_admin
+6174; 2606 16985 FK CONSTRAINT auth one_time_tokens one_time_tokens_user_id_fkey supabase_auth_admin
+6162; 2606 16763 FK CONSTRAINT auth refresh_tokens refresh_tokens_session_id_fkey supabase_auth_admin
+6171; 2606 16866 FK CONSTRAINT auth saml_providers saml_providers_sso_provider_id_fkey supabase_auth_admin
+6172; 2606 16939 FK CONSTRAINT auth saml_relay_states saml_relay_states_flow_state_id_fkey supabase_auth_admin
+6173; 2606 16880 FK CONSTRAINT auth saml_relay_states saml_relay_states_sso_provider_id_fkey supabase_auth_admin
+6165; 2606 144466 FK CONSTRAINT auth sessions sessions_oauth_client_id_fkey supabase_auth_admin
+6166; 2606 16758 FK CONSTRAINT auth sessions sessions_user_id_fkey supabase_auth_admin
+6170; 2606 16847 FK CONSTRAINT auth sso_domains sso_domains_sso_provider_id_fkey supabase_auth_admin
+6226; 2606 321093 FK CONSTRAINT auth webauthn_challenges webauthn_challenges_user_id_fkey supabase_auth_admin
+6225; 2606 321076 FK CONSTRAINT auth webauthn_credentials webauthn_credentials_user_id_fkey supabase_auth_admin
+6216; 2606 313748 FK CONSTRAINT public admin_task_logs admin_task_logs_task_id_fkey postgres
+6217; 2606 316523 FK CONSTRAINT public api_keys api_keys_user_id_fkey postgres
+6218; 2606 316109 FK CONSTRAINT public api_usage_log api_usage_log_api_key_id_fkey postgres
+6187; 2606 17360 FK CONSTRAINT public audit_trail audit_trail_petition_id_fkey postgres
+6188; 2606 17365 FK CONSTRAINT public audit_trail audit_trail_signature_id_fkey postgres
+6189; 2606 17370 FK CONSTRAINT public audit_trail audit_trail_user_id_fkey postgres
+6198; 2606 149787 FK CONSTRAINT public confirmations confirmations_contribution_id_fkey postgres
+6199; 2606 328335 FK CONSTRAINT public confirmations confirmations_office_id_fkey postgres
+6190; 2606 21046 FK CONSTRAINT public constituencies constituencies_county_id_fkey postgres
+6209; 2606 282583 FK CONSTRAINT public contact_update_requests contact_update_requests_office_id_fkey postgres
+6202; 2606 153356 FK CONSTRAINT public contribution_archive contribution_archive_contribution_id_fkey postgres
+6203; 2606 153361 FK CONSTRAINT public contribution_archive contribution_archive_original_office_id_fkey postgres
+6210; 2606 282605 FK CONSTRAINT public contribution_votes contribution_votes_contribution_id_fkey postgres
+6191; 2606 34823 FK CONSTRAINT public core_team core_team_user_id_fkey postgres
+6185; 2606 17332 FK CONSTRAINT public evidence_documents evidence_documents_petition_id_fkey postgres
+6186; 2606 17337 FK CONSTRAINT public evidence_documents evidence_documents_uploaded_by_fkey postgres
+6213; 2606 312197 FK CONSTRAINT public geocode_audit geocode_audit_office_id_fkey postgres
+6214; 2606 312223 FK CONSTRAINT public geocode_hitl_queue geocode_hitl_queue_audit_id_fkey postgres
+6215; 2606 312218 FK CONSTRAINT public geocode_hitl_queue geocode_hitl_queue_office_id_fkey postgres
+6212; 2606 312157 FK CONSTRAINT public geocoding_service_log geocoding_service_log_office_id_fkey postgres
+6193; 2606 140131 FK CONSTRAINT public iebc_office_contributions iebc_office_contributions_original_office_id_fkey postgres
+6223; 2606 316465 FK CONSTRAINT public nasaka_discount_applications nasaka_discount_applications_api_key_id_fkey postgres
+6222; 2606 316448 FK CONSTRAINT public nasaka_license_applications nasaka_license_applications_api_key_id_fkey postgres
+6221; 2606 316416 FK CONSTRAINT public nasaka_payment_history nasaka_payment_history_api_key_id_fkey postgres
+6220; 2606 316397 FK CONSTRAINT public nasaka_paystack_events nasaka_paystack_events_api_key_id_fkey postgres
+6224; 2606 316548 FK CONSTRAINT public nasaka_profiles nasaka_profiles_user_id_fkey postgres
+6219; 2606 316380 FK CONSTRAINT public nasaka_usage_log nasaka_usage_log_api_key_id_fkey postgres
+6204; 2606 159203 FK CONSTRAINT public office_contribution_links office_contribution_links_contribution_id_fkey postgres
+6205; 2606 159198 FK CONSTRAINT public office_contribution_links office_contribution_links_office_id_fkey postgres
+6208; 2606 281299 FK CONSTRAINT public operational_status_history operational_status_history_office_id_fkey postgres
+6178; 2606 25255 FK CONSTRAINT public petitions petitions_constituency_fkey postgres
+6179; 2606 26384 FK CONSTRAINT public petitions petitions_county_fkey postgres
+6180; 2606 39010 FK CONSTRAINT public petitions petitions_county_target_fkey postgres
+6181; 2606 17282 FK CONSTRAINT public petitions petitions_created_by_fkey postgres
+6182; 2606 25244 FK CONSTRAINT public petitions petitions_signature_target_fkey postgres
+6184; 2606 17316 FK CONSTRAINT public profiles profiles_id_fkey postgres
+6211; 2606 282626 FK CONSTRAINT public registration_deadlines registration_deadlines_office_id_fkey postgres
+6207; 2606 215778 FK CONSTRAINT public security_audit_log security_audit_log_user_id_fkey postgres
+6192; 2606 85484 FK CONSTRAINT public signature_access_log signature_access_log_signature_id_fkey postgres
+6183; 2606 17298 FK CONSTRAINT public signatures signatures_petition_id_fkey postgres
+6200; 2606 149824 FK CONSTRAINT public verification_log verification_log_contribution_id_fkey postgres
+6201; 2606 149829 FK CONSTRAINT public verification_log verification_log_office_id_fkey postgres
+6163; 2606 16570 FK CONSTRAINT storage objects objects_bucketId_fkey supabase_storage_admin
+6175; 2606 17046 FK CONSTRAINT storage s3_multipart_uploads s3_multipart_uploads_bucket_id_fkey supabase_storage_admin
+6176; 2606 17066 FK CONSTRAINT storage s3_multipart_uploads_parts s3_multipart_uploads_parts_bucket_id_fkey supabase_storage_admin
+6177; 2606 17061 FK CONSTRAINT storage s3_multipart_uploads_parts s3_multipart_uploads_parts_upload_id_fkey supabase_storage_admin
+6206; 2606 181413 FK CONSTRAINT storage vector_indexes vector_indexes_bucket_id_fkey supabase_storage_admin
+6416; 0 16523 ROW SECURITY auth audit_log_entries supabase_auth_admin
+6430; 0 16925 ROW SECURITY auth flow_state supabase_auth_admin
+6421; 0 16723 ROW SECURITY auth identities supabase_auth_admin
+6415; 0 16516 ROW SECURITY auth instances supabase_auth_admin
+6425; 0 16812 ROW SECURITY auth mfa_amr_claims supabase_auth_admin
+6424; 0 16800 ROW SECURITY auth mfa_challenges supabase_auth_admin
+6423; 0 16787 ROW SECURITY auth mfa_factors supabase_auth_admin
+6431; 0 16975 ROW SECURITY auth one_time_tokens supabase_auth_admin
+6414; 0 16505 ROW SECURITY auth refresh_tokens supabase_auth_admin
+6428; 0 16854 ROW SECURITY auth saml_providers supabase_auth_admin
+6429; 0 16872 ROW SECURITY auth saml_relay_states supabase_auth_admin
+6417; 0 16531 ROW SECURITY auth schema_migrations supabase_auth_admin
+6422; 0 16753 ROW SECURITY auth sessions supabase_auth_admin
+6427; 0 16839 ROW SECURITY auth sso_domains supabase_auth_admin
+6426; 0 16830 ROW SECURITY auth sso_providers supabase_auth_admin
+6413; 0 16493 ROW SECURITY auth users supabase_auth_admin
+6501; 3256 281305 POLICY public iebc_offices Admin Full Access postgres
+6545; 3256 281308 POLICY public iebc_office_contributions Admin Full Contributions postgres
+6547; 3256 281310 POLICY public confirmations Admin Read Confirmations postgres
+6577; 3256 85489 POLICY public signature_access_log Admin can view access logs postgres
+6512; 3256 126505 POLICY public evidence_documents Admins can delete evidence postgres
+6539; 3256 140472 POLICY public iebc_office_contributions Admins can do all operations on contributions postgres
+6598; 3256 313757 POLICY public admin_task_logs Admins can do everything on admin_task_logs postgres
+6597; 3256 313756 POLICY public admin_tasks Admins can do everything on admin_tasks postgres
+6548; 3256 328322 POLICY public geocode_audit Admins can do everything on geocode_audit postgres
+6554; 3256 328323 POLICY public geocode_hitl_queue Admins can do everything on geocode_hitl_queue postgres
+6508; 3256 126499 POLICY public constituencies Admins can modify constituencies postgres
+6503; 3256 126496 POLICY public counties Admins can modify counties postgres
+6511; 3256 126503 POLICY public evidence_documents Admins can update evidence postgres
+6541; 3256 140474 POLICY public iebc_office_contributions Admins can view all contributions postgres
+6495; 3256 126492 POLICY public signatures Admins can view all signatures postgres
+6550; 3256 140518 POLICY public iebc_office_contributions Allow anonymous contributions postgres
+6552; 3256 140519 POLICY public iebc_office_contributions Allow public read access postgres
+6563; 3256 282673 POLICY public confirmations Anyone can insert confirmations postgres
+6590; 3256 282677 POLICY public contact_update_requests Anyone can insert contact updates postgres
+6592; 3256 282679 POLICY public contribution_votes Anyone can insert contribution votes postgres
+6540; 3256 140473 POLICY public iebc_office_contributions Anyone can insert contributions postgres
+6594; 3256 282682 POLICY public geocoding_cache Anyone can insert geocoding cache postgres
+6515; 3256 328321 POLICY public geocoding_service_log Anyone can insert geocoding logs postgres
+6588; 3256 282675 POLICY public operational_status_history Anyone can insert operational status postgres
+6516; 3256 282672 POLICY public confirmations Anyone can view confirmations postgres
+6589; 3256 282676 POLICY public contact_update_requests Anyone can view contact updates postgres
+6576; 3256 327162 POLICY public contribution_archive Anyone can view contribution archive postgres
+6591; 3256 282678 POLICY public contribution_votes Anyone can view contribution votes postgres
+6565; 3256 321144 POLICY public diaspora_registration_centres Anyone can view diaspora centres postgres
+6601; 3256 313762 POLICY public geocoding_cache Anyone can view geocoding cache postgres
+6490; 3256 328320 POLICY public geocoding_service_log Anyone can view geocoding logs postgres
+6587; 3256 327169 POLICY public office_contribution_links Anyone can view office contribution links postgres
+6599; 3256 313760 POLICY public operational_status_history Anyone can view operational status postgres
+6600; 3256 313761 POLICY public registration_deadlines Anyone can view registration deadlines postgres
+6584; 3256 327166 POLICY public verification_log Anyone can view verification log postgres
+6489; 3256 17385 POLICY public wards Anyone can view ward information postgres
+6560; 3256 35892 POLICY public audit_trail Audit trail access postgres
+6564; 3256 35893 POLICY public audit_trail Audit trail admin only postgres
+6583; 3256 327163 POLICY public contribution_archive Authenticated users can insert contribution archive postgres
+6593; 3256 327170 POLICY public office_contribution_links Authenticated users can insert office contribution links postgres
+6585; 3256 327167 POLICY public verification_log Authenticated users can insert verification log postgres
+6510; 3256 126502 POLICY public evidence_documents Authenticated users can upload evidence postgres
+6567; 3256 36302 POLICY public core_team Core team access postgres
+6568; 3256 36324 POLICY public core_team Core team admin modify postgres
+6517; 3256 136334 POLICY public iebc_offices Enable read access for all users postgres
+6518; 3256 136335 POLICY public iebc_offices Enable write access for authenticated users postgres
+6520; 3256 35465 POLICY public index_usage_monitoring Monitoring data access postgres
+6521; 3256 35466 POLICY public index_usage_monitoring_default Monitoring data access postgres
+6522; 3256 35467 POLICY public index_usage_monitoring_y2023m07 Monitoring data access postgres
+6509; 3256 126501 POLICY public evidence_documents Petition creators can view evidence postgres
+6549; 3256 35638 POLICY public petitions Petitions read postgres
+6551; 3256 35640 POLICY public petitions Petitions update postgres
+6497; 3256 35730 POLICY public petitions Petitions write postgres
+6546; 3256 281309 POLICY public confirmations Public Create Confirmations postgres
+6502; 3256 281306 POLICY public iebc_office_contributions Public Create Contributions postgres
+6500; 3256 281304 POLICY public iebc_offices Public Read Access postgres
+6514; 3256 281307 POLICY public iebc_office_contributions Public Read Approved postgres
+6496; 3256 126494 POLICY public signatures Public can create signatures postgres
+6507; 3256 126498 POLICY public constituencies Public can view constituencies postgres
+6498; 3256 126495 POLICY public counties Public can view counties postgres
+6561; 3256 328326 POLICY public api_keys Service role full access on api_keys postgres
+6562; 3256 328327 POLICY public api_usage_log Service role full access on api_usage_log postgres
+6555; 3256 328324 POLICY public geocode_audit Service role full access on geocode_audit postgres
+6556; 3256 328325 POLICY public geocode_hitl_queue Service role full access on geocode_hitl_queue postgres
+6586; 3256 338902 POLICY public nasaka_config Service role full access on nasaka_config postgres
+6573; 3256 328334 POLICY public nasaka_discount_applications Service role full access on nasaka_discount_applications postgres
+6571; 3256 328332 POLICY public nasaka_enterprise_leads Service role full access on nasaka_enterprise_leads postgres
+6572; 3256 328333 POLICY public nasaka_license_applications Service role full access on nasaka_license_applications postgres
+6570; 3256 328331 POLICY public nasaka_payment_history Service role full access on nasaka_payment_history postgres
+6569; 3256 328330 POLICY public nasaka_paystack_events Service role full access on nasaka_paystack_events postgres
+6566; 3256 328329 POLICY public nasaka_usage_log Service role full access on nasaka_usage_log postgres
+6578; 3256 85490 POLICY public signature_access_log System can insert access logs postgres
+6505; 3256 17381 POLICY public profiles Users can insert their own profile postgres
+6602; 3256 328288 POLICY public api_keys Users can see their own keys postgres
+6596; 3256 328285 POLICY public nasaka_profiles Users can update their own nasaka profile postgres
+6506; 3256 17382 POLICY public profiles Users can update their own profile postgres
+6595; 3256 328284 POLICY public nasaka_profiles Users can view their own nasaka profile postgres
+6504; 3256 17380 POLICY public profiles Users can view their own profile postgres
+6472; 0 313738 ROW SECURITY public admin_task_logs postgres
+6471; 0 313724 ROW SECURITY public admin_tasks postgres
+6513; 3256 153032 POLICY public iebc_offices allow_insert_for_backend postgres
+6473; 0 316082 ROW SECURITY public api_keys postgres
+6474; 0 316100 ROW SECURITY public api_usage_log postgres
+6440; 0 17351 ROW SECURITY public audit_trail postgres
+6454; 0 149777 ROW SECURITY public confirmations postgres
+6525; 3256 215668 POLICY public confirmations confirmations_admin_all postgres
+6524; 3256 215667 POLICY public confirmations confirmations_insert_auth postgres
+6523; 3256 215666 POLICY public confirmations confirmations_select_auth postgres
+6442; 0 17636 ROW SECURITY public constituencies postgres
+6458; 0 163028 ROW SECURITY public constituencies_backup postgres
+6534; 3256 215677 POLICY public constituencies_backup constituencies_backup_admin_all postgres
+6459; 0 163076 ROW SECURITY public constituencies_staging postgres
+6535; 3256 215678 POLICY public constituencies_staging constituencies_staging_admin_all postgres
+6464; 0 282571 ROW SECURITY public contact_update_requests postgres
+6456; 0 153345 ROW SECURITY public contribution_archive postgres
+6537; 3256 215680 POLICY public contribution_archive contribution_archive_admin_all postgres
+6536; 3256 215679 POLICY public contribution_archive contribution_archive_select_auth postgres
+6465; 0 282592 ROW SECURITY public contribution_votes postgres
+6443; 0 34816 ROW SECURITY public core_team postgres
+6441; 0 17627 ROW SECURITY public counties postgres
+6482; 0 321119 ROW SECURITY public diaspora_registration_centres postgres
+6438; 0 17321 ROW SECURITY public evidence_documents postgres
+6469; 0 312181 ROW SECURITY public geocode_audit postgres
+6470; 0 312206 ROW SECURITY public geocode_hitl_queue postgres
+6467; 0 282635 ROW SECURITY public geocoding_cache postgres
+6468; 0 312145 ROW SECURITY public geocoding_service_log postgres
+6450; 0 140119 ROW SECURITY public iebc_office_contributions postgres
+6449; 0 135705 ROW SECURITY public iebc_offices postgres
+6574; 3256 340052 POLICY public iebc_registration_centres iebc_rc_public_read postgres
+6575; 3256 340053 POLICY public iebc_registration_centres iebc_rc_service_role_write postgres
+6444; 0 35417 ROW SECURITY public index_usage_monitoring postgres
+6445; 0 35424 ROW SECURITY public index_usage_monitoring_default postgres
+6446; 0 35433 ROW SECURITY public index_usage_monitoring_y2023m07 postgres
+6451; 0 140687 ROW SECURITY public landmark_types postgres
+6533; 3256 215676 POLICY public landmark_types landmark_types_admin_all postgres
+6532; 3256 215675 POLICY public landmark_types landmark_types_select_public postgres
+6452; 0 140741 ROW SECURITY public landmarks postgres
+6529; 3256 215672 POLICY public landmarks landmarks_admin_delete postgres
+6528; 3256 215671 POLICY public landmarks landmarks_admin_update postgres
+6527; 3256 215670 POLICY public landmarks landmarks_admin_write postgres
+6526; 3256 215669 POLICY public landmarks landmarks_select_public postgres
+6453; 0 142045 ROW SECURITY public map_landmarks postgres
+6531; 3256 215674 POLICY public map_landmarks map_landmarks_admin_all postgres
+6530; 3256 215673 POLICY public map_landmarks map_landmarks_select_public postgres
+6483; 0 338894 ROW SECURITY public nasaka_config postgres
+6480; 0 316453 ROW SECURITY public nasaka_discount_applications postgres
+6478; 0 316421 ROW SECURITY public nasaka_enterprise_leads postgres
+6479; 0 316435 ROW SECURITY public nasaka_license_applications postgres
+6477; 0 316402 ROW SECURITY public nasaka_payment_history postgres
+6476; 0 316386 ROW SECURITY public nasaka_paystack_events postgres
+6481; 0 316535 ROW SECURITY public nasaka_profiles postgres
+6475; 0 316370 ROW SECURITY public nasaka_usage_log postgres
+6457; 0 159189 ROW SECURITY public office_contribution_links postgres
+6542; 3256 215682 POLICY public office_contribution_links office_links_admin_all postgres
+6538; 3256 215681 POLICY public office_contribution_links office_links_select_auth postgres
+6463; 0 281291 ROW SECURITY public operational_status_history postgres
+6435; 0 17269 ROW SECURITY public petitions postgres
+6437; 0 17303 ROW SECURITY public profiles postgres
+6466; 0 282614 ROW SECURITY public registration_deadlines postgres
+6484; 0 346007 ROW SECURITY public returning_officer postgres
+6559; 3256 216450 POLICY public security_audit_log security_audit_admin_access postgres
+6462; 0 215768 ROW SECURITY public security_audit_log postgres
+6488; 3256 216472 POLICY public security_audit_log security_audit_user_access postgres
+6448; 0 85475 ROW SECURITY public signature_access_log postgres
+6436; 0 17287 ROW SECURITY public signatures postgres
+6499; 3256 215462 POLICY public signatures signatures_admin_all postgres
+6553; 3256 215295 POLICY public signatures signatures_insert_policy postgres
+6519; 3256 215644 POLICY public signatures signatures_select_authenticated_device postgres
+6487; 3256 215440 POLICY public signatures signatures_select_own postgres
+6455; 0 149813 ROW SECURITY public verification_log postgres
+6544; 3256 215684 POLICY public verification_log verification_log_admin_all postgres
+6543; 3256 215683 POLICY public verification_log verification_log_select_auth postgres
+6439; 0 17342 ROW SECURITY public wards postgres
+6434; 0 17253 ROW SECURITY realtime messages supabase_realtime_admin
+6582; 3256 150573 POLICY storage objects Admins can delete contribution images supabase_storage_admin
+6558; 3256 150537 POLICY storage objects Allow public read for contributions supabase_storage_admin
+6486; 3256 151973 POLICY storage objects Allow public reads for iebc contributions supabase_storage_admin
+6557; 3256 150536 POLICY storage objects Allow public upload for contributions supabase_storage_admin
+6485; 3256 151972 POLICY storage objects Allow public uploads for iebc contributions supabase_storage_admin
+6579; 3256 150570 POLICY storage objects Anyone can upload contribution images supabase_storage_admin
+6580; 3256 150571 POLICY storage objects Anyone can view contribution images supabase_storage_admin
+6494; 3256 25241 POLICY storage objects Authenticated users can delete their evidence files supabase_storage_admin
+6493; 3256 25240 POLICY storage objects Authenticated users can update their evidence files supabase_storage_admin
+6491; 3256 25238 POLICY storage objects Authenticated users can upload evidence files supabase_storage_admin
+6492; 3256 25239 POLICY storage objects Authenticated users can view evidence files supabase_storage_admin
+6581; 3256 150572 POLICY storage objects Users can update their own contribution images supabase_storage_admin
+6418; 0 16544 ROW SECURITY storage buckets supabase_storage_admin
+6447; 0 78838 ROW SECURITY storage buckets_analytics supabase_storage_admin
+6460; 0 181393 ROW SECURITY storage buckets_vectors supabase_storage_admin
+6420; 0 16586 ROW SECURITY storage migrations supabase_storage_admin
+6419; 0 16559 ROW SECURITY storage objects supabase_storage_admin
+6432; 0 17037 ROW SECURITY storage s3_multipart_uploads supabase_storage_admin
+6433; 0 17051 ROW SECURITY storage s3_multipart_uploads_parts supabase_storage_admin
+6461; 0 181403 ROW SECURITY storage vector_indexes supabase_storage_admin
+6603; 6104 16426 PUBLICATION - supabase_realtime postgres
+6604; 6104 149108 PUBLICATION - supabase_realtime_messages_publication supabase_admin
+6605; 6106 149109 PUBLICATION TABLE realtime supabase_realtime_messages_publication messages supabase_admin
+5259; 3466 16619 EVENT TRIGGER - issue_graphql_placeholder supabase_admin
+5262; 3466 16698 EVENT TRIGGER - issue_pg_cron_access supabase_admin
+5258; 3466 16617 EVENT TRIGGER - issue_pg_graphql_access supabase_admin
+5263; 3466 16701 EVENT TRIGGER - issue_pg_net_access supabase_admin
+5260; 3466 16620 EVENT TRIGGER - pgrst_ddl_watch supabase_admin
+5261; 3466 16621 EVENT TRIGGER - pgrst_drop_watch supabase_admin
+6709; 0 327135 MATERIALIZED VIEW DATA public office_verification_stats postgres
