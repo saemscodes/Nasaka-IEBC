@@ -13,4 +13,5 @@
 /api/locate /api/services?service=usage 200
 
 # SPA fallback (must be last)
+/index.html /index.html 200
 /* /index.html 200
