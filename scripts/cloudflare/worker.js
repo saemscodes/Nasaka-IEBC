@@ -167,7 +167,7 @@ async function handleSchedule(env) {
     let hasMore = true;
 
     while (hasMore) {
-        const response = await fetch(`${supabaseUrl}/rest/v1/iebc_offices?select=id,latitude,longitude,office_location,clean_office_location,constituency_name,county,category,office_type,ward&order=id&offset=${from}&limit=${batchSize}`, {
+        const response = await fetch(`${supabaseUrl}/rest/v1/iebc_offices?select=id,latitude,longitude,office_location,clean_office_location,constituency_name,county,category,office_type,ward,returning_officer_name,returning_officer_email&order=id&offset=${from}&limit=${batchSize}`, {
             headers: {
                 'apikey': supabaseKey,
                 'Authorization': `Bearer ${supabaseKey}`
@@ -201,7 +201,9 @@ async function handleSchedule(env) {
         y: o.county,
         w: o.ward,
         t: o.category === 'registration_centre' ? 'rc' : 'off',
-        ot: o.office_type
+        ot: o.office_type,
+        ron: o.returning_officer_name,
+        roe: o.returning_officer_email
     }));
 
     // Write to R2 (internal persistence for smart failover)

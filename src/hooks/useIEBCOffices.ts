@@ -277,6 +277,8 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
               ward: o.w,
               category: o.t === 'rc' ? 'registration_centre' : 'office',
               office_type: o.ot,
+              returning_officer_name: o.ron,
+              returning_officer_email: o.roe,
               type: 'office' as const,
               verified: true,
               coordinates: [o.lt, o.lg] as [number, number],
@@ -307,6 +309,8 @@ export const useIEBCOffices = (options: UseIEBCOfficesOptions = {}) => {
               geocode_confidence: f.properties?.geocode_confidence,
               geocode_method: f.properties?.geocode_method,
               geocode_status: f.properties?.geocode_status,
+              returning_officer_name: f.properties?.returning_officer_name,
+              returning_officer_email: f.properties?.returning_officer_email,
             }));
           } else {
             // Raw array of office objects
