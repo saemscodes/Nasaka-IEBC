@@ -157,7 +157,10 @@ async function fetchMistralScore(input: AIConsensusInput): Promise<AIScoreResult
         const prompt = buildScoringPrompt(input);
         const res = await fetch('/api/ai-proxy', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': import.meta.env.VITE_OFFICE_DATA_API_KEY || 'asdf1234' // Fallback to ADMIN_SECRET if missing
+            },
             body: JSON.stringify({
                 provider: 'mistral',
                 body: {
@@ -205,7 +208,10 @@ async function fetchGroqScore(input: AIConsensusInput): Promise<AIScoreResult | 
         const prompt = buildScoringPrompt(input);
         const res = await fetch('/api/ai-proxy', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': import.meta.env.VITE_OFFICE_DATA_API_KEY || 'asdf1234'
+            },
             body: JSON.stringify({
                 provider: 'groq',
                 body: {
@@ -262,7 +268,10 @@ async function fetchGeminiReferee(
 
         const res = await fetch('/api/ai-proxy', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': import.meta.env.VITE_OFFICE_DATA_API_KEY || 'asdf1234'
+            },
             body: JSON.stringify({
                 provider: 'gemini',
                 body: {
@@ -311,7 +320,10 @@ async function verifyGroundTruth(input: AIConsensusInput): Promise<{ verified: b
 
         const res = await fetch('/api/ai-proxy', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-API-Key': import.meta.env.VITE_OFFICE_DATA_API_KEY || 'asdf1234'
+            },
             body: JSON.stringify({
                 provider: 'gemini_ground',
                 body: {

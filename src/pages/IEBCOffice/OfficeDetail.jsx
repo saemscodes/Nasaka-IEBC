@@ -230,10 +230,17 @@ const OfficeDetail = () => {
                     const { lat, lng } = geo.result;
                     // Find nearest ward from centroids
                     try {
-                        const { data: nearest } = await supabase.rpc('get_nearest_ward', {
+                        if (lat === null || lng === null) {
+                            console.warn('[OfficeDetail] Missing coordinates for get_nearest_ward');
+                            throw new Error('Missing coordinates');
+                        }
+                        
+                        const { data: nearest, error: rpcErr } = await supabase.rpc('get_nearest_ward', {
                             lat_param: lat,
                             lng_param: lng
                         });
+
+                        if (rpcErr) throw rpcErr;
 
                         if (nearest && nearest.length > 0) {
                             const w = nearest[0];

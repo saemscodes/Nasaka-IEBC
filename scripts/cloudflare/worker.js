@@ -94,15 +94,23 @@ async function handleFileProxy(request, env) {
 
     try {
         // 1. TRY R2 FIRST (High Performance / Zero Egress)
+        // Normalize filename (remove leading slashes, handle URL encoding)
+        const cleanFileName = decodeURIComponent(fileName).replace(/^\/+/, '');
+        
         if (env.NASAKA_STATIC) {
-            const r2Object = await env.NASAKA_STATIC.get(fileName);
-            if (r2Object) {
-                const head = new Headers(corsHeaders);
-                r2Object.writeHttpMetadata(head);
-                head.set('etag', r2Object.httpEtag);
-                head.set('Access-Control-Allow-Origin', '*');
-                
-                return new Response(r2Object.body, { headers: head });
+            try {
+                const r2Object = await env.NASAKA_STATIC.get(cleanFileName);
+                if (r2Object) {
+                    const head = new Headers(corsHeaders);
+                    r2Object.writeHttpMetadata(head);
+                    head.set('etag', r2Object.httpEtag);
+                    head.set('Access-Control-Allow-Origin', '*');
+                    
+                    return new Response(r2Object.body, { headers: head });
+                }
+            } catch (r2Err) {
+                console.error(`[WORKER] R2 Error for ${cleanFileName}:`, r2Err.message);
+                // Fall through to B2
             }
         }
 
