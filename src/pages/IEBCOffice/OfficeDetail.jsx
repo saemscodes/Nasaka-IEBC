@@ -118,33 +118,28 @@ const OfficeDetail = () => {
         return office.office_location || office.constituency_name || 'IEBC Office';
     }, [office]);
 
-    // Redirection Logic: Redirect legacy paths to hierarchical canonical paths
+    // Redirection Logic: Only redirect for /iebc-office/* and /nasaka-iebc/* legacy paths
     useEffect(() => {
         if (!office) return;
 
-        // ONLY redirect if we are on a legacy path OR if a constituency slug was provided 
-        // We want to allow /:county to remain as a county overview
         const isLegacyPath = window.location.pathname.startsWith('/iebc-office/') ||
             window.location.pathname.startsWith('/nasaka-iebc/');
-        
-        if (!isLegacyPath && !constituencySlug) return;
+
+        // Only redirect legacy prefixes — never redirect canonical /:county/:constituency URLs
+        if (!isLegacyPath) return;
 
         const canonicalCounty = slugify(office.county);
         const canonicalConstituency = slugify(office.constituency_name);
-        const canonicalWard = office.ward_name ? slugify(office.ward_name) : wardSlug;
-
-        // Disambiguation
         let constPart = canonicalConstituency;
         if (constPart === canonicalCounty) constPart = `${constPart}-town`;
 
         let expectedPath = `/${canonicalCounty}/${constPart}`;
-        if (wardSlug && canonicalWard) expectedPath += `/${canonicalWard}`;
+        if (wardSlug && office.ward_name) expectedPath += `/${slugify(office.ward_name)}`;
+        else if (wardSlug) expectedPath += `/${wardSlug}`;
         if (indexParam && wardOffices.length > 1) expectedPath += `/${indexParam}`;
 
-        if (isLegacyPath || (window.location.pathname !== expectedPath && !location.search)) {
-            navigate(expectedPath, { replace: true });
-        }
-    }, [office, navigate, location.pathname, wardSlug, indexParam, wardOffices]);
+        navigate(expectedPath, { replace: true });
+    }, [office, navigate, wardSlug, indexParam, wardOffices]);
 
     const fetchOfficeData = useCallback(async () => {
         if (isSystemRoute) return;
@@ -285,7 +280,19 @@ const OfficeDetail = () => {
 
             setOffice(data);
 
-            setNearbyOffices(nearby || []);
+            // Fetch nearby offices (same county, different constituency) for sidebar
+            if (data.latitude && data.longitude) {
+                const { data: nearbyData } = await supabase
+                    .from('iebc_offices')
+                    .select('id, county, constituency_name, office_location, latitude, longitude, verified')
+                    .eq('county', data.county)
+                    .neq('constituency_name', data.constituency_name)
+                    .not('latitude', 'is', null)
+                    .limit(5);
+                setNearbyOffices(nearbyData || []);
+            } else {
+                setNearbyOffices([]);
+            }
 
             // If we only have a county (and no constituency matched), fetch constituencies
             if (countySearch && !constituencySlug) {

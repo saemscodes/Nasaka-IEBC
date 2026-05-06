@@ -244,14 +244,14 @@ async function handleSchedule(env) {
     console.log(`Writing ${leanOffices.length} offices to R2...`);
     const bucket = env.NASAKA_STATIC || env.BUCKET;
     if (bucket) {
-        await bucket.put('iebc-offices.json', JSON.stringify(leanOffices), {
-            httpMetadata: {
-                contentType: 'application/json',
-                cacheControl: 'public, max-age=86400, stale-while-revalidate=3600'
-            }
-        });
-        console.log('Sync to R2 completed successfully.');
+        const data = JSON.stringify(leanOffices);
+        const meta = { httpMetadata: { contentType: 'application/json', cacheControl: 'public, max-age=86400, stale-while-revalidate=3600' } };
+        // Write canonical filename expected by mapDataConfig.ts
+        await bucket.put('iebc_offices.geojson', data, meta);
+        // Keep legacy filename for backward compatibility
+        await bucket.put('iebc-offices.json', data, meta);
+        console.log(`Sync to R2 complete: ${leanOffices.length} offices written to iebc_offices.geojson + iebc-offices.json`);
     } else {
-        console.warn('R2 Bucket binding not found, skipping sync.');
+        console.warn('R2 Bucket binding not found, skipping R2 sync.');
     }
 }
