@@ -16,7 +16,7 @@
 
 // ✊🏽🇰🇪 CDN Proxy Base (Cloudflare Worker Domain)
 const CDN_BASE_URL = import.meta.env.VITE_CDN_BASE_URL || 'https://static.civiceducationkenya.com';
-const B2_BUCKET_NAME = 'nasaka-map-data'; // Fixed for the project
+const B2_BUCKET_NAME = 'map-data'; // Fixed to match wrangler.toml
 
 // ─── Supabase Storage Base (legacy, always available) ──────────────────────────
 const SUPABASE_STORAGE_BASE = 'https://bfatlkobozblunojtltp.supabase.co/storage/v1/object/public/map-data';
