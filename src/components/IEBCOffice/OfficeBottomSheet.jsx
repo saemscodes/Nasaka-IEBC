@@ -101,6 +101,24 @@ const IconRain = ({ className = "w-4 h-4" }) => (
   </svg>
 );
 
+const IconChevronLeft = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M15 18l-6-6 6-6" />
+  </svg>
+);
+
+const IconChevronDown = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 9l6 6 6-6" />
+  </svg>
+);
+
+const IconRO = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10.0376 5.31617L10.6866 6.4791C11.2723 7.52858 11.0372 8.90532 10.1147 9.8278C10.1147 9.8278 10.1147 9.8278 10.1147 9.8278C10.1146 9.82792 8.99588 10.9468 11.0245 12.9755C13.0525 15.0035 14.1714 13.8861 14.1722 13.8853C14.1722 13.8853 14.1722 13.8853 14.1722 13.8853C15.0947 12.9628 16.4714 12.7277 17.5209 13.3134L18.6838 13.9624C20.2686 14.8468 20.4557 17.0692 19.0628 18.4622C18.2258 19.2992 17.2004 19.9505 16.0669 19.9934C14.1588 20.0658 10.9183 19.5829 7.6677 16.3323C4.41713 13.0817 3.93421 9.84122 4.00655 7.93309C4.04952 6.7996 4.7008 5.77423 5.53781 4.93723C6.93076 3.54428 9.15317 3.73144 10.0376 5.31617Z" fill="currentColor"/>
+  </svg>
+);
+
 const IconCompass = ({ className = "w-4 h-4" }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M15.94 7.61999L11.06 9.61999C10.7251 9.75225 10.421 9.95185 10.1664 10.2064C9.91185 10.461 9.71225 10.7651 9.57999 11.1L7.57999 15.98C7.54715 16.0636 7.54869 16.1567 7.58429 16.2392C7.61988 16.3216 7.68664 16.3866 7.76999 16.42C7.85065 16.4499 7.93934 16.4499 8.02 16.42L12.9 14.42C13.2348 14.2877 13.539 14.0881 13.7936 13.8336C14.0481 13.579 14.2477 13.2748 14.38 12.94L16.38 8.05999C16.4128 7.97643 16.4113 7.88326 16.3757 7.80082C16.3401 7.71839 16.2733 7.65338 16.19 7.61999C16.1093 7.59013 16.0207 7.59013 15.94 7.61999ZM12 13C11.8022 13 11.6089 12.9413 11.4444 12.8315C11.28 12.7216 11.1518 12.5654 11.0761 12.3827C11.0004 12.2 10.9806 11.9989 11.0192 11.8049C11.0578 11.6109 11.153 11.4327 11.2929 11.2929C11.4327 11.153 11.6109 11.0578 11.8049 11.0192C11.9989 10.9806 12.2 11.0004 12.3827 11.0761C12.5654 11.1518 12.7216 11.28 12.8315 11.4444C12.9413 11.6089 13 11.8022 13 12C13 12.2652 12.8946 12.5196 12.7071 12.7071C12.5196 12.8946 12.2652 13 12 13Z" fill="currentColor" />
@@ -262,6 +280,7 @@ const OfficeBottomSheet = ({
   const [travelExpanded, setTravelExpanded] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isCollapsingForModal, setIsCollapsingForModal] = useState(false);
+  const [roExpanded, setRoExpanded] = useState(false);
   const dragControls = useDragControls();
   const sheetRef = useRef(null);
   const backdropRef = useRef(null);
@@ -626,62 +645,6 @@ const OfficeBottomSheet = ({
                     )}
                   </div>
 
-                  {/* RETURNING OFFICER CONTACT CARD */}
-                  {office.returning_officer_name && (
-                    <div className={`rounded-2xl p-4 border transition-all duration-300 shadow-sm ${isDark
-                      ? 'bg-ios-gray-800/40 border-ios-gray-600/50 backdrop-blur-md'
-                      : 'bg-white/80 border-gray-200/50 backdrop-blur-md shadow-apple-sm'
-                      }`}>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-2">
-                          <div className={`p-1.5 rounded-lg ${isDark ? 'bg-ios-blue/20 text-ios-blue-400' : 'bg-primary/10 text-primary'}`}>
-                            <IconShield className="w-4 h-4" />
-                          </div>
-                          <span className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-ios-gray-300' : 'text-gray-500'}`}>
-                            {t('office.officialContact', 'Returning Officer')}
-                          </span>
-                        </div>
-                        <div className="flex space-x-1">
-                          <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                          <span className="text-[10px] text-green-500 font-medium">Verified Official</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-4">
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition-colors ${isDark
-                          ? 'bg-ios-gray-700 border-ios-gray-600'
-                          : 'bg-gray-50 border-gray-100'
-                          }`}>
-                          <IconUser className={`w-6 h-6 ${isDark ? 'text-ios-gray-300' : 'text-gray-400'}`} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className={`text-base font-bold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            {office.returning_officer_name}
-                          </h4>
-                          <p className={`text-xs truncate ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
-                            {office.returning_officer_email || 'Email address pending...'}
-                          </p>
-                        </div>
-                      </div>
-
-                      {office.returning_officer_email && (
-                        <button
-                          onClick={() => {
-                            const subject = encodeURIComponent(`Inquiry regarding ${office.office_name || 'IEBC Registration Centre'}`);
-                            const body = encodeURIComponent(`Dear Returning Officer,\n\nI am contacting you regarding the registration centre at ${office.office_location || office.office_name || 'your station'}.\n\n[Your Message Here]`);
-                            window.location.href = `mailto:${office.returning_officer_email}?subject=${subject}&body=${body}`;
-                          }}
-                          className={`mt-4 w-full flex items-center justify-center space-x-2 py-3 rounded-xl font-semibold transition-all duration-300 transform active:scale-[0.98] ${isDark
-                            ? 'bg-ios-blue hover:bg-ios-blue-600 text-white shadow-lg shadow-ios-blue/20'
-                            : 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20'
-                            }`}
-                        >
-                          <IconMail className="w-4 h-4" />
-                          <span>{t('office.emailOfficial', 'Contact Official')}</span>
-                        </button>
-                      )}
-                    </div>
-                  )}
 
                   {/* LOCATION ACCESS WARNING - SHOW WHEN NO ACCESS */}
                   {!hasLocationAccess && (
@@ -1120,34 +1083,82 @@ const OfficeBottomSheet = ({
                     </div>
                   )}
 
-                  {/* Location Information */}
-                  <div className="space-y-2">
-                    {isDiaspora ? (
-                      (office.city || office.country) && (
-                        <div className="flex items-center text-sm">
-                          <span className={isDark ? 'text-ios-gray-400' : 'text-gray-500'}>
-                            <IconPin className="w-4 h-4 inline-block mr-1 opacity-70" />
-                            {[office.city, office.country].filter(Boolean).join(', ')}
-                          </span>
+                  {/* CONTACT RETURNING OFFICER - INTEGRATED TOGGLE CARD */}
+                  <div className={`rounded-xl border transition-all duration-300 overflow-hidden ${isDark
+                    ? 'bg-ios-gray-800/40 border-ios-gray-600/50 backdrop-blur-md'
+                    : 'bg-white/80 border-gray-200/50 backdrop-blur-md shadow-apple-sm'
+                    }`}>
+                    <button
+                      onClick={() => setRoExpanded(!roExpanded)}
+                      className="w-full flex items-center justify-between p-4 text-left active:opacity-80 transition-all group"
+                    >
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-ios-blue/20 text-ios-blue-400 group-hover:bg-ios-blue/30' : 'bg-primary/10 text-primary group-hover:bg-primary/20'}`}>
+                          <IconRO className="w-5 h-5" />
                         </div>
-                      )
-                    ) : office.constituency_name && (
-                      <div className="flex items-center text-sm">
-                        <span className={isDark ? 'text-ios-gray-400' : 'text-gray-500'}>
-                          <IconPin className="w-4 h-4 inline-block mr-1 opacity-70" />
-                          {office.constituency_name}, {office.county}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className={`text-sm font-black uppercase tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {t('office.contactRO', 'CONTACT RETURNING OFFICER')}
+                          </span>
+                          {!roExpanded && office.returning_officer_name && (
+                            <span className={`text-[10px] font-bold opacity-60 truncate ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
+                              {office.returning_officer_name}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    )}
-                    {office.phone && (
-                      <div className="flex items-center text-sm">
-                        <a href={`tel:${office.phone}`} className={`hover:underline ${isDark ? 'text-ios-blue-300' : 'text-blue-600'
-                          }`}>
-                          <IconPhone className="w-4 h-4 inline-block mr-1" />
-                          {office.phone}
-                        </a>
+                      <div className={`transition-transform duration-300 ${isDark ? 'text-ios-gray-400' : 'text-gray-400'}`}>
+                        {roExpanded ? <IconChevronDown className="w-5 h-5" /> : <IconChevronLeft className="w-5 h-5" />}
                       </div>
-                    )}
+                    </button>
+
+                    <AnimatePresence>
+                      {roExpanded && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        >
+                          <div className="px-4 pb-4 space-y-4">
+                            <div className="flex items-center space-x-4 pt-2">
+                              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition-colors ${isDark
+                                ? 'bg-ios-gray-700 border-ios-gray-600'
+                                : 'bg-gray-50 border-gray-100'
+                                }`}>
+                                <IconUser className={`w-6 h-6 ${isDark ? 'text-ios-gray-300' : 'text-gray-400'}`} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className={`text-base font-bold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                  {office.returning_officer_name || t('office.officialTBD', 'Official TBD')}
+                                </h4>
+                                <p className={`text-xs truncate ${isDark ? 'text-ios-gray-400' : 'text-gray-500'}`}>
+                                  {office.returning_officer_email || t('office.emailPending', 'Email Pending...')}
+                                </p>
+                              </div>
+                            </div>
+
+                            {office.returning_officer_email && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const subject = encodeURIComponent(`Inquiry regarding ${office.office_name || 'IEBC Registration Centre'}`);
+                                  const body = encodeURIComponent(`Dear Returning Officer,\n\nI am contacting you regarding the registration centre at ${office.office_location || office.office_name || 'your station'}.\n\n[Your Message Here]`);
+                                  window.location.href = `mailto:${office.returning_officer_email}?subject=${subject}&body=${body}`;
+                                }}
+                                className={`w-full flex items-center justify-center space-x-2 py-3.5 rounded-xl font-bold transition-all duration-300 transform active:scale-[0.98] ${isDark
+                                  ? 'bg-ios-blue hover:bg-ios-blue-600 text-white shadow-lg shadow-ios-blue/20'
+                                  : 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20'
+                                  }`}
+                              >
+                                <IconMail className="w-4 h-4" />
+                                <span>{t('office.emailOfficial', 'Email Official')}</span>
+                              </button>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
 
                   {/* Distance & Route Info - ONLY SHOW IF LOCATION ACCESS GRANTED */}

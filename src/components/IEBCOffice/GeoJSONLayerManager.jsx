@@ -147,6 +147,8 @@ const GeoJSONLayerManager = ({
           formatted_address: office.formatted_address,
           displayName: office.displayName,
           office_type: office.office_type,
+          returning_officer_name: office.returning_officer_name,
+          returning_officer_email: office.returning_officer_email,
           type: office.type || (office.designation_state ? 'diaspora' : 'office')
         }
       }))
