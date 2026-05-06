@@ -59,20 +59,31 @@ async function handleFileProxy(request, env) {
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
         'Access-Control-Allow-Headers': '*',
         'Cache-Control': 'public, max-age=2592000',
-        'Vary': 'Accept-Encoding',
-        'Content-Type': 'application/json'
+        'Vary': 'Accept-Encoding'
     };
 
     if (fileName.includes('..') || fileName.startsWith('/')) {
-        return new Response(JSON.stringify({ error: 'Forbidden path' }), { status: 403, headers: corsHeaders });
+        return new Response(JSON.stringify({ error: 'Forbidden path' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     try {
+        // 1. TRY R2 FIRST (High Performance / Zero Egress)
+        if (env.NASAKA_STATIC) {
+            const r2Object = await env.NASAKA_STATIC.get(fileName);
+            if (r2Object) {
+                const head = new Headers(corsHeaders);
+                r2Object.writeHttpMetadata(head);
+                head.set('etag', r2Object.httpEtag);
+                head.set('Access-Control-Allow-Origin', '*');
+                
+                return new Response(r2Object.body, { headers: head });
+            }
+        }
+
+        // 2. FAILOVER TO B2 (Private S3 Compatible)
         const auth = await getB2Auth(env);
         const bucketName = env.B2_BUCKET_NAME || 'nasaka-map-data';
 
-        // Use Native B2 Download API (v3) - 100% compatible with auth.token
-        // Format: {apiUrl}/b2api/v3/b2_download_file_by_name?bucketName={bucketName}&fileName={fileName}
         const b2Url = `${auth.apiUrl}/b2api/v3/b2_download_file_by_name?bucketName=${bucketName}&fileName=${fileName}`;
         
         const b2Response = await fetch(b2Url, {
@@ -88,14 +99,12 @@ async function handleFileProxy(request, env) {
                 b2_body: errorText.substring(0, 500)
             }), { 
                 status: b2Response.status,
-                headers: corsHeaders 
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
             });
         }
 
         const response = new Response(b2Response.body, b2Response);
-        response.headers.set('Access-Control-Allow-Origin', '*');
-        response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
-        response.headers.set('Cache-Control', 'public, max-age=2592000');
+        Object.entries(corsHeaders).forEach(([k, v]) => response.headers.set(k, v));
         
         return response;
 
@@ -106,11 +115,12 @@ async function handleFileProxy(request, env) {
             secrets_check: {
                 has_key_id: !!env.B2_APPLICATION_KEY_ID,
                 has_key: !!env.B2_APPLICATION_KEY,
-                bucket: env.B2_BUCKET_NAME
+                bucket: env.B2_BUCKET_NAME,
+                has_r2: !!env.NASAKA_STATIC
             }
         }), { 
             status: 500, 
-            headers: corsHeaders 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         });
     }
 }
@@ -194,14 +204,18 @@ async function handleSchedule(env) {
         ot: o.office_type
     }));
 
-    // Write to R2
+    // Write to R2 (internal persistence for smart failover)
     console.log(`Writing ${leanOffices.length} offices to R2...`);
-    await env.BUCKET.put('iebc-offices.json', JSON.stringify(leanOffices), {
-        httpMetadata: {
-            contentType: 'application/json',
-            cacheControl: 'public, max-age=86400, stale-while-revalidate=3600'
-        }
-    });
-
-    console.log('Sync completed successfully.');
+    const bucket = env.NASAKA_STATIC || env.BUCKET;
+    if (bucket) {
+        await bucket.put('iebc-offices.json', JSON.stringify(leanOffices), {
+            httpMetadata: {
+                contentType: 'application/json',
+                cacheControl: 'public, max-age=86400, stale-while-revalidate=3600'
+            }
+        });
+        console.log('Sync to R2 completed successfully.');
+    } else {
+        console.warn('R2 Bucket binding not found, skipping sync.');
+    }
 }

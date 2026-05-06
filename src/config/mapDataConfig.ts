@@ -2,16 +2,15 @@
  * src/config/mapDataConfig.ts
  * ✊🏽🇰🇪 Dual-Source Map Data Configuration
  *
- * Provides a switch mechanism between Supabase Storage (legacy) and
- * Backblaze B2 (egress-free) for all static GeoJSON / map data files.
+ * Backblaze B2 and Cloudflare R2 (egress-free) for all static GeoJSON / map data files.
  *
- * B2 bucket is PRIVATE — uses S3-compatible pre-signed URLs.
- * Supabase Storage remains the fallback at all times.
+ * Cloudflare Worker Proxy acts as the gateway to both R2 (Primary) and B2 (Failover).
+ * Supabase Storage remains the final tertiary fallback at all times.
  *
  * Switch modes:
- *   'b2'       — B2 primary, Supabase fallback
- *   'supabase' — Supabase primary, B2 fallback
- *   'auto'     — Try B2 first; on failure, auto-switch to Supabase for the session
+ *   'b2'       — Proxy (R2/B2) primary, Supabase fallback
+ *   'supabase' — Supabase primary, Proxy fallback
+ *   'auto'     — Try Proxy first (R2 then B2); on failure, auto-switch to Supabase
  */
 
 // ✊🏽🇰🇪 CDN Proxy Base (Cloudflare Worker Domain)
@@ -96,8 +95,8 @@ function getSupabaseUrl(fileKey: MapDataFileKey): string {
 }
 
 /**
- * Fetch a file from B2 using the Cloudflare Smart Proxy.
- * The Proxy handles authentication and CORS headers.
+ * Fetch a file from the Cloudflare Smart Proxy (Failover chain: R2 -> B2).
+ * The Proxy handles authentication, internal Cloudflare R2 routing, and CORS headers.
  */
 async function fetchFromB2(fileKey: MapDataFileKey, signal?: AbortSignal): Promise<Response> {
   const fileName = MAP_DATA_FILES[fileKey];
@@ -176,7 +175,7 @@ export async function fetchMapData<T = any>(fileKey: MapDataFileKey): Promise<T>
       timestamp: Date.now(),
     });
 
-    console.warn(`[mapDataConfig] B2 failed for ${fileKey}: ${errorMsg} — falling back to Supabase`);
+    console.warn(`[mapDataConfig] Proxy (R2/B2) failed for ${fileKey}: ${errorMsg} — falling back to Supabase`);
     _sessionFallbackTriggered = true;
 
     return fetchFromSupabase<T>(fileKey);
