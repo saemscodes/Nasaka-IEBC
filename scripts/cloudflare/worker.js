@@ -30,7 +30,33 @@ export default {
         if (url.pathname === '/sync') {
             try {
                 await handleSchedule(env);
-                return new Response('Sync completed successfully', { headers: { 'Access-Control-Allow-Origin': '*' } });
+                return new Response(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Nasaka Sync Status</title>
+                        <style>
+                            body { font-family: -apple-system, system-ui, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f4f7f6; }
+                            .card { background: white; padding: 2rem; rounded-xl: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 16px; text-align: center; max-width: 400px; }
+                            h1 { color: #1e6bff; margin-bottom: 0.5rem; }
+                            p { color: #666; line-height: 1.5; }
+                            .badge { display: inline-block; padding: 0.25rem 0.75rem; background: #e0f2fe; color: #0369a1; border-radius: 9999px; font-size: 0.75rem; font-weight: bold; margin-top: 1rem; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="card">
+                            <h1>✊🏽🇰🇪 Sync Success</h1>
+                            <p>Market data and Returning Officer contact info have been synchronized to R2 and B2 storage layers.</p>
+                            <div class="badge">PROD PIPELINE ACTIVE</div>
+                        </div>
+                    </body>
+                    </html>
+                `, { 
+                    headers: { 
+                        'Content-Type': 'text/html; charset=utf-8',
+                        'Access-Control-Allow-Origin': '*' 
+                    } 
+                });
             } catch (err) {
                 return new Response(`Sync Error: ${err.message}`, { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } });
             }

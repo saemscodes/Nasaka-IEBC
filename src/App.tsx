@@ -428,6 +428,36 @@ const AppContent = () => {
   return (
     <BrowserRouter>
       <Routes>
+        {/* ✅ HIGH PRIORITY SYSTEM ROUTES */}
+        <Route 
+          path="/sync" 
+          element={
+            <div className="min-h-screen bg-[#f4f7f6] flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+                <h1 className="text-2xl font-bold text-[#1e6bff] mb-4">✊🏽🇰🇪 Data Pipeline Sync</h1>
+                <p className="text-gray-600 mb-6">Synchronizing IEBC Offices and Returning Officer data to global R2/B2 edge layers...</p>
+                <div className="flex flex-col space-x-4">
+                  <button 
+                    onClick={async () => {
+                      try {
+                        const res = await fetch('https://static.civiceducationkenya.com/sync');
+                        if (res.ok) window.location.href = 'https://static.civiceducationkenya.com/sync';
+                        else alert('Sync failed: ' + res.statusText);
+                      } catch (e) {
+                        alert('Sync failed: ' + (e as Error).message);
+                      }
+                    }}
+                    className="bg-[#1e6bff] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#1452cc] transition-all"
+                  >
+                    🚀 Trigger Global Sync
+                  </button>
+                  <p className="text-[10px] text-gray-400 mt-4 uppercase tracking-widest font-black">Secure Edge Propagation</p>
+                </div>
+              </div>
+            </div>
+          }
+        />
+
         {/* 
         COMMENTED OUT ROUTES - PRESERVED FOR FUTURE USE
         
