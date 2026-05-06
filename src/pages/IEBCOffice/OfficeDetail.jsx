@@ -13,7 +13,9 @@ import {
     ExternalLink,
     ChevronRight,
     ArrowRight,
-    Info
+    Info,
+    User,
+    Mail
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -681,6 +683,32 @@ const OfficeDetail = () => {
                             </p>
                         </div>
                     </div>
+
+                    {/* Returning Officer Card — Integration per user request */}
+                    {(office.returning_officer_name || office.returning_officer_email) && (
+                        <div className={`mt-3 p-4 rounded-2xl flex items-center gap-4 border transition-all ${isDark ? 'bg-ios-gray-800/40 border-ios-gray-700/50' : 'bg-ios-gray-50/50 border-ios-gray-100'}`}>
+                            <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-600 dark:text-green-400 shrink-0">
+                                <User className="w-6 h-6" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-0.5">Returning Officer</p>
+                                <p className="text-sm font-bold leading-tight truncate">
+                                    {office.returning_officer_name || 'Assigned Officer'}
+                                </p>
+                                {office.returning_officer_email && (
+                                    <div className="flex items-center gap-1.5 mt-1">
+                                        <Mail className="w-3 h-3 text-ios-blue" />
+                                        <a 
+                                            href={`mailto:${office.returning_officer_email}`}
+                                            className="text-xs font-medium text-ios-blue hover:underline truncate"
+                                        >
+                                            {office.returning_officer_email}
+                                        </a>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Contribution Image — conditional */}
                     {contributionImage && (
