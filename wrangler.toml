@@ -19,5 +19,5 @@ binding = "NASAKA_STATIC"
 bucket_name = "nasaka-static"
 
 # Cron trigger to sync data from Supabase to B2 (daily)
-# [triggers]
-# crons = ["0 3 * * *"]
+[triggers]
+crons = ["0 3 * * *"]

@@ -178,6 +178,11 @@ export async function fetchMapData<T = any>(fileKey: MapDataFileKey): Promise<T>
     console.warn(`[mapDataConfig] Proxy (R2/B2) failed for ${fileKey}: ${errorMsg} — falling back to Supabase`);
     _sessionFallbackTriggered = true;
 
+    // ✊🏽🇰🇪 AUTONOMOUS RECOVERY: Trigger a silent background sync if the primary fails.
+    // This repairs the R2/B2 cache for future users/requests without blocking this one.
+    fetch(`${CDN_BASE_URL}/sync`, { method: 'GET', mode: 'no-cors' })
+      .catch(e => console.warn('[mapDataConfig] Autonomous sync trigger failed:', e.message));
+
     return fetchFromSupabase<T>(fileKey);
   }
 }
