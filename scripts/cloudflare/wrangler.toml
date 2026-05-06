@@ -1,11 +1,10 @@
-name = "nasaka-iebc"
-pages_build_output_dir = "dist"
+name = "nasaka-map-data-worker"
+main = "worker.js"
 compatibility_date = "2024-04-01"
 
-# Custom domain: nasakaiebc.civiceducationkenya.com
-# routes = [
-#   { pattern = "nasakaiebc.civiceducationkenya.com/map-data/*", zone_name = "civiceducationkenya.com" }
-# ]
+[observability.logs]
+enabled = true
+invocation_logs = true
 
 [vars]
 SUPABASE_URL = "https://bfatlkobozblunojtltp.supabase.co"
@@ -19,5 +18,5 @@ binding = "NASAKA_STATIC"
 bucket_name = "nasaka-static"
 
 # Cron trigger to sync data from Supabase to B2 (daily)
-# [triggers]
-# crons = ["0 3 * * *"]
+[triggers]
+crons = ["0 3 * * *"]
