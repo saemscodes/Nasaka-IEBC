@@ -433,7 +433,14 @@ const EnhancedIEBCOfficeMap = () => {
                     <div className={`p-4 rounded-2xl border ${isDark ? 'bg-black/20 border-white/5' : 'bg-white/40 border-black/5'}`}>
                       <OfflineRouteDownloader
                         ref={downloaderRef}
-                        routeGeometry={currentRoute?.[0]?.coordinates || currentRoute?.[0]?.geometry || currentRoute?.[0] || (selectedOffice ? { type: 'Point', coordinates: [selectedOffice.longitude, selectedOffice.latitude] } : null)}
+                        office={selectedOffice}
+                        userLocation={userLocation}
+                        currentRoute={currentRoute}
+                        travelInsights={travelInsights}
+                        trafficInfo={travelInsights ? { 
+                          description: travelInsights.score > 70 ? 'Heavy traffic expected' : travelInsights.score > 40 ? 'Moderate traffic' : 'Light traffic',
+                          color: travelInsights.score > 70 ? 'text-red-500' : travelInsights.score > 40 ? 'text-orange-500' : 'text-green-500'
+                        } : null}
                       />
                     </div>
                   </div>

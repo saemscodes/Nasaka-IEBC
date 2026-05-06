@@ -31,7 +31,7 @@ export const MAP_DATA_FILES = {
   COUNTIES_VOTERS: 'FULL%20CORRECTED%20-%20Kenya%20Counties%20Voters%27%20Data.geojson',
   HEALTHCARE_FACILITIES: 'healthcare_facilities.geojson',
   CONSTITUENCIES_CENTROIDS: 'constituencies_with_centroids.geojson',
-  WARDS_CENTROIDS: 'kenya_wards_centroids.json',
+  WARDS_CENTROIDS: 'kenya_wards_centroid.json',
   IEBC_WARDS: 'kenya_wards.geojson',
 } as const;
 

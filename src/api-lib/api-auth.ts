@@ -281,6 +281,19 @@ export async function validateApiKey(req: Request, options: { required?: boolean
         };
     }
 
+    // ─── Fast-Path: Internal Shared Secret ───────────────────────────────────
+    // Allows the app to use its own internal key without requiring a DB lookup.
+    const internalKey = getEnv('OFFICE_DATA_API_KEY', env) || getEnv('ADMIN_SECRET', env);
+    if (apiKey === internalKey && internalKey && internalKey !== 'asdf1234') {
+        return {
+            valid: true as const,
+            keyId: 'nasaka_internal_sync',
+            tier: 'serikali', // Full feature access for internal calls
+            remaining: 999999,
+            creditsBalance: 999999
+        };
+    }
+
     // SHA-256 hash of the raw key
     const encoder = new TextEncoder();
     const data = encoder.encode(apiKey);

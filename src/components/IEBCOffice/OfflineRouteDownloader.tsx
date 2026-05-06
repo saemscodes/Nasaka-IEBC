@@ -238,16 +238,16 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
             {/* Scrollable Content */}
             <div className="overflow-y-auto h-full green-scrollbar p-5 space-y-6">
                 {/* Intro Card */}
-                <div className={`p-4 rounded-2xl border ${isDark ? 'bg-ios-gray-800/50 border-white/5' : 'bg-ios-gray-100 border-black/5'}`}>
-                    <div className="flex items-center gap-3 mb-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDark ? 'bg-ios-blue/20 text-ios-blue-400' : 'bg-ios-blue/10 text-ios-blue'}`}>
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                <div className={`p-5 rounded-3xl border shadow-sm ${isDark ? 'bg-ios-gray-800/50 border-white/5' : 'bg-ios-gray-100/80 border-black/5'}`}>
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner ${isDark ? 'bg-ios-blue/20 text-ios-blue-400' : 'bg-ios-blue/15 text-ios-blue'}`}>
+                            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
                         </div>
                         <div>
-                            <h3 className={`font-bold ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>{t('offline.protectionTitle', 'Trip Protection')}</h3>
-                            <p className={`text-[10px] uppercase tracking-wider font-bold ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>Persistent Storage Mode</p>
+                            <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>{t('offline.protectionTitle', 'Trip Protection')}</h3>
+                            <p className={`text-[10px] uppercase tracking-widest font-black ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>Persistent Storage Mode</p>
                         </div>
                     </div>
                     <p className={`text-sm leading-relaxed ${isDark ? 'text-ios-gray-300' : 'text-ios-gray-600'}`}>
@@ -315,24 +315,33 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                                 </button>
                             ))}
                         </div>
-                        <p className={`text-[10px] mt-3 italic ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>
-                            {downloadMode === 'minimal'
-                                ? 'Caches 500m around the route path for lightweight offline navigation.'
-                                : downloadMode === 'extended'
-                                    ? 'Caches 1.5km around the route for broader area coverage.'
-                                    : 'Caches the entire ward area (3km radius) for full offline access.'}
-                        </p>
+                        <div className={`mt-3 p-3 rounded-xl border ${isDark ? 'bg-ios-blue/5 border-ios-blue/20' : 'bg-ios-blue/5 border-ios-blue/10'}`}>
+                            <p className={`text-[11px] leading-relaxed font-medium ${isDark ? 'text-ios-blue-300' : 'text-ios-blue-800'}`}>
+                                {downloadMode === 'minimal'
+                                    ? '» ROUTE ONLY: Caches a 500m corridor along your exact path. Ideal for basic navigation.'
+                                    : downloadMode === 'extended'
+                                        ? '» FULL CORRIDOR: Caches a 1.5km territory around the route. Safer for diversions and stops.'
+                                        : '» WHOLE AREA: Caches the entire ward (3km radius). Maximum protection for unknown terrain.'}
+                            </p>
+                        </div>
                     </div>
 
                     {/* Stats */}
-                    <div className={`rounded-2xl border p-4 ${isDark ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
-                        <div className="flex justify-between items-center mb-2">
-                            <span className={`text-xs font-bold underline decoration-ios-blue/30 underline-offset-4 ${isDark ? 'text-ios-gray-300' : 'text-ios-gray-600'}`}>{t('offline.estSize', 'Estimated Download Size')}</span>
-                            <span className={`text-xs font-black ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>{plan?.estimatedSizeMB || 0} MB</span>
+                    <div className={`rounded-3xl border p-5 shadow-inner ${isDark ? 'bg-black/20 border-white/5' : 'bg-white/60 border-black/5'}`}>
+                        <div className="flex justify-between items-center mb-3">
+                            <div className="flex flex-col">
+                                <span className={`text-[10px] font-black uppercase tracking-tighter ${isDark ? 'text-ios-gray-500' : 'text-ios-gray-400'}`}>{t('offline.sizeLabel', 'Total Data Size')}</span>
+                                <span className={`text-sm font-bold ${isDark ? 'text-ios-gray-300' : 'text-ios-gray-700'}`}>{t('offline.estSize', 'Estimated Cache')}</span>
+                            </div>
+                            <span className={`text-xl font-black font-mono tracking-tighter ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>{plan?.estimatedSizeMB || 0} MB</span>
                         </div>
+                        <div className="h-[1px] w-full bg-border/20 mb-3" />
                         <div className="flex justify-between items-center">
-                            <span className={`text-xs font-bold underline decoration-ios-blue/30 underline-offset-4 ${isDark ? 'text-ios-gray-300' : 'text-ios-gray-600'}`}>{t('offline.tileCount', 'Map Tiles')}</span>
-                            <span className={`text-xs font-black ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>{plan?.tileCount || 0} items</span>
+                            <div className="flex flex-col">
+                                <span className={`text-[10px] font-black uppercase tracking-tighter ${isDark ? 'text-ios-gray-500' : 'text-ios-gray-400'}`}>{t('offline.itemsLabel', 'Map Database Index')}</span>
+                                <span className={`text-sm font-bold ${isDark ? 'text-ios-gray-300' : 'text-ios-gray-700'}`}>{t('offline.tileCount', 'Vector Tiles')}</span>
+                            </div>
+                            <span className={`text-xl font-black font-mono tracking-tighter ${isDark ? 'text-white' : 'text-ios-gray-900'}`}>{plan?.tileCount || 0} items</span>
                         </div>
                     </div>
                 </div>
@@ -347,11 +356,23 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
                                 animate={{ opacity: 1 }}
                                 onClick={handleDownload}
                                 disabled={status === 'calculating' || (!routeGeometry && downloadMode !== 'area')}
-                                className={`w-full py-4 rounded-2xl font-black text-sm tracking-widest uppercase transition-all active:scale-[0.98] shadow-2xl
-                                    ${(!routeGeometry && downloadMode !== 'area') ? 'bg-ios-gray-500 opacity-50 cursor-not-allowed' : 'bg-ios-blue text-white shadow-ios-blue/30 hover:bg-ios-blue-600'}
+                                className={`w-full py-5 rounded-3xl font-black text-xs tracking-[0.2em] uppercase transition-all active:scale-[0.98] shadow-2xl flex items-center justify-center gap-3
+                                    ${(!routeGeometry && downloadMode !== 'area') ? 'bg-ios-gray-500 opacity-50 cursor-not-allowed text-white/50' : 'bg-ios-blue text-white shadow-ios-blue/40 hover:bg-ios-blue-600'}
                                 `}
                             >
-                                {(!routeGeometry && downloadMode !== 'area') ? 'Select a Route First' : status === 'calculating' ? 'Calculating...' : downloadMode === 'area' ? t('offline.startArea', 'Cache Area') : t('offline.startSecure', 'Protect Trip')}
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                                </svg>
+                                <span>
+                                    {(!routeGeometry && downloadMode !== 'area') 
+                                        ? 'Route Selection Required' 
+                                        : status === 'calculating' 
+                                            ? 'Initializing...' 
+                                            : downloadMode === 'area' 
+                                                ? t('offline.startArea', 'Download Ward Cache') 
+                                                : t('offline.startSecure', 'Add to Offline Trip')
+                                    }
+                                </span>
                             </motion.button>
                         ) : (
                             <motion.div
@@ -385,19 +406,29 @@ const OfflineRouteDownloader = forwardRef<OfflineDownloaderHandle, OfflineRouteD
 
                 {/* Device Info */}
                 {storageUsed && (
-                    <div className="pt-4 border-t border-border mt-4">
-                        <div className={`flex items-center gap-2 mb-2 ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                            </svg>
-                            <span className="text-[10px] font-black uppercase tracking-widest">{t('offline.storageStatus', 'Device Storage')}</span>
+                    <div className="pt-6 border-t border-border/10 mt-6 pb-10">
+                        <div className={`flex items-center gap-2 mb-3 ${isDark ? 'text-ios-gray-400' : 'text-ios-gray-500'}`}>
+                            <div className="p-1.5 rounded-lg bg-gray-500/10">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
+                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-widest">{t('offline.storageStatus', 'System Storage Status')}</span>
                         </div>
-                        <p className={`text-[10px] font-bold ml-5 ${isDark ? 'text-ios-gray-300' : 'text-ios-gray-600'}`}>
-                            {storageUsed.toUpperCase().replace(/\(([\d.]+)%\)/, (match, p1) => {
-                                const val = parseFloat(p1);
-                                return `(${val > 100 ? '100%+' : `${val}%`})`;
-                            })}
-                        </p>
+                        <div className={`p-4 rounded-2xl border ${isDark ? 'bg-black/20 border-white/5' : 'bg-white border-black/5'}`}>
+                            <p className={`text-xs font-black font-mono ${isDark ? 'text-ios-gray-300' : 'text-ios-gray-600'}`}>
+                                {storageUsed.toUpperCase().replace(/\(([\d.]+)%\)/, (match, p1) => {
+                                    const val = parseFloat(p1);
+                                    return `| ${val > 100 ? '100%+' : `${val}% Capacity Used`}`;
+                                })}
+                            </p>
+                            <div className="mt-2 h-1.5 w-full bg-gray-200/20 rounded-full overflow-hidden">
+                                <div 
+                                    className="h-full bg-ios-gray-400" 
+                                    style={{ width: storageUsed.match(/(\d+\.?\d*)%/)?.[1] + '%' }}
+                                />
+                            </div>
+                        </div>
                     </div>
                 )}
 
