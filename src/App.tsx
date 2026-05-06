@@ -441,10 +441,18 @@ const AppContent = () => {
                     onClick={async () => {
                       try {
                         const res = await fetch('https://static.civiceducationkenya.com/sync');
-                        if (res.ok) window.location.href = 'https://static.civiceducationkenya.com/sync';
-                        else alert('Sync failed: ' + res.statusText);
+                        if (res.ok) {
+                          window.location.href = 'https://static.civiceducationkenya.com/sync';
+                        } else {
+                          let msg = res.statusText;
+                          try {
+                            const body = await res.json();
+                            msg = body.error || body.hint || JSON.stringify(body);
+                          } catch (_) { msg = await res.text().catch(() => res.statusText); }
+                          alert(`Sync failed (${res.status}):\n\n${msg}`);
+                        }
                       } catch (e) {
-                        alert('Sync failed: ' + (e as Error).message);
+                        alert('Sync failed (network error): ' + (e as Error).message);
                       }
                     }}
                     className="bg-[#1e6bff] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#1452cc] transition-all"
