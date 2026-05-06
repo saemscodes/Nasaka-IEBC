@@ -26,13 +26,13 @@ if (existsSync(envPath)) {
         const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
         if (match) {
             let key = match[1];
-            let value = match[2] || '';
+            let value = (match[2] || '').trim();
             if (value.startsWith('"') && value.endsWith('"')) {
                 value = value.substring(1, value.length - 1);
             } else if (value.startsWith("'") && value.endsWith("'")) {
                 value = value.substring(1, value.length - 1);
             }
-            if (!process.env[key]) process.env[key] = value;
+            process.env[key] = value;
         }
     });
 }
