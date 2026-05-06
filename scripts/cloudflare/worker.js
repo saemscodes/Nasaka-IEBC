@@ -58,7 +58,13 @@ export default {
                     } 
                 });
             } catch (err) {
-                return new Response(`Sync Error: ${err.message}`, { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } });
+                return new Response(JSON.stringify({ 
+                    error: err.message,
+                    hint: 'Ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set as Worker secrets via: wrangler secret put SUPABASE_URL'
+                }), { 
+                    status: 500, 
+                    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } 
+                });
             }
         }
 
@@ -192,6 +198,14 @@ async function getB2Auth(env) {
 async function handleSchedule(env) {
     const supabaseUrl = env.SUPABASE_URL;
     const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY;
+
+    // Pre-flight: fail fast with a clear message instead of a cryptic fetch error
+    if (!supabaseUrl || !supabaseKey) {
+        throw new Error(
+            `Missing Worker secrets: ${ !supabaseUrl ? 'SUPABASE_URL ' : ''}${ !supabaseKey ? 'SUPABASE_SERVICE_ROLE_KEY' : ''}. ` +
+            `Add them with: wrangler secret put SUPABASE_URL && wrangler secret put SUPABASE_SERVICE_ROLE_KEY`
+        );
+    }
 
     console.log('Fetching all offices from Supabase...');
 
