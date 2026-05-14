@@ -134,7 +134,7 @@ const FeedbackCarousel = () => {
   const { theme } = useTheme();
   const controls = useAnimation();
   const [isPaused, setIsPaused] = useState(false);
-  
+
   const feedbacks = [
     { name: "judy (@judepatwang)", role: "X User (Agri/AI/Digital User)", text: "Good progress..." },
     { name: "Bernard Wanjohi ™ (@9_bendiehard)", role: "X User", text: "Wacha tusambaze injili💯" },
@@ -167,7 +167,7 @@ const FeedbackCarousel = () => {
     { name: "Instagram User", role: "Commenter", text: "I love this!!🔥" },
     { name: "Instagram User", role: "Commenter", text: "Kazi Safii!🔥" }
   ];
-  
+
   const displayItems = [...feedbacks, ...feedbacks, ...feedbacks];
 
   const marqueeVariants = {
@@ -196,7 +196,7 @@ const FeedbackCarousel = () => {
     <div className="relative overflow-hidden py-16 w-full px-4 group !cursor-grab active:!cursor-grabbing">
       <div className={`absolute left-0 top-0 bottom-0 w-32 md:w-64 z-10 pointer-events-none bg-gradient-to-r ${theme === 'dark' ? 'from-[#02040A] via-[#02040A]/60 to-transparent' : 'from-[#F2F2F7] via-[#F2F2F7]/60 to-transparent'}`} />
       <div className={`absolute right-0 top-0 bottom-0 w-32 md:w-64 z-10 pointer-events-none bg-gradient-to-l ${theme === 'dark' ? 'from-[#02040A] via-[#02040A]/60 to-transparent' : 'from-[#F2F2F7] via-[#F2F2F7]/60 to-transparent'}`} />
-      
+
       <motion.div
         drag="x"
         dragConstraints={{ left: -4000, right: 0 }}
@@ -239,7 +239,7 @@ const About = () => {
   const contentOpacity = useTransform(smoothProgress, [0, 0.8, 1], [1, 1, 0]);
 
   const { location: geoLoc, loading: geoLoading, error: geoError, requestLocation } = useGeolocation();
-  
+
   const handleFindOffice = () => {
     requestLocation();
   };
@@ -328,10 +328,10 @@ const About = () => {
             className="flex items-center gap-3 md:gap-4 focus:outline-none"
           >
             <div className="overflow-hidden flex items-center justify-center will-change-transform">
-              <img 
-                src="/assets/nasaka-cut-nobg.png" 
-                alt="NASAKA" 
-                className="h-6 md:h-12 w-auto object-contain scale-[1.15] transform-gpu -ml-1 md:-ml-2" 
+              <img
+                src="/assets/nasaka-cut-nobg.png"
+                alt="NASAKA"
+                className="h-6 md:h-12 w-auto object-contain scale-[1.15] transform-gpu -ml-1 md:-ml-2"
               />
             </div>
           </motion.button>
@@ -554,10 +554,10 @@ const About = () => {
               onClick={() => navigate('/')}
               className="inline-block cursor-pointer mb-8 md:mb-10"
             >
-              <img 
-                src="/assets/nasaka-cut-nobg.png" 
-                alt="NASAKA" 
-                className="h-10 md:h-16 w-auto object-contain scale-[1.1] transform-gpu origin-left will-change-transform -ml-2 md:-ml-3" 
+              <img
+                src="/assets/nasaka-cut-nobg.png"
+                alt="NASAKA"
+                className="h-10 md:h-16 w-auto object-contain scale-[1.1] transform-gpu origin-left will-change-transform -ml-2 md:-ml-3"
               />
             </motion.div>
             <p className="text-xl md:text-2xl font-bold opacity-80 mb-10 md:mb-12 max-w-md leading-relaxed">
@@ -575,11 +575,10 @@ const About = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ y: -3, scale: 1.1 }}
-                  className={`w-12 h-12 md:w-16 md:h-16 rounded-2xl md:rounded-[1.5rem] flex items-center justify-center border-2 shadow-xl transition-all duration-300 ${
-                    theme === 'dark'
+                  className={`w-12 h-12 md:w-16 md:h-16 rounded-2xl md:rounded-[1.5rem] flex items-center justify-center border-2 shadow-xl transition-all duration-300 ${theme === 'dark'
                       ? 'bg-gradient-to-br from-[#1E6BFF]/20 to-[#0A1128] border-[#1E6BFF]/40 hover:border-[#1E6BFF]/70 hover:shadow-[0_8px_30px_rgba(30,107,255,0.35)]'
                       : 'bg-gradient-to-br from-white to-[#F2F2F7] border-[#1E6BFF]/20 hover:shadow-xl'
-                  }`}
+                    }`}
                 >
                   <LocalIcon
                     name={icon.name}
@@ -609,7 +608,7 @@ const About = () => {
           </div>
         </div>
         <div className="max-w-7xl mx-auto mt-20 md:mt-32 pt-16 md:pt-20 border-t-2 border-[#1E6BFF]/10 flex flex-col md:flex-row justify-between items-center gap-10 md:gap-12">
-          <p className="text-sm md:text-base font-black opacity-50 uppercase tracking-[0.2em] md:tracking-[0.3em] text-center md:text-left">© 2026 CEKA • NASAKA V20.3.3</p>
+          <p className="text-sm md:text-base font-black opacity-50 uppercase tracking-[0.2em] md:tracking-[0.3em] text-center md:text-left">© 2026 CEKA • NASAKA V20.3.7</p>
           <motion.a
             href="https://status.nasakaiebc.civiceducationkenya.com"
             target="_blank"
