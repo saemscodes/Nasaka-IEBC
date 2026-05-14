@@ -312,6 +312,8 @@ export function generateOrganizationSchema() {
         },
         sameAs: [
             'https://twitter.com/CivicEdKenya',
+            'https://sw.wikipedia.org/wiki/Nasaka_IEBC',
+            'https://www.wikidata.org/wiki/Q139784812'
         ],
         contactPoint: {
             '@type': 'ContactPoint',
@@ -352,5 +354,8 @@ export function generateWebApplicationSchema() {
             name: 'Civic Education Kenya (CEKA)',
         },
         inLanguage: ['en-KE', 'sw-KE'],
+        sameAs: [
+            'https://sw.wikipedia.org/wiki/Nasaka_IEBC'
+        ],
     };
 }
