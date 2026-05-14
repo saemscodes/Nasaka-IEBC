@@ -165,7 +165,7 @@ const OfficeDetail = () => {
                 // 1. Try ward match — fetch ALL offices in this ward for disambiguation
                 const { data: wardResults, error: e0 } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name:ward')
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name:ward, returning_officer_name, returning_officer_email')
                     .ilike('ward', `%${wardSearch}%`)
                     .ilike('constituency_name', `%${constituencySearch}%`)
                     .order('office_location', { ascending: true });
@@ -190,7 +190,7 @@ const OfficeDetail = () => {
             // 1. Try constituency match - prioritize the official Constituency Office if it exists
                 const { data: constituencyResults, error: e1 } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name:ward, office_type, clean_office_location')
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name:ward, office_type, clean_office_location, returning_officer_name, returning_officer_email')
                     .ilike('county', `%${countySearch}%`) // FUZZY MATCH COUNTY
                     .ilike('constituency_name', `%${constituencySearch}%`)
                     .order('office_type', { ascending: false });
@@ -208,7 +208,7 @@ const OfficeDetail = () => {
                 // 3. County-only fallback
                 const { data: d3, error: e3 } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name:ward')
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name:ward, returning_officer_name, returning_officer_email')
                     .ilike('county', countySearch)
                     .limit(1)
                     .maybeSingle();
@@ -267,7 +267,7 @@ const OfficeDetail = () => {
                 // Final fuzzy fallback on county as absolute last resort
                 const { data: fuzzyData } = await supabase
                     .from('iebc_offices')
-                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name:ward')
+                    .select('id, county, constituency, constituency_code, constituency_name, office_location, latitude, longitude, verified, formatted_address, landmark, landmark_normalized, landmark_source, walking_effort, elevation_meters, geocode_verified, geocode_verified_at, multi_source_confidence, created_at, updated_at, ward_name:ward, returning_officer_name, returning_officer_email')
                     .ilike('county', `%${countySearch}%`)
                     .limit(1)
                     .maybeSingle();
